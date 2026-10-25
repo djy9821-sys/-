@@ -3,14 +3,24 @@
  * 计算由 baziChart 统一提供；页面采用紧凑、专业的命盘信息架构。
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Calendar, Clock, Printer, Sparkles, TrendingUp, User } from 'lucide-react';
+import { ArrowLeft, Calendar, CalendarDays, Clock, Link2, Printer, Sparkles, TrendingUp, User } from 'lucide-react';
 import BaziLanding from './bazi/BaziLanding';
+import BaziFlowPanel, { RelationList } from './bazi/BaziFlowPanel';
 import {
     BAZI_HOUR_OPTIONS,
     buildBaziChart,
     getBaziDayCount,
     getBaziMonthOptions,
 } from '../utils/baziChart';
+import {
+    buildLiuRi,
+    buildLiuShi,
+    buildLiuYue,
+    getBaziYearOfDate,
+    isValidYmd,
+    resolveFlowSelection,
+} from '../utils/baziFlow';
+import { findRelations } from '../utils/baziRelations';
 
 const WUXING_STYLES = {
     '木': { text: 'text-[#247055]', solid: 'bg-[#247055]' },
@@ -30,7 +40,29 @@ const PROFESSIONAL_GLOSSARY = [
     ['地势', '日主临该地支的十二长生状态，并非单柱吉凶结论。'],
     ['空亡', '该干支所在旬的旬空提示，需要结合全局关系判断。'],
     ['大运／流年', '大运表示十年阶段，流年表示其中的单年时间层。'],
+    ['流月／流日／流时', '流月以节令交节为界，流日、流时为具体日期与时辰的干支，用于细看某一天、某个时辰。'],
+    ['合冲刑害', '对照表下方列出运限各层与本命四柱之间的干支关系，仅作结构提示，吉凶需结合喜忌判断。'],
 ];
+
+// 对照层级：流年为原有默认，向下逐层增加流月、流日、流时列。
+const COMPARE_DEPTHS = [
+    { value: 'year', label: '流年' },
+    { value: 'month', label: '流月' },
+    { value: 'day', label: '流日' },
+    { value: 'hour', label: '流时' },
+];
+const DEPTH_RANK = { year: 0, month: 1, day: 2, hour: 3 };
+const deeperDepth = (current, next) => (DEPTH_RANK[next] > DEPTH_RANK[current] ? next : current);
+
+const COLUMN_TONES = {
+    'liu-shi': { cell: 'bg-[#6b4f8a]/[0.045]', head: 'bg-[#6b4f8a]/10 text-[#56406f]' },
+    'liu-ri': { cell: 'bg-[#9a7119]/[0.055]', head: 'bg-[#9a7119]/10 text-[#7d5c14]' },
+    'liu-yue': { cell: 'bg-[#315f7d]/[0.05]', head: 'bg-[#315f7d]/10 text-[#2a5470]' },
+    'liu-nian': { cell: 'bg-[#a33b30]/[0.055]', head: 'bg-[#a33b30]/10 text-[#96372e]' },
+    'da-yun': { cell: 'bg-[#2d6b62]/[0.06]', head: 'bg-[#2d6b62]/10 text-[#2d6b62]' },
+    day: { cell: 'bg-[#a33b30]/[0.035]', head: 'bg-[#a33b30]/[0.07] text-[#96372e]' },
+};
+const FLOW_KEYS = ['liu-shi', 'liu-ri', 'liu-yue', 'liu-nian', 'da-yun'];
 
 const GAN_WUXING = {
     '甲': '木', '乙': '木', '丙': '火', '丁': '火', '戊': '土',
@@ -161,15 +193,11 @@ const normalizeComparisonColumn = (source, key, fallbackName, meta = '') => {
     };
 };
 
-const comparisonTone = (column) => {
-    if (column.key === 'liu-nian') return 'bg-[#a33b30]/[0.055]';
-    if (column.key === 'da-yun') return 'bg-[#2d6b62]/[0.06]';
-    if (column.key === 'day') return 'bg-[#a33b30]/[0.035]';
-    return 'bg-[#fffaf0]/65';
-};
+const comparisonTone = (column) => COLUMN_TONES[column.key]?.cell ?? 'bg-[#fffaf0]/65';
 
-const ProfessionalComparisonTable = ({ pillars, daYun, liuNian, detail = 'compact', describedBy }) => {
+const ProfessionalComparisonTable = ({ pillars, daYun, liuNian, flowColumns = [], detail = 'compact', describedBy }) => {
     const columns = [
+        ...flowColumns.map(({ source, key, name, meta }) => normalizeComparisonColumn(source, key, name, meta)),
         normalizeComparisonColumn(
             liuNian,
             'liu-nian',
@@ -189,9 +217,9 @@ const ProfessionalComparisonTable = ({ pillars, daYun, liuNian, detail = 'compac
 
     return (
         <div className="-mx-2 mt-4 overflow-x-auto rounded-xl border border-[#b9ad98]/80 bg-[#fffaf0]/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] print:mx-0 print:overflow-visible print:ring-0 sm:mx-0" tabIndex={describedBy ? 0 : undefined} aria-describedby={describedBy}>
-            <table className="w-full min-w-[680px] table-fixed border-collapse print:min-w-0">
+            <table className="w-full table-fixed border-collapse print:min-w-0!" style={{ minWidth: `${Math.max(680, 64 + columns.length * 88)}px` }}>
                 <caption className="sr-only">
-                    {liuNian ? `${liuNian.year}年${liuNian.ganZhi}流年、` : ''}{daYun ? `${daYun.ganZhi}大运与` : ''}本命四柱专业对照表，{detail === 'full' ? '完整' : '精简'}模式
+                    {flowColumns.map(({ source, name }) => `${source?.ganZhi ?? ''}${name}、`).join('')}{liuNian ? `${liuNian.year}年${liuNian.ganZhi}流年、` : ''}{daYun ? `${daYun.ganZhi}大运与` : ''}本命四柱专业对照表，{detail === 'full' ? '完整' : '精简'}模式
                 </caption>
                 <colgroup>
                     <col className="w-14 print:w-12 sm:w-16" />
@@ -201,7 +229,7 @@ const ProfessionalComparisonTable = ({ pillars, daYun, liuNian, detail = 'compac
                     <tr>
                         <th className="sticky left-0 z-30 border-b border-r border-[#b9ad98]/80 bg-[#dfd3c0] px-1 py-2 text-[10px] font-semibold text-[#756d63] print:static print:text-[8px] sm:text-xs">对照</th>
                         {columns.map((column) => (
-                            <th key={column.key} scope="col" className={`border-b border-r border-[#b9ad98]/80 px-1 py-2 text-xs font-bold last:border-r-0 print:text-[9px] sm:text-sm ${column.key === 'liu-nian' ? 'bg-[#a33b30]/10 text-[#96372e]' : column.key === 'da-yun' ? 'bg-[#2d6b62]/10 text-[#2d6b62]' : column.key === 'day' ? 'bg-[#a33b30]/[0.07] text-[#96372e]' : 'bg-[#e9dfcd]/45 text-[#514941]'}`}>
+                            <th key={column.key} scope="col" className={`border-b border-r border-[#b9ad98]/80 px-1 py-2 text-xs font-bold last:border-r-0 print:text-[9px] sm:text-sm ${COLUMN_TONES[column.key]?.head ?? 'bg-[#e9dfcd]/45 text-[#514941]'}`}>
                                 <span className="block">{column.name}</span>
                                 {column.meta && <span className="mt-0.5 block text-[10px] font-normal tabular-nums opacity-70 print:text-[6px]">{column.meta}</span>}
                             </th>
@@ -298,6 +326,14 @@ const WuxingStructure = ({ counts }) => {
 
 const formatStartSolar = (value) => value?.split(' ')[0]?.replaceAll('-', '.') ?? '—';
 
+// 日历、时辰上的小圆点只看地支（及整柱伏吟、反吟）与本命四柱的关系；
+// 天干关系与“破”在选中后的关系列表里完整列出，不占用圆点，避免满屏都是标记。
+const strongestNatalMark = (natalItems, key, label, item) => {
+    const relation = findRelations([{ key, label, gan: item.gan, zhi: item.zhi }, ...natalItems], { focusKeys: [key] })
+        .find(({ scope, tone }) => scope !== 'gan' && tone !== 'break');
+    return relation ? { tone: relation.tone, title: relation.title } : null;
+};
+
 export default function BaziDivination({ onBack }) {
     const [step, setStep] = useState('landing');
     const [calendarType, setCalendarType] = useState('solar');
@@ -320,9 +356,12 @@ export default function BaziDivination({ onBack }) {
     const [chartAsOf, setChartAsOf] = useState(() => new Date());
     const [showSelectionDock, setShowSelectionDock] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [flowSelection, setFlowSelection] = useState(null);
+    const [compareDepth, setCompareDepth] = useState('year');
     const daYunScrollerRef = useRef(null);
     const professionalSectionRef = useRef(null);
     const liuNianSectionRef = useRef(null);
+    const flowSectionRef = useRef(null);
     const calculateTimerRef = useRef(null);
     const stepRegionRef = useRef(null);
 
@@ -390,6 +429,81 @@ export default function BaziDivination({ onBack }) {
         return [...liuNian, currentLiuNian].sort((a, b) => a.year - b.year);
     }, [baziResult, selectedDaYun]);
 
+    const dayMasterGan = baziResult?.dayMaster?.gan ?? null;
+
+    const liuYueList = useMemo(() => {
+        if (!selectedLiuNian || !dayMasterGan) return [];
+        try {
+            return buildLiuYue(selectedLiuNian.year, dayMasterGan, chartAsOf);
+        } catch (error) {
+            console.error('计算流月失败:', error);
+            return [];
+        }
+    }, [selectedLiuNian, dayMasterGan, chartAsOf]);
+
+    const activeFlow = useMemo(
+        () => resolveFlowSelection(liuYueList, flowSelection, chartAsOf),
+        [liuYueList, flowSelection, chartAsOf],
+    );
+    const selectedLiuYue = activeFlow ? liuYueList[activeFlow.monthIndex] : null;
+
+    const liuRiList = useMemo(
+        () => (selectedLiuYue && dayMasterGan ? buildLiuRi(selectedLiuYue, dayMasterGan, chartAsOf) : []),
+        [selectedLiuYue, dayMasterGan, chartAsOf],
+    );
+    const selectedLiuRi = liuRiList.find((day) => day.date === activeFlow?.date) ?? liuRiList[0] ?? null;
+
+    const liuShiList = useMemo(
+        () => (selectedLiuRi && dayMasterGan ? buildLiuShi(selectedLiuRi.date, dayMasterGan, chartAsOf) : []),
+        [selectedLiuRi, dayMasterGan, chartAsOf],
+    );
+    const selectedLiuShi = liuShiList.find((hour) => hour.index === activeFlow?.hourIndex) ?? liuShiList[0] ?? null;
+
+    const flowColumns = useMemo(() => {
+        const rank = DEPTH_RANK[compareDepth];
+        return [
+            rank >= 3 && selectedLiuShi && { key: 'liu-shi', name: '流时', source: selectedLiuShi, meta: `${selectedLiuShi.hourName} ${selectedLiuShi.range}` },
+            rank >= 2 && selectedLiuRi && { key: 'liu-ri', name: '流日', source: selectedLiuRi, meta: `${selectedLiuRi.month}/${selectedLiuRi.day} ${selectedLiuRi.weekdayLabel}` },
+            rank >= 1 && selectedLiuYue && { key: 'liu-yue', name: '流月', source: selectedLiuYue, meta: `${selectedLiuYue.jieName} ${selectedLiuYue.label}起` },
+        ].filter(Boolean);
+    }, [compareDepth, selectedLiuShi, selectedLiuRi, selectedLiuYue]);
+
+    // 关系计算统一使用 { key, label, gan, zhi } 结构。
+    const natalItems = useMemo(
+        () => (baziResult?.pillars ?? []).map((pillar) => ({ key: pillar.key, label: pillar.name, gan: pillar.gan, zhi: pillar.zhi })),
+        [baziResult],
+    );
+    const fortuneItems = useMemo(() => [
+        selectedDaYun && { key: 'da-yun', label: '大运', gan: selectedDaYun.gan, zhi: selectedDaYun.zhi },
+        selectedLiuNian && { key: 'liu-nian', label: '流年', gan: selectedLiuNian.gan, zhi: selectedLiuNian.zhi },
+    ].filter(Boolean), [selectedDaYun, selectedLiuNian]);
+
+    const comparisonRelations = useMemo(() => findRelations([
+        ...flowColumns.map(({ key, name, source }) => ({ key, label: name, gan: source.gan, zhi: source.zhi })),
+        ...fortuneItems,
+        ...natalItems,
+    ], { focusKeys: FLOW_KEYS }), [flowColumns, fortuneItems, natalItems]);
+
+    const selectionRelations = useMemo(() => {
+        if (!selectedLiuRi) return [];
+        return findRelations([
+            selectedLiuShi && { key: 'liu-shi', label: '流时', gan: selectedLiuShi.gan, zhi: selectedLiuShi.zhi },
+            { key: 'liu-ri', label: '流日', gan: selectedLiuRi.gan, zhi: selectedLiuRi.zhi },
+            selectedLiuYue && { key: 'liu-yue', label: '流月', gan: selectedLiuYue.gan, zhi: selectedLiuYue.zhi },
+            ...fortuneItems,
+            ...natalItems,
+        ].filter(Boolean), { focusKeys: ['liu-ri', 'liu-shi'] });
+    }, [selectedLiuRi, selectedLiuShi, selectedLiuYue, fortuneItems, natalItems]);
+
+    const dayMarks = useMemo(
+        () => Object.fromEntries(liuRiList.map((day) => [day.date, strongestNatalMark(natalItems, 'liu-ri', '流日', day)])),
+        [liuRiList, natalItems],
+    );
+    const hourMarks = useMemo(
+        () => Object.fromEntries(liuShiList.map((hour) => [hour.index, strongestNatalMark(natalItems, 'liu-shi', '流时', hour)])),
+        [liuShiList, natalItems],
+    );
+
     useEffect(() => {
         if (!selectedDaYun || !daYunScrollerRef.current) return;
         const selectedButton = daYunScrollerRef.current.querySelector(`[data-dayun-index="${selectedDaYun.index}"]`);
@@ -449,6 +563,8 @@ export default function BaziDivination({ onBack }) {
         setLoading(true);
         setChartAsOf(new Date());
         setFortuneSelection({ mode: 'current', daYunIndex: null, liuNianYear: null });
+        setFlowSelection(null);
+        setCompareDepth('year');
         setShowSelectionDock(false);
         setResultMode('basic');
         calculateTimerRef.current = window.setTimeout(() => {
@@ -503,9 +619,49 @@ export default function BaziDivination({ onBack }) {
     const returnToCurrentFortune = () => {
         setChartAsOf(new Date());
         setFortuneSelection({ mode: 'current', daYunIndex: null, liuNianYear: null });
+        setFlowSelection(null);
         setResultMode('professional');
         setShowSelectionDock(false);
         scrollToSection(professionalSectionRef);
+    };
+
+    // 流月、流日、流时的选择：对照表自动加深到所点的层级，并在手机端提示查看专业盘。
+    const applyFlowSelection = (nextSelection, depth) => {
+        setFlowSelection(nextSelection);
+        setCompareDepth((current) => deeperDepth(current, depth));
+        setResultMode('professional');
+        setShowSelectionDock(true);
+    };
+
+    const selectFlowMonth = (monthIndex) => {
+        if (!activeFlow) return;
+        applyFlowSelection({ baziYear: activeFlow.baziYear, monthIndex, date: null, hourIndex: activeFlow.hourIndex }, 'month');
+    };
+
+    const selectFlowDay = (date) => {
+        if (!activeFlow) return;
+        applyFlowSelection({ baziYear: activeFlow.baziYear, monthIndex: activeFlow.monthIndex, date, hourIndex: activeFlow.hourIndex }, 'day');
+    };
+
+    const selectFlowHour = (hourIndex) => {
+        if (!activeFlow) return;
+        applyFlowSelection({ baziYear: activeFlow.baziYear, monthIndex: activeFlow.monthIndex, date: activeFlow.date, hourIndex }, 'hour');
+    };
+
+    const jumpToFlowDate = (ymd) => {
+        if (!isValidYmd(ymd)) return '请输入有效的日期';
+        const baziYear = getBaziYearOfDate(ymd);
+        const daYun = baziResult?.yun?.dayun?.find((item) => item.liuNian.some((liuNian) => liuNian.year === baziYear));
+        if (!daYun) return `${baziYear}年不在本命盘的大运范围内（起运前或超出排列年份）`;
+        setFortuneSelection({ mode: 'manual', daYunIndex: daYun.index, liuNianYear: baziYear });
+        applyFlowSelection({ baziYear, monthIndex: null, date: ymd, hourIndex: activeFlow?.hourIndex ?? null }, 'day');
+        return null;
+    };
+
+    const returnFlowToNow = () => {
+        setChartAsOf(new Date());
+        setFortuneSelection({ mode: 'current', daYunIndex: null, liuNianYear: null });
+        applyFlowSelection(null, 'hour');
     };
 
     const isViewingCurrentFortune = Boolean(
@@ -516,6 +672,20 @@ export default function BaziDivination({ onBack }) {
     );
 
     const genderLabel = gender === 'male' ? '乾造' : '坤造';
+
+    const selectionSummary = (() => {
+        const yearText = selectedLiuNian ? `${selectedLiuNian.year}${selectedLiuNian.ganZhi}流年` : '未选择流年';
+        if (compareDepth === 'hour' && selectedLiuRi && selectedLiuShi) {
+            return `${selectedLiuRi.month}/${selectedLiuRi.day} ${selectedLiuShi.hourName} · ${selectedLiuRi.ganZhi}日 ${selectedLiuShi.ganZhi}时`;
+        }
+        if (compareDepth === 'day' && selectedLiuRi && selectedLiuYue) {
+            return `${selectedLiuRi.month}/${selectedLiuRi.day} ${selectedLiuRi.ganZhi}日 · ${selectedLiuYue.ganZhi}月`;
+        }
+        if (compareDepth === 'month' && selectedLiuYue) {
+            return `${selectedLiuYue.ganZhi}月 · ${yearText}`;
+        }
+        return `${selectedDaYun?.ganZhi ?? '—'}大运 · ${yearText}`;
+    })();
 
     if (step === 'landing') {
         return <BaziLanding onBack={onBack} onStart={() => setStep('input')} />;
@@ -653,7 +823,7 @@ export default function BaziDivination({ onBack }) {
                                                     seal="壹"
                                                     title={resultMode === 'professional' ? '专业运限同参' : '四柱八字'}
                                                     note={resultMode === 'professional'
-                                                        ? '所选流年、大运与本命四柱并列对照；横向滑动可查看完整命盘'
+                                                        ? '所选运限（流时、流日、流月、流年、大运）与本命四柱并列对照；横向滑动查看完整命盘'
                                                         : '主星、干支、藏干十神与纳音'}
                                                     icon={Sparkles}
                                                 />
@@ -665,9 +835,7 @@ export default function BaziDivination({ onBack }) {
                                                             <div className="flex flex-wrap items-center justify-between gap-2">
                                                                 <div>
                                                                     <span className="text-[10px] text-[#81776b]">正在对照</span>
-                                                                    <p className="mt-0.5 text-sm font-bold text-[#3b342e]">
-                                                                        {selectedDaYun?.ganZhi ?? '—'}大运 · {selectedLiuNian ? `${selectedLiuNian.year}${selectedLiuNian.ganZhi}流年` : '未选择流年'}
-                                                                    </p>
+                                                                    <p className="mt-0.5 text-sm font-bold text-[#3b342e]">{selectionSummary}</p>
                                                                 </div>
                                                                 <div className="flex gap-2">
                                                                     <button type="button" onClick={() => scrollToSection(liuNianSectionRef)} className="inline-flex min-h-11 items-center rounded-lg border border-[#9f917c] bg-[#fffaf0]/70 px-3 text-xs font-bold text-[#5f574f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62]">换流年 ↓</button>
@@ -676,6 +844,17 @@ export default function BaziDivination({ onBack }) {
                                                                     </button>
                                                                 </div>
                                                             </div>
+                                                            <fieldset className="mt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-[#c8bba7]/70 pt-2.5">
+                                                                <legend className="sr-only">对照到哪一层运限</legend>
+                                                                <span className="text-[11px] font-medium text-[#6f665d]">对照层级</span>
+                                                                <div className="grid grid-cols-4 rounded-lg border border-[#b9ad98] bg-[#f7f0e5] p-1" role="group" aria-label="对照到哪一层运限">
+                                                                    {COMPARE_DEPTHS.map((option) => (
+                                                                        <button key={option.value} type="button" aria-pressed={compareDepth === option.value} onClick={() => setCompareDepth(option.value)} className={`min-h-11 min-w-[3.25rem] rounded-md px-1.5 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${compareDepth === option.value ? 'bg-[#2d6b62] text-white' : 'text-[#6f665d]'}`}>
+                                                                            {option.label}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            </fieldset>
                                                             <fieldset className="mt-2.5 flex items-center justify-between gap-3 border-t border-[#c8bba7]/70 pt-2.5">
                                                                 <legend className="sr-only">专业细盘显示内容</legend>
                                                                 <span className="text-[11px] font-medium text-[#6f665d]">显示内容</span>
@@ -688,14 +867,22 @@ export default function BaziDivination({ onBack }) {
                                                                 </div>
                                                             </fieldset>
                                                         </div>
-                                                        <p id="bazi-professional-scroll-tip" className="mt-2 px-1 text-[10px] leading-5 text-[#81776b]">可左右滑动查看流年、大运与四柱；精简模式优先展示干支与藏干。</p>
+                                                        <p id="bazi-professional-scroll-tip" className="mt-2 px-1 text-[10px] leading-5 text-[#81776b]">可左右滑动查看运限与四柱；精简模式优先展示干支与藏干。在下方「流月 · 流日 · 流时」中点选具体日期时辰。</p>
                                                         <ProfessionalComparisonTable
                                                             pillars={baziResult.pillars}
                                                             daYun={selectedDaYun}
                                                             liuNian={selectedLiuNian}
+                                                            flowColumns={flowColumns}
                                                             detail={professionalDetail}
                                                             describedBy="bazi-professional-scroll-tip"
                                                         />
+                                                        <div className="mt-4 rounded-xl border border-[#cbbfac]/80 bg-[#fffaf0]/55 p-3">
+                                                            <p className="flex items-center gap-1.5 text-sm font-bold text-[#514941]">
+                                                                <Link2 className="size-4 text-[#2d6b62]" aria-hidden="true" />合冲刑害
+                                                                <span className="text-[10px] font-normal text-[#81776b]">运限各层与命局之间的干支关系</span>
+                                                            </p>
+                                                            <RelationList relations={comparisonRelations} emptyText="所选运限与命局之间没有明显的合冲刑害。" />
+                                                        </div>
                                                         <details className="mt-3 overflow-hidden rounded-xl border border-[#cbbfac]/80 bg-[#fffaf0]/55">
                                                             <summary className="flex min-h-11 cursor-pointer items-center justify-between px-3 text-sm font-bold text-[#514941] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2d6b62]">
                                                                 术语说明 <span className="text-xs font-normal text-[#81776b]">点击展开</span>
@@ -713,11 +900,12 @@ export default function BaziDivination({ onBack }) {
                                                 ) : <PillarTable pillars={baziResult.pillars} />}
                                             </div>
                                             <div className="hidden print:block">
-                                                <SectionHeading seal="壹" title="专业运限同参" note="所选流年、大运与本命四柱并列对照" icon={Sparkles} />
+                                                <SectionHeading seal="壹" title="专业运限同参" note="所选运限与本命四柱并列对照" icon={Sparkles} />
                                                 <ProfessionalComparisonTable
                                                     pillars={baziResult.pillars}
                                                     daYun={selectedDaYun}
                                                     liuNian={selectedLiuNian}
+                                                    flowColumns={flowColumns}
                                                     detail="full"
                                                 />
                                             </div>
@@ -814,6 +1002,29 @@ export default function BaziDivination({ onBack }) {
                                                 )}
                                             </section>
                                         )}
+
+                                        {selectedLiuNian && selectedLiuRi && (
+                                            <section ref={flowSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none print:hidden sm:px-6 sm:py-6" aria-labelledby="flow-title">
+                                                <div id="flow-title"><SectionHeading seal="肆" title="流月 · 流日 · 流时" note="在所选流年内细看某月、某天、某个时辰；点选后上方专业盘同步加列" icon={CalendarDays} /></div>
+                                                <BaziFlowPanel
+                                                    liuNian={selectedLiuNian}
+                                                    liuYueList={liuYueList}
+                                                    selectedLiuYue={selectedLiuYue}
+                                                    liuRiList={liuRiList}
+                                                    selectedLiuRi={selectedLiuRi}
+                                                    liuShiList={liuShiList}
+                                                    selectedLiuShi={selectedLiuShi}
+                                                    dayMarks={dayMarks}
+                                                    hourMarks={hourMarks}
+                                                    selectionRelations={selectionRelations}
+                                                    onSelectMonth={selectFlowMonth}
+                                                    onSelectDay={selectFlowDay}
+                                                    onSelectHour={selectFlowHour}
+                                                    onJumpToDate={jumpToFlowDate}
+                                                    onNow={returnFlowToNow}
+                                                />
+                                            </section>
+                                        )}
                                     </div>
                                 </article>
 
@@ -824,7 +1035,7 @@ export default function BaziDivination({ onBack }) {
                                 {showSelectionDock && <div className="h-20 sm:hidden" aria-hidden="true" />}
                                 <p className="sr-only" role="status" aria-live="polite">
                                     {showSelectionDock && selectedLiuNian && selectedDaYun
-                                        ? `已选择${selectedLiuNian.year}${selectedLiuNian.ganZhi}流年，${selectedDaYun.ganZhi}大运，专业盘已更新`
+                                        ? `已选择${selectionSummary}，专业盘已更新`
                                         : ''}
                                 </p>
                                 {showSelectionDock && selectedLiuNian && selectedDaYun && (
@@ -832,7 +1043,7 @@ export default function BaziDivination({ onBack }) {
                                         <div className="flex items-center justify-between gap-3">
                                             <div className="min-w-0 pl-1">
                                                 <span className="block text-[10px] font-medium text-[#81776b]">已选择</span>
-                                                <strong className="mt-0.5 block truncate text-sm text-[#3b342e]">{selectedLiuNian.year} {selectedLiuNian.ganZhi}流年 · {selectedDaYun.ganZhi}大运</strong>
+                                                <strong className="mt-0.5 block truncate text-sm text-[#3b342e]">{selectionSummary}</strong>
                                             </div>
                                             <button type="button" onClick={viewProfessionalSelection} className="inline-flex min-h-11 shrink-0 items-center rounded-xl bg-[#2d6b62] px-4 text-sm font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#75b4aa]">查看专业盘 ↑</button>
                                         </div>

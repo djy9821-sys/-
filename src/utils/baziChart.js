@@ -189,6 +189,32 @@ const getDayMasterDiShi = (dayGan, zhi) => {
   return LunarUtil.CHANG_SHENG[index] ?? '';
 };
 
+/**
+ * 以日主为基准描述任意一组干支（流月、流日、流时等共用）。
+ * 字段口径与流年、大运保持一致，便于在专业对照表中并列显示。
+ */
+export const describeGanZhi = (ganZhi, dayGan) => {
+  const gan = ganZhi.slice(0, 1);
+  const zhi = ganZhi.slice(1, 2);
+  const hiddenGanDetails = getHiddenGanDetails(dayGan, zhi);
+  return {
+    ganZhi,
+    gan,
+    zhi,
+    ganWuxing: GAN_WUXING[gan] ?? '',
+    zhiWuxing: ZHI_WUXING[zhi] ?? '',
+    ganShiShen: getGanShiShen(dayGan, gan),
+    hiddenGans: hiddenGanDetails.map((detail) => detail.gan),
+    hiddenShiShens: hiddenGanDetails.map((detail) => detail.shiShen),
+    hiddenGanDetails,
+    naYin: LunarUtil.NAYIN[ganZhi] ?? '',
+    diShi: getDayMasterDiShi(dayGan, zhi),
+    diShiBasis: '日主临支',
+    xun: LunarUtil.getXun(ganZhi),
+    xunKong: LunarUtil.getXunKong(ganZhi),
+  };
+};
+
 const buildLiuNian = (liuNian, currentBaziYear, dayGan, sourceDaYunIndex) => {
   const ganZhi = liuNian.getGanZhi();
   const gan = ganZhi.slice(0, 1);
