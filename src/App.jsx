@@ -1,5 +1,4 @@
 import React, { useState, Suspense, lazy } from 'react';
-import ProfessionalChart from "./components/ProfessionalChart";
 import ErrorBoundary from "./components/ErrorBoundary";
 import WelcomeCover from "./components/WelcomeCover";
 import { AlertCircle, ArrowLeft, CheckCircle2, Save } from "lucide-react";
@@ -15,6 +14,8 @@ const VideoLessons = lazy(() => import("./components/VideoLessons"));
 const EnglishLearning = lazy(() => import("./components/EnglishLearning"));
 const BaziDivination = lazy(() => import("./components/BaziDivination"));
 const BaguaDivination = lazy(() => import("./components/BaguaDivination.jsx"));
+// 紫微专业盘体量最大，只有打开命盘时才加载。
+const ProfessionalChart = lazy(() => import("./components/ProfessionalChart"));
 
 const WELCOME_COVER_KEY = 'gushupai-welcome-cover-seen-v1';
 
@@ -216,6 +217,8 @@ const getBirthDayCount = (calendarType, year, month, isLeapMonth = false) => {
 
 export default function App() {
   const [view, setView] = useState('home'); // 'home', 'input', 'chart', 'money', 'archive', 'videos', 'bazi'
+  // 从档案打开的八字命例；从首页或底部导航进入八字时为空。
+  const [baziRecord, setBaziRecord] = useState(null);
   const [showWelcomeCover, setShowWelcomeCover] = useState(() => {
     try {
       return globalThis.localStorage?.getItem(WELCOME_COVER_KEY) !== 'seen';
@@ -495,6 +498,11 @@ export default function App() {
   };
 
   const handleLoadRecord = (record) => {
+    if (record.type === 'bazi') {
+      setBaziRecord(record);
+      setView('bazi');
+      return;
+    }
     if (record.type === 'ziwei') {
       // Records created before calendarType/birthDate existed were always
       // reloaded as solar dates. Keep that fallback while preserving the
@@ -708,6 +716,7 @@ export default function App() {
 
   const navigateFromMobile = (nextView) => {
     setIsMoreOpen(false);
+    setBaziRecord(null);
     setView(nextView);
   };
 
@@ -975,7 +984,7 @@ export default function App() {
             <section className="secondary-tools" aria-label="术数工具">
               <button
                 type="button"
-                onClick={() => setView('bazi')}
+                onClick={() => { setBaziRecord(null); setView('bazi'); }}
                 className="tool-card tool-card--cinnabar"
               >
                 <span className="tool-card-copy">
@@ -1276,7 +1285,11 @@ export default function App() {
               </div>
             </div>
           }>
-            <BaziDivination onBack={() => setView('home')} />
+            <BaziDivination
+              key={baziRecord?.id ?? 'new'}
+              initialRecord={baziRecord}
+              onBack={() => { setBaziRecord(null); setView('home'); }}
+            />
           </Suspense>
         ) : view === 'bagua' ? (
           // --- FULL BAGUA EXPERIENCE VIEW ---
@@ -1298,7 +1311,14 @@ export default function App() {
             {/* Chart Area */}
             <div className="chart-scroll-area flex-1 overflow-auto p-2 md:p-4">
               <div className="chart-frame relative mx-auto w-full overflow-hidden">
-
+                <Suspense fallback={
+                  <div className="flex min-h-[60vh] items-center justify-center text-white">
+                    <div className="text-center">
+                      <div className="w-12 h-12 border-4 border-[#55bba8] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <p>正在加载命盘...</p>
+                    </div>
+                  </div>
+                }>
                 <ProfessionalChart
                   horoscope={horoscope}
                   basicInfo={{
@@ -1315,6 +1335,7 @@ export default function App() {
                   onOpenArchive={() => setView('archive')}
                   onQuickChart={() => setView('input')}
                 />
+                </Suspense>
               </div>
             </div>
           </div>

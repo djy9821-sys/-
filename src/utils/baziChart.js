@@ -4,6 +4,13 @@ import {
   LunarYear,
   Solar,
 } from 'lunar-javascript';
+import {
+  formatClock,
+  getShichenBoundary,
+  isChinaDst,
+  shiftWallTime,
+  toTrueSolarTime,
+} from './trueSolarTime.js';
 
 const GAN_WUXING = Object.freeze({
   甲: '木',
@@ -55,6 +62,16 @@ export const BAZI_HOUR_OPTIONS = Object.freeze([
   { index: 11, hour: 21, branch: '亥', name: '亥时', range: '21:00-23:00' },
   { index: 12, hour: 23, branch: '子', name: '晚子时', range: '23:00-24:00' },
 ]);
+
+/** 把钟表小时映射到 13 个时段（0 早子 … 11 亥 · 12 晚子）。 */
+export const getHourIndexForTime = (hour) => {
+  if (hour === 0) return 0;
+  if (hour === 23) return 12;
+  return Math.floor((hour + 1) / 2);
+};
+
+// 距离时辰交界在此范围内时，提示另一种可能的时柱。
+export const SHICHEN_BOUNDARY_WARNING_MINUTES = 20;
 
 const toInteger = (value, fieldName) => {
   const number = Number(value);
@@ -189,6 +206,32 @@ const getDayMasterDiShi = (dayGan, zhi) => {
   return LunarUtil.CHANG_SHENG[index] ?? '';
 };
 
+/**
+ * 以日主为基准描述任意一组干支（流月、流日、流时等共用）。
+ * 字段口径与流年、大运保持一致，便于在专业对照表中并列显示。
+ */
+export const describeGanZhi = (ganZhi, dayGan) => {
+  const gan = ganZhi.slice(0, 1);
+  const zhi = ganZhi.slice(1, 2);
+  const hiddenGanDetails = getHiddenGanDetails(dayGan, zhi);
+  return {
+    ganZhi,
+    gan,
+    zhi,
+    ganWuxing: GAN_WUXING[gan] ?? '',
+    zhiWuxing: ZHI_WUXING[zhi] ?? '',
+    ganShiShen: getGanShiShen(dayGan, gan),
+    hiddenGans: hiddenGanDetails.map((detail) => detail.gan),
+    hiddenShiShens: hiddenGanDetails.map((detail) => detail.shiShen),
+    hiddenGanDetails,
+    naYin: LunarUtil.NAYIN[ganZhi] ?? '',
+    diShi: getDayMasterDiShi(dayGan, zhi),
+    diShiBasis: '日主临支',
+    xun: LunarUtil.getXun(ganZhi),
+    xunKong: LunarUtil.getXunKong(ganZhi),
+  };
+};
+
 const buildLiuNian = (liuNian, currentBaziYear, dayGan, sourceDaYunIndex) => {
   const ganZhi = liuNian.getGanZhi();
   const gan = ganZhi.slice(0, 1);
@@ -284,10 +327,40 @@ const validateInput = (input) => {
   const year = toInteger(input.year, '出生年');
   const month = toInteger(input.month, '出生月');
   const day = toInteger(input.day, '出生日');
-  const hourIndex = toInteger(input.hourIndex, '时辰');
-  const hourOption = BAZI_HOUR_OPTIONS.find((option) => option.index === hourIndex);
-  if (!hourOption) {
-    throw new Error('时辰选项无效');
+  const timeMode = input.timeMode === 'exact' ? 'exact' : 'shichen';
+  let hourIndex = null;
+  let hourOption = null;
+  let exact = null;
+  if (timeMode === 'exact') {
+    const clockHour = toInteger(input.clockHour, '出生小时');
+    const clockMinute = toInteger(input.clockMinute, '出生分钟');
+    if (clockHour < 0 || clockHour > 23 || clockMinute < 0 || clockMinute > 59) {
+      throw new Error('出生时间无效');
+    }
+    const hasLongitude = input.longitude !== null && input.longitude !== undefined && input.longitude !== '';
+    const longitude = hasLongitude ? Number(input.longitude) : null;
+    if (hasLongitude && (!Number.isFinite(longitude) || longitude < -180 || longitude > 180)) {
+      throw new Error('经度必须介于 -180 与 180 之间');
+    }
+    const timezone = input.timezone === undefined || input.timezone === null || input.timezone === '' ? 8 : Number(input.timezone);
+    if (!Number.isFinite(timezone) || timezone < -12 || timezone > 14) {
+      throw new Error('时区无效');
+    }
+    exact = {
+      clockHour,
+      clockMinute,
+      longitude,
+      timezone,
+      placeName: typeof input.placeName === 'string' ? input.placeName.slice(0, 40) : '',
+      applyTrueSolar: input.applyTrueSolar !== false && longitude !== null,
+      applyDst: Boolean(input.applyDst),
+    };
+  } else {
+    hourIndex = toInteger(input.hourIndex, '时辰');
+    hourOption = BAZI_HOUR_OPTIONS.find((option) => option.index === hourIndex);
+    if (!hourOption) {
+      throw new Error('时辰选项无效');
+    }
   }
 
   const daySect = input.daySect == null ? 2 : toInteger(input.daySect, '子时换日流派');
@@ -313,11 +386,92 @@ const validateInput = (input) => {
     year,
     month,
     day,
+    timeMode,
+    exact,
     hourIndex,
-    hour: hourOption.hour ?? 12,
+    hour: hourOption?.hour ?? 12,
     hourOption,
     gender,
     daySect,
+  };
+};
+
+/** 出生日期（公历或农历）对应的公历日期；无效时返回 null。 */
+export const getClockSolarDate = (calendarType, year, month, day) => {
+  try {
+    const solar = calendarType === 'lunar' ? Lunar.fromYmd(year, month, day).getSolar() : Solar.fromYmd(year, month, day);
+    return { year: solar.getYear(), month: solar.getMonth(), day: solar.getDay() };
+  } catch {
+    return null;
+  }
+};
+
+const momentToSolar = (moment) => Solar.fromYmdHms(moment.year, moment.month, moment.day, moment.hour, moment.minute, 0);
+
+/**
+ * 精确时间模式：钟表时间 →（夏令时）→ 真太阳时，并给出时辰交界提示。
+ */
+const resolveExactMoment = (normalized) => {
+  const { exact } = normalized;
+  const clockSolar = normalized.calendarType === 'lunar'
+    ? Lunar.fromYmdHms(normalized.year, normalized.month, normalized.day, exact.clockHour, exact.clockMinute, 0).getSolar()
+    : Solar.fromYmdHms(normalized.year, normalized.month, normalized.day, exact.clockHour, exact.clockMinute, 0);
+  const clock = {
+    year: clockSolar.getYear(),
+    month: clockSolar.getMonth(),
+    day: clockSolar.getDay(),
+    hour: exact.clockHour,
+    minute: exact.clockMinute,
+  };
+  const corrected = toTrueSolarTime(clock, {
+    longitude: exact.longitude,
+    timezone: exact.timezone,
+    applyTrueSolar: exact.applyTrueSolar,
+    applyDst: exact.applyDst,
+  });
+  const boundary = getShichenBoundary(corrected, clock, corrected.totalMinutes);
+  let alternative = null;
+  if (boundary.minutesToBoundary <= SHICHEN_BOUNDARY_WARNING_MINUTES) {
+    const signedDistance = boundary.isBeforeBoundary ? boundary.minutesToBoundary : -boundary.minutesToBoundary;
+    const acrossMinutes = signedDistance > 0 ? signedDistance : signedDistance - 1;
+    const acrossMoment = shiftWallTime(corrected, acrossMinutes);
+    const acrossEightChar = momentToSolar(acrossMoment).getLunar().getEightChar();
+    acrossEightChar.setSect(normalized.daySect);
+    const acrossHourIndex = getHourIndexForTime(acrossMoment.hour);
+    alternative = {
+      timeGanZhi: acrossEightChar.getTime(),
+      dayGanZhi: acrossEightChar.getDay(),
+      hourName: BAZI_HOUR_OPTIONS[acrossHourIndex].name,
+      hourIndex: acrossHourIndex,
+    };
+  }
+
+  return {
+    clock,
+    corrected,
+    hourIndex: getHourIndexForTime(corrected.hour),
+    timeInfo: {
+      mode: 'exact',
+      clockDate: clockSolar.toYmd(),
+      clockTime: formatClock(clock),
+      correctedDate: momentToSolar(corrected).toYmd(),
+      correctedTime: formatClock(corrected),
+      trueSolarApplied: corrected.corrected,
+      dstApplied: exact.applyDst,
+      dstSuggested: isChinaDst(clock),
+      longitude: exact.longitude,
+      timezone: exact.timezone,
+      placeName: exact.placeName,
+      longitudeMinutes: corrected.longitudeMinutes,
+      equationMinutes: corrected.equationMinutes,
+      totalMinutes: corrected.totalMinutes,
+      boundary: alternative ? {
+        minutesToBoundary: boundary.minutesToBoundary,
+        isBeforeBoundary: boundary.isBeforeBoundary,
+        boundaryClockTime: formatClock(boundary.boundaryClock),
+        alternative,
+      } : null,
+    },
   };
 };
 
@@ -329,7 +483,16 @@ export const buildBaziChart = (input, now = new Date()) => {
 
   let lunar;
   let solar;
-  if (normalized.calendarType === 'lunar') {
+  let timeInfo = { mode: 'shichen' };
+  if (normalized.timeMode === 'exact') {
+    const resolved = resolveExactMoment(normalized);
+    solar = momentToSolar(resolved.corrected);
+    lunar = solar.getLunar();
+    normalized.hourIndex = resolved.hourIndex;
+    normalized.hourOption = BAZI_HOUR_OPTIONS[resolved.hourIndex];
+    normalized.hour = resolved.corrected.hour;
+    timeInfo = resolved.timeInfo;
+  } else if (normalized.calendarType === 'lunar') {
     lunar = Lunar.fromYmdHms(
       normalized.year,
       normalized.month,
@@ -380,8 +543,10 @@ export const buildBaziChart = (input, now = new Date()) => {
   return {
     input: {
       ...normalized,
+      exact: normalized.exact ? { ...normalized.exact } : null,
       hourOption: { ...normalized.hourOption },
     },
+    timeInfo,
     pillars,
     dayMaster: {
       gan: dayMasterGan,
