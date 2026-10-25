@@ -3,9 +3,10 @@
  * 计算由 baziChart 统一提供；页面采用紧凑、专业的命盘信息架构。
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Calendar, CalendarDays, Clock, FolderOpen, Link2, MapPin, Printer, Save, Sparkles, TriangleAlert, TrendingUp, User } from 'lucide-react';
+import { ArrowLeft, Bot, Calendar, CalendarDays, Clock, FolderOpen, Link2, MapPin, Printer, Save, Sparkles, TriangleAlert, TrendingUp, User } from 'lucide-react';
 import BaziLanding from './bazi/BaziLanding';
 import BaziFlowPanel, { RelationList } from './bazi/BaziFlowPanel';
+import BaziPromptExport from './bazi/BaziPromptExport';
 import {
     BAZI_HOUR_OPTIONS,
     buildBaziChart,
@@ -83,6 +84,8 @@ const COMPARE_DEPTHS = [
     { value: 'hour', label: '流时' },
 ];
 const DEPTH_RANK = { year: 0, month: 1, day: 2, hour: 3 };
+// 导出范围默认跟随专业细盘当前的对照层级。
+const DEPTH_TO_PROMPT_SCOPE = { year: 'year', month: 'month', day: 'day', hour: 'hour' };
 const deeperDepth = (current, next) => (DEPTH_RANK[next] > DEPTH_RANK[current] ? next : current);
 
 const COLUMN_TONES = {
@@ -550,6 +553,17 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         [selectedLiuRi, dayMasterGan, chartAsOf],
     );
     const selectedLiuShi = liuShiList.find((hour) => hour.index === activeFlow?.hourIndex) ?? liuShiList[0] ?? null;
+
+    const promptSelections = useMemo(() => ({
+        daYun: selectedDaYun,
+        liuNian: selectedLiuNian,
+        liuYue: selectedLiuYue,
+        liuRi: selectedLiuRi,
+        liuShi: selectedLiuShi,
+        liuYueList,
+        liuRiList,
+        liuShiList,
+    }), [selectedDaYun, selectedLiuNian, selectedLiuYue, selectedLiuRi, selectedLiuShi, liuYueList, liuRiList, liuShiList]);
 
     const flowColumns = useMemo(() => {
         const rank = DEPTH_RANK[compareDepth];
@@ -1281,6 +1295,19 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                 />
                                             </section>
                                         )}
+
+                                        <section className="px-3 py-5 print:hidden sm:px-6 sm:py-6" aria-labelledby="ai-export-title">
+                                            <div id="ai-export-title"><SectionHeading seal="伍" title="导出给 AI" note="把命盘和所选时段整理成提示词，复制后粘贴给 ChatGPT、Claude 等 AI 直接分析" icon={Bot} /></div>
+                                            <BaziPromptExport
+                                                chart={baziResult}
+                                                personName={personName}
+                                                selections={promptSelections}
+                                                defaultScope={DEPTH_TO_PROMPT_SCOPE[compareDepth]}
+                                                now={chartAsOf}
+                                                onLocateNow={returnFlowToNow}
+                                                onPickTime={() => scrollToSection(flowSectionRef)}
+                                            />
+                                        </section>
                                     </div>
                                 </article>
 
