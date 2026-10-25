@@ -16,6 +16,8 @@ const RELATION_STYLES = {
 };
 
 const WEEK_HEADER = ['一', '二', '三', '四', '五', '六', '日'];
+// '07:00-09:00' → '07–09'，在手机四列格子里不折行。
+const compactRange = (range) => range.split('-').map((part) => part.slice(0, 2)).join('–');
 const LEGEND_TONES = ['clash', 'punish', 'harm', 'harmony', 'echo'];
 
 const badgeLabel = (relation) => {
@@ -66,7 +68,7 @@ const LayerLabel = ({ icon: Icon, children, note }) => (
             {Icon && <Icon className="size-3.5 text-[#2d6b62]" aria-hidden="true" />}
             {children}
         </h4>
-        {note && <span className="text-[10px] text-[#81776b]">{note}</span>}
+        {note && <span className="text-[11px] text-[#81776b]">{note}</span>}
     </div>
 );
 
@@ -116,7 +118,7 @@ export default function BaziFlowPanel({
         <div className="mt-4 space-y-4">
             <div className="flex flex-wrap items-end gap-2 rounded-xl border border-[#cbbfac]/75 bg-[#e9dfcd]/45 p-2.5 sm:p-3">
                 <div className="min-w-0 flex-1">
-                    <label htmlFor={dateInputId} className="block text-[10px] font-medium text-[#81776b]">跳转到任意日期</label>
+                    <label htmlFor={dateInputId} className="block text-[11px] font-medium text-[#81776b]">跳转到任意日期</label>
                     <input
                         id={dateInputId}
                         type="date"
@@ -150,11 +152,11 @@ export default function BaziFlowPanel({
                                     onClick={() => onSelectMonth(month.index)}
                                     className={`relative min-h-[4.75rem] w-[3.9rem] shrink-0 rounded-lg border px-1 py-1.5 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${isSelected ? 'border-[#a33b30] bg-[#fffaf0] shadow-sm' : month.isCurrent ? 'border-[#2d6b62]/70 bg-[#2d6b62]/[0.07]' : 'border-[#d5c9b8] bg-[#f7f0e5] hover:border-[#a99b87]'}`}
                                 >
-                                    {month.isCurrent && <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-[#2d6b62] px-1.5 text-[8px] font-bold leading-4 text-white">本月</span>}
-                                    <span className="block text-[10px] text-[#81776b]">{month.jieName}</span>
-                                    <span className="block text-[9px] tabular-nums text-[#9b9185]">{month.label}</span>
+                                    {month.isCurrent && <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#2d6b62] px-1.5 text-[10px] font-bold leading-4 text-white">本月</span>}
+                                    <span className="block text-[11px] text-[#81776b]">{month.jieName}</span>
+                                    <span className="block text-[11px] tabular-nums text-[#9b9185]">{month.label}</span>
                                     <span className="mt-0.5 block font-serif text-base font-bold leading-5 text-[#3b342e]">{month.ganZhi}</span>
-                                    <span className="block text-[9px] text-[#2d6b62]">{month.ganShiShen}</span>
+                                    <span className="block text-[11px] text-[#2d6b62]">{month.ganShiShen}</span>
                                 </button>
                             );
                         })}
@@ -166,7 +168,7 @@ export default function BaziFlowPanel({
                 <LayerLabel icon={CalendarDays} note={`${selectedLiuYue.jieName} ${selectedLiuYue.label} — ${selectedLiuYue.nextJieName}前`}>流日</LayerLabel>
                 <div className="mt-2 grid grid-cols-7 gap-1 text-center" role="group" aria-label={`${selectedLiuYue.ganZhi}月流日`}>
                     {WEEK_HEADER.map((label) => (
-                        <span key={label} aria-hidden="true" className="pb-0.5 text-[10px] font-medium text-[#9b9185]">{label}</span>
+                        <span key={label} aria-hidden="true" className="pb-0.5 text-[11px] font-medium text-[#9b9185]">{label}</span>
                     ))}
                     {Array.from({ length: leadingBlanks }, (_, index) => <span key={`blank-${index}`} aria-hidden="true" />)}
                     {liuRiList.map((day, index) => {
@@ -184,14 +186,14 @@ export default function BaziFlowPanel({
                                 className={`relative min-h-[3.6rem] rounded-lg border px-0.5 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${isSelected ? 'border-[#a33b30] bg-[#fffaf0] shadow-sm' : day.isToday ? 'border-[#2d6b62]/70 bg-[#2d6b62]/[0.08]' : 'border-[#ddd2c1] bg-[#f8f2e8] hover:border-[#a99b87]'}`}
                             >
                                 <ToneDot tone={mark?.tone} />
-                                <span className={`block text-[10px] leading-3 tabular-nums ${day.isToday ? 'font-bold text-[#2d6b62]' : 'text-[#81776b]'}`}>{showMonth ? `${day.month}/${day.day}` : day.day}</span>
+                                <span className={`block text-[11px] leading-3 tabular-nums ${day.isToday ? 'font-bold text-[#2d6b62]' : 'text-[#81776b]'}`}>{showMonth ? `${day.month}/${day.day}` : day.day}</span>
                                 <span className={`mt-0.5 block font-serif text-[15px] font-bold leading-5 ${isSelected ? 'text-[#96372e]' : 'text-[#3b342e]'}`}>{day.ganZhi}</span>
-                                <span className={`block truncate text-[9px] leading-3 ${day.jieQi ? 'font-bold text-[#a33b30]' : 'text-[#9b9185]'}`}>{bottom}</span>
+                                <span className={`block truncate text-[11px] leading-3 ${day.jieQi ? 'font-bold text-[#a33b30]' : 'text-[#9b9185]'}`}>{bottom}</span>
                             </button>
                         );
                     })}
                 </div>
-                <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-[#81776b]">
+                <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#81776b]">
                     <span>圆点：当日地支与本命四柱的主要关系</span>
                     {LEGEND_TONES.map((tone) => (
                         <span key={tone} className="inline-flex items-center gap-1">
@@ -219,11 +221,11 @@ export default function BaziFlowPanel({
                                 className={`relative min-h-[4.1rem] rounded-lg border px-1 py-1.5 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${isSelected ? 'border-[#a33b30] bg-[#fffaf0] shadow-sm' : hour.isCurrent ? 'border-[#2d6b62]/70 bg-[#2d6b62]/[0.08]' : 'border-[#ddd2c1] bg-[#f8f2e8] hover:border-[#a99b87]'}`}
                             >
                                 <ToneDot tone={mark?.tone} />
-                                {hour.isCurrent && <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-[#2d6b62] px-1.5 text-[8px] font-bold leading-4 text-white">此刻</span>}
-                                <span className="block text-[10px] text-[#81776b]">{isZi ? hour.hourName : hour.branchName}</span>
-                                <span className="block text-[9px] tabular-nums text-[#9b9185]">{hour.range}</span>
+                                {hour.isCurrent && <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#2d6b62] px-1.5 text-[10px] font-bold leading-4 text-white">此刻</span>}
+                                <span className="block text-[11px] text-[#81776b]">{isZi ? hour.hourName : hour.branchName}</span>
+                                <span className="block text-[11px] tabular-nums text-[#9b9185]">{compactRange(hour.range)}</span>
                                 <span className={`mt-0.5 block font-serif text-[15px] font-bold leading-5 ${isSelected ? 'text-[#96372e]' : 'text-[#3b342e]'}`}>{hour.ganZhi}</span>
-                                <span className="block text-[9px] text-[#2d6b62]">{hour.ganShiShen}</span>
+                                <span className="block text-[11px] text-[#2d6b62]">{hour.ganShiShen}</span>
                             </button>
                         );
                     })}
@@ -231,7 +233,7 @@ export default function BaziFlowPanel({
             </div>
 
             <div className="rounded-xl border border-[#cbbfac]/80 bg-[#fffaf0]/65 p-3 sm:p-4">
-                <p className="text-[10px] font-medium text-[#81776b]">已选时刻</p>
+                <p className="text-[11px] font-medium text-[#81776b]">已选时刻</p>
                 <p className="mt-0.5 text-sm font-bold text-[#3b342e]">
                     {selectedLiuRi.year}年{selectedLiuRi.month}月{selectedLiuRi.day}日 {selectedLiuRi.weekdayLabel}
                     <span className="font-normal text-[#81776b]"> · 农历{selectedLiuRi.lunarMonthChinese}月{selectedLiuRi.lunarDayChinese}</span>
@@ -244,9 +246,9 @@ export default function BaziFlowPanel({
                         ['流时', selectedLiuShi],
                     ].filter(([, item]) => item).map(([label, item]) => (
                         <span key={label} className="inline-flex items-baseline gap-1 rounded-md border border-[#d5c9b8] bg-[#f7f0e5] px-2 py-1">
-                            <span className="text-[10px] text-[#81776b]">{label}</span>
+                            <span className="text-[11px] text-[#81776b]">{label}</span>
                             <b className="font-serif text-sm text-[#3b342e]">{item.ganZhi}</b>
-                            <span className="text-[10px] text-[#2d6b62]">{item.ganShiShen}</span>
+                            <span className="text-[11px] text-[#2d6b62]">{item.ganShiShen}</span>
                         </span>
                     ))}
                 </div>

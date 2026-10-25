@@ -6,7 +6,9 @@
  * 流时沿用排盘输入的 13 个时段（区分早子、晚子），时柱由 lunar-javascript 计算。
  */
 import { Lunar, Solar } from 'lunar-javascript';
-import { BAZI_HOUR_OPTIONS, describeGanZhi } from './baziChart.js';
+import { BAZI_HOUR_OPTIONS, describeGanZhi, getHourIndexForTime } from './baziChart.js';
+
+export { getHourIndexForTime };
 
 export const LIU_YUE_JIE = Object.freeze([
   '立春', '惊蛰', '清明', '立夏', '芒种', '小暑',
@@ -40,13 +42,6 @@ const solarToTimestamp = (solar) => new Date(
   solar.getMinute(),
   solar.getSecond(),
 ).getTime();
-
-/** 把当前钟表时间映射到 13 个时段（0 早子 … 11 亥 · 12 晚子）。 */
-export const getHourIndexForTime = (hour) => {
-  if (hour === 0) return 0;
-  if (hour === 23) return 12;
-  return Math.floor((hour + 1) / 2);
-};
 
 /** 指定公历日期所属的八字年份（以立春所在日期为界）。 */
 export const getBaziYearOfDate = (ymd) => {

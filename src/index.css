@@ -58,6 +58,8 @@ a:focus-visible {
   min-height: 100dvh;
   flex-direction: column;
   overflow-x: hidden;
+  /* clip 不会把外壳变成滚动容器，页面内的 position: sticky 才能相对视口生效。 */
+  overflow-x: clip;
   background:
     radial-gradient(circle at 8% 6%, rgba(71, 142, 122, 0.18), transparent 29rem),
     radial-gradient(circle at 94% 88%, rgba(169, 47, 38, 0.11), transparent 30rem),

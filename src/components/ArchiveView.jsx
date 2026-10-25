@@ -17,6 +17,7 @@ import {
     X,
 } from 'lucide-react';
 import { archiveManager } from '../utils/archiveManager';
+import { recordToBaziForm } from '../utils/baziRecord';
 
 const GROUP_META = {
     self: { label: '自己', icon: User },
@@ -91,7 +92,7 @@ const getGenderLabel = (record) => (
     record?.gender === 'male' ? '乾造' : record?.gender === 'female' ? '坤造' : '性别未记录'
 );
 
-const canOpenRecord = (record) => record?.type === 'ziwei'
+const canOpenRecord = (record) => (record?.type === 'bazi' ? recordToBaziForm(record) !== null : record?.type === 'ziwei'
     && ['male', 'female'].includes(record?.gender)
     && (
         ['solar', 'lunar'].includes(record?.calendarType)
@@ -102,7 +103,7 @@ const canOpenRecord = (record) => record?.type === 'ziwei'
     && Number.isInteger(Number(record?.timeHour))
     && Number(record?.timeHour) >= 0
     && Number(record?.timeHour) <= 12
-    && getRecordDate(record) !== '日期未记录';
+    && getRecordDate(record) !== '日期未记录');
 
 const prepareImportedRecord = (record) => {
     if (!isPlainObject(record)) return null;
