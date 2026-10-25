@@ -970,7 +970,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                     {placeCities.map((city) => <option key={city.name} value={city.name}>{city.name}</option>)}
                                                 </select>
                                             </div>
-                                            <div className="grid grid-cols-[1fr_auto] items-end gap-2">
+                                            <div className="grid grid-cols-2 items-end gap-2">
                                                 <label className="block min-w-0">
                                                     <span className="block text-[11px] text-[#fbf7ed]/60">经度（°E，县区可微调）</span>
                                                     <input type="text" inputMode="decimal" aria-label="出生地经度" value={longitude} onChange={(event) => setLongitude(event.target.value)} placeholder="例如 115.65" aria-invalid={longitudeInvalid} className={`${INPUT_FIELD_CLASS} mt-1 w-full tabular-nums placeholder:text-[#fbf7ed]/30 ${longitudeInvalid ? 'border-[#d85a45]' : ''}`} />
