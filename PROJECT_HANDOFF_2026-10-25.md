@@ -48,3 +48,18 @@
 - **预览部署**：Vercel 的 Git 连接断了（GitHub 改名后），需要在 ziwei-app → Settings → Git 点 Reconnect；在此之前用 Deployments → Create Deployment 填提交链接手动建预览。
 
 仍待决定：英语学习已删除；课程视频（`VideoLessons`）保留代码但不开放地址；国内访客统计建议开启 Vercel Web Analytics。
+
+---
+
+## 2026-10-26 第二轮（追加在 PR #4，尚未上线）
+
+- **离线缓存**：只拦截 `/`、`/index.html` 的页面导航，且只把 `text/html` 存成首页；打开 `/sitemap.xml` 等地址不再污染缓存（`test/sw-offline.test.js`）。
+- **按需加载兜底**：`main.jsx` 监听 `vite:preloadError`，下载失败时自动刷新一次（10 秒内不重复）；根组件外包 `ErrorBoundary`，提示改成通用说明。
+- **虚岁**：lunar-javascript 按公历年份算岁数，`baziChart.js` 用 `lunar.getSolar().getYear() - lunar.getYear()` 补差值。元旦到春节之间出生的人，大运、流年、小运的虚岁都多一岁（1998-01-02 出生：2026 年 30 虚岁）。
+- **八字返回键**：卷首、录入、结果三步写入 `history.state.baziStep`，`BaziDivination.jsx` 里的 `pushStep` / `goBackTo` 负责前进和后退；从别的页面返回时恢复离开前的步骤。
+- **存档去重**：`findSameBaziRecord`（同名、同一张盘）命中时更新原记录，不再重复保存。
+- **其他**：卷首页清除上次的命盘可撤销；档案列表显示钟表时间且不拆行；调候用五行字标记；顶部标题改为「古书派」；紫微库下载失败时首页可「重新加载」；金钱卦标签改为「加密级随机」；乾、坤、屯、井卦辞校对（`test/hexagram-text.test.js`）。
+
+预览（分支别名，需登录 Vercel）：https://ziwei-app-git-claude-site-next-djs-projects-b34d7833.vercel.app
+
+下一轮：金钱卦与手势八卦合并为六爻起卦，补变卦、爻辞、纳甲；紫微改用真太阳时并重做手机排版；首页八字、紫微并列为主入口。
