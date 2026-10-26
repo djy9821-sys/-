@@ -116,6 +116,15 @@ export const buildLiuRi = (liuYue, dayGan, now = new Date()) => {
       lunarDayChinese: lunar.getDayInChinese(),
       jieQi: lunar.getJieQi(),
       ...describeGanZhi(lunar.getDayInGanZhi(), dayGan),
+      almanac: {
+        yi: lunar.getDayYi(),
+        ji: lunar.getDayJi(),
+        zhiXing: lunar.getZhiXing(),
+        chong: lunar.getDayChongDesc(),
+        sha: lunar.getDaySha(),
+        tianShen: lunar.getDayTianShen(),
+        tianShenLuck: lunar.getDayTianShenLuck(),
+      },
       isToday: date === today,
     });
   }

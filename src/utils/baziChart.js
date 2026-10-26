@@ -4,6 +4,7 @@ import {
   LunarYear,
   Solar,
 } from 'lunar-javascript';
+import { buildShenshaContext, getShensha } from './baziShensha.js';
 import {
   formatClock,
   getShichenBoundary,
@@ -171,6 +172,8 @@ const getPillar = (eightChar, definition) => {
       wuxing: GAN_WUXING[hiddenGan] ?? '',
     })),
     diShi: eightChar[`get${prefix}DiShi`](),
+    // 自坐：本柱天干在本柱地支的十二长生（问真“自坐”一栏）。
+    ziZuo: getDayMasterDiShi(gan, zhi),
     xun: eightChar[`get${prefix}Xun`](),
     xunKong: eightChar[`get${prefix}XunKong`](),
     naYin: eightChar[`get${prefix}NaYin`](),
@@ -227,6 +230,7 @@ export const describeGanZhi = (ganZhi, dayGan) => {
     naYin: LunarUtil.NAYIN[ganZhi] ?? '',
     diShi: getDayMasterDiShi(dayGan, zhi),
     diShiBasis: '日主临支',
+    ziZuo: getDayMasterDiShi(gan, zhi),
     xun: LunarUtil.getXun(ganZhi),
     xunKong: LunarUtil.getXunKong(ganZhi),
   };
@@ -256,6 +260,7 @@ const buildLiuNian = (liuNian, currentBaziYear, dayGan, sourceDaYunIndex) => {
     naYin: LunarUtil.NAYIN[ganZhi] ?? '',
     diShi: getDayMasterDiShi(dayGan, zhi),
     diShiBasis: '日主临支',
+    ziZuo: getDayMasterDiShi(gan, zhi),
     xun: liuNian.getXun(),
     xunKong: liuNian.getXunKong(),
     // 八字流年以立春为界，不能直接用公历年份判断。
@@ -306,6 +311,7 @@ const buildDaYun = (daYun, now, yunStartSolar, currentBaziYear, dayGan) => {
     naYin: LunarUtil.NAYIN[ganZhi] ?? '',
     diShi: getDayMasterDiShi(dayGan, zhi),
     diShiBasis: '日主临支',
+    ziZuo: getDayMasterDiShi(gan, zhi),
     xun: daYun.getXun(),
     xunKong: daYun.getXunKong(),
     // 大运以实际交运时刻为边界，而不是每年元旦粗略切换。
@@ -516,7 +522,10 @@ export const buildBaziChart = (input, now = new Date()) => {
 
   const eightChar = lunar.getEightChar();
   eightChar.setSect(normalized.daySect);
-  const pillars = PILLAR_DEFINITIONS.map((definition) => getPillar(eightChar, definition));
+  const rawPillars = PILLAR_DEFINITIONS.map((definition) => getPillar(eightChar, definition));
+  const shenshaContext = buildShenshaContext(rawPillars);
+  const withShensha = (item) => ({ ...item, shensha: getShensha(item, shenshaContext) });
+  const pillars = rawPillars.map(withShensha);
   const dayMasterGan = eightChar.getDayGan();
   const surfaceWuxingCount = { '木': 0, '火': 0, '土': 0, '金': 0, '水': 0 };
   pillars.forEach(({ ganWuxing, zhiWuxing }) => {
@@ -532,12 +541,31 @@ export const buildBaziChart = (input, now = new Date()) => {
   const currentBaziYear = now.getFullYear() - (nowYearGanZhi === midYearGanZhi ? 0 : 1);
   const yunSource = eightChar.getYun(normalized.gender === 'male' ? 1 : 0, 2);
   const startSolar = yunSource.getStartSolar();
-  const dayun = yunSource
-    .getDaYun(14)
+  const daYunSources = yunSource.getDaYun(14);
+  const dayun = daYunSources
     .filter((item) => item.getIndex() > 0 && item.getGanZhi())
-    .map((item) => buildDaYun(item, now, startSolar, currentBaziYear, dayMasterGan));
-  const currentLiuNian = dayun
-    .flatMap((item) => item.liuNian)
+    .map((item) => buildDaYun(item, now, startSolar, currentBaziYear, dayMasterGan))
+    .map((item) => ({ ...withShensha(item), liuNian: item.liuNian.map(withShensha) }));
+
+  // 起运之前的年份行小运：大运列表里的第 0 步没有干支，这里单独整理。
+  const childhood = daYunSources.find((item) => item.getIndex() === 0);
+  const childhoodXiaoYun = childhood ? childhood.getXiaoYun() : [];
+  const xiaoYunYears = (childhood ? childhood.getLiuNian() : []).map((item, index) => {
+    const xiaoYunGanZhi = childhoodXiaoYun[index]?.getGanZhi();
+    return {
+      ...withShensha(buildLiuNian(item, currentBaziYear, dayMasterGan, 0)),
+      xiaoYun: xiaoYunGanZhi ? withShensha({ name: '小运', ...describeGanZhi(xiaoYunGanZhi, dayMasterGan) }) : null,
+    };
+  });
+  const xiaoYun = xiaoYunYears.length ? {
+    startAge: childhood.getStartAge(),
+    endAge: childhood.getEndAge(),
+    startYear: childhood.getStartYear(),
+    endYear: childhood.getEndYear(),
+    years: xiaoYunYears,
+  } : null;
+
+  const currentLiuNian = [...dayun.flatMap((item) => item.liuNian), ...xiaoYunYears]
     .find((item) => item.isCurrent) ?? null;
 
   return {
@@ -548,6 +576,15 @@ export const buildBaziChart = (input, now = new Date()) => {
     },
     timeInfo,
     pillars,
+    shenshaContext,
+    extras: {
+      taiYuan: eightChar.getTaiYuan(),
+      taiYuanNaYin: eightChar.getTaiYuanNaYin(),
+      mingGong: eightChar.getMingGong(),
+      mingGongNaYin: eightChar.getMingGongNaYin(),
+      shenGong: eightChar.getShenGong(),
+      shenGongNaYin: eightChar.getShenGongNaYin(),
+    },
     dayMaster: {
       gan: dayMasterGan,
       wuxing: GAN_WUXING[dayMasterGan] ?? '',
@@ -583,6 +620,7 @@ export const buildBaziChart = (input, now = new Date()) => {
       forward: yunSource.isForward(),
       currentLiuNian,
       dayun,
+      xiaoYun,
     },
   };
 };
