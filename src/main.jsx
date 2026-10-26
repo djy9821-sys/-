@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 
 // 离线缓存：页面始终先走网络（见 public/sw.js），断网或网络很慢时用上次的缓存打开。
 // 旧版 Workbox 缓存会在新脚本启用时自动清掉。
@@ -16,8 +17,26 @@ const registerServiceWorker = () => {
 
 registerServiceWorker();
 
+// 八字、档案、紫微命盘等页面是用到时才下载的。网站刚更新（旧页面里记的文件已不存在）
+// 或网络抖动时会下载失败：自动刷新一次拿最新版本。10 秒内已经刷新过还失败，
+// 或记不住刷新时间时，不再刷新，交给下面的错误提示，避免反复刷新。
+const CHUNK_RELOAD_KEY = 'gushupai-chunk-reload-at';
+window.addEventListener('vite:preloadError', (event) => {
+  try {
+    const lastReload = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY)) || 0;
+    if (Date.now() - lastReload < 10_000) return;
+    sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+  } catch {
+    return;
+  }
+  event.preventDefault();
+  window.location.reload();
+});
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 )
