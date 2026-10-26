@@ -28,7 +28,7 @@ import {
 } from '../utils/baziChart';
 import { archiveManager } from '../utils/archiveManager';
 import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from '../utils/birthPlaces';
-import { ARCHIVE_GROUP_OPTIONS, buildBaziRecord, parseClockTime, recordToBaziForm } from '../utils/baziRecord';
+import { ARCHIVE_GROUP_OPTIONS, buildBaziRecord, clearLastBaziRecord, parseClockTime, readLastBaziRecord, recordToBaziForm, saveLastBaziRecord } from '../utils/baziRecord';
 import { isChinaDst } from '../utils/trueSolarTime';
 import {
     buildLiuRi,
@@ -75,16 +75,7 @@ const formatStartSolar = (value) => value?.split(' ')[0]?.replaceAll('-', '.') ?
 
 // 日历、时辰上的小圆点只看地支（及整柱伏吟、反吟）与本命四柱的关系；
 // 天干关系与“破”在选中后的关系列表里完整列出，不占用圆点，避免满屏都是标记。
-// 上一次排的盘只存在本机浏览器里，方便下次打开直接查看。
-const LAST_CHART_KEY = 'bazi-last-chart';
-const readLastChartForm = () => {
-    try {
-        const raw = window.localStorage.getItem(LAST_CHART_KEY);
-        return raw ? recordToBaziForm(JSON.parse(raw)) : null;
-    } catch {
-        return null;
-    }
-};
+const readLastChartForm = () => recordToBaziForm(readLastBaziRecord());
 const describeSavedForm = (form) => {
     if (!form) return '';
     const hour = form.timeMode === 'exact' && form.clockTime
@@ -471,21 +462,13 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
 
     const rememberLastChart = (chart) => {
         if (!chart) return;
-        const record = buildBaziRecord(collectForm(), chart);
-        try {
-            window.localStorage.setItem(LAST_CHART_KEY, JSON.stringify(record));
-        } catch {
-            // 隐私模式或存储已满时不记忆，不影响排盘。
-        }
+        const record = buildBaziRecord(collectForm(), chart, { group: 'self' });
+        saveLastBaziRecord(record);
         setLastForm(recordToBaziForm(record));
     };
 
     const forgetLastChart = () => {
-        try {
-            window.localStorage.removeItem(LAST_CHART_KEY);
-        } catch {
-            // 忽略
-        }
+        clearLastBaziRecord();
         setLastForm(null);
     };
 

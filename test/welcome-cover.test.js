@@ -28,7 +28,10 @@ test('封面仅首次展示，退出后保留原有首页状态机', async () =>
   const source = await readProjectFile('src/App.jsx');
 
   assert.match(source, /gushupai-welcome-cover-seen-v1/);
-  assert.match(source, /const \[view, setView\] = useState\('home'\)/);
+  // 默认进入首页；带 #/bazi 等地址打开时直接进入对应功能，不显示封面。
+  assert.match(source, /const \[view, setView\] = useState\(initialViewFromLocation\)/);
+  assert.match(source, /viewFromHash\(globalThis\.location\?\.hash\)/);
+  assert.match(source, /if \(initialViewFromLocation\(\) !== 'home'\) return false;/);
   assert.match(source, /globalThis\.localStorage\?\.getItem\(WELCOME_COVER_KEY\) !== 'seen'/);
   assert.match(source, /<WelcomeCover[\s\S]*?onEnter=\{\(\) => leaveWelcomeCover\('home'\)\}[\s\S]*?onNavigate=\{leaveWelcomeCover\}/);
   assert.match(source, /查看品牌封面/);
