@@ -74,3 +74,14 @@
 - **所在地与此刻**：`utils/currentPlace.js` 保存所在地（localStorage `gushupai-current-place`），`toLocalSolarNow()` 把设备时间换成所在地真太阳时；首页「八字 · 今日」、八字流时的「此刻」、六爻起卦时间都用它。设置入口是 `components/common/PlaceSetting.jsx`。
 - **紫微真太阳时**：紫微录入页新增「精确到分钟」：钟表时间 + 出生地（省市 / 经度 / 时区 / 夏令时），`utils/ziweiTime.js` 复用八字的 `resolveExactBirth` 换算出时辰与公历日期再排盘；档案 `data.timeMode = 'exact'` 保存设置，打开时重新换算；专业盘中宫「真太阳时」显示换算结果，离时辰交界近时提示另一可能。
 - **测试**：新增 `liuyao`、`liuyao-record`、`current-place`、`ziwei-time`；`gesture-bagua`、`welcome-cover`、`professional-chart-ui` 随改动更新。本次环境仍装不上 npm 依赖，lint / build 以 GitHub CI 为准。
+
+---
+
+## 2026-10-26 第四轮（分支 `claude/round4-insights`，基于 `claude/liuyao-ziwei-time`，PR #6，尚未上线）
+
+- **错误上报与使用统计**：`utils/analytics.js` 的 `track(name, params)` 只把事件名与少量参数交给页面里已有的 gtag，没有 gtag 时静默；参数只收字符串 / 数字 / 布尔，字符串截到 100 字（GA4 限制），不含姓名、生辰、卦问。`reportError` 只报错误类型与一句信息；`main.jsx` 装了全局 `error` / `unhandledrejection` 监听，`ErrorBoundary` 的 `componentDidCatch` 也上报（`app_error`，`error_source` 区分 window / promise / boundary），`vite:preloadError` 记 `chunk_load_failed`。已打点的事件：`tool_view`、`ziwei_chart`、`bazi_chart`、`liuyao_cast`、`archive_save` / `archive_open` / `archive_prefill` / `archive_export` / `archive_import` / `archive_delete`、`ai_export`（kind：ziwei / bazi / bazi_today / liuyao）、`fortune_share`、`place_set` / `place_clear`、`pwa_install`。GA 里要先把 `app_route`、`record_type`、`kind` 等注册成自定义维度才会出现在标准报表里。
+- **一个命主两套盘**：首页「八字 · 今日」的候选档案加入紫微档案（`recordToBaziForm` 本来就能读紫微记录），同名同盘的八字记录优先、紫微记录只在没有对应八字记录时列出（标「· 紫微」）；「看今日详情」一律按八字打开（`openBaziToday`），八字页从紫微记录直接出结果。紫微录入页新增「从档案带入」（八字与紫微档案都能带，精确时间设置一并带入）。
+- **六爻断卦辅助**：`utils/liuyaoJudge.js` 的 `judgeLiuYao(reading)`：按问事类别（`LIUYAO_TOPICS`，感情按性别取妻财 / 官鬼）取用神，两现取动爻 → 空破 → 临世应 → 在上者，不上卦取伏神并看飞神；`assessStrength` 按月建、日辰算旺衰（临月建 / 月破 / 月合、日辰生克 / 暗动 / 日破 / 日合、真空假空）；再看用神变爻（回头生克、进退神、入墓、伏吟反吟、化空化破）、其他动爻生克冲合、世应关系、六冲六合卦、游魂归魂，计分得倾向（偏吉 / 平 / 偏弱）与应期提示，整理成 `points`。结果页新增「断卦要点」卡，可在结果页换类别重看；`buildLiuYaoPrompt(reading, judge)` 把初判附进 AI 提示词。规则是通行口诀的简化版，计分阈值在 `assessStrength` 与 `verdictOf` 里，调整时请同步 `test/liuyao-judge.test.js`。
+- **新增起卦方式**：`utils/liuyaoCast.js`：手动录卦（`components/liuyao/ManualCast.jsx`，按背面数录入）、时间起卦（梅花易数：农历年支数 + 月 + 日取上卦，加时辰数取下卦，总和除 6 取动爻）、报数起卦（两个数分别除 8 取上下卦，和除 6 取动爻）。档案 `data` 新增 `topic`、`gender`、`castNote`（起卦参数说明），`method` 支持 coins / gesture / manual / time / number，不认识的值回退（`liuyaoRecord.js`）。
+- **文案**：`index.html` 描述 / 关键词 / OG、`manifest.json` 描述与「六爻起卦」快捷方式、关于页的统计说明。
+- **测试**：新增 `analytics`、`liuyao-judge`（含 64 卦 × 12 类别 × 3 种性别全覆盖）、`liuyao-cast`；`liuyao-record` 随字段更新。
