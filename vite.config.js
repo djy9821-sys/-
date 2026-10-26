@@ -10,11 +10,12 @@ const commit = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7)
 const buildDate = new Date().toISOString().slice(0, 10).replaceAll('-', '.')
 const appBuild = `v${buildDate}${commit ? `-${commit}` : ''}`
 
-// 第三方库单独成块：只改业务代码时，回访用户不必重新下载这些库。
+// React 单独成块：只改业务代码时，回访用户不必重新下载。
+// 紫微、农历等库交给 Rollup 自动拆分，跟着按需加载的页面走，不进首页。
+// CommonJS 辅助函数也放进 vendor-react，否则它可能落进某个按需加载的库块，
+// 让首页被迫预加载整个库块。
 const VENDOR_CHUNKS = [
-  ['vendor-react', /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/],
-  ['vendor-iztro', /[\\/]node_modules[\\/](iztro|lunar-lite|lunar-typescript|dayjs|i18next)[\\/]/],
-  ['vendor-lunar', /[\\/]node_modules[\\/]lunar-javascript[\\/]/],
+  ['vendor-react', /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]|commonjsHelpers/],
 ]
 
 // 手势八卦的识别模型（MediaPipe Hands）原本从 jsdelivr 加载，国内经常打不开。
