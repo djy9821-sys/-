@@ -145,6 +145,7 @@ const getRecordSummaryParts = (record) => {
 };
 
 const getRecordTime = (record) => {
+    if (record?.type === 'bazi' && record?.data?.timeMode === 'unknown') return '时辰不详';
     if (record?.timeHour == null || record.timeHour === '') return '时辰未记录';
     const value = Number(record?.timeHour);
     const label = Number.isInteger(value) && TIME_LABELS[value] ? TIME_LABELS[value] : '';

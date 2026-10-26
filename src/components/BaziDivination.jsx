@@ -3,9 +3,10 @@
  * 计算由 baziChart 统一提供；页面采用紧凑、专业的命盘信息架构。
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Bot, Calendar, CalendarDays, Clock, FolderOpen, Link2, MapPin, Printer, Save, Scale, Sparkles, TrendingUp, User } from 'lucide-react';
+import { ArrowLeft, Bot, Calendar, CalendarDays, Clock, Compass, FolderOpen, Link2, MapPin, Printer, Save, Scale, Share2, Sparkles, TrendingUp, User } from 'lucide-react';
 import BaziLanding from './bazi/BaziLanding';
 import BaziFlowPanel, { RelationList } from './bazi/BaziFlowPanel';
+import BaziPatternPanel from './bazi/BaziPatternPanel';
 import BaziPromptExport from './bazi/BaziPromptExport';
 import BaziStrengthPanel from './bazi/BaziStrengthPanel';
 import { BoundaryNotice, SectionHeading } from './bazi/BaziBits';
@@ -44,6 +45,40 @@ import {
 import { findRelations } from '../utils/baziRelations';
 import { getShensha } from '../utils/baziShensha';
 import { analyzeStrength } from '../utils/baziStrength';
+import { judgeBaziPattern } from '../utils/baziPattern';
+import { describeYearMarks, getDaYunMarks, getLiuNianMarks } from '../utils/baziYearMarks';
+import { buildBaziShareUrl } from '../utils/baziLink';
+
+// 大运卡片底边、流年按钮右上角的喜忌颜色。
+const FAVOR_CLASS = { good: 'bg-[#2d6b62]', bad: 'bg-[#a33b30]', neutral: 'bg-[#b9ad98]', mixed: 'bg-[linear-gradient(90deg,#2d6b62_50%,#a33b30_50%)]' };
+const FAVOR_TEXT = { good: '喜', bad: '忌', neutral: '平', mixed: '喜忌参半' };
+const YEAR_BADGE_CLASS = {
+    clash: 'bg-[#a33b30] text-white', punish: 'bg-[#b06a1f] text-white', harm: 'bg-[#6b4f8a] text-white',
+    echo: 'bg-[#315f7d] text-white', break: 'bg-[#8a8074] text-white',
+};
+
+const copyText = async (text) => {
+    if (navigator.clipboard?.writeText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch {
+            // 继续用兼容写法
+        }
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        return document.execCommand('copy');
+    } finally {
+        textarea.remove();
+    }
+};
 
 const PROFESSIONAL_GLOSSARY = [
     ['主星', '以日主天干为基准，观察其与各柱天干之间的十神关系。'],
@@ -56,6 +91,8 @@ const PROFESSIONAL_GLOSSARY = [
     ['大运／流年', '大运表示十年阶段，流年表示其中的单年时间层。'],
     ['流月／流日／流时', '流月以节令交节为界，流日、流时为具体日期与时辰的干支，用于细看某一天、某个时辰。'],
     ['合冲刑害', '对照表下方列出运限各层与本命四柱之间的干支关系，仅作结构提示，吉凶需结合喜忌判断。'],
+    ['合化', '天干五合、地支六合后面标注的「化某」只是可能的化气方向；是否真的化气要看月令与周围干支，多数情况合而不化。'],
+    ['太岁', '流年地支与本命年支相同为值太岁，相冲、相刑、相害、相破分别为冲、刑、害、破太岁；大运与流年干支相同为岁运并临。都是提醒留意的年份，不是定吉凶。'],
 ];
 
 // 对照层级：流年为原有默认，向下逐层增加流月、流日、流时列。
@@ -81,9 +118,11 @@ const formatStartSolar = (value) => value?.split(' ')[0]?.replaceAll('-', '.') ?
 const readLastChartForm = () => recordToBaziForm(readLastBaziRecord());
 const describeSavedForm = (form) => {
     if (!form) return '';
-    const hour = form.timeMode === 'exact' && form.clockTime
-        ? form.clockTime
-        : BAZI_HOUR_OPTIONS.find((option) => option.index === form.hourIndex)?.name ?? '';
+    const hour = form.timeMode === 'unknown'
+        ? '时辰不详'
+        : form.timeMode === 'exact' && form.clockTime
+            ? form.clockTime
+            : BAZI_HOUR_OPTIONS.find((option) => option.index === form.hourIndex)?.name ?? '';
     const date = `${form.calendarType === 'lunar' ? '农历' : ''}${form.year}年${form.month < 0 ? '闰' : ''}${Math.abs(form.month)}月${form.day}日`;
     return `${form.personName?.trim() || '未命名'} · ${date} ${hour}`;
 };
@@ -162,6 +201,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const liuNianSectionRef = useRef(null);
     const flowSectionRef = useRef(null);
     const wuxingSectionRef = useRef(null);
+    const patternSectionRef = useRef(null);
     const aiSectionRef = useRef(null);
     const calculateTimerRef = useRef(null);
     const stepRegionRef = useRef(null);
@@ -175,6 +215,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const days = Array.from({ length: dayCount }, (_, index) => index + 1);
     const clock = useMemo(() => parseClockTime(clockTime), [clockTime]);
     const exactMode = timeMode === 'exact';
+    const unknownMode = timeMode === 'unknown';
     const placeCities = BIRTH_PROVINCES.find((item) => item.province === placeProvince)?.cities ?? [];
     const longitudeValue = longitude.trim() === '' ? null : Number(longitude);
     const longitudeInvalid = longitudeValue !== null && (!Number.isFinite(longitudeValue) || longitudeValue < -180 || longitudeValue > 180);
@@ -202,8 +243,10 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                 applyTrueSolar,
                 applyDst: Boolean(dstChoice),
             }
-            : { hourIndex: birthHour }),
-    }), [calendarType, birthYear, activeMonth, activeDay, gender, daySect, exactMode, clock, longitudeInvalid, longitudeValue, timezone, placeName, applyTrueSolar, dstChoice, birthHour]);
+            : unknownMode
+                ? { timeMode: 'unknown' }
+                : { hourIndex: birthHour }),
+    }), [calendarType, birthYear, activeMonth, activeDay, gender, daySect, exactMode, unknownMode, clock, longitudeInvalid, longitudeValue, timezone, placeName, applyTrueSolar, dstChoice, birthHour]);
 
     // 只对按北京时间记录的大陆出生时间自动判断 1986–1991 年夏令时。
     const dstSuggested = useMemo(() => {
@@ -299,6 +342,15 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     }, [selectedDaYun, selectedLiuNian]);
 
     const strength = useMemo(() => (baziResult ? analyzeStrength(baziResult) : null), [baziResult]);
+    const patternJudge = useMemo(() => {
+        if (!baziResult || !strength) return null;
+        try {
+            return judgeBaziPattern(baziResult, strength);
+        } catch (error) {
+            console.error('格局初判失败:', error);
+            return null;
+        }
+    }, [baziResult, strength]);
     const shenshaContext = baziResult?.shenshaContext ?? null;
 
     const dayMasterGan = baziResult?.dayMaster?.gan ?? null;
@@ -367,6 +419,19 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         ...fortuneItems,
         ...natalItems,
     ], { focusKeys: FLOW_KEYS }), [flowColumns, fortuneItems, natalItems]);
+
+    // 原局四柱之间的合冲刑害（不含运限）。
+    const natalRelations = useMemo(() => findRelations(natalItems), [natalItems]);
+
+    // 流年按钮上的太岁、岁运并临与喜忌标记；起运前的年份以当年小运为「运」。
+    const liuNianMarks = useMemo(() => {
+        if (!baziResult) return {};
+        return Object.fromEntries(visibleLiuNian.map((liuNian) => [
+            liuNian.year,
+            getLiuNianMarks(liuNian, { chart: baziResult, daYun: selectedDaYun?.isXiaoYun ? liuNian.xiaoYun : selectedDaYun, strength }),
+        ]));
+    }, [baziResult, visibleLiuNian, selectedDaYun, strength]);
+    const selectedYearMarks = selectedLiuNian ? liuNianMarks[selectedLiuNian.year] ?? null : null;
 
     const selectionRelations = useMemo(() => {
         if (!selectedLiuRi) return [];
@@ -470,7 +535,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         setBirthYear(form.year);
         setBirthMonth(form.month);
         setBirthDay(form.day);
-        setBirthHour(form.hourIndex);
+        setBirthHour(form.hourIndex ?? 6);
         setGender(form.gender);
         setDaySect(form.daySect);
         setTimeMode(form.timeMode);
@@ -576,6 +641,29 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                 : `已保存「${saved.name}」的八字命盘，可在档案或排盘页「从档案带入」中找到。`,
         });
         track('archive_save', { record_type: 'bazi', time_mode: timeMode, updated: Boolean(existing) });
+    };
+
+    // 带生辰参数的链接：发给别人打开即出盘；没有分享面板的设备直接复制。
+    const shareChartLink = async () => {
+        if (!baziResult) return;
+        const url = buildBaziShareUrl(collectForm(), { name: personName });
+        if (!url) return;
+        const title = `${personName.trim() || '命主'}的八字命盘 · 古书派`;
+        if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+            try {
+                await navigator.share({ title, url });
+                track('bazi_link_share', { channel: 'share', time_mode: timeMode });
+                return;
+            } catch (error) {
+                if (error?.name === 'AbortError') return;
+                // 分享面板不可用时改为复制
+            }
+        }
+        const copied = await copyText(url).catch(() => false);
+        setSaveNotice(copied
+            ? { type: 'success', message: '命盘链接已复制：对方打开就能看到这张盘（链接里只有生辰与称呼，没有档案备注）。' }
+            : { type: 'error', message: `复制失败，可以手动复制：${url}` });
+        track('bazi_link_share', { channel: copied ? 'copy' : 'manual', time_mode: timeMode });
     };
 
     const changeCalendarType = (nextType) => {
@@ -835,12 +923,17 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                             <div className="space-y-2">
                                 <span className={INPUT_LABEL_CLASS}><Clock className="size-3.5" aria-hidden="true" /> 出生时间</span>
                                 <div className={SEGMENT_CLASS} role="group" aria-label="出生时间的精确程度">
-                                    {[{ value: 'exact', label: '精确到分钟' }, { value: 'shichen', label: '只知道时辰' }].map((option) => (
+                                    {[{ value: 'exact', label: '精确到分钟' }, { value: 'shichen', label: '只知道时辰' }, { value: 'unknown', label: '时辰不详' }].map((option) => (
                                         <button key={option.value} type="button" onClick={() => setTimeMode(option.value)} aria-pressed={timeMode === option.value} className={segmentButtonClass(timeMode === option.value)}>{option.label}</button>
                                     ))}
                                 </div>
 
-                                {exactMode ? (
+                                {unknownMode ? (
+                                    <div className="space-y-1.5 rounded-xl border border-[#dcb471]/15 bg-[#dcb471]/[0.05] p-3">
+                                        <p className="text-sm leading-6 text-[#fbf7ed]/85">不知道几点出生也能排：按年、月、日三柱排盘，日主、大运、流年、旺衰与格局照常给出。</p>
+                                        <p className={INPUT_HINT_CLASS}>时柱、命宫、身宫不排；起运时间按正午估算，实际交运可能前后相差约两个月。之后问清时辰，重新排一次即可。</p>
+                                    </div>
+                                ) : exactMode ? (
                                     <div className="space-y-3">
                                         <input id="bazi-clock" type="time" step="60" aria-label="出生时间（钟表时间）" value={clockTime} onChange={(event) => setClockTime(event.target.value)} className={`${INPUT_FIELD_CLASS} w-full text-base tabular-nums`} style={{ colorScheme: 'dark' }} />
                                         <p className={INPUT_HINT_CLASS}>填出生证明或家人记得的钟表时间。只记得大概时，可以先填中间值，再看下方的时辰交界提示。</p>
@@ -963,7 +1056,9 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                             <div className="grid grid-cols-2 gap-x-3 gap-y-3 text-xs sm:grid-cols-4 sm:text-sm">
                                                 <div><span className="block text-[11px] text-[#8a8074] sm:text-xs">公历</span><strong className="mt-1 block font-semibold tabular-nums text-[#3c352f]">{baziResult.solarInfo.year}.{baziResult.solarInfo.month}.{baziResult.solarInfo.day}</strong></div>
                                                 <div><span className="block text-[11px] text-[#8a8074] sm:text-xs">农历</span><strong className="mt-1 block font-semibold text-[#3c352f]">{baziResult.lunarInfo.yearChinese}年 {baziResult.lunarInfo.monthChinese}月{baziResult.lunarInfo.dayChinese}</strong></div>
-                                                {timeInfo?.mode === 'exact' ? (
+                                                {timeInfo?.mode === 'unknown' ? (
+                                                    <div><span className="block text-[11px] text-[#8a8074] sm:text-xs">出生时辰</span><strong className="mt-1 block font-semibold text-[#3c352f]">不详 · 按三柱排盘</strong></div>
+                                                ) : timeInfo?.mode === 'exact' ? (
                                                     <div><span className="block text-[11px] text-[#8a8074] sm:text-xs">{timeInfo.trueSolarApplied ? '真太阳时' : '出生时间'}</span><strong className="mt-1 block font-semibold tabular-nums text-[#3c352f]">{timeInfo.correctedTime} · {selectedHour.name}</strong></div>
                                                 ) : (
                                                     <div><span className="block text-[11px] text-[#8a8074] sm:text-xs">当地钟表时辰</span><strong className="mt-1 block font-semibold text-[#3c352f]">{selectedHour.name} · {selectedHour.range}</strong></div>
@@ -978,22 +1073,39 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                 ].map(([label, ganZhi, naYin]) => (
                                                     <div key={label} className="rounded-lg border border-[#d5c9b8] bg-[#f7f0e5] px-1 py-1.5">
                                                         <dt className="text-[11px] text-[#8a8074]">{label}</dt>
-                                                        <dd className="font-serif text-base font-bold text-[#3b342e]">{ganZhi}</dd>
-                                                        <dd className="text-[11px] text-[#81776b]">{naYin}</dd>
+                                                        <dd className="font-serif text-base font-bold text-[#3b342e]">{ganZhi || '—'}</dd>
+                                                        <dd className="text-[11px] text-[#81776b]">{naYin || (ganZhi ? '' : '需时辰')}</dd>
                                                     </div>
                                                 ))}
                                             </dl>
+                                            {patternJudge?.pattern && (
+                                                <p className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#514941]">
+                                                    <span className="inline-flex items-center rounded-full border border-[#a33b30]/40 bg-[#a33b30]/[0.06] px-2.5 py-0.5 font-serif text-sm font-bold text-[#96372e]">{patternJudge.pattern.name}</span>
+                                                    {patternJudge.special && <span className="inline-flex items-center rounded-full border border-[#b06a1f]/40 bg-[#b06a1f]/[0.08] px-2 py-0.5 text-[11px] font-bold text-[#7f4b12]">{patternJudge.special.name}</span>}
+                                                    {patternJudge.traits.filter((item) => item.key !== 'rizuo').slice(0, 3).map((item) => (
+                                                        <span key={item.key} className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-bold ${item.tone === 'good' ? 'border-[#2d6b62]/35 bg-[#2d6b62]/[0.07] text-[#245a52]' : item.tone === 'caution' ? 'border-[#b06a1f]/40 bg-[#b06a1f]/[0.08] text-[#7f4b12]' : 'border-[#cbbfac] text-[#5f574f]'}`}>{item.name}</span>
+                                                    ))}
+                                                    <button type="button" onClick={() => scrollToSection(patternSectionRef)} className="inline-flex min-h-8 items-center text-[11px] font-bold text-[#2d6b62] underline-offset-2 hover:underline">看格局与组合 ↓</button>
+                                                </p>
+                                            )}
                                             {strength?.favorable.length > 0 && (
                                                 <p className="mt-2 text-xs text-[#514941]">
                                                     喜用参考：<b className="text-[#245a52]">{strength.favorable.map((item) => `${item.element}（${item.role}${item.tiaoHou ? '·调候' : ''}）`).join('、')}</b>
                                                     <button type="button" onClick={() => scrollToSection(wuxingSectionRef)} className="ml-1.5 inline-flex min-h-8 items-center text-[11px] font-bold text-[#2d6b62] underline-offset-2 hover:underline">看依据 ↓</button>
                                                 </p>
                                             )}
+                                            {patternJudge?.wuxingGap && (
+                                                <p className="mt-1 text-xs text-[#514941]">
+                                                    {patternJudge.wuxingGap.text}。<span className="text-[#7f4b12]">{patternJudge.wuxingGap.hint}</span>
+                                                </p>
+                                            )}
                                             <p className="mt-3 text-[11px] leading-5 text-[#8a8074]">
                                                 日期按{calendarType === 'solar' ? '阳历' : '农历'}输入 · {genderLabel}
-                                                {timeInfo?.mode === 'exact'
-                                                    ? ` · 钟表 ${timeInfo.clockTime}${timeInfo.dstApplied ? '（已扣夏令时）' : ''}${timeInfo.trueSolarApplied ? ` · 已按${timeInfo.placeName || '出生地'}（东经 ${Number(timeInfo.longitude).toFixed(2)}°）校正真太阳时` : ' · 未校正真太阳时'}`
-                                                    : ' · 按时辰排盘，未校正真太阳时'}
+                                                {timeInfo?.mode === 'unknown'
+                                                    ? ' · 时辰不详，按年月日三柱排盘，时柱、命宫、身宫未排'
+                                                    : timeInfo?.mode === 'exact'
+                                                        ? ` · 钟表 ${timeInfo.clockTime}${timeInfo.dstApplied ? '（已扣夏令时）' : ''}${timeInfo.trueSolarApplied ? ` · 已按${timeInfo.placeName || '出生地'}（东经 ${Number(timeInfo.longitude).toFixed(2)}°）校正真太阳时` : ' · 未校正真太阳时'}`
+                                                        : ' · 按时辰排盘，未校正真太阳时'}
                                                 {isLateZiHour ? ` · ${daySect === 1 ? '晚子换次日' : '晚子不换日'}` : ''}
                                             </p>
                                             {timeInfo?.boundary && (
@@ -1005,6 +1117,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                 {[
                                                     ['四柱', professionalSectionRef],
                                                     ['五行旺衰', wuxingSectionRef],
+                                                    ['格局组合', patternSectionRef],
                                                     ['大运流年', liuNianSectionRef],
                                                     ['流月流日', flowSectionRef],
                                                     ['导出给 AI', aiSectionRef],
@@ -1073,6 +1186,14 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                         </div>
                                                         <details className="mt-3 overflow-hidden rounded-xl border border-[#cbbfac]/80 bg-[#fffaf0]/55">
                                                             <summary className="flex min-h-11 cursor-pointer items-center justify-between px-3 text-sm font-bold text-[#514941] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2d6b62]">
+                                                                原局内部的合冲刑害 <span className="text-xs font-normal text-[#81776b]">{natalRelations.length ? `${natalRelations.length} 条` : '无'}</span>
+                                                            </summary>
+                                                            <div className="border-t border-[#cbbfac]/70 px-3 pb-3">
+                                                                <RelationList relations={natalRelations} emptyText="原局四柱之间没有明显的合冲刑害。" />
+                                                            </div>
+                                                        </details>
+                                                        <details className="mt-3 overflow-hidden rounded-xl border border-[#cbbfac]/80 bg-[#fffaf0]/55">
+                                                            <summary className="flex min-h-11 cursor-pointer items-center justify-between px-3 text-sm font-bold text-[#514941] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2d6b62]">
                                                                 术语说明 <span className="text-xs font-normal text-[#81776b]">点击展开</span>
                                                             </summary>
                                                             <dl className="grid gap-x-5 gap-y-3 border-t border-[#cbbfac]/70 px-3 py-3 sm:grid-cols-2">
@@ -1085,7 +1206,18 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                             </dl>
                                                         </details>
                                                     </>
-                                                ) : <PillarTable pillars={baziResult.pillars} />}
+                                                ) : (
+                                                    <>
+                                                        <PillarTable pillars={baziResult.pillars} />
+                                                        <div className="mt-3 rounded-xl border border-[#cbbfac]/80 bg-[#fffaf0]/55 p-3">
+                                                            <p className="flex items-center gap-1.5 text-sm font-bold text-[#514941]">
+                                                                <Link2 className="size-4 text-[#2d6b62]" aria-hidden="true" />原局合冲刑害
+                                                                <span className="text-[11px] font-normal text-[#81776b]">四柱之间的干支关系，吉凶需结合喜忌</span>
+                                                            </p>
+                                                            <RelationList relations={natalRelations} emptyText="原局四柱之间没有明显的合冲刑害。" initialCount={4} />
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                             <div className="hidden print:block">
                                                 <SectionHeading seal="壹" title="专业运限同参" note="所选运限与本命四柱并列对照" icon={Sparkles} />
@@ -1104,27 +1236,47 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                             {strength && <BaziStrengthPanel strength={strength} surfaceCounts={baziResult.surfaceWuxingCount} dayMaster={baziResult.dayMaster} />}
                                         </section>
 
+                                        {patternJudge && (
+                                            <section ref={patternSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none sm:px-6 sm:py-6" aria-labelledby="pattern-title">
+                                                <div id="pattern-title"><SectionHeading seal="叁" title="格局与命局组合" note="月令取格、常见十神组合与五行缺失（程序初判，仅供参考）" icon={Compass} /></div>
+                                                <BaziPatternPanel judge={patternJudge} />
+                                            </section>
+                                        )}
+
                                         {baziResult.yun?.dayun?.length > 0 && (
                                             <section ref={liuNianSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none sm:px-6 sm:py-6" aria-labelledby="dayun-title">
-                                                <div id="dayun-title"><SectionHeading seal="叁" title="大运流年" note="点击大运与流年可联动上方专业细盘；交运年份可能跨两步大运" icon={TrendingUp} /></div>
+                                                <div id="dayun-title"><SectionHeading seal="肆" title="大运流年" note="点击大运与流年可联动上方专业细盘；交运年份可能跨两步大运" icon={TrendingUp} /></div>
                                                 <div className="mt-4 rounded-xl border border-[#cbbfac]/75 bg-[#e9dfcd]/45 px-3 py-2.5 text-[11px] leading-5 text-[#655d54] sm:text-xs">
                                                     <span className="font-semibold text-[#2d6b62]">{baziResult.yun.forward ? '顺排' : '逆排'}</span><span className="mx-2 text-[#a79b8a]" aria-hidden="true">·</span>
                                                     出生后 {baziResult.yun.startYear}年{baziResult.yun.startMonth}月{baziResult.yun.startDay}天{baziResult.yun.startHour ? `${baziResult.yun.startHour}小时` : ''}起运
                                                     <span className="mx-2 text-[#a79b8a]" aria-hidden="true">·</span>交运 {formatStartSolar(baziResult.yun.startSolar)}
+                                                    {baziResult.yun.estimated && <span className="ml-2 text-[#7f4b12]">时辰不详，按正午估算，实际交运可能前后相差约两个月</span>}
                                                 </div>
                                                 <div ref={daYunScrollerRef} className="-mx-3 mt-2 overflow-x-auto px-3 pb-2 pt-2.5 print:hidden sm:-mx-6 sm:px-6" aria-label="大运时间轴">
                                                     <div className="flex w-max min-w-full snap-x gap-2">
                                                         {[...(xiaoYunDaYun ? [xiaoYunDaYun] : []), ...baziResult.yun.dayun].map((daYun) => {
                                                             const isSelected = selectedDaYun?.index === daYun.index;
+                                                            const favor = daYun.isXiaoYun ? null : getDaYunMarks(daYun, { strength }).favor;
                                                             return (
-                                                                <button key={daYun.index} data-dayun-index={daYun.index} type="button" aria-pressed={isSelected} aria-expanded={isSelected} onClick={() => selectDaYun(daYun)} className={`relative min-h-[5.75rem] w-[5.6rem] shrink-0 snap-start rounded-xl border px-2 py-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f3ecdf] ${isSelected ? 'border-[#a33b30] bg-[#fffaf0] shadow-sm' : daYun.isCurrent ? 'border-[#2d6b62]/70 bg-[#2d6b62]/[0.07]' : 'border-[#cbbfac] bg-[#f8f1e6] hover:border-[#9e8f7a]'}`}>
+                                                                <button key={daYun.index} data-dayun-index={daYun.index} type="button" aria-pressed={isSelected} aria-expanded={isSelected} onClick={() => selectDaYun(daYun)} className={`relative min-h-[5.75rem] w-[5.6rem] shrink-0 snap-start overflow-hidden rounded-xl border px-2 py-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f3ecdf] ${isSelected ? 'border-[#a33b30] bg-[#fffaf0] shadow-sm' : daYun.isCurrent ? 'border-[#2d6b62]/70 bg-[#2d6b62]/[0.07]' : 'border-[#cbbfac] bg-[#f8f1e6] hover:border-[#9e8f7a]'}`}>
                                                                     {daYun.isCurrent && <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#2d6b62] px-1.5 py-0.5 text-[10px] font-bold leading-4 text-white">当前</span>}
                                                                     <span className="block text-[11px] tabular-nums text-[#81776b]">{daYun.startAge}-{daYun.endAge}虚岁</span><span className="mt-1 block font-serif text-xl font-bold tracking-[0.12em] text-[#3b342e]">{daYun.isXiaoYun ? '小运' : daYun.ganZhi}</span><span className="mt-1 block text-[11px] tabular-nums text-[#81776b]">{daYun.startYear}-{daYun.endYear}</span>
+                                                                    {favor && (
+                                                                        <span className="absolute inset-x-0 bottom-0 flex h-1" role="img" aria-label={`天干${favor.gan.element}${FAVOR_TEXT[favor.gan.tone]}，地支${favor.zhi.element}${FAVOR_TEXT[favor.zhi.tone]}`}>
+                                                                            <span className={`flex-1 ${FAVOR_CLASS[favor.gan.tone]}`} /><span className={`flex-1 ${FAVOR_CLASS[favor.zhi.tone]}`} />
+                                                                        </span>
+                                                                    )}
                                                                 </button>
                                                             );
                                                         })}
                                                     </div>
                                                 </div>
+                                                <p className="text-[11px] leading-5 text-[#81776b] print:hidden">
+                                                    卡片底边左半为天干、右半为地支对日主的
+                                                    <span className="mx-1 inline-block size-2 rounded-sm bg-[#2d6b62] align-middle" aria-hidden="true" />喜
+                                                    <span className="mx-1 inline-block size-2 rounded-sm bg-[#a33b30] align-middle" aria-hidden="true" />忌
+                                                    <span className="mx-1 inline-block size-2 rounded-sm bg-[#b9ad98] align-middle" aria-hidden="true" />平；流年右上角的圆点同理。
+                                                </p>
                                                 <div className="hidden border-l border-t border-[#b9ad98] print:grid print:grid-cols-7">
                                                     {baziResult.yun.dayun.map((daYun) => (
                                                         <div key={`print-${daYun.index}`} className={`border-b border-r border-[#b9ad98] px-1 py-1.5 text-center ${selectedDaYun?.index === daYun.index ? 'bg-[#a33b30]/[0.07]' : ''}`}>
@@ -1146,12 +1298,15 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                         <ul className="mt-3 grid grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-5">
                                                             {visibleLiuNian.map((liuNian) => {
                                                                 const isSelected = selectedLiuNian?.year === liuNian.year;
+                                                                const marks = liuNianMarks[liuNian.year];
+                                                                const favorTone = marks?.favor?.overall;
                                                                 return (
                                                                     <li key={liuNian.year}>
                                                                         <button
                                                                             type="button"
                                                                             aria-pressed={isSelected}
                                                                             onClick={() => selectLiuNian(liuNian)}
+                                                                            aria-label={`${liuNian.year}年 ${liuNian.ganZhi}${marks?.labels?.length ? `，${marks.labels.join('、')}` : ''}${favorTone && favorTone !== 'neutral' ? `，${FAVOR_TEXT[favorTone]}` : ''}`}
                                                                             className={`relative min-h-12 w-full rounded-lg border px-2 py-2 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${isSelected
                                                                                 ? 'border-[#a33b30] bg-[#a33b30]/[0.08] shadow-sm'
                                                                                 : liuNian.isCurrent
@@ -1160,15 +1315,22 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                                             }`}
                                                                         >
                                                                             {liuNian.isCurrent && <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#2d6b62] px-1.5 text-[10px] font-bold leading-4 text-white">今年</span>}
+                                                                            {favorTone && favorTone !== 'neutral' && <span className={`absolute right-1.5 top-1.5 size-2 rounded-full ${FAVOR_CLASS[favorTone]}`} aria-hidden="true" />}
                                                                             <span className="block text-[11px] tabular-nums text-[#81776b]">{liuNian.year} · {liuNian.age}虚岁</span>
                                                                             <span className="mt-0.5 block font-serif text-base font-bold text-[#3b342e]">{liuNian.ganZhi}</span>
                                                                             {resultMode === 'professional' && <span className="mt-0.5 block text-[11px] text-[#2d6b62]">{liuNian.ganShiShen}</span>}
                                                                             {liuNian.xiaoYun && <span className="mt-0.5 block text-[11px] text-[#81776b]">小运 {liuNian.xiaoYun.ganZhi}</span>}
+                                                                            {marks?.badge && <span className={`mt-1 inline-block rounded px-1 text-[10px] font-bold leading-4 ${YEAR_BADGE_CLASS[marks.badgeTone] ?? 'bg-[#8a8074] text-white'}`}>{marks.badge}</span>}
                                                                         </button>
                                                                     </li>
                                                                 );
                                                             })}
                                                         </ul>
+                                                        {selectedLiuNian && selectedYearMarks && (
+                                                            <p className="mt-3 rounded-lg bg-[#e9dfcd]/50 px-3 py-2 text-xs leading-5 text-[#514941]">
+                                                                <b className="font-serif text-[#3b342e]">{selectedLiuNian.year} {selectedLiuNian.ganZhi}流年</b>：{describeYearMarks(selectedLiuNian, selectedYearMarks) || '与本命年支、日柱没有特别的冲合'}
+                                                            </p>
+                                                        )}
                                                         {visibleLiuNian.length > selectedDaYun.liuNian.length && (
                                                             <p className="mt-2 text-[11px] leading-5 text-[#81776b]">当前流年跨越交运节点，已与本步大运的十个标称年份一并显示。</p>
                                                         )}
@@ -1193,7 +1355,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
 
                                         {selectedLiuNian && selectedLiuRi && (
                                             <section ref={flowSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none print:hidden sm:px-6 sm:py-6" aria-labelledby="flow-title">
-                                                <div id="flow-title"><SectionHeading seal="肆" title="流月 · 流日 · 流时" note="在所选流年内细看某月、某天、某个时辰；点选后上方专业盘同步加列" icon={CalendarDays} /></div>
+                                                <div id="flow-title"><SectionHeading seal="伍" title="流月 · 流日 · 流时" note="在所选流年内细看某月、某天、某个时辰；点选后上方专业盘同步加列" icon={CalendarDays} /></div>
                                                 <PlaceSetting tone="paper" now={new Date()} className="mt-3" />
                                                 <BaziFlowPanel
                                                     liuNian={selectedLiuNian}
@@ -1216,7 +1378,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                         )}
 
                                         <section ref={aiSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none print:hidden sm:px-6 sm:py-6" aria-labelledby="ai-export-title">
-                                            <div id="ai-export-title"><SectionHeading seal="伍" title="导出给 AI" note="把命盘和所选时段整理成提示词，复制后粘贴给 ChatGPT、Claude 等 AI 直接分析" icon={Bot} /></div>
+                                            <div id="ai-export-title"><SectionHeading seal="陆" title="导出给 AI" note="把命盘和所选时段整理成提示词，复制后粘贴给 ChatGPT、Claude 等 AI 直接分析" icon={Bot} /></div>
                                             <BaziPromptExport
                                                 chart={baziResult}
                                                 personName={personName}
@@ -1230,9 +1392,10 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                     </div>
                                 </article>
 
-                                <div className="mt-4 grid grid-cols-3 gap-2 print:hidden sm:gap-3">
+                                <div className="mt-4 grid grid-cols-2 gap-2 print:hidden sm:grid-cols-4 sm:gap-3">
                                     <button type="button" onClick={() => goBackTo('input')} className="min-h-11 rounded-xl border border-[#dcb471]/40 px-2 text-sm font-bold text-[#f0ce91] hover:bg-[#dcb471]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8]">重新排盘</button>
                                     <button type="button" onClick={() => { setSavePanelOpen((open) => !open); setSaveNotice(null); }} aria-expanded={savePanelOpen} aria-controls="bazi-save-panel" className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-[#dcb471]/40 px-2 text-sm font-bold text-[#f0ce91] hover:bg-[#dcb471]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8]"><Save className="size-4" aria-hidden="true" />存入档案</button>
+                                    <button type="button" onClick={shareChartLink} className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-[#dcb471]/40 px-2 text-sm font-bold text-[#f0ce91] hover:bg-[#dcb471]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8]"><Share2 className="size-4" aria-hidden="true" />分享链接</button>
                                     <button type="button" onClick={() => window.print()} className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-[#2d6b62] px-2 text-sm font-bold text-white hover:bg-[#245a52] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#75b4aa]"><Printer className="size-4" aria-hidden="true" />导出细盘</button>
                                 </div>
                                 {savePanelOpen && (

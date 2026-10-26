@@ -24,6 +24,7 @@ export const parseClockTime = (value) => {
  */
 export const buildBaziRecord = (form, chart, { name, group = 'self', note = '' } = {}) => {
   const exact = form.timeMode === 'exact';
+  const unknown = form.timeMode === 'unknown';
   return {
     name: name?.trim() || form.personName?.trim() || '未命名',
     gender: form.gender,
@@ -31,13 +32,14 @@ export const buildBaziRecord = (form, chart, { name, group = 'self', note = '' }
     calendarType: form.calendarType,
     birthDate: `${form.year}-${Math.abs(form.month)}-${form.day}`,
     solarDate: chart?.solarInfo?.ymd ?? '',
-    timeHour: chart?.input?.hourIndex ?? form.hourIndex,
+    // 时辰不详的记录不带 timeHour，紫微等需要时辰的功能会跳过它。
+    timeHour: unknown ? null : (chart?.input?.hourIndex ?? form.hourIndex),
     isLeapMonth: form.calendarType === 'lunar' && form.month < 0,
     group,
     note: note.trim(),
     data: {
       daySect: form.daySect,
-      timeMode: exact ? 'exact' : 'shichen',
+      timeMode: exact ? 'exact' : unknown ? 'unknown' : 'shichen',
       clockTime: exact ? form.clockTime : '',
       placeProvince: exact ? form.placeProvince ?? '' : '',
       placeCity: exact ? form.placeCity ?? '' : '',
@@ -61,13 +63,15 @@ export const recordToBaziForm = (record) => {
   const [year, month, day] = match.slice(1).map(Number);
   if (month < 1 || month > 12 || day < 1 || day > 31) return null;
 
-  const hourIndex = Number(record.timeHour);
-  if (!Number.isInteger(hourIndex) || hourIndex < 0 || hourIndex > 12) return null;
-
   // 八字与紫微的档案都可能带精确时间设置（紫微录入页也支持精确到分钟）。
   const data = record.data && typeof record.data === 'object' ? record.data : {};
+  // 时辰不详的八字记录没有 timeHour。
+  const unknown = record.type === 'bazi' && data.timeMode === 'unknown';
+  const hourIndex = unknown || record.timeHour == null || record.timeHour === '' ? null : Number(record.timeHour);
+  if (!unknown && (!Number.isInteger(hourIndex) || hourIndex < 0 || hourIndex > 12)) return null;
+
   const clock = parseClockTime(data.clockTime);
-  const exact = data.timeMode === 'exact' && clock !== null;
+  const exact = !unknown && data.timeMode === 'exact' && clock !== null;
   const longitude = Number(data.longitude);
   const isLeapMonth = calendarType === 'lunar' && Boolean(record.isLeapMonth ?? record.isLeap);
 
@@ -80,7 +84,7 @@ export const recordToBaziForm = (record) => {
     hourIndex,
     gender: record.gender,
     daySect: data.daySect === 1 ? 1 : 2,
-    timeMode: exact ? 'exact' : 'shichen',
+    timeMode: unknown ? 'unknown' : exact ? 'exact' : 'shichen',
     clockTime: exact ? data.clockTime : '',
     placeProvince: exact && typeof data.placeProvince === 'string' ? data.placeProvince : '',
     placeCity: exact && typeof data.placeCity === 'string' ? data.placeCity : '',
