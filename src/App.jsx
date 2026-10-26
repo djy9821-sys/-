@@ -306,6 +306,8 @@ export default function App() {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [lastBaziRecord, setLastBaziRecord] = useState(() => readLastBaziRecord());
   const [ziweiLib, setZiweiLib] = useState(null);
+  // 紫微排盘库下载失败（多半是网络不稳定）时记下来，首页给出重试按钮，而不是一直显示"正在生成"。
+  const [ziweiLibFailed, setZiweiLibFailed] = useState(false);
   const [homeBaziKey, setHomeBaziKey] = useState(readHomeBaziKey);
 
   const birthDateParts = getBirthDateParts(birthday);
@@ -744,13 +746,16 @@ export default function App() {
   // 需要紫微排盘库的场景：紫微录入页、紫微命盘，以及首页有可用的紫微档案。
   const needsZiweiLib = ['input', 'chart'].includes(view) || homeReadyRecords.length > 0;
   React.useEffect(() => {
-    if (!needsZiweiLib || ziweiLib) return undefined;
+    if (!needsZiweiLib || ziweiLib || ziweiLibFailed) return undefined;
     let cancelled = false;
     loadZiweiLib()
       .then((lib) => { if (!cancelled) setZiweiLib(lib); })
-      .catch((error) => console.warn('紫微排盘库加载失败:', error));
+      .catch((error) => {
+        console.warn('紫微排盘库加载失败:', error);
+        if (!cancelled) setZiweiLibFailed(true);
+      });
     return () => { cancelled = true; };
-  }, [needsZiweiLib, ziweiLib]);
+  }, [needsZiweiLib, ziweiLib, ziweiLibFailed]);
 
   const homeFortuneState = React.useMemo(() => {
     if (!homeProfile) {
@@ -761,7 +766,11 @@ export default function App() {
           : null,
       };
     }
-    if (!ziweiLib) return { data: null, error: null, loading: true };
+    if (!ziweiLib) {
+      return ziweiLibFailed
+        ? { data: null, error: '紫微排盘组件没能下载，可能是网络不稳定，请稍后重试。', retry: true }
+        : { data: null, error: null, loading: true };
+    }
 
     try {
       return {
@@ -775,7 +784,7 @@ export default function App() {
         error: error instanceof Error ? error.message : '当前档案无法生成运势简报',
       };
     }
-  }, [homeNow, homePeriod, homeProfile, ziweiLib, ziweiRecords.length]);
+  }, [homeNow, homePeriod, homeProfile, ziweiLib, ziweiLibFailed, ziweiRecords.length]);
 
   const homeFortune = homeFortuneState.data;
 
@@ -918,7 +927,7 @@ export default function App() {
             )}
             <div className="brand-seal" aria-hidden="true">古</div>
             <div className="brand-copy">
-              <h1 className="brand-name">古书派·紫微</h1>
+              <h1 className="brand-name">古书派</h1>
               <p className="brand-caption">传统命理 · 当代排盘</p>
             </div>
           </div>
@@ -1090,8 +1099,8 @@ export default function App() {
                       <button type="button" onClick={() => { setBaziRecord(null); setView('bazi'); }}>
                         排我的八字 <span aria-hidden="true">→</span>
                       </button>
-                      <button type="button" onClick={() => setView(homeFortuneState.error ? 'archive' : 'input')}>
-                        {homeFortuneState.error ? '检查紫微档案' : '保存紫微命盘'} <span aria-hidden="true">→</span>
+                      <button type="button" onClick={() => (homeFortuneState.retry ? setZiweiLibFailed(false) : setView(homeFortuneState.error ? 'archive' : 'input'))}>
+                        {homeFortuneState.retry ? '重新加载' : homeFortuneState.error ? '检查紫微档案' : '保存紫微命盘'} <span aria-hidden="true">→</span>
                       </button>
                     </div>}
                     <span>出生资料只保存在当前设备</span>
