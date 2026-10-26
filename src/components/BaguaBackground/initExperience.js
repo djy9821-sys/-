@@ -9,6 +9,11 @@ export function initBaguaExperience(callbacks = {}) {
   const canvas = document.querySelector('#stage');
   if (!canvas) return () => {};
 
+  // 所有事件监听都挂在同一个 signal 上，离开页面时一次性移除。
+  const listeners = new AbortController();
+  const { signal } = listeners;
+  let disposed = false;
+
 const video = document.querySelector('#camera');
 const gate = document.querySelector('#gate');
 const hud = document.querySelector('#hud');
@@ -75,6 +80,7 @@ function enterExperience(nextMode) {
 }
 
 function stopCamera() {
+  mediaPipeCamera?.stop?.();
   const stream = video.srcObject;
   if (stream instanceof MediaStream) {
     stream.getTracks().forEach((track) => track.stop());
@@ -237,7 +243,12 @@ async function enableCamera() {
       import('@mediapipe/hands'),
       import('@mediapipe/camera_utils')
     ]);
-    hands = await createHands(Hands);
+    const createdHands = await createHands(Hands);
+    if (disposed) {
+      createdHands.close?.();
+      return;
+    }
+    hands = createdHands;
     hands.onResults(handleResults);
 
     mediaPipeCamera = new Camera(video, {
@@ -251,6 +262,10 @@ async function enableCamera() {
       facingMode: 'user'
     });
     await mediaPipeCamera.start();
+    if (disposed) {
+      stopCamera();
+      return;
+    }
     cameraLive.hidden = false;
     stopCameraButton.hidden = false;
   } catch (error) {
@@ -264,22 +279,22 @@ async function enableCamera() {
   }
 }
 
-document.querySelector('#enable-camera').addEventListener('click', enableCamera);
+document.querySelector('#enable-camera').addEventListener('click', enableCamera, { signal });
 document.querySelector('#manual-mode').addEventListener('click', () => {
   clearError();
   enterExperience('manual');
-});
+}, { signal });
 
 document.querySelector('#reset').addEventListener('click', () => {
   if (experience.reset()) sound.reset();
-});
+}, { signal });
 
 muteButton.addEventListener('click', () => {
   const muted = sound.toggleMute();
   muteButton.textContent = muted ? '×' : '♪';
-});
+}, { signal });
 
-stopCameraButton.addEventListener('click', stopCamera);
+stopCameraButton.addEventListener('click', stopCamera, { signal });
 
 canvas.addEventListener('click', (event) => {
   if (gate.hidden !== true) return;
@@ -294,14 +309,14 @@ canvas.addEventListener('click', (event) => {
   } else if (experience.state === 'rising' || experience.state === 'risen') {
     if (experience.flattenBack()) sound.fold();
   }
-});
+}, { signal });
 
 window.addEventListener('mousemove', (event) => {
   if (mode !== 'manual' || experience.state !== 'risen') return;
   const x = event.clientX / window.innerWidth - 0.5;
   const y = event.clientY / window.innerHeight - 0.5;
   experience.manualGuide(x, y);
-});
+}, { signal });
 
 window.addEventListener(
   'wheel',
@@ -310,7 +325,7 @@ window.addEventListener(
     event.preventDefault();
     experience.scaleBy(event.deltaY > 0 ? 0.94 : 1.06);
   },
-  { passive: false }
+  { passive: false, signal }
 );
 
 window.addEventListener('keydown', (event) => {
@@ -325,18 +340,23 @@ window.addEventListener('keydown', (event) => {
     muteButton.textContent = muted ? '×' : '♪';
   }
   if (key === 'escape') stopCamera();
-});
+}, { signal });
 
 window.addEventListener('pagehide', () => {
   stopCamera();
   sound.dispose();
-});
+}, { signal });
 
   return () => {
-    // cleanup
+    // 离开页面：关摄像头、移除监听、停掉动画与声音
+    disposed = true;
+    listeners.abort();
     try {
-      if (mediaPipeCamera) stopCamera();
-      if (hands) hands.close();
+      stopCamera();
+      hands?.close();
+      hands = null;
+      sound.dispose();
+      experience.dispose();
     } catch (err) {
       console.warn('Cleanup error', err);
     }

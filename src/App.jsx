@@ -893,7 +893,7 @@ export default function App() {
   };
 
   const showsMobileNav = !showWelcomeCover && ['home', 'input', 'archive'].includes(view);
-  const usesOwnHeader = ['money', 'bazi', 'archive', 'videos', 'chart', 'about'].includes(view);
+  const usesOwnHeader = ['money', 'bazi', 'archive', 'videos', 'chart', 'about', 'bagua'].includes(view);
 
   return (
     <div className={`app-shell ${showsMobileNav ? 'app-shell--mobile-nav' : ''} ${view === 'chart' ? 'app-shell--chart' : ''}`}>
