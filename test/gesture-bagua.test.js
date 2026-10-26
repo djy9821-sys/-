@@ -39,6 +39,7 @@ test('生爻后手势引擎不重建，离开页面时完整释放', async () =>
   assert.match(scene, /cancelAnimationFrame\(frameId\);/);
   assert.match(scene, /renderer\.dispose\(\);/);
 
-  // 起卦页全屏，不再叠加网站顶栏
-  assert.match(app, /usesOwnHeader = \[[^\]]*'bagua'[^\]]*\]/);
+  // 六爻起卦页全屏，不再叠加网站顶栏；旧地址 #/bagua 仍能进入并预选手势起卦
+  assert.match(app, /usesOwnHeader = \[[^\]]*'liuyao'[^\]]*\]/);
+  assert.match(app, /bagua: \{ view: 'liuyao', method: 'gesture' \}/);
 });
