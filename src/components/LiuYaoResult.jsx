@@ -1,11 +1,14 @@
 /**
  * 六爻结果页：本卦与变卦的装卦表（六神、六亲、纳甲、世应、动爻、变爻、伏神）、
- * 卦辞与动爻爻辞、起卦四柱，并可存入档案或整理成提示词交给 AI 分析。
+ * 断卦要点（按类别取用神、旺衰、动变、世应、倾向与应期）、卦辞与动爻爻辞、起卦四柱，
+ * 并可存入档案或整理成提示词交给 AI 分析。
  */
 import React, { useMemo, useRef, useState } from 'react';
 import { Bot, Copy, RotateCcw, Save, Share2 } from 'lucide-react';
 import { buildLiuYaoPrompt } from '../utils/liuyao';
-import { buildLiuYaoRecord, LIUYAO_METHODS } from '../utils/liuyaoRecord';
+import { judgeLiuYao, LIUYAO_TOPICS } from '../utils/liuyaoJudge';
+import { buildLiuYaoRecord, LIUYAO_METHODS, LIUYAO_TOPIC_LABELS } from '../utils/liuyaoRecord';
+import { track } from '../utils/analytics';
 import { ARCHIVE_GROUP_OPTIONS } from '../utils/baziRecord';
 import { archiveManager } from '../utils/archiveManager';
 import { INPUT_FIELD_CLASS, wuxingText } from './bazi/baziTheme';
@@ -17,6 +20,12 @@ const RELATIVE_TONE = {
     子孙: 'text-[#247055]',
     妻财: 'text-[#9a7119]',
     官鬼: 'text-[#ad3f32]',
+};
+
+const VERDICT_TONE = {
+    good: 'border-[#2d6b62]/40 bg-[#2d6b62]/[0.09] text-[#245a52]',
+    mixed: 'border-[#9a7119]/40 bg-[#9a7119]/[0.09] text-[#6f5313]',
+    bad: 'border-[#a33b30]/40 bg-[#a33b30]/[0.07] text-[#8f3027]',
 };
 
 const YaoBar = ({ isYang, strong = true }) => (
@@ -66,8 +75,9 @@ const PaperCard = ({ title, note, children, className = '' }) => (
  * @param {Date} castDate 起卦时间（真太阳时墙上时间）
  * @param archiveRecord 从档案打开时的原记录；为空表示刚起的卦
  * @param placeLabel 起卦时按哪里的真太阳时（设备时间时为空）
+ * @param onChangeTopic 换个类别重看（同一卦换用神）；不传则不显示切换
  */
-export default function LiuYaoResult({ reading, castDate, archiveRecord = null, placeLabel = '', onRestart }) {
+export default function LiuYaoResult({ reading, castDate, archiveRecord = null, placeLabel = '', onRestart, onChangeTopic = null }) {
     const { hexagram, changed, mutual, lines, hidden, time } = reading;
     const [savePanelOpen, setSavePanelOpen] = useState(false);
     const [saveName, setSaveName] = useState(reading.question || `${hexagram.name}卦`);
@@ -78,7 +88,15 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
     const [copyStatus, setCopyStatus] = useState(null);
     const textareaRef = useRef(null);
     const detailsRef = useRef(null);
-    const prompt = useMemo(() => buildLiuYaoPrompt(reading), [reading]);
+    const judge = useMemo(() => {
+        try {
+            return judgeLiuYao(reading);
+        } catch (error) {
+            console.warn('断卦要点生成失败:', error);
+            return null;
+        }
+    }, [reading]);
+    const prompt = useMemo(() => buildLiuYaoPrompt(reading, judge), [reading, judge]);
     const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
     const hasChange = Boolean(changed);
     const descending = [...lines].reverse();
@@ -93,6 +111,7 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
         setSavedRecord(record);
         setSavePanelOpen(false);
         setSaveNotice({ type: 'success', message: `已存入档案「${record.name}」，可在命盘档案里再次打开。` });
+        track('archive_save', { record_type: 'liuyao', method: reading.method, topic: reading.topic });
     };
 
     const selectAllText = () => {
@@ -104,6 +123,7 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
     };
 
     const copyPrompt = async () => {
+        track('ai_export', { kind: 'liuyao', channel: 'copy', topic: reading.topic });
         try {
             await navigator.clipboard.writeText(prompt);
             setCopyStatus({ type: 'success', text: `已复制卦例提示词（${prompt.length} 字），打开 ChatGPT、Claude 等 AI 粘贴即可。` });
@@ -114,6 +134,7 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
     };
 
     const sharePrompt = async () => {
+        track('ai_export', { kind: 'liuyao', channel: 'share', topic: reading.topic });
         try {
             await navigator.share({ title: '六爻卦例提示词', text: prompt });
         } catch (error) {
@@ -133,6 +154,7 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
                 </h2>
                 <p className="text-sm leading-6 text-[#fbf7ed]/65">
                     {reading.question ? `问：${reading.question}` : '未写明所问之事'}
+                    <span className="ml-2 rounded-full border border-[#dcb471]/35 px-2 py-0.5 text-[11px] text-[#f0ce91]">{LIUYAO_TOPIC_LABELS[reading.topic] ?? LIUYAO_TOPIC_LABELS.general}{reading.topic === 'love' && reading.gender ? `（${reading.gender === 'female' ? '女' : '男'}测）` : ''}</span>
                 </p>
                 <p className="text-[11px] leading-5 text-[#fbf7ed]/45">
                     {time.solarText}（{time.lunarText}）· {LIUYAO_METHODS[reading.method] ?? LIUYAO_METHODS.coins}
@@ -227,6 +249,62 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
                 </p>
             </PaperCard>
 
+            {judge && (
+                <PaperCard title="断卦要点" note="程序初判 · 供参考" className="border-[#2d6b62]/35">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-bold ${VERDICT_TONE[judge.verdict.level]}`}>
+                            <span className="font-serif text-base">{judge.verdict.title}</span>
+                            <span className="font-normal">{judge.verdict.text}</span>
+                        </span>
+                    </div>
+                    <p className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#5f574f]">
+                        <span className="font-bold text-[#3b342e]">用神</span>
+                        <span className={`font-bold ${RELATIVE_TONE[judge.yongShen.relative] ?? 'text-[#3b342e]'}`}>{judge.yongShen.relative}{judge.yongShen.ganZhi}</span>
+                        <span className={wuxingText(judge.yongShen.element)}>{judge.yongShen.element}</span>
+                        <span>{judge.yongShen.positionName}</span>
+                        <span className="rounded border border-[#cbbfac] px-1.5 text-[11px]">{judge.yongShen.state}</span>
+                        {judge.yongShen.isShi && <span className="rounded border border-[#2d6b62]/40 px-1.5 text-[11px] text-[#245a52]">持世</span>}
+                        <span className="rounded border border-[#cbbfac] px-1.5 text-[11px]">{judge.strength.level}</span>
+                        {judge.strength.marks.map((mark) => <span key={mark} className="rounded border border-[#a33b30]/35 px-1.5 text-[11px] text-[#8f3027]">{mark}</span>)}
+                    </p>
+                    <ol className="mt-3 space-y-1.5 text-sm leading-6 text-[#3b342e]">
+                        {judge.points.slice(0, -2).map((point, index) => (
+                            <li key={index} className="flex gap-2">
+                                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[#2d6b62]/70" aria-hidden="true" />
+                                <span>{point}</span>
+                            </li>
+                        ))}
+                    </ol>
+                    <p className="mt-2.5 rounded-xl border border-[#cbbfac]/80 bg-[#fffaf0]/65 px-3 py-2 text-xs leading-6 text-[#5f574f]">
+                        <span className="font-bold text-[#3b342e]">应期参考：</span>{judge.timing.join('；')}
+                    </p>
+                    {judge.auxiliary.length > 0 && (
+                        <p className="mt-2 text-xs leading-6 text-[#6f665d]">{judge.auxiliary.join('；')}</p>
+                    )}
+                    {judge.notices.map((notice) => (
+                        <p key={notice} role="note" className="mt-2 rounded-lg border border-[#b06a1f]/35 bg-[#b06a1f]/[0.07] px-3 py-1.5 text-xs leading-5 text-[#7f4b12]">{notice}</p>
+                    ))}
+                    {onChangeTopic && (
+                        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#5f574f]">
+                            <label className="inline-flex items-center gap-1.5">
+                                <span className="font-bold text-[#3b342e]">换个类别看</span>
+                                <select value={reading.topic} onChange={(event) => onChangeTopic(event.target.value, reading.gender || 'male')} className="min-h-9 rounded-lg border border-[#b9ad98] bg-[#fffaf0] px-2 text-xs text-[#3b342e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62]" aria-label="问事类别">
+                                    {LIUYAO_TOPICS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                                </select>
+                            </label>
+                            {reading.topic === 'love' && (
+                                <span className="inline-flex items-center gap-1" role="group" aria-label="问卦人性别">
+                                    {[['male', '男测'], ['female', '女测']].map(([value, label]) => (
+                                        <button key={value} type="button" aria-pressed={reading.gender === value} onClick={() => onChangeTopic('love', value)} className={`min-h-9 rounded-lg border px-2.5 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${reading.gender === value ? 'border-[#2d6b62] bg-[#2d6b62] text-white' : 'border-[#b9ad98] bg-[#fffaf0] text-[#5f574f]'}`}>{label}</button>
+                                    ))}
+                                </span>
+                            )}
+                        </div>
+                    )}
+                    <p className="mt-2.5 text-[11px] leading-5 text-[#81776b]">按《增删卜易》等通行口诀的简化规则计分估算，只抓大势；复制给 AI 时会一并附上，便于核对与展开。</p>
+                </PaperCard>
+            )}
+
             <PaperCard title="起卦时间" note="月建、日辰与旬空据此而定">
                 <div className="grid grid-cols-4 gap-1.5 text-center">
                     {[['年', time.year], ['月', time.month], ['日', time.day], ['时', time.hour]].map(([label, value]) => (
@@ -239,6 +317,7 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
                 <p className="mt-2.5 text-xs leading-6 text-[#5f574f]">
                     旬空 <strong className="text-[#3b342e]">{time.xunKong.join('')}</strong> · 月建 <strong className="text-[#3b342e]">{time.monthZhi}</strong> · 日辰 <strong className="text-[#3b342e]">{time.dayZhi}</strong>
                     <span className="block text-[11px] text-[#81776b]">{time.solarText} · {time.lunarText}{placeLabel ? ` · 按${placeLabel}真太阳时记时` : ' · 按设备时间记时'}</span>
+                    {reading.castNote && <span className="block text-[11px] leading-5 text-[#81776b]">{LIUYAO_METHODS[reading.method] ?? ''}：{reading.castNote}</span>}
                 </p>
             </PaperCard>
 

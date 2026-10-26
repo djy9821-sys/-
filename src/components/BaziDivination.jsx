@@ -31,6 +31,7 @@ import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from '../utils/birt
 import { ARCHIVE_GROUP_OPTIONS, buildBaziRecord, clearLastBaziRecord, findSameBaziRecord, parseClockTime, readLastBaziRecord, recordToBaziForm, saveLastBaziRecord } from '../utils/baziRecord';
 import { isChinaDst } from '../utils/trueSolarTime';
 import { CURRENT_PLACE_EVENT, readCurrentPlace, toLocalSolarNow } from '../utils/currentPlace';
+import { track } from '../utils/analytics';
 import PlaceSetting from './common/PlaceSetting';
 import {
     buildLiuRi,
@@ -483,8 +484,10 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     };
 
     const applyArchiveRecord = (recordId) => {
-        const form = baziArchiveCandidates.find(({ record }) => record.id === recordId)?.form;
-        if (form) applyFormValues(form);
+        const candidate = baziArchiveCandidates.find(({ record }) => record.id === recordId);
+        if (!candidate) return;
+        applyFormValues(candidate.form);
+        track('archive_prefill', { record_type: candidate.record.type, target: 'bazi' });
     };
 
     const collectForm = () => ({
@@ -572,6 +575,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                 ? `档案里已经有「${saved.name}」的这张命盘，已更新分组和备注，没有重复保存。`
                 : `已保存「${saved.name}」的八字命盘，可在档案或排盘页「从档案带入」中找到。`,
         });
+        track('archive_save', { record_type: 'bazi', time_mode: timeMode, updated: Boolean(existing) });
     };
 
     const changeCalendarType = (nextType) => {
@@ -624,6 +628,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         if (calculateTimerRef.current) window.clearTimeout(calculateTimerRef.current);
         rememberLastChart(computedChart);
         resetResultView();
+        track('bazi_chart', { time_mode: timeMode, calendar: calendarType, true_solar: Boolean(exactMode && applyTrueSolar && longitudeValue !== null) });
         setLoading(true);
         calculateTimerRef.current = window.setTimeout(() => {
             calculateTimerRef.current = null;

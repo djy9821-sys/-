@@ -34,6 +34,9 @@ test('卦例存档后能重新装出同一卦', () => {
   assert.deepEqual(input.values, [7, 9, 8, 8, 6, 7]);
   assert.equal(input.castDate.getTime(), castAt.getTime());
   assert.equal(input.method, 'gesture');
+  assert.equal(input.topic, 'general');
+  assert.equal(input.gender, '');
+  assert.equal(input.castNote, '');
   const again = buildLiuYaoReading(input.values, input.castDate, { question: input.question, method: input.method });
   assert.deepEqual(again.lines.map((line) => `${line.god}${line.relative}${line.ganZhi}`), reading.lines.map((line) => `${line.god}${line.relative}${line.ganZhi}`));
   assert.equal(again.time.day, reading.time.day);
@@ -42,6 +45,22 @@ test('卦例存档后能重新装出同一卦', () => {
   const unnamed = buildLiuYaoRecord(buildLiuYaoReading([7, 7, 7, 7, 7, 7], castAt), castAt);
   assert.equal(unnamed.name, '乾为天卦');
   assert.equal(unnamed.data.changed, null);
+
+  // 类别、性别、起卦参数与新的起卦方式一并存档、读回；不认识的值回退
+  const numbered = buildLiuYaoRecord(buildLiuYaoReading([7, 7, 8, 8, 9, 7], castAt, { topic: 'love', gender: 'female', method: 'number', castNote: '报数 37、58' }), castAt);
+  assert.equal(numbered.data.topic, 'love');
+  assert.equal(numbered.data.gender, 'female');
+  assert.equal(numbered.data.method, 'number');
+  assert.equal(numbered.data.castNote, '报数 37、58');
+  const back = liuYaoRecordToInput({ ...numbered, id: 'y' });
+  assert.equal(back.topic, 'love');
+  assert.equal(back.gender, 'female');
+  assert.equal(back.method, 'number');
+  assert.equal(back.castNote, '报数 37、58');
+  const odd = liuYaoRecordToInput({ type: 'liuyao', data: { values: [7, 7, 7, 7, 7, 7], castAt: '2026-10-26 10:07', method: 'dice', topic: 'weather', gender: 'x' } });
+  assert.equal(odd.method, 'coins');
+  assert.equal(odd.topic, 'general');
+  assert.equal(odd.gender, '');
 });
 
 test('残缺或别的类型的记录不能当六爻卦例打开', () => {
@@ -60,6 +79,9 @@ test('档案列表的卦例摘要', () => {
   assert.equal(summary.castText, '起卦 2026-10-26 10:07');
   assert.equal(summary.dayText, `${reading.time.day}日`);
   assert.equal(summary.methodText, '摇铜钱');
+  assert.equal(summary.topicText, '一般吉凶');
+  assert.equal(describeLiuYaoRecord({ type: 'liuyao', data: { method: 'time', topic: 'wealth' } }).methodText, '时间起卦');
+  assert.equal(describeLiuYaoRecord({ type: 'liuyao', data: { method: 'time', topic: 'wealth' } }).topicText, '求财');
   assert.equal(describeLiuYaoRecord({ type: 'liuyao', data: {} }).hexagramText, '卦象未记录');
   assert.equal(describeLiuYaoRecord({ type: 'liuyao', data: { hexagram: '乾为天', changed: null } }).hexagramText, '乾为天（静卦）');
 });

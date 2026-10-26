@@ -4,6 +4,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Copy, LocateFixed, Share2, Sun } from 'lucide-react';
 import { buildBaziPrompt, PROMPT_SCOPES } from '../../utils/baziPrompt';
+import { track } from '../../utils/analytics';
 
 const describeTarget = (scope, { daYun, liuNian, liuYue, liuRi, liuShi }) => {
     if (scope === 'natal') return '本命原局（不含运限）';
@@ -47,6 +48,7 @@ export default function BaziPromptExport({ chart, personName, selections, defaul
     };
 
     const copyPrompt = async () => {
+        track('ai_export', { kind: 'bazi', scope, channel: 'copy' });
         try {
             await navigator.clipboard.writeText(prompt);
             setStatus({ type: 'success', text: `已复制${scopeLabel}提示词（${prompt.length} 字），打开 ChatGPT、Claude 等 AI 粘贴即可。` });
@@ -57,6 +59,7 @@ export default function BaziPromptExport({ chart, personName, selections, defaul
     };
 
     const sharePrompt = async () => {
+        track('ai_export', { kind: 'bazi', scope, channel: 'share' });
         try {
             await navigator.share({ title: '八字排盘提示词', text: prompt });
         } catch (error) {

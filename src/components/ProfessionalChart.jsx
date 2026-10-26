@@ -11,6 +11,7 @@ import {
     generateBabyPrompt
 } from '../utils/aiPrompts';
 import { findBestConceptionDates } from '../utils/babySelector';
+import { track } from '../utils/analytics';
 import {
     buildCurrentFortuneContext,
     FORTUNE_HOUR_OPTIONS,
@@ -1832,6 +1833,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
             }
 
             if (prompt) {
+                track('ai_export', { kind: 'ziwei', scope: type, channel: 'copy' });
                 await copyToClipboard(prompt);
                 setShowAiMenu(false);
             }
@@ -1865,6 +1867,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                 const bestDates = await findBestConceptionDates(selectedBabyType);
 
                 const prompt = generateBabyPrompt(selectedBabyType, basicInfo, horoscope, partnerHoroscope, bestDates);
+                track('ai_export', { kind: 'ziwei', scope: 'baby', channel: 'copy' });
 
                 navigator.clipboard.writeText(prompt).then(() => {
                     alert(`✅ 已生成【${selectedBabyType === 'leader' ? '帝王' : selectedBabyType === 'iq' ? '文昌' : selectedBabyType === 'sport' ? '武曲' : '陶朱'}起居注】指令！\n\n已为您筛选出未来14天内Top3最佳受孕时机。\n请发送给AI获取详细解读。`);
@@ -3054,7 +3057,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 关闭
                             </button>
                             <button
-                                onClick={() => copyToClipboard(promptPreview.text)}
+                                onClick={() => { track('ai_export', { kind: 'ziwei', scope: 'fortune', channel: 'copy' }); copyToClipboard(promptPreview.text); }}
                                 className="px-5 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-bold shadow hover:opacity-90"
                             >
                                 复制完整话术

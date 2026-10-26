@@ -19,6 +19,7 @@ import {
 import { archiveManager } from '../utils/archiveManager';
 import { parseClockTime, recordToBaziForm } from '../utils/baziRecord';
 import { describeLiuYaoRecord, isLiuYaoRecord } from '../utils/liuyaoRecord';
+import { track } from '../utils/analytics';
 
 const GROUP_META = {
     self: { label: '自己', icon: User },
@@ -138,7 +139,7 @@ const prepareImportedRecord = (record) => {
 const getRecordSummaryParts = (record) => {
     if (record?.type === 'liuyao') {
         const summary = describeLiuYaoRecord(record);
-        return [getRecordType(record), summary.hexagramText, summary.castText, summary.dayText, summary.methodText].filter(Boolean);
+        return [getRecordType(record), summary.topicText, summary.hexagramText, summary.castText, summary.dayText, summary.methodText].filter(Boolean);
     }
     return [getRecordType(record), getGenderLabel(record), `${getCalendarLabel(record)} ${getRecordDate(record)}`, getRecordTime(record)];
 };
@@ -241,11 +242,13 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
         setRecords(archiveManager.getRecords());
         setPendingDeleteId(null);
         setNotice({ type: 'success', message: `“${record.name || '未命名'}”已从档案中删除。` });
+        track('archive_delete', { record_type: record.type ?? 'unknown' });
     };
 
     const handleBackup = () => {
         archiveManager.exportData();
         setNotice({ type: 'success', message: `已下载 ${records.length} 条档案的 JSON 备份。` });
+        track('archive_export', { count: records.length });
     };
 
     const handleImport = (event) => {
@@ -285,6 +288,7 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
                 if (!result.success) throw new Error(result.error || '写入失败');
                 setRecords(archiveManager.getRecords());
                 setPendingDeleteId(null);
+                track('archive_import', { count: fresh.length, skipped: invalidCount + conflictCount });
                 setNotice({
                     type: 'success',
                     message: `新增 ${fresh.length} 条档案${conflictCount ? `，保留 ${conflictCount} 条本机同 ID 档案` : ''}${invalidCount ? `，跳过 ${invalidCount} 条无效记录` : ''}。`,

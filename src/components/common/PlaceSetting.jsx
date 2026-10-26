@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { MapPin } from 'lucide-react';
 import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from '../../utils/birthPlaces';
 import { clearCurrentPlace, describeCurrentPlace, saveCurrentPlace } from '../../utils/currentPlace';
+import { track } from '../../utils/analytics';
 import { useCurrentPlace } from './useCurrentPlace';
 
 const TONES = {
@@ -81,11 +82,14 @@ export default function PlaceSetting({ tone = 'paper', now = new Date(), classNa
         }
         setError('');
         setOpen(false);
+        // 只记时区，不记城市经度：足够看出海外用户的比例。
+        track('place_set', { timezone: saved.timezone, has_city: Boolean(saved.city) });
     };
     const reset = () => {
         clearCurrentPlace();
         setError('');
         setOpen(false);
+        track('place_clear');
     };
 
     return (
