@@ -4,7 +4,7 @@
  */
 import { buildLiuRi, buildLiuShi, buildLiuYue, getBaziYearOfDate, getHourIndexForTime, toYmd } from './baziFlow.js';
 import { findRelations } from './baziRelations.js';
-import { analyzeStrength } from './baziStrength.js';
+import { analyzeStrength, elementToneOf } from './baziStrength.js';
 
 const GAN_WUXING = { 甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水' };
 const ZHI_WUXING = { 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' };
@@ -21,15 +21,6 @@ const currentDaYun = (chart, liuNian) => {
     startYear: xiaoYun.startYear,
     endYear: xiaoYun.endYear,
   };
-};
-
-/** 五行对日主是喜用、忌神还是平。 */
-const elementTone = (element, strength) => {
-  const favorable = strength.favorable.find((item) => item.element === element);
-  if (favorable) return { element, role: favorable.role, tone: 'good' };
-  const unfavorable = strength.unfavorable.find((item) => item.element === element);
-  if (unfavorable) return { element, role: unfavorable.role, tone: 'bad' };
-  return { element, role: strength.roles[element], tone: 'neutral' };
 };
 
 /**
@@ -65,8 +56,8 @@ export const buildBaziToday = (chart, now = new Date()) => {
 
   const strength = analyzeStrength(chart);
   const dayTone = {
-    gan: elementTone(GAN_WUXING[liuRi.gan], strength),
-    zhi: elementTone(ZHI_WUXING[liuRi.zhi], strength),
+    gan: elementToneOf(GAN_WUXING[liuRi.gan], strength),
+    zhi: elementToneOf(ZHI_WUXING[liuRi.zhi], strength),
   };
 
   return {
