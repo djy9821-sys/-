@@ -34,7 +34,7 @@ export const PillarTable = ({ pillars }) => (
                     <th scope="row" className="border-b border-[#cabfac]/70 bg-[#e9dfcd]/45 px-1 py-2 text-[11px] font-medium text-[#756d63] sm:text-xs">主星</th>
                     {pillars.map((pillar) => (
                         <PillarCell key={pillar.key} pillar={pillar}>
-                            <span className={`text-[11px] font-semibold sm:text-sm ${pillar.key === 'day' ? 'text-[#96372e]' : 'text-[#514941]'}`}>{pillar.ganShiShen}</span>
+                            <span className={`text-[11px] font-semibold sm:text-sm ${pillar.key === 'day' ? 'text-[#96372e]' : 'text-[#514941]'}`}>{pillar.ganShiShen || (pillar.unknown ? '不详' : '—')}</span>
                         </PillarCell>
                     ))}
                 </tr>
@@ -42,8 +42,14 @@ export const PillarTable = ({ pillars }) => (
                     <th scope="row" className="border-b border-[#cabfac]/70 bg-[#e9dfcd]/45 px-1 py-2 text-[11px] font-medium text-[#756d63] sm:text-xs">天干</th>
                     {pillars.map((pillar) => (
                         <PillarCell key={pillar.key} pillar={pillar} className="py-3">
-                            <span className={`font-serif text-[1.75rem] font-bold leading-none sm:text-4xl ${wuxingText(pillar.ganWuxing)}`}>{pillar.gan}</span>
-                            <span className="mt-1 block text-[11px] text-[#948a7d] sm:text-[11px]">{pillar.ganWuxing}</span>
+                            {pillar.unknown ? (
+                                <span className="block text-[11px] leading-5 text-[#9b9185]">时辰<br />不详</span>
+                            ) : (
+                                <>
+                                    <span className={`font-serif text-[1.75rem] font-bold leading-none sm:text-4xl ${wuxingText(pillar.ganWuxing)}`}>{pillar.gan}</span>
+                                    <span className="mt-1 block text-[11px] text-[#948a7d] sm:text-[11px]">{pillar.ganWuxing}</span>
+                                </>
+                            )}
                         </PillarCell>
                     ))}
                 </tr>
@@ -51,8 +57,14 @@ export const PillarTable = ({ pillars }) => (
                     <th scope="row" className="border-b border-[#cabfac]/70 bg-[#e9dfcd]/45 px-1 py-2 text-[11px] font-medium text-[#756d63] sm:text-xs">地支</th>
                     {pillars.map((pillar) => (
                         <PillarCell key={pillar.key} pillar={pillar} className="py-3">
-                            <span className={`font-serif text-[1.75rem] font-bold leading-none sm:text-4xl ${wuxingText(pillar.zhiWuxing)}`}>{pillar.zhi}</span>
-                            <span className="mt-1 block text-[11px] text-[#948a7d] sm:text-[11px]">{pillar.zhiWuxing}</span>
+                            {pillar.unknown ? (
+                                <span className="text-xs text-[#9b9185]">—</span>
+                            ) : (
+                                <>
+                                    <span className={`font-serif text-[1.75rem] font-bold leading-none sm:text-4xl ${wuxingText(pillar.zhiWuxing)}`}>{pillar.zhi}</span>
+                                    <span className="mt-1 block text-[11px] text-[#948a7d] sm:text-[11px]">{pillar.zhiWuxing}</span>
+                                </>
+                            )}
                         </PillarCell>
                     ))}
                 </tr>
@@ -61,12 +73,12 @@ export const PillarTable = ({ pillars }) => (
                     {pillars.map((pillar) => (
                         <PillarCell key={pillar.key} pillar={pillar} className="py-2.5">
                             <div className="flex min-h-[3.75rem] flex-col items-center justify-center gap-1">
-                                {pillar.hiddenGanDetails.map((detail) => (
+                                {pillar.hiddenGanDetails.length ? pillar.hiddenGanDetails.map((detail) => (
                                     <span key={`${pillar.key}-${detail.gan}`} className="inline-flex items-baseline justify-center gap-0.5 whitespace-nowrap">
                                         <b className={`font-serif text-xs sm:text-sm ${wuxingText(detail.wuxing)}`}>{detail.gan}</b>
                                         <small className="text-[11px] text-[#756d63] sm:text-[10px]">{detail.shiShen}</small>
                                     </span>
-                                ))}
+                                )) : <span className="text-xs text-[#9b9185]">—</span>}
                             </div>
                         </PillarCell>
                     ))}
@@ -75,7 +87,7 @@ export const PillarTable = ({ pillars }) => (
                     <th scope="row" className="border-b border-[#cabfac]/70 bg-[#e9dfcd]/45 px-1 py-2 text-[11px] font-medium text-[#756d63] sm:text-xs">纳音</th>
                     {pillars.map((pillar) => (
                         <PillarCell key={pillar.key} pillar={pillar}>
-                            <span className="text-[11px] leading-4 text-[#5c544b] sm:text-xs">{pillar.naYin}</span>
+                            <span className="text-[11px] leading-4 text-[#5c544b] sm:text-xs">{pillar.naYin || '—'}</span>
                         </PillarCell>
                     ))}
                 </tr>
@@ -134,7 +146,7 @@ export const ProfessionalComparisonTable = ({ pillars, daYun, liuNian, flowColum
             '大运',
             daYun ? `${daYun.startAge}-${daYun.endAge}虚岁` : '',
         ),
-        ...pillars.map((pillar) => normalizeComparisonColumn(pillar, pillar.key, pillar.name)),
+        ...pillars.map((pillar) => normalizeComparisonColumn(pillar, pillar.key, pillar.name, pillar.unknown ? '时辰不详' : '')),
     ];
     const rowHeaderClass = 'sticky left-0 z-20 w-14 border-b border-r border-[#b9ad98]/80 bg-[#e7ddcc] px-1.5 py-2 text-[11px] font-semibold text-[#685f56] shadow-[3px_0_5px_rgba(76,62,46,0.06)] print:static print:text-[8px] print:shadow-none sm:w-16 sm:text-xs';
     const dataCellClass = (column) => `border-b border-r border-[#cabfac]/70 px-1.5 py-2 text-center align-middle last:border-r-0 ${comparisonTone(column)}`;
