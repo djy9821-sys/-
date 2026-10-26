@@ -1,4 +1,4 @@
-import { findBestConceptionDates } from './src/utils/babySelector.js';
+import { findBestConceptionDates } from '../../src/utils/babySelector.js';
 
 async function runDebug() {
     console.log("Starting debug...");

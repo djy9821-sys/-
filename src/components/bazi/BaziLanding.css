@@ -31,7 +31,7 @@
   inset: 0;
   min-height: 780px;
   opacity: 0.28;
-  background-image: url('../../assets/bazi_landscape.jpg');
+  background-image: url('../../assets/bazi_landscape.webp');
   background-position: 50% 22%;
   background-size: max(760px, 130vw) auto;
   background-repeat: no-repeat;

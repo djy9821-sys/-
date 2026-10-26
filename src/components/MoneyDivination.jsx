@@ -9,10 +9,10 @@ import { ArrowLeft } from 'lucide-react';
 import { getHexagram } from '../utils/hexagramLogic';
 
 // --- Assets ---
-import coinYangTexture from '../assets/coin_yang_perfect.png';
-import coinYinTexture from '../assets/coin_yin_circular.png';
+import coinYangTexture from '../assets/coin_yang_perfect.webp';
+import coinYinTexture from '../assets/coin_yin_circular.webp';
 
-import bgImage from '../assets/song_mist.png';
+import bgImage from '../assets/song_mist.webp';
 import { fetchQuantumUtils } from '../utils/quantumRandom';
 
 // --- Constants ---

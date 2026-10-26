@@ -9,7 +9,6 @@ import { readLastBaziRecord, recordToBaziForm } from './utils/baziRecord';
 const MoneyDivination = lazy(() => import("./components/MoneyDivination"));
 const ArchiveView = lazy(() => import("./components/ArchiveView"));
 const VideoLessons = lazy(() => import("./components/VideoLessons"));
-const EnglishLearning = lazy(() => import("./components/EnglishLearning"));
 const BaziDivination = lazy(() => import("./components/BaziDivination"));
 const BaguaDivination = lazy(() => import("./components/BaguaDivination.jsx"));
 // 紫微专业盘体量最大，只有打开命盘时才加载。
@@ -57,7 +56,8 @@ const loadZiweiLib = () => {
 // 地址栏 #/bazi 等与页面同步：手机返回键回到上一页，链接也能直接打开对应功能。
 const VIEW_ROUTES = Object.freeze({
   input: 'ziwei', chart: 'ziwei/chart', money: 'money', archive: 'archive', bazi: 'bazi',
-  bagua: 'bagua', videos: 'videos', english: 'english', about: 'about',
+  bagua: 'bagua', about: 'about',
+  // 课程视频（VideoLessons）仍在筹备，暂不开放地址。
 });
 const ROUTE_VIEWS = Object.freeze(Object.fromEntries(Object.entries(VIEW_ROUTES).map(([view, route]) => [route, view])));
 const VIEW_TITLES = Object.freeze({
@@ -893,7 +893,7 @@ export default function App() {
   };
 
   const showsMobileNav = !showWelcomeCover && ['home', 'input', 'archive'].includes(view);
-  const usesOwnHeader = ['money', 'bazi', 'archive', 'videos', 'english', 'chart', 'about'].includes(view);
+  const usesOwnHeader = ['money', 'bazi', 'archive', 'videos', 'chart', 'about'].includes(view);
 
   return (
     <div className={`app-shell ${showsMobileNav ? 'app-shell--mobile-nav' : ''} ${view === 'chart' ? 'app-shell--chart' : ''}`}>
@@ -1450,18 +1450,6 @@ export default function App() {
           }>
             <VideoLessons onBack={() => setView('home')} />
           </Suspense>
-        ) : view === 'english' ? (
-          // --- ENGLISH LEARNING VIEW ---
-          <Suspense fallback={
-            <div className="flex-1 flex items-center justify-center text-white">
-              <div className="text-center">
-                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p>正在加载英语模块...</p>
-              </div>
-            </div>
-          }>
-            <EnglishLearning onBack={() => setView('home')} />
-          </Suspense>
         ) : view === 'bazi' ? (
           // --- BAZI DIVINATION VIEW ---
           <Suspense fallback={
@@ -1575,7 +1563,7 @@ export default function App() {
         <button
           ref={moreOpenerRef}
           type="button"
-          className={isMoreOpen || ['money', 'videos', 'english', 'bagua'].includes(view) ? 'mobile-nav-item mobile-nav-item--active' : 'mobile-nav-item'}
+          className={isMoreOpen || ['money', 'videos', 'bagua'].includes(view) ? 'mobile-nav-item mobile-nav-item--active' : 'mobile-nav-item'}
           aria-haspopup="dialog"
           aria-expanded={isMoreOpen}
           onClick={() => setIsMoreOpen((isOpen) => !isOpen)}
