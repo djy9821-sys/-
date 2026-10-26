@@ -1,4 +1,5 @@
 import React from 'react';
+import { reportError } from '../utils/analytics';
 
 class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -12,6 +13,8 @@ class ErrorBoundary extends React.Component {
 
     componentDidCatch(error, errorInfo) {
         console.error("Uncaught error:", error, errorInfo);
+        // 只上报错误类型与一句信息；组件堆栈留在本页的「错误详情」里。
+        reportError(error, { source: 'boundary' });
         this.setState({ error, errorInfo });
     }
 
