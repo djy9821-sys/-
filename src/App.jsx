@@ -1226,7 +1226,7 @@ export default function App() {
                       </p>
                     )}
                     <p id="fortune-share-privacy" className="fortune-share-privacy">分享默认隐藏姓名、生辰、档案备注等私人资料。</p>
-                    <p className="fortune-disclaimer">按当前设备时间自动排盘，仅供传统文化研究；具体判断需结合本命与三方四正。</p>
+                    <p className="fortune-disclaimer">{currentPlace ? `按${currentPlace.city || currentPlace.province || `东经 ${currentPlace.longitude}°`}真太阳时自动排盘` : '按当前设备时间自动排盘'}，仅供传统文化研究；具体判断需结合本命与三方四正。</p>
                   </>
                 ) : (
                   <div className="fortune-empty-content">
