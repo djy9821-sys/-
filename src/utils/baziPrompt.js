@@ -5,9 +5,11 @@
  *   natal 本命 · year 流年 · month 流月 · day 流日 · hour 流时
  * 每深一层就多带上一层运限的干支，以及这些运限与命局之间的合冲刑害。
  */
+import { judgeBaziPattern } from './baziPattern.js';
 import { findRelations } from './baziRelations.js';
 import { getShensha } from './baziShensha.js';
 import { analyzeStrength } from './baziStrength.js';
+import { describeYearMarks, getLiuNianMarks } from './baziYearMarks.js';
 
 export const PROMPT_SCOPES = Object.freeze([
   { value: 'natal', label: '本命' },
@@ -23,6 +25,7 @@ const hiddenText = (details = []) => details.map(({ gan, wuxing, shiShen }) => `
 
 /** 一柱的完整描述：天干十神、地支、藏干、纳音、星运、自坐、空亡、神煞。 */
 const describePillar = (label, item, { diShiLabel = '星运', shensha } = {}) => {
+  if (item.unknown || !item.gan) return `- ${label}：不详（出生时辰未知，未排时柱）`;
   const parts = [
     `天干${item.gan}${item.ganWuxing}（${item.ganShiShen || '日主'}）`,
     `地支${item.zhi}${item.zhiWuxing}`,
@@ -43,7 +46,9 @@ const birthLines = (chart, personName) => {
   const { input, timeInfo, solarInfo, lunarInfo } = chart;
   const lines = [];
   lines.push(`- 称呼：${personName?.trim() || '命主'}；${input.gender === 'male' ? '男命（乾造）' : '女命（坤造）'}；生肖${lunarInfo.zodiac}`);
-  if (timeInfo?.mode === 'exact') {
+  if (timeInfo?.mode === 'unknown') {
+    lines.push(`- 出生：${input.calendarType === 'lunar' ? '农历' : '公历'}输入，公历 ${solarInfo.ymd}，出生时辰不详：只排年月日三柱，时柱、命宫、身宫未列，起运时间按正午估算（实际可能前后相差约两个月）。`);
+  } else if (timeInfo?.mode === 'exact') {
     lines.push(`- 出生：公历 ${timeInfo.clockDate} ${timeInfo.clockTime}（当地钟表时间${timeInfo.dstApplied ? '，已扣除夏令时 1 小时' : ''}）`);
     if (timeInfo.trueSolarApplied) {
       lines.push(`- 出生地：${timeInfo.placeName || '未注明'}，东经 ${Number(timeInfo.longitude).toFixed(2)}°，UTC+${timeInfo.timezone}`);
@@ -55,7 +60,7 @@ const birthLines = (chart, personName) => {
     lines.push(`- 出生：${input.calendarType === 'lunar' ? '农历' : '公历'}输入，公历 ${solarInfo.ymd}，${input.hourOption.name}（${input.hourOption.range}，未校正真太阳时）`);
   }
   lines.push(`- 农历：${lunarInfo.yearChinese}年${lunarInfo.monthChinese}月${lunarInfo.dayChinese}`);
-  if (input.hourOption.index === 12) {
+  if (input.hourOption?.index === 12) {
     lines.push(`- 晚子时流派：${input.daySect === 1 ? '晚子时换次日' : '晚子时不换日'}`);
   }
   const boundary = timeInfo?.boundary;
@@ -70,11 +75,20 @@ const natalLines = (chart) => {
   const counts = chart.surfaceWuxingCount;
   lines.push(`- 日主：${chart.dayMaster.gan}${chart.dayMaster.wuxing}`);
   const { extras } = chart;
-  if (extras?.taiYuan) {
+  if (extras?.taiYuan && extras.mingGong) {
     lines.push(`- 胎元 ${extras.taiYuan}（${extras.taiYuanNaYin}）；命宫 ${extras.mingGong}（${extras.mingGongNaYin}）；身宫 ${extras.shenGong}（${extras.shenGongNaYin}）`);
+  } else if (extras?.taiYuan) {
+    lines.push(`- 胎元 ${extras.taiYuan}（${extras.taiYuanNaYin}）；命宫、身宫需时辰，未排`);
   }
-  lines.push(`- 八字表层五行（四干四支计数，未计藏干与旺衰）：木${counts['木']} 火${counts['火']} 土${counts['土']} 金${counts['金']} 水${counts['水']}`);
+  lines.push(`- 八字表层五行（${chart.timeUnknown ? '三柱六字' : '四干四支'}计数，未计藏干与旺衰）：木${counts['木']} 火${counts['火']} 土${counts['土']} 金${counts['金']} 水${counts['水']}`);
   return lines;
+};
+
+const patternLines = (chart, strength) => {
+  const judge = judgeBaziPattern(chart, strength);
+  const lines = [...judge.points];
+  lines.push('- 以上格局与组合由程序按简化规则初判，请你复核；若判断不同，以你的分析为准并说明理由。');
+  return lines.map((line) => (line.startsWith('- ') ? line : `- ${line}`));
 };
 
 const daYunLines = (chart, selectedDaYun) => {
@@ -97,8 +111,7 @@ const daYunLines = (chart, selectedDaYun) => {
 
 const ELEMENTS = ['木', '火', '土', '金', '水'];
 
-const strengthLines = (chart) => {
-  const strength = analyzeStrength(chart);
+const strengthLines = (chart, strength) => {
   const support = Math.round(strength.ratio * 100);
   const elementList = (items) => items.map((item) => `${item.element}（${item.role}${item.tiaoHou ? '，调候' : ''}）`).join('、');
   const lines = [
@@ -199,10 +212,12 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
     `本次要分析的是：${scopeTitle(scope, selections)}。数据导出于 ${today}。`,
   ].join('\n'));
 
+  const strength = analyzeStrength(chart);
   sections.push(['【出生信息】', ...birthLines(chart, personName)].join('\n'));
-  sections.push(['【本命四柱】', ...natalLines(chart)].join('\n'));
+  sections.push([chart.timeUnknown ? '【本命三柱（时辰不详）】' : '【本命四柱】', ...natalLines(chart)].join('\n'));
   sections.push(['【大运】', ...daYunLines(chart, daYun)].join('\n'));
-  sections.push(['【旺衰参考（程序估算）】', ...strengthLines(chart)].join('\n'));
+  sections.push(['【旺衰参考（程序估算）】', ...strengthLines(chart, strength)].join('\n'));
+  sections.push(['【格局与组合（程序初判）】', ...patternLines(chart, strength)].join('\n'));
 
   // 流月、流日、流时没有预先算好的神煞，在这里按本命补上。
   const layerPillar = (label, item) => describePillar(label, item, {
@@ -219,7 +234,13 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
 
   if (layers.length) {
     const almanac = rank >= 3 ? almanacLine(liuRi) : null;
-    sections.push(['【所选运限】', ...layers.map((layer) => layer.text), ...(almanac ? [almanac] : [])].join('\n'));
+    const yearMarks = liuNian ? describeYearMarks(liuNian, getLiuNianMarks(liuNian, { chart, daYun, strength })) : '';
+    sections.push([
+      '【所选运限】',
+      ...layers.map((layer) => layer.text),
+      ...(yearMarks ? [`- 流年标注：${yearMarks}`] : []),
+      ...(almanac ? [almanac] : []),
+    ].join('\n'));
   }
 
   const natalItems = chart.pillars.map((pillar) => toRelationItem(pillar.key, pillar.name, pillar));
@@ -258,6 +279,7 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
     ...QUESTIONS[scope].map((question, index) => `${index + 1}. ${isXiaoYun ? question.replace('所行大运', '所行小运') : question}`),
     '',
     '请先说明判断依据（日主旺衰、喜忌、合冲刑害、神煞等），再给结论；语气平实，避免绝对化和吓人的说法。',
+    ...(chart.timeUnknown ? ['命主出生时辰不详，请说明哪些判断会受时柱影响，并给出不依赖时柱的结论。'] : []),
     '',
     '我的问题：（在这里补充你想问的具体事情）',
   ].join('\n'));
