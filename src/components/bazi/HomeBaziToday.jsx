@@ -3,7 +3,8 @@
  */
 import React, { useMemo, useState } from 'react';
 import { buildBaziChart } from '../../utils/baziChart';
-import { baziFormToChartInput, recordToBaziForm } from '../../utils/baziRecord';
+import { recordToBaziForm } from '../../utils/baziRecord';
+import { baziFormToChartInput } from '../../utils/baziInput';
 import { buildBaziToday } from '../../utils/baziToday';
 import { buildBaziPrompt } from '../../utils/baziPrompt';
 

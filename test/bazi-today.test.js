@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildBaziChart } from '../src/utils/baziChart.js';
-import { baziFormToChartInput, buildBaziRecord, recordToBaziForm } from '../src/utils/baziRecord.js';
+import { buildBaziRecord, recordToBaziForm } from '../src/utils/baziRecord.js';
+import { baziFormToChartInput } from '../src/utils/baziInput.js';
 import { buildBaziToday } from '../src/utils/baziToday.js';
 
 const form = {

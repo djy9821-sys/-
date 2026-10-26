@@ -3,9 +3,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import WelcomeCover from "./components/WelcomeCover";
 import { AlertCircle, ArrowLeft, CheckCircle2, Save } from "lucide-react";
 import { archiveManager } from './utils/archiveManager';
-import { buildHomeFortune, HOME_FORTUNE_PERIODS } from './utils/homeFortune';
-import { getLunarMonthDays, getLunarMonthOptions } from './utils/fortuneContext';
-import { createZiweiHoroscope } from './utils/ziweiBirth';
 import { readLastBaziRecord } from './utils/baziRecord';
 
 // Lazy load the heavy components
@@ -21,6 +18,27 @@ const HomeBaziToday = lazy(() => import("./components/bazi/HomeBaziToday"));
 const AboutView = lazy(() => import("./components/AboutView"));
 
 const APP_VERSION = import.meta.env.VITE_APP_BUILD || 'dev';
+
+// 紫微排盘库（iztro 与农历库）压缩后约 250 KB，首页初次访问用不到。
+// 打开紫微录入、命盘，或首页需要生成紫微简报时才下载，下载一次后共用。
+let ziweiLibPromise = null;
+const loadZiweiLib = () => {
+  ziweiLibPromise ??= Promise.all([
+    import('./utils/homeFortune'),
+    import('./utils/fortuneContext'),
+    import('./utils/ziweiBirth'),
+  ]).then(([homeFortune, fortuneContext, ziweiBirth]) => ({
+    buildHomeFortune: homeFortune.buildHomeFortune,
+    HOME_FORTUNE_PERIODS: homeFortune.HOME_FORTUNE_PERIODS,
+    getLunarMonthDays: fortuneContext.getLunarMonthDays,
+    getLunarMonthOptions: fortuneContext.getLunarMonthOptions,
+    createZiweiHoroscope: ziweiBirth.createZiweiHoroscope,
+  })).catch((error) => {
+    ziweiLibPromise = null;
+    throw error;
+  });
+  return ziweiLibPromise;
+};
 
 // 地址栏 #/bazi 等与页面同步：手机返回键回到上一页，链接也能直接打开对应功能。
 const VIEW_ROUTES = Object.freeze({
@@ -224,11 +242,11 @@ const getBirthDateParts = (value) => {
   };
 };
 
-const lunarMonthSupportsLeap = (year, month) => {
-  if (!/^\d{4}$/.test(year) || !/^\d{2}$/.test(month)) return false;
+const lunarMonthSupportsLeap = (lib, year, month) => {
+  if (!lib || !/^\d{4}$/.test(year) || !/^\d{2}$/.test(month)) return false;
 
   try {
-    return getLunarMonthOptions(Number(year)).some((option) => (
+    return lib.getLunarMonthOptions(Number(year)).some((option) => (
       option.month === Number(month) && option.isLeap
     ));
   } catch {
@@ -236,9 +254,9 @@ const lunarMonthSupportsLeap = (year, month) => {
   }
 };
 
-const getBirthDayCount = (calendarType, year, month, isLeapMonth = false) => {
+const getBirthDayCount = (lib, calendarType, year, month, isLeapMonth = false) => {
   if (calendarType === 'lunar') {
-    return getLunarMonthDays(Number(year), Number(month), isLeapMonth) || 30;
+    return lib?.getLunarMonthDays(Number(year), Number(month), isLeapMonth) || 30;
   }
   if (!year || !month) return 31;
   return new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate();
@@ -273,12 +291,14 @@ export default function App() {
   const [homeShareNotice, setHomeShareNotice] = useState(null);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [lastBaziRecord, setLastBaziRecord] = useState(() => readLastBaziRecord());
+  const [ziweiLib, setZiweiLib] = useState(null);
 
   const birthDateParts = getBirthDateParts(birthday);
   const leapMonthAvailable = calendarType === 'lunar'
-    && lunarMonthSupportsLeap(birthDateParts.year, birthDateParts.month);
+    && lunarMonthSupportsLeap(ziweiLib, birthDateParts.year, birthDateParts.month);
   const effectiveIsLeapMonth = leapMonthAvailable && isLeapMonth;
   const birthDayCount = getBirthDayCount(
+    ziweiLib,
     calendarType,
     birthDateParts.year,
     birthDateParts.month,
@@ -297,9 +317,10 @@ export default function App() {
   const updateBirthDatePart = (part, value) => {
     const nextParts = { ...birthDateParts, [part]: value };
     const nextLeapMonthAvailable = calendarType === 'lunar'
-      && lunarMonthSupportsLeap(nextParts.year, nextParts.month);
+      && lunarMonthSupportsLeap(ziweiLib, nextParts.year, nextParts.month);
     const nextIsLeapMonth = nextLeapMonthAvailable && isLeapMonth;
     const nextDayCount = getBirthDayCount(
+      ziweiLib,
       calendarType,
       nextParts.year,
       nextParts.month,
@@ -315,9 +336,10 @@ export default function App() {
   const updateCalendarType = (nextCalendarType) => {
     const nextParts = { ...birthDateParts };
     const nextLeapMonthAvailable = nextCalendarType === 'lunar'
-      && lunarMonthSupportsLeap(nextParts.year, nextParts.month);
+      && lunarMonthSupportsLeap(ziweiLib, nextParts.year, nextParts.month);
     const nextIsLeapMonth = nextLeapMonthAvailable && isLeapMonth;
     const nextDayCount = getBirthDayCount(
+      ziweiLib,
       nextCalendarType,
       nextParts.year,
       nextParts.month,
@@ -336,6 +358,7 @@ export default function App() {
 
     const nextIsLeapMonth = !effectiveIsLeapMonth;
     const nextDayCount = getBirthDayCount(
+      ziweiLib,
       'lunar',
       birthDateParts.year,
       birthDateParts.month,
@@ -544,13 +567,14 @@ export default function App() {
     }
   };
 
-  const handleStartScan = () => {
+  const handleStartScan = async () => {
     if (!birthday) {
       alert('请输入生日');
       return;
     }
     try {
-      const newHoroscope = createZiweiHoroscope({
+      const lib = ziweiLib ?? await loadZiweiLib();
+      const newHoroscope = lib.createZiweiHoroscope({
         calendarType,
         birthDate: birthday,
         timeIndex: birthTime,
@@ -577,7 +601,7 @@ export default function App() {
     setIsSaveModalOpen(true);
   };
 
-  const handleLoadRecord = (record) => {
+  const handleLoadRecord = async (record) => {
     if (record.type === 'bazi') {
       setBaziRecord(record);
       setView('bazi');
@@ -603,7 +627,8 @@ export default function App() {
       }
 
       try {
-        const newHoroscope = createZiweiHoroscope({
+        const lib = ziweiLib ?? await loadZiweiLib();
+        const newHoroscope = lib.createZiweiHoroscope({
           calendarType: recordCalendarType,
           birthDate: recordBirthDate,
           timeIndex: recordBirthTime,
@@ -672,6 +697,17 @@ export default function App() {
       || null;
   }, [homeProfileId, homeReadyRecords]);
 
+  // 需要紫微排盘库的场景：紫微录入页、紫微命盘，以及首页有可用的紫微档案。
+  const needsZiweiLib = ['input', 'chart'].includes(view) || homeReadyRecords.length > 0;
+  React.useEffect(() => {
+    if (!needsZiweiLib || ziweiLib) return undefined;
+    let cancelled = false;
+    loadZiweiLib()
+      .then((lib) => { if (!cancelled) setZiweiLib(lib); })
+      .catch((error) => console.warn('紫微排盘库加载失败:', error));
+    return () => { cancelled = true; };
+  }, [needsZiweiLib, ziweiLib]);
+
   const homeFortuneState = React.useMemo(() => {
     if (!homeProfile) {
       return {
@@ -681,10 +717,11 @@ export default function App() {
           : null,
       };
     }
+    if (!ziweiLib) return { data: null, error: null, loading: true };
 
     try {
       return {
-        data: buildHomeFortune(homeProfile, homePeriod, homeNow),
+        data: ziweiLib.buildHomeFortune(homeProfile, homePeriod, homeNow),
         error: null,
       };
     } catch (error) {
@@ -694,7 +731,7 @@ export default function App() {
         error: error instanceof Error ? error.message : '当前档案无法生成运势简报',
       };
     }
-  }, [homeNow, homePeriod, homeProfile, ziweiRecords.length]);
+  }, [homeNow, homePeriod, homeProfile, ziweiLib, ziweiRecords.length]);
 
   const homeFortune = homeFortuneState.data;
 
@@ -925,7 +962,7 @@ export default function App() {
                     )}
 
                     <div className="fortune-periods" role="group" aria-label="选择运势时间层">
-                      {HOME_FORTUNE_PERIODS.map((period) => (
+                      {ziweiLib.HOME_FORTUNE_PERIODS.map((period) => (
                         <button
                           key={period.key}
                           type="button"
@@ -1004,15 +1041,15 @@ export default function App() {
                   </>
                 ) : (
                   <div className="fortune-empty-content">
-                    <p>{homeFortuneState.error || '排一次八字，或保存本人的紫微命盘，首页便会自动显示今天的运势重点、喜忌与宜忌。'}</p>
-                    <div className="fortune-empty-actions">
+                    <p>{homeFortuneState.loading ? '正在生成今日简报…' : homeFortuneState.error || '排一次八字，或保存本人的紫微命盘，首页便会自动显示今天的运势重点、喜忌与宜忌。'}</p>
+                    {!homeFortuneState.loading && <div className="fortune-empty-actions">
                       <button type="button" onClick={() => { setBaziRecord(null); setView('bazi'); }}>
                         排我的八字 <span aria-hidden="true">→</span>
                       </button>
                       <button type="button" onClick={() => setView(homeFortuneState.error ? 'archive' : 'input')}>
                         {homeFortuneState.error ? '检查紫微档案' : '保存紫微命盘'} <span aria-hidden="true">→</span>
                       </button>
-                    </div>
+                    </div>}
                     <span>出生资料只保存在当前设备</span>
                   </div>
                 )}
