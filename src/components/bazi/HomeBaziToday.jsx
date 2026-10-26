@@ -7,6 +7,7 @@ import { recordToBaziForm } from '../../utils/baziRecord';
 import { baziFormToChartInput } from '../../utils/baziInput';
 import { buildBaziToday } from '../../utils/baziToday';
 import { buildBaziPrompt } from '../../utils/baziPrompt';
+import { track } from '../../utils/analytics';
 import PlaceSetting from '../common/PlaceSetting';
 
 const TONE_LABEL = { good: '喜', bad: '忌', neutral: '平' };
@@ -79,6 +80,7 @@ export default function HomeBaziToday({ record, source = null, candidates = [], 
     const topRelations = relations.slice(0, 4);
 
     const copyForAi = async () => {
+        track('ai_export', { kind: 'bazi_today', scope: 'day', channel: 'copy' });
         const prompt = buildBaziPrompt({ chart, scope: 'day', personName: form.personName, selections: today, now });
         const ok = await copyText(prompt).catch(() => false);
         setNotice(ok
@@ -171,7 +173,9 @@ export default function HomeBaziToday({ record, source = null, candidates = [], 
                 </p>
             )}
             <p className="mt-2.5 text-[11px] leading-5 text-[#9b9185]">
-                {source && !source.isLast ? `按档案「${source.label}」计算` : '按八字页上次排的盘计算'}，喜忌为程序估算，仅供参考。
+                {source && !source.isLast
+                    ? (source.fromZiwei ? `按紫微档案「${source.label}」的生辰计算` : `按档案「${source.label}」计算`)
+                    : '按八字页上次排的盘计算'}，喜忌为程序估算，仅供参考。
                 {onOpenZiwei && (
                     <button type="button" onClick={onOpenZiwei} className="ml-1 font-bold text-[#2d6b62] underline-offset-2 hover:underline">
                         也看紫微运势 →
