@@ -4,7 +4,8 @@ import WelcomeCover from "./components/WelcomeCover";
 import { AlertCircle, ArrowLeft, CheckCircle2, Save } from "lucide-react";
 import { archiveManager } from './utils/archiveManager';
 import { readLastBaziRecord, recordToBaziForm } from './utils/baziRecord';
-import { toLocalSolarNow } from './utils/currentPlace';
+import { placeDisplayName, toLocalSolarNow } from './utils/currentPlace';
+import { decodeBaziLink, hashQueryOf } from './utils/baziLink';
 import { track } from './utils/analytics';
 import { useCurrentPlace } from './components/common/useCurrentPlace';
 import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from './utils/birthPlaces';
@@ -91,7 +92,10 @@ const VIEW_TITLES = Object.freeze({
   archive: '命盘档案 · 古书派',
   about: '关于与隐私 · 古书派',
 });
-const routeFromHash = (hash = '') => hash.replace(/^#\/?/, '').replace(/\/$/, '');
+// #/bazi?cal=s&d=… 这类带参数的地址：路由只看问号前面的部分。
+const routeFromHash = (hash = '') => hash.replace(/^#\/?/, '').split('?')[0].replace(/\/$/, '');
+// 带生辰参数的八字链接 → 临时记录，打开即出盘。
+const baziRecordFromHash = (hash = '') => (viewFromHash(hash) === 'bazi' ? decodeBaziLink(hashQueryOf(hash)) : null);
 const viewFromHash = (hash = '') => {
   const route = routeFromHash(hash);
   return ROUTE_VIEWS[route] ?? LEGACY_ROUTES[route]?.view ?? 'home';
@@ -305,7 +309,7 @@ const getBirthDayCount = (lib, calendarType, year, month, isLeapMonth = false) =
 export default function App() {
   const [view, setView] = useState(initialViewFromLocation); // 'home', 'input', 'chart', 'liuyao', 'archive', 'videos', 'bazi', 'about'
   // 从档案打开的八字命例；从首页或底部导航进入八字时为空。
-  const [baziRecord, setBaziRecord] = useState(null);
+  const [baziRecord, setBaziRecord] = useState(() => baziRecordFromHash(globalThis.location?.hash));
   // 从档案打开的六爻卦例，以及旧地址 #/money、#/bagua 预选的起卦方式。
   const [liuyaoRecord, setLiuyaoRecord] = useState(null);
   const [liuyaoMethod, setLiuyaoMethod] = useState(() => liuyaoMethodFromHash(globalThis.location?.hash));
@@ -478,7 +482,8 @@ export default function App() {
   const ziweiArchiveCandidates = React.useMemo(
     () => archiveRecords
       .map((record) => ({ record, form: recordToBaziForm(record) }))
-      .filter(({ form }) => form),
+      // 紫微必须有时辰：时辰不详的八字记录带不进来。
+      .filter(({ form }) => form && form.timeMode !== 'unknown'),
     [archiveRecords],
   );
   const applyZiweiArchiveRecord = (recordId) => {
@@ -537,8 +542,10 @@ export default function App() {
     const handlePopState = () => {
       const next = viewFromHash(window.location.hash);
       const legacyMethod = liuyaoMethodFromHash(window.location.hash);
+      const linkedBazi = baziRecordFromHash(window.location.hash);
       setIsMoreOpen(false);
       if (legacyMethod) setLiuyaoMethod(legacyMethod);
+      if (linkedBazi) setBaziRecord(linkedBazi);
       setView(next === 'chart' && !horoscope ? 'input' : next);
     };
     window.addEventListener('popstate', handlePopState);
@@ -1280,7 +1287,7 @@ export default function App() {
                       </p>
                     )}
                     <p id="fortune-share-privacy" className="fortune-share-privacy">分享默认隐藏姓名、生辰、档案备注等私人资料。</p>
-                    <p className="fortune-disclaimer">{currentPlace ? `按${currentPlace.city || currentPlace.province || `东经 ${currentPlace.longitude}°`}真太阳时自动排盘` : '按当前设备时间自动排盘'}，仅供传统文化研究；具体判断需结合本命与三方四正。</p>
+                    <p className="fortune-disclaimer">{currentPlace ? `按${placeDisplayName(currentPlace)}真太阳时自动排盘` : '按当前设备时间自动排盘'}，仅供传统文化研究；具体判断需结合本命与三方四正。</p>
                   </>
                 ) : (
                   <div className="fortune-empty-content">
