@@ -3,24 +3,18 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
-// Remove the legacy PWA worker. It used to serve an old cached index before
-// the new bundle could load, which made the custom domain appear out of date.
-const removeLegacyServiceWorkers = async () => {
-  if (!('serviceWorker' in navigator)) return;
-
-  try {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(registrations.map((registration) => registration.unregister()));
-    if ('caches' in globalThis) {
-      const cacheNames = await globalThis.caches.keys();
-      await Promise.all(cacheNames.map((cacheName) => globalThis.caches.delete(cacheName)));
-    }
-  } catch (error) {
-    console.warn('Unable to remove legacy service worker:', error);
-  }
+// 离线缓存：页面始终先走网络（见 public/sw.js），断网或网络很慢时用上次的缓存打开。
+// 旧版 Workbox 缓存会在新脚本启用时自动清掉。
+const registerServiceWorker = () => {
+  if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((error) => {
+      console.warn('离线缓存未启用:', error);
+    });
+  });
 };
 
-void removeLegacyServiceWorkers();
+registerServiceWorker();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

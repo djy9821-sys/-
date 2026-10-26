@@ -6,6 +6,7 @@ import { archiveManager } from './utils/archiveManager';
 import { buildHomeFortune, HOME_FORTUNE_PERIODS } from './utils/homeFortune';
 import { getLunarMonthDays, getLunarMonthOptions } from './utils/fortuneContext';
 import { createZiweiHoroscope } from './utils/ziweiBirth';
+import { readLastBaziRecord } from './utils/baziRecord';
 
 // Lazy load the heavy components
 const MoneyDivination = lazy(() => import("./components/MoneyDivination"));
@@ -16,6 +17,34 @@ const BaziDivination = lazy(() => import("./components/BaziDivination"));
 const BaguaDivination = lazy(() => import("./components/BaguaDivination.jsx"));
 // 紫微专业盘体量最大，只有打开命盘时才加载。
 const ProfessionalChart = lazy(() => import("./components/ProfessionalChart"));
+const HomeBaziToday = lazy(() => import("./components/bazi/HomeBaziToday"));
+const AboutView = lazy(() => import("./components/AboutView"));
+
+const APP_VERSION = import.meta.env.VITE_APP_BUILD || 'dev';
+
+// 地址栏 #/bazi 等与页面同步：手机返回键回到上一页，链接也能直接打开对应功能。
+const VIEW_ROUTES = Object.freeze({
+  input: 'ziwei', chart: 'ziwei/chart', money: 'money', archive: 'archive', bazi: 'bazi',
+  bagua: 'bagua', videos: 'videos', english: 'english', about: 'about',
+});
+const ROUTE_VIEWS = Object.freeze(Object.fromEntries(Object.entries(VIEW_ROUTES).map(([view, route]) => [route, view])));
+const VIEW_TITLES = Object.freeze({
+  home: '古书派｜紫微斗数与八字排盘',
+  input: '紫微斗数排盘 · 古书派',
+  chart: '紫微命盘 · 古书派',
+  bazi: '八字排盘 · 古书派',
+  money: '金钱卦 · 古书派',
+  archive: '命盘档案 · 古书派',
+  bagua: '手势八卦 · 古书派',
+  about: '关于与隐私 · 古书派',
+});
+const viewFromHash = (hash = '') => ROUTE_VIEWS[hash.replace(/^#\/?/, '').replace(/\/$/, '')] ?? 'home';
+const hashForView = (view) => (VIEW_ROUTES[view] ? `#/${VIEW_ROUTES[view]}` : '');
+// 没有命盘数据时，紫微命盘页退回到输入页。
+const initialViewFromLocation = () => {
+  const view = viewFromHash(globalThis.location?.hash);
+  return view === 'chart' ? 'input' : view;
+};
 
 const WELCOME_COVER_KEY = 'gushupai-welcome-cover-seen-v1';
 
@@ -216,10 +245,12 @@ const getBirthDayCount = (calendarType, year, month, isLeapMonth = false) => {
 };
 
 export default function App() {
-  const [view, setView] = useState('home'); // 'home', 'input', 'chart', 'money', 'archive', 'videos', 'bazi'
+  const [view, setView] = useState(initialViewFromLocation); // 'home', 'input', 'chart', 'money', 'archive', 'videos', 'bazi', 'about'
   // 从档案打开的八字命例；从首页或底部导航进入八字时为空。
   const [baziRecord, setBaziRecord] = useState(null);
   const [showWelcomeCover, setShowWelcomeCover] = useState(() => {
+    // 直接打开某个功能的链接（如 #/bazi）时不显示封面。
+    if (initialViewFromLocation() !== 'home') return false;
     try {
       return globalThis.localStorage?.getItem(WELCOME_COVER_KEY) !== 'seen';
     } catch {
@@ -241,6 +272,7 @@ export default function App() {
   const [homeNow, setHomeNow] = useState(() => new Date());
   const [homeShareNotice, setHomeShareNotice] = useState(null);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [lastBaziRecord, setLastBaziRecord] = useState(() => readLastBaziRecord());
 
   const birthDateParts = getBirthDateParts(birthday);
   const leapMonthAvailable = calendarType === 'lunar'
@@ -324,6 +356,54 @@ export default function App() {
   const saveOpenerRef = React.useRef(null);
   const moreDialogRef = React.useRef(null);
   const moreOpenerRef = React.useRef(null);
+
+  // 页面切换写入浏览器历史；返回首页时退回历史起点，避免来回堆叠。
+  const routeSyncedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (showWelcomeCover) {
+      // 封面只在首页地址出现；离开封面进入某个功能时正常记入历史。
+      routeSyncedRef.current = true;
+      return;
+    }
+    document.title = VIEW_TITLES[view] ?? VIEW_TITLES.home;
+    const target = hashForView(view);
+    const currentHash = window.location.hash.replace(/^#\/?$/, '');
+    const firstSync = !routeSyncedRef.current;
+    routeSyncedRef.current = true;
+    if (currentHash === target) return;
+    const url = `${window.location.pathname}${window.location.search}${target}`;
+    // 打开的链接无效（如没有命盘数据的 #/ziwei/chart）时直接改写地址，不新增历史。
+    if (firstSync) {
+      window.history.replaceState(window.history.state, '', url);
+      return;
+    }
+    const depth = window.history.state?.gushupaiDepth ?? 0;
+    if (!target && depth > 0) {
+      window.history.go(-depth);
+      return;
+    }
+    window.history.pushState({ gushupaiDepth: depth + 1 }, '', url);
+  }, [view, showWelcomeCover]);
+
+  React.useEffect(() => {
+    const handlePopState = () => {
+      const next = viewFromHash(window.location.hash);
+      setIsMoreOpen(false);
+      setView(next === 'chart' && !horoscope ? 'input' : next);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [horoscope]);
+
+  React.useEffect(() => {
+    const refreshLastBazi = () => setLastBaziRecord(readLastBaziRecord());
+    window.addEventListener('bazi-last-chart-updated', refreshLastBazi);
+    window.addEventListener('storage', refreshLastBazi);
+    return () => {
+      window.removeEventListener('bazi-last-chart-updated', refreshLastBazi);
+      window.removeEventListener('storage', refreshLastBazi);
+    };
+  }, []);
 
   React.useEffect(() => {
     const handler = (e) => {
@@ -732,7 +812,7 @@ export default function App() {
   };
 
   const showsMobileNav = !showWelcomeCover && ['home', 'input', 'archive'].includes(view);
-  const usesOwnHeader = ['money', 'bazi', 'archive', 'videos', 'english', 'chart'].includes(view);
+  const usesOwnHeader = ['money', 'bazi', 'archive', 'videos', 'english', 'chart', 'about'].includes(view);
 
   return (
     <div className={`app-shell ${showsMobileNav ? 'app-shell--mobile-nav' : ''} ${view === 'chart' ? 'app-shell--chart' : ''}`}>
@@ -798,7 +878,14 @@ export default function App() {
         ) : view === 'home' ? (
           // --- HOME PORTAL VIEW ---
           <div className="home-page animate-in fade-in duration-500">
-            <div className={`home-overview ${homeFortune ? 'home-overview--personalized' : 'home-overview--empty'}`}>
+            <div className={`home-overview ${homeFortune || lastBaziRecord ? 'home-overview--personalized' : 'home-overview--empty'}`}>
+              <div className="home-briefs">
+              {lastBaziRecord && !homeFortune && (
+                <Suspense fallback={null}>
+                  <HomeBaziToday record={lastBaziRecord} now={homeNow} onOpenChart={handleLoadRecord} onOpenZiwei={() => setView('input')} />
+                </Suspense>
+              )}
+              {(homeFortune || !lastBaziRecord) && (
               <section className={`fortune-brief ${homeFortune ? 'fortune-brief--personalized' : 'fortune-brief--empty'}`} aria-labelledby="fortune-brief-title">
                 <header className="fortune-brief-header">
                   <div>
@@ -917,29 +1004,41 @@ export default function App() {
                   </>
                 ) : (
                   <div className="fortune-empty-content">
-                    <p>{homeFortuneState.error || '保存一次本人的紫微命盘，首页便会自动显示今时、今日、今月与今年的运限重点。'}</p>
-                    <button type="button" onClick={() => setView(homeFortuneState.error ? 'archive' : 'input')}>
-                      {homeFortuneState.error ? '检查命盘档案' : '保存我的第一张命盘'} <span aria-hidden="true">→</span>
-                    </button>
+                    <p>{homeFortuneState.error || '排一次八字，或保存本人的紫微命盘，首页便会自动显示今天的运势重点、喜忌与宜忌。'}</p>
+                    <div className="fortune-empty-actions">
+                      <button type="button" onClick={() => { setBaziRecord(null); setView('bazi'); }}>
+                        排我的八字 <span aria-hidden="true">→</span>
+                      </button>
+                      <button type="button" onClick={() => setView(homeFortuneState.error ? 'archive' : 'input')}>
+                        {homeFortuneState.error ? '检查紫微档案' : '保存紫微命盘'} <span aria-hidden="true">→</span>
+                      </button>
+                    </div>
                     <span>出生资料只保存在当前设备</span>
                   </div>
                 )}
               </section>
+              )}
+              {lastBaziRecord && homeFortune && (
+                <Suspense fallback={null}>
+                  <HomeBaziToday record={lastBaziRecord} now={homeNow} onOpenChart={handleLoadRecord} />
+                </Suspense>
+              )}
+              </div>
 
-              <section className={`home-hero ${homeFortune ? 'home-hero--personalized' : ''}`} aria-labelledby="home-title">
-                <p className="section-kicker">{homeFortune ? '每日一看 · 把握当下' : '古法为体 · 数理为用'}</p>
+              <section className={`home-hero ${homeFortune || lastBaziRecord ? 'home-hero--personalized' : ''}`} aria-labelledby="home-title">
+                <p className="section-kicker">{homeFortune || lastBaziRecord ? '每日一看 · 把握当下' : '古法为体 · 数理为用'}</p>
                 <h2 id="home-title" className="home-title">
-                  {homeFortune ? <>从当下入手，<em>再观人生全局</em></> : <>以星曜为镜，<em>观人生脉络</em></>}
+                  {homeFortune || lastBaziRecord ? <>从当下入手，<em>再观人生全局</em></> : <>以星曜为镜，<em>观人生脉络</em></>}
                 </h2>
                 <p className="home-subtitle">
-                  {homeFortune
+                  {homeFortune || lastBaziRecord
                     ? '先用三十秒看懂今天的重点，需要时再展开命盘依据。少一点术语堆叠，多一点可以落实的提示。'
-                    : '从一张命盘开始，查看本命格局、大限与流年。传统术数，用更清晰的方式呈现。'}
+                    : '从一张命盘开始，查看紫微十二宫与八字四柱、大运流年。传统术数，用更清晰的方式呈现。'}
                 </p>
                 <div className="home-assurances" aria-label="产品特点">
-                  <span className="assurance-chip">{homeFortune ? '三十秒简报' : '专业命盘'}</span>
-                  <span className="assurance-chip">{homeFortune ? '四维提示' : '运限推演'}</span>
-                  <span className="assurance-chip">{homeFortune ? '依据可展开' : '命理话术'}</span>
+                  <span className="assurance-chip">{homeFortune || lastBaziRecord ? '三十秒简报' : '专业命盘'}</span>
+                  <span className="assurance-chip">{homeFortune || lastBaziRecord ? '喜忌提示' : '运限推演'}</span>
+                  <span className="assurance-chip">{homeFortune || lastBaziRecord ? '依据可展开' : '本地保存'}</span>
                 </div>
               </section>
             </div>
@@ -1038,7 +1137,14 @@ export default function App() {
             </nav>
 
             <footer className="home-footer">
-              <p>v2026.08.23.Cover-UI</p>
+              <p>版本 {APP_VERSION}</p>
+              <button
+                type="button"
+                onClick={() => setView('about')}
+                className="force-update-button"
+              >
+                关于与隐私
+              </button>
               <button
                 type="button"
                 onClick={() => setShowWelcomeCover(true)}
@@ -1291,6 +1397,12 @@ export default function App() {
               onBack={() => { setBaziRecord(null); setView('home'); }}
             />
           </Suspense>
+        ) : view === 'about' ? (
+          <ErrorBoundary>
+            <Suspense fallback={null}>
+              <AboutView onBack={() => setView('home')} version={APP_VERSION} />
+            </Suspense>
+          </ErrorBoundary>
         ) : view === 'bagua' ? (
           // --- FULL BAGUA EXPERIENCE VIEW ---
           <ErrorBoundary>
@@ -1458,10 +1570,15 @@ export default function App() {
                 <span><b>查看品牌封面</b><small>重新进入古书派欢迎页</small></span>
                 <i aria-hidden="true">›</i>
               </button>
+              <button type="button" className="mobile-more-card" onClick={() => navigateFromMobile('about')}>
+                <span className="mobile-more-seal mobile-more-seal--jade" aria-hidden="true">私</span>
+                <span><b>关于与隐私</b><small>资料存放、免责声明</small></span>
+                <i aria-hidden="true">›</i>
+              </button>
             </div>
 
             <p className="mobile-more-privacy">命盘档案保存在当前设备；分享运势时默认隐藏姓名、生辰与档案备注。</p>
-            <p className="mobile-more-version">v2026.08.23.Cover-UI</p>
+            <p className="mobile-more-version">版本 {APP_VERSION}</p>
           </section>
         </div>
       )}
