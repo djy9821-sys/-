@@ -32,7 +32,7 @@ test('流时提示词包含出生信息、四柱、各层运限与关系', () =>
     '- 时柱 戊辰：',
     '- 日主：己土',
     '己酉，天干十神比肩  ← 当前',
-    '- 流年（2026 年，29 虚岁） 丙午',
+    '- 流年（2026 年，30 虚岁） 丙午',
     '- 流月（寒露 2026-10-08 起） 戊戌',
     '- 流日（2026-10-27 周二',
     '- 流时（巳时 09:00-11:00） 己巳',
@@ -72,7 +72,7 @@ test('提示词带上神煞、自坐、胎元命宫与旺衰参考', () => {
     '自坐 墓',
     '神煞 太极贵人、月德合、华盖',
     '- 胎元 癸卯（金箔金）；命宫 癸丑（桑柘木）；身宫 乙巳（覆灯火）',
-    '起运前行小运（1–8 虚岁）：1998丁卯',
+    '起运前行小运（1–9 虚岁）：1998丁卯',
     '【旺衰参考（程序估算）】',
     '- 日主己土：偏弱',
     '- 喜用参考：火（印，调候）、土（比劫）',
@@ -93,7 +93,7 @@ test('流日、流时补上神煞与黄历宜忌', () => {
 
 test('起运前的年份按小运导出', () => {
   const childYear = chart.yun.xiaoYun.years.find(({ year }) => year === 2000);
-  const xiaoYun = { ...childYear.xiaoYun, startAge: 1, endAge: 8, startYear: 1998, endYear: 2005 };
+  const xiaoYun = { ...childYear.xiaoYun, startAge: 1, endAge: 9, startYear: 1998, endYear: 2005 };
   const prompt = buildBaziPrompt({ chart, scope: 'year', selections: { daYun: xiaoYun, liuNian: childYear }, now });
   assert.ok(prompt.includes('- 小运（起运前，2000 年） 乙丑：'), prompt.split('【所选运限】')[1]?.slice(0, 200));
   assert.ok(prompt.includes('子丑合（土）：小运丑 · 月柱子'));
