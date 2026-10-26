@@ -29,6 +29,15 @@ export const getElementRoles = (dayWuxing) => ({
 
 const round1 = (value) => Math.round(value * 10) / 10;
 
+/** 某个五行对日主是喜用（good）、忌神（bad）还是平（neutral）。 */
+export const elementToneOf = (element, strength) => {
+  const favorable = strength.favorable.find((item) => item.element === element);
+  if (favorable) return { element, role: favorable.role, tone: 'good' };
+  const unfavorable = strength.unfavorable.find((item) => item.element === element);
+  if (unfavorable) return { element, role: unfavorable.role, tone: 'bad' };
+  return { element, role: strength.roles[element], tone: 'neutral' };
+};
+
 const bandOf = (ratio) => {
   if (ratio < 0.2) return { band: '极弱', hint: '同党极少，可能需要考虑从格，请人工判断' };
   if (ratio < 0.45) return { band: '偏弱', hint: '' };
@@ -51,6 +60,7 @@ export const analyzeStrength = (chart) => {
   const byKey = Object.fromEntries(chart.pillars.map((pillar) => [pillar.key, pillar]));
 
   chart.pillars.forEach((pillar) => {
+    if (!pillar.gan) return; // 时辰不详时没有时柱
     if (pillar.key !== 'day') scores[pillar.ganWuxing] += 1;
     const factor = pillar.key === 'month' ? MONTH_FACTOR : 1;
     pillar.hiddenGanDetails.forEach((detail, index) => {
