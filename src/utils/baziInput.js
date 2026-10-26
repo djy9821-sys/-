@@ -14,6 +14,7 @@ export const baziFormToChartInput = (form) => {
     gender: form.gender,
     daySect: form.daySect,
   };
+  if (form.timeMode === 'unknown') return { ...base, timeMode: 'unknown' };
   const clock = form.timeMode === 'exact' ? parseClockTime(form.clockTime) : null;
   if (!clock) return { ...base, hourIndex: form.hourIndex };
 
