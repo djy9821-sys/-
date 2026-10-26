@@ -8,10 +8,16 @@ type LastChart = {
   onForget: () => void;
 };
 
+type ForgottenChart = {
+  label: string;
+  onUndo: () => void;
+};
+
 type BaziLandingProps = {
   onBack: () => void;
   onStart: () => void;
   lastChart?: LastChart | null;
+  forgotten?: ForgottenChart | null;
 };
 
 const PILLARS = [
@@ -30,7 +36,7 @@ const CHAPTERS = [
 
 const JOURNEY = ['录生辰', '排四柱', '明五行', '辨十神', '看运限'] as const;
 
-export default function BaziLanding({ onBack, onStart, lastChart = null }: BaziLandingProps) {
+export default function BaziLanding({ onBack, onStart, lastChart = null, forgotten = null }: BaziLandingProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -129,6 +135,15 @@ export default function BaziLanding({ onBack, onStart, lastChart = null }: BaziL
               <button type="button" className="bazi-landing__resume-forget" onClick={lastChart.onForget} aria-label="清除上次的命盘记录">
                 <X aria-hidden="true" />
               </button>
+            </div>
+          )}
+          {!lastChart && forgotten && (
+            <div className="bazi-landing__resume" role="status">
+              <span className="bazi-landing__resume-note">
+                <strong>已清除上次的命盘</strong>
+                <small>{forgotten.label}</small>
+              </span>
+              <button type="button" className="bazi-landing__resume-undo" onClick={forgotten.onUndo}>撤销</button>
             </div>
           )}
           <button type="button" className="bazi-landing__start" onClick={onStart}>
