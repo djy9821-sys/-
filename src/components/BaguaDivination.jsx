@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import FullBaguaExperience from './BaguaBackground/FullBaguaExperience.jsx';
 import { getHexagram } from '../utils/hexagramLogic';
 import { fetchQuantumUtils } from '../utils/quantumRandom';
+import { coinsToLineValue } from '../utils/liuyao';
 
 const InkStroke = ({ type, width = '100%' }) => {
     return (
@@ -53,7 +54,8 @@ const InkStroke = ({ type, width = '100%' }) => {
     );
 };
 
-export default function BaguaDivination({ onBack }) {
+// onComplete：六爻页接管结果时传入，六爻齐后把爻值（初爻在前）交给它。
+export default function BaguaDivination({ onBack, onComplete = null }) {
     const [yaos, setYaos] = useState([]);
     const [finalHexagram, setFinalHexagram] = useState(null);
     
@@ -119,6 +121,11 @@ export default function BaguaDivination({ onBack }) {
     };
 
     const generateFinalHexagram = (finalYaos) => {
+        if (onComplete) {
+            isGeneratingRef.current = false;
+            onComplete(finalYaos.map((yao) => coinsToLineValue(yao.headsCount)));
+            return;
+        }
         const hexagramBinary = finalYaos.map(y => y.binaryVal).join('');
         const movingLines = finalYaos.map((y, index) => y.isMoving ? index + 1 : null).filter(Boolean);
         const result = getHexagram(hexagramBinary, movingLines);
