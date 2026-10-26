@@ -181,7 +181,7 @@ export default function MoneyDivination({ onBack }) {
     const [coinResults, setCoinResults] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
     const [targetResults, setTargetResults] = useState([true, true, true]); // Store fetched results [bool, bool, bool]
-    const [isQuantum, setIsQuantum] = useState(false); // Track if current throw reused ANU data
+    const [isQuantum, setIsQuantum] = useState(false); // 本次摇卦是否已用加密级随机数取得结果（变量名沿用旧的量子随机）
     const isProcessingRef = useRef(false);
     const isGeneratingRef = useRef(false); // Lock to prevent double generation
     const audioContextRef = useRef(null);
@@ -216,13 +216,9 @@ export default function MoneyDivination({ onBack }) {
         if (audioContextRef.current?.state === 'suspended') audioContextRef.current.resume();
         playThrowSound(audioContextRef.current);
 
-        // 2. Fetch Quantum Randomness
-        // Start fetching while sound plays. UX: might delay the *visual* throw slightly.
+        // 2. 取三枚铜钱的随机结果（浏览器加密级随机数，立即返回）
         try {
             const results = await fetchQuantumUtils(3);
-            // Check if we actually used quantum (hacky check: if it fell back, we wouldn't easily know unless we return metadata. 
-            // For now assume if it didn't throw error it's good, or we add flag to util. 
-            // Let's just assume for UX "Quantum Mode Active" if enabled.
             setTargetResults(results);
             setIsQuantum(true);
         } catch {
@@ -367,13 +363,13 @@ export default function MoneyDivination({ onBack }) {
                 </div>
             </div>
 
-            {/* Quantum Badge */}
+            {/* 随机数来源标识：浏览器加密级随机数（crypto.getRandomValues），见 utils/quantumRandom.js */}
             <div
                 className={`absolute z-40 flex flex-col opacity-70 ${isMobile ? 'left-4 items-start' : 'top-20 right-12 items-end'}`}
                 style={isMobile ? { top: 'calc(env(safe-area-inset-top) + 4.25rem)' } : undefined}
             >
                 <div className="text-[10px] text-[#2b2b2b] bg-white/40 px-2 py-1 rounded-full backdrop-blur-sm border border-gray-400/30">
-                    量子真随机 · {isQuantum ? '已启用' : '就绪'}
+                    加密级随机 · {isQuantum ? '已启用' : '就绪'}
                 </div>
             </div>
 
