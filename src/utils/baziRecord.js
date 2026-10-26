@@ -64,7 +64,8 @@ export const recordToBaziForm = (record) => {
   const hourIndex = Number(record.timeHour);
   if (!Number.isInteger(hourIndex) || hourIndex < 0 || hourIndex > 12) return null;
 
-  const data = record.type === 'bazi' && record.data && typeof record.data === 'object' ? record.data : {};
+  // 八字与紫微的档案都可能带精确时间设置（紫微录入页也支持精确到分钟）。
+  const data = record.data && typeof record.data === 'object' ? record.data : {};
   const clock = parseClockTime(data.clockTime);
   const exact = data.timeMode === 'exact' && clock !== null;
   const longitude = Number(data.longitude);
