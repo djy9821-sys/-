@@ -377,6 +377,33 @@
 }
 .bazi-landing__resume-forget:hover { color: #fbf7ed; }
 .bazi-landing__resume-forget svg { width: 16px; height: 16px; }
+.bazi-landing__resume-note {
+  display: flex;
+  min-width: 0;
+  min-height: 56px;
+  padding: 8px 12px;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px dashed rgba(220, 180, 113, 0.35);
+  border-radius: 14px;
+  background: rgba(4, 25, 26, 0.6);
+}
+.bazi-landing__resume-note strong { color: rgba(251, 247, 237, 0.82); font-size: 13px; letter-spacing: 0.06em; }
+.bazi-landing__resume-note small { overflow: hidden; color: rgba(251, 247, 237, 0.55); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.bazi-landing__resume-undo {
+  min-width: 72px;
+  flex-shrink: 0;
+  padding: 0 14px;
+  border: 1px solid rgba(85, 187, 168, 0.55);
+  border-radius: 14px;
+  color: #55bba8;
+  background: rgba(4, 25, 26, 0.78);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.bazi-landing__resume-undo:hover { border-color: rgba(85, 187, 168, 0.85); color: #fbf7ed; }
 .bazi-landing__resume button:focus-visible,
 .bazi-landing__action .bazi-landing__start:focus-visible { outline: 2px solid #55bba8; outline-offset: 2px; }
 .bazi-landing__action p { margin: 8px 0 0; color: rgba(251, 247, 237, 0.58); font-size: 10px; letter-spacing: 0.08em; }
