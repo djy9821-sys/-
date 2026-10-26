@@ -8,6 +8,7 @@
 import { Lunar, LunarUtil, Solar } from 'lunar-javascript';
 import { HEXAGRAM_MAP } from './hexagramLogic.js';
 import { getYaoCi, YAO_CI } from '../data/yaoci.js';
+import { LIUYAO_METHODS, LIUYAO_TOPIC_LABELS } from './liuyaoRecord.js';
 
 export const LINE_VALUES = Object.freeze({
   6: { value: 6, name: '老阴', isYang: false, isMoving: true },
@@ -32,15 +33,16 @@ const TRIGRAMS = Object.freeze({
 
 const TRIGRAM_BY_BITS = Object.fromEntries(Object.entries(TRIGRAMS).map(([name, { bits }]) => [bits.join(''), name]));
 
-const ZHI_ELEMENT = Object.freeze({ 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' });
-const ZHI_CLASH = Object.freeze({ 子: '午', 午: '子', 丑: '未', 未: '丑', 寅: '申', 申: '寅', 卯: '酉', 酉: '卯', 辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳' });
-const GENERATES = Object.freeze({ 木: '火', 火: '土', 土: '金', 金: '水', 水: '木' });
-const CONTROLS = Object.freeze({ 木: '土', 土: '水', 水: '火', 火: '金', 金: '木' });
+export const ZHI_ELEMENT = Object.freeze({ 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' });
+export const ZHI_CLASH = Object.freeze({ 子: '午', 午: '子', 丑: '未', 未: '丑', 寅: '申', 申: '寅', 卯: '酉', 酉: '卯', 辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳' });
+export const ZHI_HARMONY = Object.freeze({ 子: '丑', 丑: '子', 寅: '亥', 亥: '寅', 卯: '戌', 戌: '卯', 辰: '酉', 酉: '辰', 巳: '申', 申: '巳', 午: '未', 未: '午' });
+export const GENERATES = Object.freeze({ 木: '火', 火: '土', 土: '金', 金: '水', 水: '木' });
+export const CONTROLS = Object.freeze({ 木: '土', 土: '水', 水: '火', 火: '金', 金: '木' });
 const SIX_GODS = Object.freeze(['青龙', '朱雀', '勾陈', '螣蛇', '白虎', '玄武']);
 const GOD_START = Object.freeze({ 甲: 0, 乙: 0, 丙: 1, 丁: 1, 戊: 2, 己: 3, 庚: 4, 辛: 4, 壬: 5, 癸: 5 });
 const PALACE_LABELS = Object.freeze(['本宫', '一世', '二世', '三世', '四世', '五世', '游魂', '归魂']);
 const PALACE_SHI = Object.freeze([6, 1, 2, 3, 4, 5, 4, 3]);
-const POSITION_NAMES = Object.freeze(['初爻', '二爻', '三爻', '四爻', '五爻', '上爻']);
+export const POSITION_NAMES = Object.freeze(['初爻', '二爻', '三爻', '四爻', '五爻', '上爻']);
 export const RELATIVE_ORDER = Object.freeze(['父母', '兄弟', '子孙', '妻财', '官鬼']);
 
 /** 本宫五行 → 某爻五行的六亲。 */
@@ -147,7 +149,8 @@ const isValidValues = (values) => Array.isArray(values) && values.length === 6 &
 /**
  * @param {number[]} values 六个爻值（初爻在前）
  * @param {Date} date 起卦时间（已按所在地换算为真太阳时的墙上时间）
- * @param {{ question?: string, method?: string }} [meta]
+ * @param {{ question?: string, method?: string, topic?: string, gender?: string, castNote?: string }} [meta]
+ *   topic 所问类别（见 liuyaoJudge.js 的 LIUYAO_TOPICS），gender 问感情时问卦人的性别，castNote 起卦参数说明（如报的数）
  */
 export const buildLiuYaoReading = (values, date = new Date(), meta = {}) => {
   if (!isValidValues(values)) throw new Error('爻值必须是六个 6、7、8、9');
@@ -217,6 +220,9 @@ export const buildLiuYaoReading = (values, date = new Date(), meta = {}) => {
   return {
     question: (meta.question ?? '').trim(),
     method: meta.method ?? 'coins',
+    topic: meta.topic ?? 'general',
+    gender: meta.gender === 'female' ? 'female' : meta.gender === 'male' ? 'male' : '',
+    castNote: (meta.castNote ?? '').trim(),
     values: [...values],
     time,
     hexagram: { ...hexagram, palace: palace.palace, palaceElement: palace.palaceElement, palaceLabel: palace.label, shi: palace.shi, ying: palace.ying },
@@ -235,14 +241,21 @@ const lineText = (line) => {
   return `${line.positionName} ${line.god} ${line.relative}${line.ganZhi}${line.element} ${line.name}${line.isMoving ? '（动）' : ''}${flags ? ` [${flags}]` : ''}${changed}`;
 };
 
-/** 整理成可以直接粘贴给 AI 的提示词。 */
-export const buildLiuYaoPrompt = (reading) => {
+/**
+ * 整理成可以直接粘贴给 AI 的提示词。
+ * @param reading buildLiuYaoReading 的结果
+ * @param judge liuyaoJudge.js 的 judgeLiuYao 结果（可选）：附上程序初判，让 AI 在此基础上核对与展开
+ */
+export const buildLiuYaoPrompt = (reading, judge = null) => {
   const { hexagram, changed, mutual, time, lines, hidden } = reading;
+  const topicLabel = LIUYAO_TOPIC_LABELS[reading.topic] ?? LIUYAO_TOPIC_LABELS.general;
+  const genderText = reading.topic === 'love' && reading.gender ? `（问卦人为${reading.gender === 'female' ? '女' : '男'}）` : '';
   const parts = [
     '你是一位精通六爻（纳甲筮法）的占卜师。下面是用「古书派」起的一卦，请直接基于这些数据分析，不要自行重新装卦。',
     '',
     `【所问】${reading.question || '（未写明，请按一般吉凶与近期走势分析）'}`,
-    `【起卦】${time.solarText}（${time.lunarText}）· ${reading.method === 'gesture' ? '手势起卦' : '摇铜钱'}`,
+    `【类别】${topicLabel}${genderText}${judge?.yongShen?.relative ? ` · 用神取${judge.yongShen.relative}` : ''}`,
+    `【起卦】${time.solarText}（${time.lunarText}）· ${LIUYAO_METHODS[reading.method] ?? LIUYAO_METHODS.coins}${reading.castNote ? `（${reading.castNote}）` : ''}`,
     `- 四柱：${time.year}年 ${time.month}月 ${time.day}日 ${time.hour}时；旬空 ${time.xunKong.join('')}；月建 ${time.monthZhi}，日辰 ${time.dayZhi}`,
     '',
     `【本卦】${hexagram.name}（${hexagram.upper}${hexagram.upperSymbol}上 ${hexagram.lower}${hexagram.lowerSymbol}下）· ${hexagram.palace}宫${hexagram.palaceLabel}（${hexagram.palaceElement}）· 世${hexagram.shi}爻 应${hexagram.ying}爻`,
@@ -259,6 +272,7 @@ export const buildLiuYaoPrompt = (reading) => {
     ...lines.filter((line) => line.yaoCi).map((line) => `- ${line.yaoCi.title}：${line.yaoCi.text}`),
     reading.useExtra ? `- ${reading.useExtra}` : '',
     '',
+    ...(judge ? ['【程序初判】（按通行口诀的简化规则估算，请核对后再展开，不必照搬）', ...judge.points.map((point) => `- ${point}`), ''] : []),
     '【请回答】',
     '1. 先定用神：根据所问之事取用神，说明用神在本卦是否出现、旺衰如何（看月建、日辰、动爻生克、空破）。',
     '2. 看世应与动变：世爻、应爻的状态，动爻变化对用神的影响，有无回头生克、反吟伏吟。',
