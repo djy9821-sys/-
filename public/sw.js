@@ -2,9 +2,12 @@
 // - 打开页面：先走网络，保证拿到最新版本；网络超过 4 秒没响应或断网时，用上次缓存的页面。
 // - /assets/ 下的文件名带内容哈希，缓存后直接使用，回访几乎不用再下载。
 // - 统计、第三方等其他请求不经过缓存。
+// - 只有打开网站首页（/ 或 /index.html）才走离线缓存，而且只把 HTML 存成首页。
+//   直接打开 /sitemap.xml、图片等其他地址时不拦截，否则它们会被存成首页，断网时打开首页会看到别的文件。
 // 旧版 Workbox 缓存与清理脚本留下的缓存会在启用时一并删除。
 const VERSION = 'gushupai-v2';
 const SHELL_URL = '/';
+const SHELL_PATHS = new Set(['/', '/index.html']);
 const PRECACHE = [SHELL_URL, '/manifest.json', '/pwa-192x192.png', '/pwa-512x512.png'];
 const NETWORK_TIMEOUT_MS = 4000;
 const MAX_ASSETS = 80;
@@ -30,10 +33,12 @@ const trimAssets = async (cache) => {
   await Promise.all(keys.slice(0, Math.max(0, keys.length - MAX_ASSETS)).map((request) => cache.delete(request)));
 };
 
+const isHtml = (response) => (response.headers.get('content-type') || '').includes('text/html');
+
 const handleNavigation = async (event) => {
   const cache = await globalThis.caches.open(VERSION);
   const network = fetch(event.request).then((response) => {
-    if (response.ok && response.type === 'basic') cache.put(SHELL_URL, response.clone());
+    if (response.ok && response.type === 'basic' && isHtml(response)) cache.put(SHELL_URL, response.clone());
     return response;
   });
   event.waitUntil(network.catch(() => undefined));
@@ -67,7 +72,7 @@ globalThis.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== globalThis.location.origin) return;
   if (request.mode === 'navigate') {
-    event.respondWith(handleNavigation(event));
+    if (SHELL_PATHS.has(url.pathname)) event.respondWith(handleNavigation(event));
   } else if (url.pathname.startsWith('/assets/')) {
     event.respondWith(handleAsset(request));
   }
