@@ -30,6 +30,8 @@ import { archiveManager } from '../utils/archiveManager';
 import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from '../utils/birthPlaces';
 import { ARCHIVE_GROUP_OPTIONS, buildBaziRecord, clearLastBaziRecord, findSameBaziRecord, parseClockTime, readLastBaziRecord, recordToBaziForm, saveLastBaziRecord } from '../utils/baziRecord';
 import { isChinaDst } from '../utils/trueSolarTime';
+import { CURRENT_PLACE_EVENT, readCurrentPlace, toLocalSolarNow } from '../utils/currentPlace';
+import PlaceSetting from './common/PlaceSetting';
 import {
     buildLiuRi,
     buildLiuShi,
@@ -84,6 +86,9 @@ const describeSavedForm = (form) => {
     const date = `${form.calendarType === 'lunar' ? '农历' : ''}${form.year}年${form.month < 0 ? '闰' : ''}${Math.abs(form.month)}月${form.day}日`;
     return `${form.personName?.trim() || '未命名'} · ${date} ${hour}`;
 };
+
+// 「此刻」按所在地真太阳时：没有设置所在地时就是设备时间。
+const nowAtPlace = () => toLocalSolarNow(new Date(), readCurrentPlace());
 
 // 八字页的三步记在浏览器历史里（history.state.baziStep），手机返回键和左上角返回按钮一样逐步后退。
 const BAZI_STEPS = ['landing', 'input', 'result'];
@@ -146,7 +151,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         }
     });
     const [fortuneSelection, setFortuneSelection] = useState({ mode: 'current', daYunIndex: null, liuNianYear: null });
-    const [chartAsOf, setChartAsOf] = useState(() => new Date());
+    const [chartAsOf, setChartAsOf] = useState(() => nowAtPlace());
     const [showSelectionDock, setShowSelectionDock] = useState(false);
     const [loading, setLoading] = useState(false);
     const [flowSelection, setFlowSelection] = useState(null);
@@ -429,6 +434,12 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     }, []);
 
     useEffect(() => {
+        const refreshPlace = () => setChartAsOf(nowAtPlace());
+        window.addEventListener(CURRENT_PLACE_EVENT, refreshPlace);
+        return () => window.removeEventListener(CURRENT_PLACE_EVENT, refreshPlace);
+    }, []);
+
+    useEffect(() => {
         const refreshArchive = () => setArchiveRecords(archiveManager.getRecords());
         window.addEventListener('archive-updated', refreshArchive);
         return () => window.removeEventListener('archive-updated', refreshArchive);
@@ -593,7 +604,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const resetResultView = () => {
         setSavePanelOpen(false);
         setSaveNotice(null);
-        setChartAsOf(new Date());
+        setChartAsOf(nowAtPlace());
         setFortuneSelection({ mode: 'current', daYunIndex: null, liuNianYear: null });
         setFlowSelection(null);
         setCompareDepth('year');
@@ -664,7 +675,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     };
 
     const returnToCurrentFortune = () => {
-        setChartAsOf(new Date());
+        setChartAsOf(nowAtPlace());
         setFortuneSelection({ mode: 'current', daYunIndex: null, liuNianYear: null });
         setFlowSelection(null);
         setResultMode('professional');
@@ -707,7 +718,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     };
 
     const returnFlowToNow = () => {
-        setChartAsOf(new Date());
+        setChartAsOf(nowAtPlace());
         setFortuneSelection({ mode: 'current', daYunIndex: null, liuNianYear: null });
         applyFlowSelection(null, 'hour');
     };
@@ -1178,6 +1189,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                         {selectedLiuNian && selectedLiuRi && (
                                             <section ref={flowSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none print:hidden sm:px-6 sm:py-6" aria-labelledby="flow-title">
                                                 <div id="flow-title"><SectionHeading seal="肆" title="流月 · 流日 · 流时" note="在所选流年内细看某月、某天、某个时辰；点选后上方专业盘同步加列" icon={CalendarDays} /></div>
+                                                <PlaceSetting tone="paper" now={new Date()} className="mt-3" />
                                                 <BaziFlowPanel
                                                     liuNian={selectedLiuNian}
                                                     liuYueList={liuYueList}
