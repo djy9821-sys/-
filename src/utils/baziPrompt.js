@@ -6,6 +6,8 @@
  * 每深一层就多带上一层运限的干支，以及这些运限与命局之间的合冲刑害。
  */
 import { findRelations } from './baziRelations.js';
+import { getShensha } from './baziShensha.js';
+import { analyzeStrength } from './baziStrength.js';
 
 export const PROMPT_SCOPES = Object.freeze([
   { value: 'natal', label: '本命' },
@@ -19,8 +21,8 @@ const SCOPE_RANK = { natal: 0, year: 1, month: 2, day: 3, hour: 4 };
 
 const hiddenText = (details = []) => details.map(({ gan, wuxing, shiShen }) => `${gan}${wuxing}${shiShen}`).join('、');
 
-/** 一柱的完整描述：天干十神、地支、藏干、纳音、地势、空亡。 */
-const describePillar = (label, item, { diShiLabel = '地势' } = {}) => {
+/** 一柱的完整描述：天干十神、地支、藏干、纳音、星运、自坐、空亡、神煞。 */
+const describePillar = (label, item, { diShiLabel = '星运', shensha } = {}) => {
   const parts = [
     `天干${item.gan}${item.ganWuxing}（${item.ganShiShen || '日主'}）`,
     `地支${item.zhi}${item.zhiWuxing}`,
@@ -28,7 +30,10 @@ const describePillar = (label, item, { diShiLabel = '地势' } = {}) => {
   if (item.hiddenGanDetails?.length) parts.push(`藏干 ${hiddenText(item.hiddenGanDetails)}`);
   if (item.naYin) parts.push(`纳音${item.naYin}`);
   if (item.diShi) parts.push(`${diShiLabel} ${item.diShi}`);
+  if (item.ziZuo) parts.push(`自坐 ${item.ziZuo}`);
   if (item.xunKong) parts.push(`空亡 ${item.xunKong}`);
+  const stars = shensha ?? item.shensha;
+  if (stars?.length) parts.push(`神煞 ${stars.join('、')}`);
   return `- ${label} ${item.ganZhi}：${parts.join('；')}`;
 };
 
@@ -64,6 +69,10 @@ const natalLines = (chart) => {
   const lines = chart.pillars.map((pillar) => describePillar(pillar.name, pillar));
   const counts = chart.surfaceWuxingCount;
   lines.push(`- 日主：${chart.dayMaster.gan}${chart.dayMaster.wuxing}`);
+  const { extras } = chart;
+  if (extras?.taiYuan) {
+    lines.push(`- 胎元 ${extras.taiYuan}（${extras.taiYuanNaYin}）；命宫 ${extras.mingGong}（${extras.mingGongNaYin}）；身宫 ${extras.shenGong}（${extras.shenGongNaYin}）`);
+  }
   lines.push(`- 八字表层五行（四干四支计数，未计藏干与旺衰）：木${counts['木']} 火${counts['火']} 土${counts['土']} 金${counts['金']} 水${counts['水']}`);
   return lines;
 };
@@ -78,7 +87,39 @@ const daYunLines = (chart, selectedDaYun) => {
     const marks = [item.isCurrent ? '当前' : '', selectedDaYun?.index === item.index && !item.isCurrent ? '所选' : ''].filter(Boolean);
     lines.push(`- ${item.startAge}–${item.endAge} 虚岁（${item.startYear}–${item.endYear}）${item.ganZhi}，天干十神${item.ganShiShen}${marks.length ? `  ← ${marks.join('、')}` : ''}`);
   });
+  const xiaoYun = yun.xiaoYun;
+  if (xiaoYun?.years?.length) {
+    const years = xiaoYun.years.map((year) => `${year.year}${year.xiaoYun.ganZhi}`).join(' ');
+    lines.splice(1, 0, `- 起运前行小运（${xiaoYun.startAge}–${xiaoYun.endAge} 虚岁）：${years}`);
+  }
   return lines;
+};
+
+const ELEMENTS = ['木', '火', '土', '金', '水'];
+
+const strengthLines = (chart) => {
+  const strength = analyzeStrength(chart);
+  const support = Math.round(strength.ratio * 100);
+  const elementList = (items) => items.map((item) => `${item.element}（${item.role}${item.tiaoHou ? '，调候' : ''}）`).join('、');
+  const lines = [
+    `- 五行力量（天干每字 1 分，日干不计；藏干本气 1、中气 0.5、余气 0.3；月令加倍）：${ELEMENTS.map((element) => `${element}${strength.percents[element]}%`).join(' ')}`,
+    `- 日主${chart.dayMaster.gan}${chart.dayMaster.wuxing}：${strength.band}（同党比劫与印约占 ${support}%）`,
+    `- 得令：${strength.deLing ? '是' : '否'}${strength.monthMain ? `（月令本气 ${strength.monthMain.gan}，为${strength.monthMain.role}）` : ''}`,
+    `- 得地：${strength.deDi.length ? strength.deDi.map((item) => `${item.name}${item.zhi}${item.tongGen ? '通根' : '有印'}`).join('、') : '否'}`,
+    `- 得势：${strength.deShi.length ? strength.deShi.map((item) => `${item.name}${item.gan}（${item.role}）`).join('、') : '否'}`,
+  ];
+  if (strength.tiaoHou) lines.push(`- 调候：${strength.tiaoHou.season}，宜见${strength.tiaoHou.element}`);
+  if (strength.favorable.length) lines.push(`- 喜用参考：${elementList(strength.favorable)}`);
+  if (strength.unfavorable.length) lines.push(`- 忌神参考：${elementList(strength.unfavorable)}`);
+  if (strength.hint) lines.push(`- 提示：${strength.hint}`);
+  lines.push('- 以上为程序按五行力量的粗略估算，未考虑从格、化格、专旺等特殊格局；若你的判断不同，请说明理由并以你的分析为准。');
+  return lines;
+};
+
+const almanacLine = (day) => {
+  const almanac = day?.almanac;
+  if (!almanac) return null;
+  return `- 当日黄历：${almanac.zhiXing}日，值神${almanac.tianShen}（${almanac.tianShenLuck === '吉' ? '黄道' : '黑道'}），冲${almanac.chong}，煞${almanac.sha}；宜 ${almanac.yi.join('、') || '—'}；忌 ${almanac.ji.join('、') || '—'}`;
 };
 
 const toRelationItem = (key, label, item) => (item ? { key, label, gan: item.gan, zhi: item.zhi } : null);
@@ -161,16 +202,24 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
   sections.push(['【出生信息】', ...birthLines(chart, personName)].join('\n'));
   sections.push(['【本命四柱】', ...natalLines(chart)].join('\n'));
   sections.push(['【大运】', ...daYunLines(chart, daYun)].join('\n'));
+  sections.push(['【旺衰参考（程序估算）】', ...strengthLines(chart)].join('\n'));
 
+  // 流月、流日、流时没有预先算好的神煞，在这里按本命补上。
+  const layerPillar = (label, item) => describePillar(label, item, {
+    diShiLabel: '日主临支',
+    shensha: item.shensha ?? getShensha(item, chart.shenshaContext),
+  });
+  const isXiaoYun = daYun?.name === '小运';
   const layers = [];
-  if (rank >= 1 && daYun) layers.push({ key: 'da-yun', label: '大运', item: daYun, text: describePillar(`大运（${daYun.startAge}–${daYun.endAge} 虚岁，${daYun.startYear}–${daYun.endYear}）`, daYun, { diShiLabel: '日主临支' }) });
-  if (rank >= 1 && liuNian) layers.push({ key: 'liu-nian', label: '流年', item: liuNian, text: describePillar(`流年（${liuNian.year} 年，${liuNian.age} 虚岁）`, liuNian, { diShiLabel: '日主临支' }) });
-  if (rank >= 2 && liuYue) layers.push({ key: 'liu-yue', label: '流月', item: liuYue, text: describePillar(`流月（${liuYue.jieName} ${liuYue.startDate} 起）`, liuYue, { diShiLabel: '日主临支' }) });
-  if (rank >= 3 && liuRi) layers.push({ key: 'liu-ri', label: '流日', item: liuRi, text: describePillar(`流日（${liuRi.date} ${liuRi.weekdayLabel}，农历${liuRi.lunarMonthChinese}月${liuRi.lunarDayChinese}${liuRi.jieQi ? `，${liuRi.jieQi}` : ''}）`, liuRi, { diShiLabel: '日主临支' }) });
-  if (rank >= 4 && liuShi) layers.push({ key: 'liu-shi', label: '流时', item: liuShi, text: describePillar(`流时（${liuShi.hourName} ${liuShi.range}）`, liuShi, { diShiLabel: '日主临支' }) });
+  if (rank >= 1 && daYun) layers.push({ key: 'da-yun', label: isXiaoYun ? '小运' : '大运', item: daYun, text: layerPillar(isXiaoYun ? `小运（起运前，${liuNian?.year ?? ''} 年）` : `大运（${daYun.startAge}–${daYun.endAge} 虚岁，${daYun.startYear}–${daYun.endYear}）`, daYun) });
+  if (rank >= 1 && liuNian) layers.push({ key: 'liu-nian', label: '流年', item: liuNian, text: layerPillar(`流年（${liuNian.year} 年，${liuNian.age} 虚岁）`, liuNian) });
+  if (rank >= 2 && liuYue) layers.push({ key: 'liu-yue', label: '流月', item: liuYue, text: layerPillar(`流月（${liuYue.jieName} ${liuYue.startDate} 起）`, liuYue) });
+  if (rank >= 3 && liuRi) layers.push({ key: 'liu-ri', label: '流日', item: liuRi, text: layerPillar(`流日（${liuRi.date} ${liuRi.weekdayLabel}，农历${liuRi.lunarMonthChinese}月${liuRi.lunarDayChinese}${liuRi.jieQi ? `，${liuRi.jieQi}` : ''}）`, liuRi) });
+  if (rank >= 4 && liuShi) layers.push({ key: 'liu-shi', label: '流时', item: liuShi, text: layerPillar(`流时（${liuShi.hourName} ${liuShi.range}）`, liuShi) });
 
   if (layers.length) {
-    sections.push(['【所选运限】', ...layers.map((layer) => layer.text)].join('\n'));
+    const almanac = rank >= 3 ? almanacLine(liuRi) : null;
+    sections.push(['【所选运限】', ...layers.map((layer) => layer.text), ...(almanac ? [almanac] : [])].join('\n'));
   }
 
   const natalItems = chart.pillars.map((pillar) => toRelationItem(pillar.key, pillar.name, pillar));
@@ -206,9 +255,9 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
 
   sections.push([
     '【请回答】',
-    ...QUESTIONS[scope].map((question, index) => `${index + 1}. ${question}`),
+    ...QUESTIONS[scope].map((question, index) => `${index + 1}. ${isXiaoYun ? question.replace('所行大运', '所行小运') : question}`),
     '',
-    '请先说明判断依据（日主旺衰、喜忌、合冲刑害等），再给结论；语气平实，避免绝对化和吓人的说法。',
+    '请先说明判断依据（日主旺衰、喜忌、合冲刑害、神煞等），再给结论；语气平实，避免绝对化和吓人的说法。',
     '',
     '我的问题：（在这里补充你想问的具体事情）',
   ].join('\n'));

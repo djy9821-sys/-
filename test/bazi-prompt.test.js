@@ -64,3 +64,38 @@ test('范围决定带入的运限层级与提问', () => {
   assert.ok(natal.includes('辰酉合'));
   assert.ok(natal.includes('喜用神与忌神'));
 });
+
+test('提示词带上神煞、自坐、胎元命宫与旺衰参考', () => {
+  const natal = buildBaziPrompt({ chart, scope: 'natal', selections, now });
+  [
+    '- 年柱 丁丑：',
+    '自坐 墓',
+    '神煞 太极贵人、月德合、华盖',
+    '- 胎元 癸卯（金箔金）；命宫 癸丑（桑柘木）；身宫 乙巳（覆灯火）',
+    '起运前行小运（1–8 虚岁）：1998丁卯',
+    '【旺衰参考（程序估算）】',
+    '- 日主己土：偏弱',
+    '- 喜用参考：火（印，调候）、土（比劫）',
+    '- 忌神参考：水（财）',
+  ].forEach((text) => assert.ok(natal.includes(text), `缺少：${text}`));
+  assert.ok(!natal.includes('当日黄历'));
+});
+
+test('流日、流时补上神煞与黄历宜忌', () => {
+  const day = buildBaziPrompt({ chart, scope: 'day', selections, now });
+  assert.ok(day.includes('- 流日（2026-10-27 周二，农历九月十八） 甲戌：'));
+  assert.match(day, /甲戌：[^\n]*神煞 太极贵人、德秀贵人/);
+  assert.match(day, /- 当日黄历：建日，值神白虎（黑道），冲\(戊辰\)龙，煞北；宜 祭祀[^\n]*；忌 出货财/);
+
+  const month = buildBaziPrompt({ chart, scope: 'month', selections, now });
+  assert.ok(!month.includes('当日黄历'));
+});
+
+test('起运前的年份按小运导出', () => {
+  const childYear = chart.yun.xiaoYun.years.find(({ year }) => year === 2000);
+  const xiaoYun = { ...childYear.xiaoYun, startAge: 1, endAge: 8, startYear: 1998, endYear: 2005 };
+  const prompt = buildBaziPrompt({ chart, scope: 'year', selections: { daYun: xiaoYun, liuNian: childYear }, now });
+  assert.ok(prompt.includes('- 小运（起运前，2000 年） 乙丑：'), prompt.split('【所选运限】')[1]?.slice(0, 200));
+  assert.ok(prompt.includes('子丑合（土）：小运丑 · 月柱子'));
+  assert.ok(prompt.includes('结合所行小运'));
+});

@@ -19,6 +19,26 @@ const WEEK_HEADER = ['一', '二', '三', '四', '五', '六', '日'];
 // '07:00-09:00' → '07–09'，在手机四列格子里不折行。
 const compactRange = (range) => range.split('-').map((part) => part.slice(0, 2)).join('–');
 const LEGEND_TONES = ['clash', 'punish', 'harm', 'harmony', 'echo'];
+// 流日格子的筛选：只看需要留意的日子，或只看相合的日子。
+const DAY_FILTERS = [
+    { value: 'all', label: '全部' },
+    { value: 'risky', label: '冲刑害', tones: ['clash', 'punish', 'harm'] },
+    { value: 'clash', label: '只看冲', tones: ['clash'] },
+    { value: 'harmony', label: '相合', tones: ['harmony'] },
+];
+const matchesFilter = (mark, filter) => {
+    const option = DAY_FILTERS.find(({ value }) => value === filter);
+    if (!option?.tones) return true;
+    return Boolean(mark?.tones?.some((tone) => option.tones.includes(tone)));
+};
+const LUCK_STYLE = { 吉: 'text-[#245a52]', 凶: 'text-[#8f3027]' };
+
+const AlmanacList = ({ label, items, tone }) => (
+    <div className="flex items-start gap-2">
+        <span className={`mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-md font-serif text-sm font-bold text-white ${tone === 'good' ? 'bg-[#2d6b62]' : 'bg-[#a33b30]'}`}>{label}</span>
+        <p className="min-w-0 flex-1 text-xs leading-6 text-[#514941]">{items.length ? items.join(' · ') : '—'}</p>
+    </div>
+);
 
 const badgeLabel = (relation) => {
     if (relation.tone === 'echo') return '伏吟';
@@ -91,6 +111,7 @@ export default function BaziFlowPanel({
 }) {
     const dateInputId = useId();
     const [jumpError, setJumpError] = useState('');
+    const [dayFilter, setDayFilter] = useState('all');
     const monthScrollerRef = useRef(null);
     const selectedMonthIndex = selectedLiuYue?.index;
     const liuNianYear = liuNian?.year;
@@ -109,6 +130,8 @@ export default function BaziFlowPanel({
     if (!liuNian || !selectedLiuYue || !selectedLiuRi) return null;
 
     const leadingBlanks = (liuRiList[0].weekday + 6) % 7;
+    const filteredCount = liuRiList.filter((day) => matchesFilter(dayMarks[day.date], dayFilter)).length;
+    const almanac = selectedLiuRi.almanac;
     const handleJump = (value) => {
         if (!value) return;
         setJumpError(onJumpToDate(value) ?? '');
@@ -166,6 +189,20 @@ export default function BaziFlowPanel({
 
             <div>
                 <LayerLabel icon={CalendarDays} note={`${selectedLiuYue.jieName} ${selectedLiuYue.label} — ${selectedLiuYue.nextJieName}前`}>流日</LayerLabel>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5" role="group" aria-label="流日筛选">
+                    {DAY_FILTERS.map((option) => (
+                        <button
+                            key={option.value}
+                            type="button"
+                            aria-pressed={dayFilter === option.value}
+                            onClick={() => setDayFilter(option.value)}
+                            className={`inline-flex min-h-8 items-center rounded-full border px-2.5 text-[11px] font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${dayFilter === option.value ? 'border-[#2d6b62] bg-[#2d6b62] text-white' : 'border-[#cbbfac] bg-[#fffaf0]/70 text-[#5f574f] hover:border-[#2d6b62]'}`}
+                        >
+                            {option.label}
+                        </button>
+                    ))}
+                    {dayFilter !== 'all' && <span className="text-[11px] text-[#81776b]" aria-live="polite">本月 {filteredCount} 天</span>}
+                </div>
                 <div className="mt-2 grid grid-cols-7 gap-1 text-center" role="group" aria-label={`${selectedLiuYue.ganZhi}月流日`}>
                     {WEEK_HEADER.map((label) => (
                         <span key={label} aria-hidden="true" className="pb-0.5 text-[11px] font-medium text-[#9b9185]">{label}</span>
@@ -176,6 +213,7 @@ export default function BaziFlowPanel({
                         const mark = dayMarks[day.date];
                         const showMonth = index === 0 || day.day === 1;
                         const bottom = day.jieQi || (day.lunarDayChinese === '初一' ? `${day.lunarMonthChinese}月` : day.lunarDayChinese);
+                        const dimmed = !isSelected && !matchesFilter(mark, dayFilter);
                         return (
                             <button
                                 key={day.date}
@@ -183,7 +221,7 @@ export default function BaziFlowPanel({
                                 aria-pressed={isSelected}
                                 aria-label={`${day.month}月${day.day}日 ${day.weekdayLabel}，${day.ganZhi}日，${day.ganShiShen}${mark ? `，${mark.title}` : ''}${day.isToday ? '，今天' : ''}`}
                                 onClick={() => onSelectDay(day.date)}
-                                className={`relative min-h-[3.6rem] rounded-lg border px-0.5 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${isSelected ? 'border-[#a33b30] bg-[#fffaf0] shadow-sm' : day.isToday ? 'border-[#2d6b62]/70 bg-[#2d6b62]/[0.08]' : 'border-[#ddd2c1] bg-[#f8f2e8] hover:border-[#a99b87]'}`}
+                                className={`relative min-h-[3.6rem] rounded-lg border px-0.5 py-1 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${dimmed ? 'opacity-30' : ''} ${isSelected ? 'border-[#a33b30] bg-[#fffaf0] shadow-sm' : day.isToday ? 'border-[#2d6b62]/70 bg-[#2d6b62]/[0.08]' : 'border-[#ddd2c1] bg-[#f8f2e8] hover:border-[#a99b87]'}`}
                             >
                                 <ToneDot tone={mark?.tone} />
                                 <span className={`block text-[11px] leading-3 tabular-nums ${day.isToday ? 'font-bold text-[#2d6b62]' : 'text-[#81776b]'}`}>{showMonth ? `${day.month}/${day.day}` : day.day}</span>
@@ -252,6 +290,20 @@ export default function BaziFlowPanel({
                         </span>
                     ))}
                 </div>
+                {almanac && (
+                    <div className="mt-3 space-y-1.5 rounded-lg border border-[#ddd2c1] bg-[#f8f2e8] p-2.5">
+                        <p className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-[#6f665d]">
+                            <b className="text-[#514941]">黄历</b>
+                            <span>{almanac.zhiXing}日</span>
+                            <span>值神 <b className={LUCK_STYLE[almanac.tianShenLuck] ?? ''}>{almanac.tianShen}</b>（{almanac.tianShenLuck === '吉' ? '黄道' : '黑道'}）</span>
+                            <span>冲{almanac.chong}</span>
+                            <span>煞{almanac.sha}</span>
+                        </p>
+                        <AlmanacList label="宜" items={almanac.yi} tone="good" />
+                        <AlmanacList label="忌" items={almanac.ji} tone="bad" />
+                        <p className="text-[10px] text-[#9b9185]">黄历宜忌为传统通书择日用语，供参考；与个人命局的关系请看下方。</p>
+                    </div>
+                )}
                 <p className="mt-3 text-xs font-bold text-[#514941]">流日、流时与命局及运限的关系</p>
                 <RelationList relations={selectionRelations} emptyText="这一天与命局、运限之间没有明显的合冲刑害。" />
             </div>
