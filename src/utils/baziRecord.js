@@ -90,6 +90,29 @@ export const recordToBaziForm = (record) => {
   };
 };
 
+/** 同一张八字盘的标识：出生资料、性别、子时流派、时间与地点设置都相同。 */
+export const baziChartSignature = (record) => {
+  const form = recordToBaziForm(record);
+  if (!form) return '';
+  return [
+    form.calendarType, form.year, form.month, form.day, form.hourIndex, form.gender, form.daySect,
+    form.timeMode, form.clockTime, form.longitude, form.timezone, form.applyTrueSolar, form.applyDst,
+  ].join('|');
+};
+
+/**
+ * 档案里已有同名、同一张盘的八字记录时返回它，用来避免重复存档。
+ * 名字不同的不算重复：可能是同一天同一时辰出生的另一个人（比如客户）。
+ */
+export const findSameBaziRecord = (records, record) => {
+  const signature = baziChartSignature(record);
+  if (!signature || !Array.isArray(records)) return null;
+  const name = (record?.name ?? '').trim();
+  return records.find((item) => item?.type === 'bazi'
+    && (item.name ?? '').trim() === name
+    && baziChartSignature(item) === signature) ?? null;
+};
+
 // 上一次排的八字只存在本机浏览器里：八字页可直接打开，首页据此显示「八字 · 今日」。
 export const LAST_BAZI_CHART_KEY = 'bazi-last-chart';
 
