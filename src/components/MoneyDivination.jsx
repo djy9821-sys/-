@@ -7,6 +7,7 @@ import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { ArrowLeft } from 'lucide-react';
 import { getHexagram } from '../utils/hexagramLogic';
+import { coinsToLineValue } from '../utils/liuyao';
 
 // --- Assets ---
 import coinYangTexture from '../assets/coin_yang_perfect.webp';
@@ -173,7 +174,8 @@ const playThrowSound = (audioContext) => {
 };
 
 // --- Main Component ---
-export default function MoneyDivination({ onBack }) {
+// onComplete：六爻页接管结果时传入，摇满六爻后把爻值（初爻在前）交给它，不再自己显示卦象。
+export default function MoneyDivination({ onBack, onComplete = null, question = '' }) {
     const [currentThrow, setCurrentThrow] = useState(1);
     const [yaos, setYaos] = useState([]);
     const [finalHexagram, setFinalHexagram] = useState(null);
@@ -296,6 +298,10 @@ export default function MoneyDivination({ onBack }) {
     };
 
     const generateFinalHexagram = (allYaos) => {
+        if (onComplete) {
+            onComplete(allYaos.map((yao) => coinsToLineValue(yao.headsCount)));
+            return;
+        }
         const hexagramInfo = getHexagram(allYaos.map(yao => yao.binaryVal));
         const movingYaos = allYaos.filter(yao => yao.isMoving);
         setFinalHexagram({
@@ -358,7 +364,7 @@ export default function MoneyDivination({ onBack }) {
                             paddingRight: isMobile ? '0' : '15px',
                             paddingLeft: isMobile ? '10px' : '0'
                         }}>
-                        问道于心・诚则灵
+                        {question ? `问：${question.length > 14 ? `${question.slice(0, 14)}…` : question}` : '问道于心・诚则灵'}
                     </div>
                 </div>
             </div>
@@ -379,7 +385,7 @@ export default function MoneyDivination({ onBack }) {
                 onClick={onBack}
                 className={`absolute z-[100] size-11 rounded-full border border-[#8b4513]/30 bg-[#f8f0e4]/70 backdrop-blur-sm flex items-center justify-center text-[#5d4037] shadow-sm transition-colors hover:border-[#5d4037] hover:bg-[#f8f0e4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a83232] ${isMobile ? 'right-4' : 'top-6 right-12'}`}
                 style={isMobile ? { top: 'max(0.75rem, env(safe-area-inset-top))' } : undefined}
-                aria-label="返回首页"
+                aria-label={onComplete ? '返回上一步' : '返回首页'}
             >
                 <ArrowLeft size={19} aria-hidden="true" />
             </button>

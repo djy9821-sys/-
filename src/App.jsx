@@ -4,13 +4,16 @@ import WelcomeCover from "./components/WelcomeCover";
 import { AlertCircle, ArrowLeft, CheckCircle2, Save } from "lucide-react";
 import { archiveManager } from './utils/archiveManager';
 import { readLastBaziRecord, recordToBaziForm } from './utils/baziRecord';
+import { toLocalSolarNow } from './utils/currentPlace';
+import { useCurrentPlace } from './components/common/useCurrentPlace';
+import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from './utils/birthPlaces';
 
 // Lazy load the heavy components
-const MoneyDivination = lazy(() => import("./components/MoneyDivination"));
+// 六爻起卦（含摇铜钱与手势两种起卦动画，动画再按需加载）。
+const LiuYaoDivination = lazy(() => import("./components/LiuYaoDivination"));
 const ArchiveView = lazy(() => import("./components/ArchiveView"));
 const VideoLessons = lazy(() => import("./components/VideoLessons"));
 const BaziDivination = lazy(() => import("./components/BaziDivination"));
-const BaguaDivination = lazy(() => import("./components/BaguaDivination.jsx"));
 // 紫微专业盘体量最大，只有打开命盘时才加载。
 const ProfessionalChart = lazy(() => import("./components/ProfessionalChart"));
 const HomeBaziToday = lazy(() => import("./components/bazi/HomeBaziToday"));
@@ -53,24 +56,46 @@ const loadZiweiLib = () => {
   return ziweiLibPromise;
 };
 
+// 紫微「精确到分钟」的真太阳时换算用到农历库，同样按需加载。
+let ziweiTimePromise = null;
+const loadZiweiTime = () => {
+  ziweiTimePromise ??= import('./utils/ziweiTime').catch((error) => {
+    ziweiTimePromise = null;
+    throw error;
+  });
+  return ziweiTimePromise;
+};
+
+const EMPTY_ZIWEI_PLACE = Object.freeze({ province: '', city: '', longitude: '', timezone: 8 });
+const ziweiExactKeyOf = ({ calendarType, birthDate, isLeapMonth, clockTime, place, applyDst }) => JSON.stringify({
+  calendarType, birthDate, isLeapMonth, clockTime,
+  placeProvince: place.province, placeCity: place.city, longitude: place.longitude, timezone: place.timezone, applyDst,
+});
+
 // 地址栏 #/bazi 等与页面同步：手机返回键回到上一页，链接也能直接打开对应功能。
 const VIEW_ROUTES = Object.freeze({
-  input: 'ziwei', chart: 'ziwei/chart', money: 'money', archive: 'archive', bazi: 'bazi',
-  bagua: 'bagua', about: 'about',
+  input: 'ziwei', chart: 'ziwei/chart', liuyao: 'liuyao', archive: 'archive', bazi: 'bazi',
+  about: 'about',
   // 课程视频（VideoLessons）仍在筹备，暂不开放地址。
 });
 const ROUTE_VIEWS = Object.freeze(Object.fromEntries(Object.entries(VIEW_ROUTES).map(([view, route]) => [route, view])));
+// 旧地址：金钱卦与手势八卦已合并为六爻起卦，旧链接仍能打开，并预选对应的起卦方式。
+const LEGACY_ROUTES = Object.freeze({ money: { view: 'liuyao', method: 'coins' }, bagua: { view: 'liuyao', method: 'gesture' } });
 const VIEW_TITLES = Object.freeze({
   home: '古书派｜紫微斗数与八字排盘',
   input: '紫微斗数排盘 · 古书派',
   chart: '紫微命盘 · 古书派',
   bazi: '八字排盘 · 古书派',
-  money: '金钱卦 · 古书派',
+  liuyao: '六爻起卦 · 古书派',
   archive: '命盘档案 · 古书派',
-  bagua: '手势八卦 · 古书派',
   about: '关于与隐私 · 古书派',
 });
-const viewFromHash = (hash = '') => ROUTE_VIEWS[hash.replace(/^#\/?/, '').replace(/\/$/, '')] ?? 'home';
+const routeFromHash = (hash = '') => hash.replace(/^#\/?/, '').replace(/\/$/, '');
+const viewFromHash = (hash = '') => {
+  const route = routeFromHash(hash);
+  return ROUTE_VIEWS[route] ?? LEGACY_ROUTES[route]?.view ?? 'home';
+};
+const liuyaoMethodFromHash = (hash = '') => LEGACY_ROUTES[routeFromHash(hash)]?.method ?? null;
 const hashForView = (view) => (VIEW_ROUTES[view] ? `#/${VIEW_ROUTES[view]}` : '');
 // 没有命盘数据时，紫微命盘页退回到输入页。
 const initialViewFromLocation = () => {
@@ -277,9 +302,12 @@ const getBirthDayCount = (lib, calendarType, year, month, isLeapMonth = false) =
 };
 
 export default function App() {
-  const [view, setView] = useState(initialViewFromLocation); // 'home', 'input', 'chart', 'money', 'archive', 'videos', 'bazi', 'about'
+  const [view, setView] = useState(initialViewFromLocation); // 'home', 'input', 'chart', 'liuyao', 'archive', 'videos', 'bazi', 'about'
   // 从档案打开的八字命例；从首页或底部导航进入八字时为空。
   const [baziRecord, setBaziRecord] = useState(null);
+  // 从档案打开的六爻卦例，以及旧地址 #/money、#/bagua 预选的起卦方式。
+  const [liuyaoRecord, setLiuyaoRecord] = useState(null);
+  const [liuyaoMethod, setLiuyaoMethod] = useState(() => liuyaoMethodFromHash(globalThis.location?.hash));
   const [showWelcomeCover, setShowWelcomeCover] = useState(() => {
     // 直接打开某个功能的链接（如 #/bazi）时不显示封面。
     if (initialViewFromLocation() !== 'home') return false;
@@ -295,6 +323,13 @@ export default function App() {
   const [birthday, setBirthday] = useState('');
   const [birthTime, setBirthTime] = useState(0);
   const [isLeapMonth, setIsLeapMonth] = useState(false);
+  // 紫微出生时间：只知道时辰，或精确到分钟并按出生地换算真太阳时（与八字共用一套换算）。
+  const [ziweiTimeMode, setZiweiTimeMode] = useState('shichen');
+  const [ziweiClock, setZiweiClock] = useState('');
+  const [ziweiPlace, setZiweiPlace] = useState(EMPTY_ZIWEI_PLACE);
+  const [ziweiDst, setZiweiDst] = useState(null);
+  // 换算结果带着它对应的输入（key），输入一变旧结果自动失效，不必在 effect 里同步清空。
+  const [ziweiExactState, setZiweiExactState] = useState(null);
   const [horoscope, setHoroscope] = useState(null);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallModal, setShowInstallModal] = useState(false);
@@ -302,6 +337,9 @@ export default function App() {
   const [homeProfileId, setHomeProfileId] = useState(null);
   const [homePeriod, setHomePeriod] = useState('daily');
   const [homeNow, setHomeNow] = useState(() => new Date());
+  // 「此刻」按所在地真太阳时（未设置所在地时就是设备时间），紫微简报与八字今日共用。
+  const currentPlace = useCurrentPlace();
+  const homeSolarNow = React.useMemo(() => toLocalSolarNow(homeNow, currentPlace), [homeNow, currentPlace]);
   const [homeShareNotice, setHomeShareNotice] = useState(null);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [lastBaziRecord, setLastBaziRecord] = useState(() => readLastBaziRecord());
@@ -397,6 +435,44 @@ export default function App() {
   const moreDialogRef = React.useRef(null);
   const moreOpenerRef = React.useRef(null);
 
+  // 精确到分钟：日期、钟表时间或出生地一变就重新换算，结果显示在表单下方并用于排盘。
+  const ziweiExactKey = ziweiTimeMode === 'exact' && birthday && ziweiClock
+    ? ziweiExactKeyOf({ calendarType, birthDate: birthday, isLeapMonth: effectiveIsLeapMonth, clockTime: ziweiClock, place: ziweiPlace, applyDst: ziweiDst })
+    : '';
+  React.useEffect(() => {
+    if (!ziweiExactKey) return undefined;
+    let cancelled = false;
+    loadZiweiTime()
+      .then(({ resolveZiweiExact }) => {
+        if (cancelled) return;
+        let result = null;
+        let error = '';
+        try {
+          result = resolveZiweiExact(JSON.parse(ziweiExactKey));
+        } catch (failure) {
+          error = failure instanceof Error ? failure.message : '出生时间换算失败';
+        }
+        setZiweiExactState({ key: ziweiExactKey, result, error });
+      })
+      .catch((failure) => {
+        if (!cancelled) setZiweiExactState({ key: ziweiExactKey, result: null, error: failure instanceof Error ? failure.message : '出生时间换算组件加载失败' });
+      });
+    return () => { cancelled = true; };
+  }, [ziweiExactKey]);
+  const ziweiExact = ziweiExactKey && ziweiExactState?.key === ziweiExactKey ? ziweiExactState.result : null;
+  const ziweiExactError = ziweiExactKey && ziweiExactState?.key === ziweiExactKey ? ziweiExactState.error : '';
+
+  const changeZiweiProvince = (province) => {
+    const cities = BIRTH_PROVINCES.find((item) => item.province === province)?.cities ?? [];
+    const only = cities.length === 1 ? cities[0] : null;
+    setZiweiPlace({ province, city: only?.name ?? '', longitude: only ? only.longitude.toFixed(2) : '', timezone: cities[0]?.timezone ?? 8 });
+  };
+  const changeZiweiCity = (city) => {
+    const found = findBirthPlace(ziweiPlace.province, city);
+    setZiweiPlace((place) => ({ ...place, city, longitude: found ? found.longitude.toFixed(2) : place.longitude, timezone: found ? found.timezone : place.timezone }));
+  };
+  const ziweiExactReady = ziweiTimeMode !== 'exact' || Boolean(ziweiExact);
+
   // 页面切换写入浏览器历史；返回首页时退回历史起点，避免来回堆叠。
   const routeSyncedRef = React.useRef(false);
   React.useEffect(() => {
@@ -428,7 +504,9 @@ export default function App() {
   React.useEffect(() => {
     const handlePopState = () => {
       const next = viewFromHash(window.location.hash);
+      const legacyMethod = liuyaoMethodFromHash(window.location.hash);
       setIsMoreOpen(false);
+      if (legacyMethod) setLiuyaoMethod(legacyMethod);
       setView(next === 'chart' && !horoscope ? 'input' : next);
     };
     window.addEventListener('popstate', handlePopState);
@@ -589,15 +667,27 @@ export default function App() {
       alert('请输入生日');
       return;
     }
+    if (ziweiTimeMode === 'exact' && !ziweiExact) {
+      alert(ziweiExactError || '请填写出生的钟表时间（几点几分）。');
+      return;
+    }
     try {
       const lib = ziweiLib ?? await loadZiweiLib();
-      const newHoroscope = lib.createZiweiHoroscope({
+      // 精确模式：按真太阳时换算后的公历日期与时辰排盘。
+      const newHoroscope = lib.createZiweiHoroscope(ziweiExact ? {
+        calendarType: 'solar',
+        birthDate: ziweiExact.solarDate,
+        timeIndex: ziweiExact.hourIndex,
+        gender,
+        isLeapMonth: false,
+      } : {
         calendarType,
         birthDate: birthday,
         timeIndex: birthTime,
         gender,
         isLeapMonth: effectiveIsLeapMonth,
       });
+      if (ziweiExact) setBirthTime(ziweiExact.hourIndex);
       setHoroscope(newHoroscope);
       setView('chart');
     } catch (error) {
@@ -624,6 +714,11 @@ export default function App() {
       setView('bazi');
       return;
     }
+    if (record.type === 'liuyao') {
+      setLiuyaoRecord(record);
+      setView('liuyao');
+      return;
+    }
     if (record.type === 'ziwei') {
       // Records created before calendarType/birthDate existed were always
       // reloaded as solar dates. Keep that fallback while preserving the
@@ -645,7 +740,21 @@ export default function App() {
 
       try {
         const lib = ziweiLib ?? await loadZiweiLib();
-        const newHoroscope = lib.createZiweiHoroscope({
+        // 档案里存了精确时间：重新按真太阳时换算，而不是直接用当时存的时辰。
+        let exact = null;
+        const exactData = record.data?.timeMode === 'exact' ? record.data : null;
+        if (exactData) {
+          const { resolveZiweiExact, ziweiRecordToExactForm } = await loadZiweiTime();
+          const form = ziweiRecordToExactForm({ ...record, calendarType: recordCalendarType, birthDate: recordBirthDate, isLeapMonth: recordIsLeapMonth });
+          exact = form ? resolveZiweiExact(form) : null;
+        }
+        const newHoroscope = lib.createZiweiHoroscope(exact ? {
+          calendarType: 'solar',
+          birthDate: exact.solarDate,
+          timeIndex: exact.hourIndex,
+          gender: recordGender,
+          isLeapMonth: false,
+        } : {
           calendarType: recordCalendarType,
           birthDate: recordBirthDate,
           timeIndex: recordBirthTime,
@@ -656,9 +765,20 @@ export default function App() {
         setName(record.name || '');
         setGender(recordGender);
         setBirthday(recordBirthDate);
-        setBirthTime(recordBirthTime);
+        setBirthTime(exact ? exact.hourIndex : recordBirthTime);
         setIsLeapMonth(recordIsLeapMonth);
         setCalendarType(recordCalendarType);
+        if (exact) {
+          const place = { province: exactData.placeProvince ?? '', city: exactData.placeCity ?? '', longitude: exactData.longitude == null ? '' : String(exactData.longitude), timezone: exactData.timezone ?? 8 };
+          const applyDst = typeof exactData.applyDst === 'boolean' ? exactData.applyDst : null;
+          setZiweiTimeMode('exact');
+          setZiweiClock(exactData.clockTime);
+          setZiweiPlace(place);
+          setZiweiDst(applyDst);
+          setZiweiExactState({ key: ziweiExactKeyOf({ calendarType: recordCalendarType, birthDate: recordBirthDate, isLeapMonth: recordIsLeapMonth, clockTime: exactData.clockTime, place, applyDst }), result: exact, error: '' });
+        } else {
+          setZiweiTimeMode('shichen');
+        }
         setHoroscope(newHoroscope);
         setView('chart');
       } catch {
@@ -683,7 +803,17 @@ export default function App() {
       isLeapMonth: effectiveIsLeapMonth,
       group: saveGroup,
       note: saveNote,
-      data: {}
+      // 精确时间设置一并保存：八字「从档案带入」也能直接用，下次打开按真太阳时重新换算。
+      data: ziweiExact ? {
+        timeMode: 'exact',
+        clockTime: ziweiClock,
+        placeProvince: ziweiPlace.province,
+        placeCity: ziweiPlace.city,
+        longitude: ziweiPlace.longitude === '' ? null : Number(ziweiPlace.longitude),
+        timezone: Number(ziweiPlace.timezone ?? 8),
+        applyTrueSolar: ziweiPlace.longitude !== '',
+        applyDst: ziweiExact.applyDst,
+      } : {}
     };
 
     const savedRecord = archiveManager.addRecord(newRecord);
@@ -774,7 +904,7 @@ export default function App() {
 
     try {
       return {
-        data: ziweiLib.buildHomeFortune(homeProfile, homePeriod, homeNow),
+        data: ziweiLib.buildHomeFortune(homeProfile, homePeriod, homeSolarNow),
         error: null,
       };
     } catch (error) {
@@ -784,7 +914,7 @@ export default function App() {
         error: error instanceof Error ? error.message : '当前档案无法生成运势简报',
       };
     }
-  }, [homeNow, homePeriod, homeProfile, ziweiLib, ziweiLibFailed, ziweiRecords.length]);
+  }, [homeSolarNow, homePeriod, homeProfile, ziweiLib, ziweiLibFailed, ziweiRecords.length]);
 
   const homeFortune = homeFortuneState.data;
 
@@ -887,7 +1017,13 @@ export default function App() {
   const navigateFromMobile = (nextView) => {
     setIsMoreOpen(false);
     setBaziRecord(null);
+    setLiuyaoRecord(null);
     setView(nextView);
+  };
+
+  const openLiuYao = () => {
+    setLiuyaoRecord(null);
+    setView('liuyao');
   };
 
   const leaveWelcomeCover = (nextView = 'home') => {
@@ -902,7 +1038,7 @@ export default function App() {
   };
 
   const showsMobileNav = !showWelcomeCover && ['home', 'input', 'archive'].includes(view);
-  const usesOwnHeader = ['money', 'bazi', 'archive', 'videos', 'chart', 'about', 'bagua'].includes(view);
+  const usesOwnHeader = ['liuyao', 'bazi', 'archive', 'videos', 'chart', 'about'].includes(view);
 
   return (
     <div className={`app-shell ${showsMobileNav ? 'app-shell--mobile-nav' : ''} ${view === 'chart' ? 'app-shell--chart' : ''}`}>
@@ -972,7 +1108,7 @@ export default function App() {
               <div className="home-briefs">
               {homeBaziRecord && !homeFortune && (
                 <Suspense fallback={null}>
-                  <HomeBaziToday record={homeBaziRecord} source={homeBazi} candidates={homeBaziCandidates} onSelect={selectHomeBazi} now={homeNow} onOpenChart={handleLoadRecord} onOpenZiwei={() => setView('input')} />
+                  <HomeBaziToday record={homeBaziRecord} source={homeBazi} candidates={homeBaziCandidates} onSelect={selectHomeBazi} now={homeSolarNow} deviceNow={homeNow} onOpenChart={handleLoadRecord} onOpenZiwei={() => setView('input')} />
                 </Suspense>
               )}
               {(homeFortune || !homeBaziRecord) && (
@@ -1090,7 +1226,7 @@ export default function App() {
                       </p>
                     )}
                     <p id="fortune-share-privacy" className="fortune-share-privacy">分享默认隐藏姓名、生辰、档案备注等私人资料。</p>
-                    <p className="fortune-disclaimer">按当前设备时间自动排盘，仅供传统文化研究；具体判断需结合本命与三方四正。</p>
+                    <p className="fortune-disclaimer">{currentPlace ? `按${currentPlace.city || currentPlace.province || `东经 ${currentPlace.longitude}°`}真太阳时自动排盘` : '按当前设备时间自动排盘'}，仅供传统文化研究；具体判断需结合本命与三方四正。</p>
                   </>
                 ) : (
                   <div className="fortune-empty-content">
@@ -1110,7 +1246,7 @@ export default function App() {
               )}
               {homeBaziRecord && homeFortune && (
                 <Suspense fallback={null}>
-                  <HomeBaziToday record={homeBaziRecord} source={homeBazi} candidates={homeBaziCandidates} onSelect={selectHomeBazi} now={homeNow} onOpenChart={handleLoadRecord} />
+                  <HomeBaziToday record={homeBaziRecord} source={homeBazi} candidates={homeBaziCandidates} onSelect={selectHomeBazi} now={homeSolarNow} deviceNow={homeNow} onOpenChart={handleLoadRecord} />
                 </Suspense>
               )}
               </div>
@@ -1187,31 +1323,16 @@ export default function App() {
 
               <button
                 type="button"
-                onClick={() => setView('money')}
+                onClick={openLiuYao}
                 className="tool-card"
               >
                 <span className="tool-card-copy">
-                  <span className="tool-card-eyebrow">一事一问 · 即时起卦</span>
-                  <span className="tool-card-title">金钱卦</span>
-                  <span className="tool-card-description">针对财运、选择与具体问题，模拟摇卦并查看卦象提示。</span>
+                  <span className="tool-card-eyebrow">一事一问 · 纳甲装卦</span>
+                  <span className="tool-card-title">六爻起卦</span>
+                  <span className="tool-card-description">摇铜钱或手势起卦，自动排出本卦变卦、六亲六神与世应，可存档或交给 AI 断卦。</span>
                   <span className="tool-card-action">立即起卦 <span aria-hidden="true">→</span></span>
                 </span>
                 <span className="tool-symbol" aria-hidden="true">卦</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setView('bagua')}
-                className="tool-card tool-card--cinnabar"
-                style={{ '--tool-bg': '#1a1d24', '--tool-border': '#2c3340', color: '#e2e8f0' }}
-              >
-                <span className="tool-card-copy">
-                  <span className="tool-card-eyebrow" style={{ color: '#94a3b8' }}>全息体验 · 3D</span>
-                  <span className="tool-card-title" style={{ color: '#f8fafc' }}>手势八卦</span>
-                  <span className="tool-card-description" style={{ color: '#cbd5e1' }}>通过摄像头捕捉手势，沉浸式体验 3D 八卦阵的起承转合。</span>
-                  <span className="tool-card-action" style={{ color: '#94a3b8' }}>立即体验 <span aria-hidden="true">→</span></span>
-                </span>
-                <span className="tool-symbol" style={{ color: '#334155' }} aria-hidden="true">掌</span>
               </button>
             </section>
 
@@ -1364,21 +1485,98 @@ export default function App() {
                   )}
                 </div>
 
-                <div className="form-fieldset">
-                  <label htmlFor="birth-time" className="field-label">出生时辰</label>
-                  <select
-                    id="birth-time"
-                    value={birthTime}
-                    onChange={(event) => setBirthTime(Number(event.target.value))}
-                    aria-describedby="birth-time-hint"
-                    className="field-control"
-                  >
-                    {Array.from({ length: 13 }).map((_, i) => (
-                      <option key={i} value={i}>{getTimeDescription(i)}</option>
-                    ))}
-                  </select>
-                  <p id="birth-time-hint" className="field-hint">23:00 后请选择“晚子时”，00:00 后请选择“早子时”。</p>
-                </div>
+                <fieldset className="form-fieldset">
+                  <legend className="field-legend">出生时间</legend>
+                  <div className="segmented-control" aria-label="出生时间的记录方式">
+                    <button type="button" aria-pressed={ziweiTimeMode === 'shichen'} onClick={() => setZiweiTimeMode('shichen')} className="segment-button">只知道时辰</button>
+                    <button type="button" aria-pressed={ziweiTimeMode === 'exact'} onClick={() => setZiweiTimeMode('exact')} className="segment-button">精确到分钟</button>
+                  </div>
+                  {ziweiTimeMode === 'shichen' ? (
+                    <>
+                      <select
+                        id="birth-time"
+                        value={birthTime}
+                        onChange={(event) => setBirthTime(Number(event.target.value))}
+                        aria-label="出生时辰"
+                        aria-describedby="birth-time-hint"
+                        className="field-control"
+                      >
+                        {Array.from({ length: 13 }).map((_, i) => (
+                          <option key={i} value={i}>{getTimeDescription(i)}</option>
+                        ))}
+                      </select>
+                      <p id="birth-time-hint" className="field-hint">23:00 后请选择“晚子时”，00:00 后请选择“早子时”。知道几点几分的话，选「精确到分钟」可按真太阳时定时辰。</p>
+                    </>
+                  ) : (
+                    <>
+                      <input
+                        id="birth-clock"
+                        type="time"
+                        value={ziweiClock}
+                        onChange={(event) => setZiweiClock(event.target.value)}
+                        aria-label="出生时间（钟表时间）"
+                        className="field-control"
+                        required
+                      />
+                      <div className="birth-date-grid" role="group" aria-label="出生地">
+                        <label className="birth-date-part">
+                          <span className="sr-only">省份</span>
+                          <select value={ziweiPlace.province} onChange={(event) => changeZiweiProvince(event.target.value)}>
+                            <option value="">选择省份</option>
+                            {BIRTH_PROVINCES.map((item) => <option key={item.province} value={item.province}>{item.province}</option>)}
+                          </select>
+                          <span aria-hidden="true">省</span>
+                        </label>
+                        <label className="birth-date-part">
+                          <span className="sr-only">城市</span>
+                          <select value={ziweiPlace.city} onChange={(event) => changeZiweiCity(event.target.value)} disabled={!ziweiPlace.province}>
+                            <option value="">选择城市</option>
+                            {(BIRTH_PROVINCES.find((item) => item.province === ziweiPlace.province)?.cities ?? []).map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}
+                          </select>
+                          <span aria-hidden="true">市</span>
+                        </label>
+                        <label className="birth-date-part">
+                          <span className="sr-only">时区</span>
+                          <select value={ziweiPlace.timezone} onChange={(event) => setZiweiPlace((place) => ({ ...place, timezone: Number(event.target.value) }))}>
+                            {TIMEZONE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                          </select>
+                          <span aria-hidden="true">区</span>
+                        </label>
+                      </div>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={ziweiPlace.longitude}
+                        onChange={(event) => setZiweiPlace((place) => ({ ...place, longitude: event.target.value }))}
+                        placeholder="经度（°E，选城市后自动填入，县区可微调）"
+                        aria-label="出生地经度"
+                        className="field-control"
+                      />
+                      {ziweiExact?.dstSuggested && (
+                        <label className="field-hint" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input type="checkbox" checked={ziweiExact.applyDst} onChange={(event) => setZiweiDst(event.target.checked)} />
+                          出生时正实行夏令时（1986–1991 年），换算时减去一小时
+                        </label>
+                      )}
+                      {ziweiExact ? (
+                        <p className="field-hint" aria-live="polite">
+                          钟表 {ziweiClock} → 真太阳时 {ziweiExact.timeInfo.correctedTime} · <strong>{ziweiExact.hourName}</strong>
+                          {ziweiExact.timeInfo.correctedDate !== ziweiExact.timeInfo.clockDate ? `（公历 ${ziweiExact.timeInfo.correctedDate}）` : ''}
+                          {ziweiExact.timeInfo.trueSolarApplied
+                            ? `，经度时差 ${ziweiExact.timeInfo.longitudeMinutes >= 0 ? '+' : '−'}${Math.abs(ziweiExact.timeInfo.longitudeMinutes).toFixed(1)} 分 · 均时差 ${ziweiExact.timeInfo.equationMinutes >= 0 ? '+' : '−'}${Math.abs(ziweiExact.timeInfo.equationMinutes).toFixed(1)} 分`
+                            : '。还没有填出生地经度，暂按钟表时间定时辰'}
+                        </p>
+                      ) : (
+                        <p className={`field-hint ${ziweiExactError ? 'field-hint--warning' : ''}`}>{ziweiExactError || '填出生证明或家人记得的钟表时间，再选出生地，按真太阳时定时辰。'}</p>
+                      )}
+                      {ziweiExact?.timeInfo.boundary && (
+                        <p className="field-hint field-hint--warning" role="note">
+                          离时辰交界只有 {ziweiExact.timeInfo.boundary.minutesToBoundary} 分钟：钟表 {ziweiExact.timeInfo.boundary.boundaryClockTime}{ziweiExact.timeInfo.boundary.isBeforeBoundary ? '及之后' : '之前'}出生则为{ziweiExact.timeInfo.boundary.alternative.hourName}。出生时间记得不准时，两种时辰的命盘都值得对照。
+                        </p>
+                      )}
+                    </>
+                  )}
+                </fieldset>
 
                 <div className="form-fieldset">
                   <label htmlFor="birth-name" className="field-label">
@@ -1417,7 +1615,7 @@ export default function App() {
                   </div>
                 </fieldset>
 
-                <button type="submit" className="submit-button">生成紫微命盘</button>
+                <button type="submit" className="submit-button" disabled={!ziweiExactReady} aria-disabled={!ziweiExactReady}>生成紫微命盘</button>
                 <p className="privacy-note">
                   <span aria-hidden="true">◇</span>
                   生辰资料仅用于本次排盘；只有主动保存档案后，才会存入当前设备的浏览器。
@@ -1425,18 +1623,23 @@ export default function App() {
               </form>
             </section>
           </div>
-        ) : view === 'money' ? (
-          // --- MONEY DIVINATION VIEW ---
+        ) : view === 'liuyao' ? (
+          // --- LIU YAO DIVINATION VIEW ---
           <ErrorBoundary>
             <Suspense fallback={
               <div className="flex-1 flex items-center justify-center text-white">
                 <div className="text-center">
                   <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p>正在加载 3D 引擎...</p>
+                  <p>正在加载六爻模块...</p>
                 </div>
               </div>
             }>
-              <MoneyDivination onBack={() => setView('home')} />
+              <LiuYaoDivination
+                key={liuyaoRecord?.id ?? 'new'}
+                initialRecord={liuyaoRecord}
+                initialMethod={liuyaoMethod}
+                onBack={() => { setView(liuyaoRecord ? 'archive' : 'home'); setLiuyaoRecord(null); }}
+              />
             </Suspense>
           </ErrorBoundary>
         ) : view === 'archive' ? (
@@ -1481,20 +1684,6 @@ export default function App() {
               <AboutView onBack={() => setView('home')} version={APP_VERSION} />
             </Suspense>
           </ErrorBoundary>
-        ) : view === 'bagua' ? (
-          // --- FULL BAGUA EXPERIENCE VIEW ---
-          <ErrorBoundary>
-            <Suspense fallback={
-              <div className="flex-1 flex items-center justify-center text-white bg-black w-full h-[100dvh]">
-                <div className="text-center">
-                  <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p>正在加载全息起卦引擎...</p>
-                </div>
-              </div>
-            }>
-              <BaguaDivination onBack={() => setView('home')} />
-            </Suspense>
-          </ErrorBoundary>
         ) : (
           // --- CHART VIEW ---
           <div className="chart-workspace flex-1 relative overflow-hidden flex flex-col">
@@ -1519,7 +1708,17 @@ export default function App() {
                     birthTimeIndex: Number(birthTime),
                     calendarType,
                     isLeapMonth: effectiveIsLeapMonth,
-                    lunarDate: horoscope?.lunarDate
+                    lunarDate: horoscope?.lunarDate,
+                    trueSolar: ziweiExact ? {
+                      clockTime: ziweiClock,
+                      correctedDate: ziweiExact.timeInfo.correctedDate,
+                      correctedTime: ziweiExact.timeInfo.correctedTime,
+                      hourName: ziweiExact.hourName,
+                      placeName: ziweiExact.placeName,
+                      applied: ziweiExact.timeInfo.trueSolarApplied,
+                      totalMinutes: ziweiExact.timeInfo.totalMinutes,
+                      boundary: ziweiExact.timeInfo.boundary,
+                    } : null,
                   }}
                   onSave={openSaveArchive}
                   onOpenArchive={() => setView('archive')}
@@ -1572,7 +1771,7 @@ export default function App() {
         <button
           ref={moreOpenerRef}
           type="button"
-          className={isMoreOpen || ['money', 'videos', 'bagua'].includes(view) ? 'mobile-nav-item mobile-nav-item--active' : 'mobile-nav-item'}
+          className={isMoreOpen || ['liuyao', 'videos'].includes(view) ? 'mobile-nav-item mobile-nav-item--active' : 'mobile-nav-item'}
           aria-haspopup="dialog"
           aria-expanded={isMoreOpen}
           onClick={() => setIsMoreOpen((isOpen) => !isOpen)}
@@ -1605,14 +1804,9 @@ export default function App() {
             </header>
 
             <div className="mobile-more-grid">
-              <button type="button" className="mobile-more-card" onClick={() => navigateFromMobile('money')}>
+              <button type="button" className="mobile-more-card" onClick={() => navigateFromMobile('liuyao')}>
                 <span className="mobile-more-seal" aria-hidden="true">卦</span>
-                <span><b>金钱卦</b><small>一事一问，即时起卦</small></span>
-                <i aria-hidden="true">›</i>
-              </button>
-              <button type="button" className="mobile-more-card" onClick={() => navigateFromMobile('bagua')}>
-                <span className="mobile-more-seal mobile-more-seal--jade" aria-hidden="true">掌</span>
-                <span><b>手势八卦</b><small>3D 沉浸交互</small></span>
+                <span><b>六爻起卦</b><small>摇铜钱或手势起卦，自动装卦</small></span>
                 <i aria-hidden="true">›</i>
               </button>
               <button

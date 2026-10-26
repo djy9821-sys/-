@@ -14,7 +14,7 @@ test('启动封面只展示已实现的五个真实入口', async () => {
     ['今日', 'home'],
     ['紫微', 'input'],
     ['八字', 'bazi'],
-    ['金钱卦', 'money'],
+    ['六爻', 'liuyao'],
     ['档案', 'archive'],
   ]) {
     assert.match(source, new RegExp(`title: '${title}'[\\s\\S]*?action: '${action}'`));

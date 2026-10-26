@@ -145,7 +145,11 @@ test('中宫展示可核验的出生资料并提供手机友好的完整说明',
   assert.match(source, /出生农历/);
   assert.match(source, /出生钟表时/);
   assert.match(source, /真太阳时/);
-  assert.match(source, /未校正：缺少出生地点、经度及准确分钟/);
+  // 录入页选「精确到分钟」并填出生地后显示换算结果，否则提示如何校正
+  assert.match(source, /未校正：录入时选「精确到分钟」并填出生地，可按真太阳时定时辰/);
+  assert.match(source, /trueSolar\?\.applied/);
+  assert.match(app, /trueSolar: ziweiExact \? \{/);
+  assert.match(app, /精确到分钟/);
   assert.match(source, /节气四柱（八字）/);
   assert.match(source, /命宫地支/);
   assert.match(source, /身宫地支/);

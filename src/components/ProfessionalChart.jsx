@@ -503,6 +503,16 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     const visibleCenterPillars = hideBirthDetails ? ['—', '—', '—', '—'] : centerPillarParts;
     const birthInputLabel = `${basicInfo.calendarType === 'lunar' ? `农历${basicInfo.isLeapMonth ? '闰月' : ''}` : '公历'} ${basicInfo.birthday || '-'}`;
     const birthSolarLabel = horoscope.solarDate || (basicInfo.calendarType === 'solar' ? basicInfo.birthday : '-');
+    // 录入时选了「精确到分钟」并填了出生地，才算真正校正过真太阳时。
+    const trueSolar = basicInfo.trueSolar;
+    const trueSolarLabel = trueSolar?.applied
+        ? `${trueSolar.correctedDate} ${trueSolar.correctedTime} · ${trueSolar.hourName}（${trueSolar.placeName || '自定义经度'}，比钟表${trueSolar.totalMinutes >= 0 ? '快' : '慢'} ${Math.abs(trueSolar.totalMinutes).toFixed(0)} 分钟${trueSolar.boundary ? `；离时辰交界 ${trueSolar.boundary.minutesToBoundary} 分钟，另一可能为${trueSolar.boundary.alternative.hourName}` : ''}）`
+        : trueSolar
+            ? `按钟表 ${trueSolar.clockTime} 定时辰，未填出生地经度，没有校正`
+            : '未校正：录入时选「精确到分钟」并填出生地，可按真太阳时定时辰';
+    const trueSolarShortLabel = trueSolar?.applied
+        ? `${trueSolar.correctedTime} ${trueSolar.hourName}（${trueSolar.placeName || '自定义经度'}）`
+        : '未校正（需出生地与分钟）';
     const birthClockLabel = `${birthSolarLabel} ${basicInfo.birthTime || horoscope.time || '-'}`;
     const firstDaxianPalace = sortedDaxianPalaces[0] || null;
     const viewedDaxianPalace = selectedDaxianPalace || currentDaxianPalace || firstDaxianPalace;
@@ -2142,7 +2152,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 <div><dt>出生公历</dt><dd>{hideBirthDetails ? '已隐藏' : birthSolarLabel}</dd></div>
                                 <div><dt>出生钟表时</dt><dd>{hideBirthDetails ? '已隐藏' : basicInfo.birthTime || horoscope.time || '-'}</dd></div>
                                 <div><dt>出生农历</dt><dd>{hideBirthDetails ? '已隐藏' : horoscope.lunarDate || basicInfo.lunarDate || '-'}</dd></div>
-                                <div className="is-warning"><dt>真太阳时</dt><dd>{hideBirthDetails ? '已隐藏' : '未校正：缺少出生地点、经度及准确分钟，不能可靠计算'}</dd></div>
+                                <div className={basicInfo.trueSolar?.applied ? '' : 'is-warning'}><dt>真太阳时</dt><dd>{hideBirthDetails ? '已隐藏' : trueSolarLabel}</dd></div>
                                 <div><dt>制盘时间</dt><dd>{currentTimeLabel}</dd></div>
                             </dl>
                         </section>
@@ -2383,7 +2393,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                             <p><span>姓名：</span><strong>{basicInfo.name || '匿名'}</strong><span className="wenmo-profile-side">{yinYangGenderLabel} · 虚岁{virtualAge}</span></p>
                             <p><span>出生公历：</span><strong>{hideBirthDetails ? '已隐藏' : birthClockLabel}</strong></p>
                             <p><span>出生农历：</span><strong>{hideBirthDetails ? '已隐藏' : horoscope.lunarDate || basicInfo.lunarDate || '-'}</strong></p>
-                            <p><span>真太阳时：</span><strong className="wenmo-profile-warning">{hideBirthDetails ? '已隐藏' : '未校正（需出生地与分钟）'}</strong></p>
+                            <p><span>真太阳时：</span><strong className={basicInfo.trueSolar?.applied ? '' : 'wenmo-profile-warning'}>{hideBirthDetails ? '已隐藏' : trueSolarShortLabel}</strong></p>
                             <p><span>命主：</span><strong>{horoscope.soul || '-'}</strong><span>身主：</span><strong>{horoscope.body || '-'}</strong><span>生肖：</span><strong>{horoscope.zodiac || '-'}</strong></p>
                             <p><span>命宫：</span><strong>{horoscope.earthlyBranchOfSoulPalace || '-'}宫</strong><span>身宫：</span><strong>{horoscope.earthlyBranchOfBodyPalace || '-'}宫</strong></p>
                             <p><span>当前查看：</span><strong>{currentViewLabel}</strong></p>

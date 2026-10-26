@@ -63,3 +63,14 @@
 预览（分支别名，需登录 Vercel）：https://ziwei-app-git-claude-site-next-djs-projects-b34d7833.vercel.app
 
 下一轮：金钱卦与手势八卦合并为六爻起卦，补变卦、爻辞、纳甲；紫微改用真太阳时并重做手机排版；首页八字、紫微并列为主入口。
+
+---
+
+## 2026-10-26 第三轮（分支 `claude/liuyao-ziwei-time`，PR #5，尚未上线）
+
+- **六爻起卦**（`#/liuyao`）：金钱卦与手势八卦合并为一个入口。`components/LiuYaoDivination.jsx` 负责 问事 → 起卦方式 → 结果 三步；`MoneyDivination` / `BaguaDivination` 保留原动画，加了 `onComplete(values)`，六爻齐后把爻值（初爻在前，6 老阴 / 7 少阳 / 8 少阴 / 9 老阳）交回，不再自己显示卦象。旧地址 `#/money`、`#/bagua` 自动跳到 `#/liuyao` 并预选对应的起卦方式（`LEGACY_ROUTES`）。
+- **装卦**：`utils/liuyao.js`，京房纳甲，八宫世应、六亲、六神（按日干）、伏神（本宫首卦同位）、旬空 / 月破 / 日冲、变卦、互卦、用九用六；爻辞在 `data/yaoci.js`（64 卦 384 爻 + 用九用六，按通行本校对）。结果页 `components/LiuYaoResult.jsx`：装卦表、起卦四柱、卦辞爻辞、存入档案、复制给 AI（`buildLiuYaoPrompt`）。
+- **卦例档案**：记录 `type: 'liuyao'`，`data` 里存爻值与起卦时间（`utils/liuyaoRecord.js`），打开时重新装卦；`ArchiveView` 显示「本卦 → 变卦 · 起卦时间 · 日辰」。
+- **所在地与此刻**：`utils/currentPlace.js` 保存所在地（localStorage `gushupai-current-place`），`toLocalSolarNow()` 把设备时间换成所在地真太阳时；首页「八字 · 今日」、八字流时的「此刻」、六爻起卦时间都用它。设置入口是 `components/common/PlaceSetting.jsx`。
+- **紫微真太阳时**：紫微录入页新增「精确到分钟」：钟表时间 + 出生地（省市 / 经度 / 时区 / 夏令时），`utils/ziweiTime.js` 复用八字的 `resolveExactBirth` 换算出时辰与公历日期再排盘；档案 `data.timeMode = 'exact'` 保存设置，打开时重新换算；专业盘中宫「真太阳时」显示换算结果，离时辰交界近时提示另一可能。
+- **测试**：新增 `liuyao`、`liuyao-record`、`current-place`、`ziwei-time`；`gesture-bagua`、`welcome-cover`、`professional-chart-ui` 随改动更新。本次环境仍装不上 npm 依赖，lint / build 以 GitHub CI 为准。
