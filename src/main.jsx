@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+import { installErrorReporting, track } from './utils/analytics.js'
+
+// 页面出错时只上报错误类型与一句信息（见 utils/analytics.js），不带任何生辰资料。
+installErrorReporting();
 
 // 离线缓存：页面始终先走网络（见 public/sw.js），断网或网络很慢时用上次的缓存打开。
 // 旧版 Workbox 缓存会在新脚本启用时自动清掉。
@@ -24,11 +28,15 @@ const CHUNK_RELOAD_KEY = 'gushupai-chunk-reload-at';
 window.addEventListener('vite:preloadError', (event) => {
   try {
     const lastReload = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY)) || 0;
-    if (Date.now() - lastReload < 10_000) return;
+    if (Date.now() - lastReload < 10_000) {
+      track('chunk_load_failed', { retried: true });
+      return;
+    }
     sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
   } catch {
     return;
   }
+  track('chunk_load_failed', { retried: false });
   event.preventDefault();
   window.location.reload();
 });
