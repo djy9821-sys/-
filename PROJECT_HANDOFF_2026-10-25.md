@@ -25,3 +25,41 @@
 ## 下一步可做
 - 流日格子加黄历宜忌（lunar-javascript 自带 `getDayYi / getDayJi`）。
 - 首页与紫微页面的视觉统一检查。
+
+---
+
+## 2026-10-26 更新（尚未上线）
+
+改动分三层叠放，依次合并即可：
+
+| 分支 | PR | 内容 |
+|---|---|---|
+| `feat/bazi-ai-prompt` | #2 | 八字：导出给 AI、神煞、自坐、胎元命宫身宫、小运、旺衰喜用、黄历宜忌、记住上次命盘 |
+| `feat/site-polish` | #3 | 首页「八字 · 今日」、`#/bazi` 等地址路由与返回键、离线缓存、关于与隐私、SEO |
+| `claude/site-next` | #4 | 紫微库按需加载（首次打开约 120 KB）、今日卡片切换命盘、手势模型同域名、图片 WebP、清理 |
+
+要点：
+
+- **路由**：`App.jsx` 里 `VIEW_ROUTES` 把页面映射到 `#/...`；返回首页时用 `history.go(-depth)` 回到起点，避免历史堆叠。
+- **离线缓存**：`public/sw.js` 对页面导航先走网络（4 秒超时才用缓存），`/assets/` 缓存优先。旧版 Workbox 是缓存优先，曾导致长期显示旧版本，所以不要改回缓存优先。
+- **按需加载**：首页不静态引入 iztro / lunar-javascript。`loadZiweiLib()` 在紫微录入、紫微命盘或首页有紫微档案时才加载。`vite.config.js` 只手动拆 `vendor-react`（含 CommonJS 辅助函数），其他库别加进 `manualChunks`，否则首页会被迫预加载。
+- **手势模型**：构建时把 `node_modules/@mediapipe/hands` 复制到 `/mediapipe/hands@版本/`，运行时先用自己的文件，失败再试 jsdelivr。
+- **八字今日**：`utils/baziToday.js` 负责计算，`components/bazi/HomeBaziToday.jsx` 负责显示。默认显示档案中「自己」的八字，选择记在 `gushupai-home-bazi-profile`。
+- **预览部署**：Vercel 的 Git 连接断了（GitHub 改名后），需要在 ziwei-app → Settings → Git 点 Reconnect；在此之前用 Deployments → Create Deployment 填提交链接手动建预览。
+
+仍待决定：英语学习已删除；课程视频（`VideoLessons`）保留代码但不开放地址；国内访客统计建议开启 Vercel Web Analytics。
+
+---
+
+## 2026-10-26 第二轮（追加在 PR #4，尚未上线）
+
+- **离线缓存**：只拦截 `/`、`/index.html` 的页面导航，且只把 `text/html` 存成首页；打开 `/sitemap.xml` 等地址不再污染缓存（`test/sw-offline.test.js`）。
+- **按需加载兜底**：`main.jsx` 监听 `vite:preloadError`，下载失败时自动刷新一次（10 秒内不重复）；根组件外包 `ErrorBoundary`，提示改成通用说明。
+- **虚岁**：lunar-javascript 按公历年份算岁数，`baziChart.js` 用 `lunar.getSolar().getYear() - lunar.getYear()` 补差值。元旦到春节之间出生的人，大运、流年、小运的虚岁都多一岁（1998-01-02 出生：2026 年 30 虚岁）。
+- **八字返回键**：卷首、录入、结果三步写入 `history.state.baziStep`，`BaziDivination.jsx` 里的 `pushStep` / `goBackTo` 负责前进和后退；从别的页面返回时恢复离开前的步骤。
+- **存档去重**：`findSameBaziRecord`（同名、同一张盘）命中时更新原记录，不再重复保存。
+- **其他**：卷首页清除上次的命盘可撤销；档案列表显示钟表时间且不拆行；调候用五行字标记；顶部标题改为「古书派」；紫微库下载失败时首页可「重新加载」；金钱卦标签改为「加密级随机」；乾、坤、屯、井卦辞校对（`test/hexagram-text.test.js`）。
+
+预览（分支别名，需登录 Vercel）：https://ziwei-app-git-claude-site-next-djs-projects-b34d7833.vercel.app
+
+下一轮：金钱卦与手势八卦合并为六爻起卦，补变卦、爻辞、纳甲；紫微改用真太阳时并重做手机排版；首页八字、紫微并列为主入口。

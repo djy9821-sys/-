@@ -3,16 +3,12 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import WelcomeCover from "./components/WelcomeCover";
 import { AlertCircle, ArrowLeft, CheckCircle2, Save } from "lucide-react";
 import { archiveManager } from './utils/archiveManager';
-import { buildHomeFortune, HOME_FORTUNE_PERIODS } from './utils/homeFortune';
-import { getLunarMonthDays, getLunarMonthOptions } from './utils/fortuneContext';
-import { createZiweiHoroscope } from './utils/ziweiBirth';
-import { readLastBaziRecord } from './utils/baziRecord';
+import { readLastBaziRecord, recordToBaziForm } from './utils/baziRecord';
 
 // Lazy load the heavy components
 const MoneyDivination = lazy(() => import("./components/MoneyDivination"));
 const ArchiveView = lazy(() => import("./components/ArchiveView"));
 const VideoLessons = lazy(() => import("./components/VideoLessons"));
-const EnglishLearning = lazy(() => import("./components/EnglishLearning"));
 const BaziDivination = lazy(() => import("./components/BaziDivination"));
 const BaguaDivination = lazy(() => import("./components/BaguaDivination.jsx"));
 // 紫微专业盘体量最大，只有打开命盘时才加载。
@@ -22,10 +18,46 @@ const AboutView = lazy(() => import("./components/AboutView"));
 
 const APP_VERSION = import.meta.env.VITE_APP_BUILD || 'dev';
 
+// 首页「八字 · 今日」显示谁的盘：记住上次的选择，默认档案里的「自己」。
+const HOME_BAZI_KEY = 'gushupai-home-bazi-profile';
+const readHomeBaziKey = () => {
+  try {
+    return globalThis.localStorage?.getItem(HOME_BAZI_KEY) ?? null;
+  } catch {
+    return null;
+  }
+};
+const baziSignature = (record) => {
+  const form = recordToBaziForm(record);
+  return form ? [form.calendarType, form.year, form.month, form.day, form.hourIndex, form.clockTime, form.gender].join('|') : '';
+};
+
+// 紫微排盘库（iztro 与农历库）压缩后约 250 KB，首页初次访问用不到。
+// 打开紫微录入、命盘，或首页需要生成紫微简报时才下载，下载一次后共用。
+let ziweiLibPromise = null;
+const loadZiweiLib = () => {
+  ziweiLibPromise ??= Promise.all([
+    import('./utils/homeFortune'),
+    import('./utils/fortuneContext'),
+    import('./utils/ziweiBirth'),
+  ]).then(([homeFortune, fortuneContext, ziweiBirth]) => ({
+    buildHomeFortune: homeFortune.buildHomeFortune,
+    HOME_FORTUNE_PERIODS: homeFortune.HOME_FORTUNE_PERIODS,
+    getLunarMonthDays: fortuneContext.getLunarMonthDays,
+    getLunarMonthOptions: fortuneContext.getLunarMonthOptions,
+    createZiweiHoroscope: ziweiBirth.createZiweiHoroscope,
+  })).catch((error) => {
+    ziweiLibPromise = null;
+    throw error;
+  });
+  return ziweiLibPromise;
+};
+
 // 地址栏 #/bazi 等与页面同步：手机返回键回到上一页，链接也能直接打开对应功能。
 const VIEW_ROUTES = Object.freeze({
   input: 'ziwei', chart: 'ziwei/chart', money: 'money', archive: 'archive', bazi: 'bazi',
-  bagua: 'bagua', videos: 'videos', english: 'english', about: 'about',
+  bagua: 'bagua', about: 'about',
+  // 课程视频（VideoLessons）仍在筹备，暂不开放地址。
 });
 const ROUTE_VIEWS = Object.freeze(Object.fromEntries(Object.entries(VIEW_ROUTES).map(([view, route]) => [route, view])));
 const VIEW_TITLES = Object.freeze({
@@ -224,11 +256,11 @@ const getBirthDateParts = (value) => {
   };
 };
 
-const lunarMonthSupportsLeap = (year, month) => {
-  if (!/^\d{4}$/.test(year) || !/^\d{2}$/.test(month)) return false;
+const lunarMonthSupportsLeap = (lib, year, month) => {
+  if (!lib || !/^\d{4}$/.test(year) || !/^\d{2}$/.test(month)) return false;
 
   try {
-    return getLunarMonthOptions(Number(year)).some((option) => (
+    return lib.getLunarMonthOptions(Number(year)).some((option) => (
       option.month === Number(month) && option.isLeap
     ));
   } catch {
@@ -236,9 +268,9 @@ const lunarMonthSupportsLeap = (year, month) => {
   }
 };
 
-const getBirthDayCount = (calendarType, year, month, isLeapMonth = false) => {
+const getBirthDayCount = (lib, calendarType, year, month, isLeapMonth = false) => {
   if (calendarType === 'lunar') {
-    return getLunarMonthDays(Number(year), Number(month), isLeapMonth) || 30;
+    return lib?.getLunarMonthDays(Number(year), Number(month), isLeapMonth) || 30;
   }
   if (!year || !month) return 31;
   return new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate();
@@ -273,12 +305,17 @@ export default function App() {
   const [homeShareNotice, setHomeShareNotice] = useState(null);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [lastBaziRecord, setLastBaziRecord] = useState(() => readLastBaziRecord());
+  const [ziweiLib, setZiweiLib] = useState(null);
+  // 紫微排盘库下载失败（多半是网络不稳定）时记下来，首页给出重试按钮，而不是一直显示"正在生成"。
+  const [ziweiLibFailed, setZiweiLibFailed] = useState(false);
+  const [homeBaziKey, setHomeBaziKey] = useState(readHomeBaziKey);
 
   const birthDateParts = getBirthDateParts(birthday);
   const leapMonthAvailable = calendarType === 'lunar'
-    && lunarMonthSupportsLeap(birthDateParts.year, birthDateParts.month);
+    && lunarMonthSupportsLeap(ziweiLib, birthDateParts.year, birthDateParts.month);
   const effectiveIsLeapMonth = leapMonthAvailable && isLeapMonth;
   const birthDayCount = getBirthDayCount(
+    ziweiLib,
     calendarType,
     birthDateParts.year,
     birthDateParts.month,
@@ -297,9 +334,10 @@ export default function App() {
   const updateBirthDatePart = (part, value) => {
     const nextParts = { ...birthDateParts, [part]: value };
     const nextLeapMonthAvailable = calendarType === 'lunar'
-      && lunarMonthSupportsLeap(nextParts.year, nextParts.month);
+      && lunarMonthSupportsLeap(ziweiLib, nextParts.year, nextParts.month);
     const nextIsLeapMonth = nextLeapMonthAvailable && isLeapMonth;
     const nextDayCount = getBirthDayCount(
+      ziweiLib,
       calendarType,
       nextParts.year,
       nextParts.month,
@@ -315,9 +353,10 @@ export default function App() {
   const updateCalendarType = (nextCalendarType) => {
     const nextParts = { ...birthDateParts };
     const nextLeapMonthAvailable = nextCalendarType === 'lunar'
-      && lunarMonthSupportsLeap(nextParts.year, nextParts.month);
+      && lunarMonthSupportsLeap(ziweiLib, nextParts.year, nextParts.month);
     const nextIsLeapMonth = nextLeapMonthAvailable && isLeapMonth;
     const nextDayCount = getBirthDayCount(
+      ziweiLib,
       nextCalendarType,
       nextParts.year,
       nextParts.month,
@@ -336,6 +375,7 @@ export default function App() {
 
     const nextIsLeapMonth = !effectiveIsLeapMonth;
     const nextDayCount = getBirthDayCount(
+      ziweiLib,
       'lunar',
       birthDateParts.year,
       birthDateParts.month,
@@ -544,13 +584,14 @@ export default function App() {
     }
   };
 
-  const handleStartScan = () => {
+  const handleStartScan = async () => {
     if (!birthday) {
       alert('请输入生日');
       return;
     }
     try {
-      const newHoroscope = createZiweiHoroscope({
+      const lib = ziweiLib ?? await loadZiweiLib();
+      const newHoroscope = lib.createZiweiHoroscope({
         calendarType,
         birthDate: birthday,
         timeIndex: birthTime,
@@ -577,7 +618,7 @@ export default function App() {
     setIsSaveModalOpen(true);
   };
 
-  const handleLoadRecord = (record) => {
+  const handleLoadRecord = async (record) => {
     if (record.type === 'bazi') {
       setBaziRecord(record);
       setView('bazi');
@@ -603,7 +644,8 @@ export default function App() {
       }
 
       try {
-        const newHoroscope = createZiweiHoroscope({
+        const lib = ziweiLib ?? await loadZiweiLib();
+        const newHoroscope = lib.createZiweiHoroscope({
           calendarType: recordCalendarType,
           birthDate: recordBirthDate,
           timeIndex: recordBirthTime,
@@ -672,6 +714,49 @@ export default function App() {
       || null;
   }, [homeProfileId, homeReadyRecords]);
 
+  // 首页八字：档案里的八字命盘（自己排在最前），加上八字页上次排的盘（与档案重复时不再列出）。
+  const homeBaziCandidates = React.useMemo(() => {
+    const archived = archiveRecords
+      .filter((record) => record.type === 'bazi' && recordToBaziForm(record))
+      .sort((a, b) => Number(b.group === 'self') - Number(a.group === 'self'))
+      .map((record) => ({ key: record.id, record, label: record.name || '未命名' }));
+    if (lastBaziRecord) {
+      const signature = baziSignature(lastBaziRecord);
+      if (!archived.some(({ record }) => baziSignature(record) === signature)) {
+        archived.push({ key: 'last', record: lastBaziRecord, label: lastBaziRecord.name && lastBaziRecord.name !== '未命名' ? lastBaziRecord.name : '上次排盘', isLast: true });
+      }
+    }
+    return archived;
+  }, [archiveRecords, lastBaziRecord]);
+  const homeBazi = homeBaziCandidates.find(({ key }) => key === homeBaziKey)
+    ?? homeBaziCandidates.find(({ record }) => record.group === 'self' && record.type === 'bazi')
+    ?? homeBaziCandidates.find(({ isLast }) => isLast)
+    ?? homeBaziCandidates[0]
+    ?? null;
+  const homeBaziRecord = homeBazi?.record ?? null;
+  const selectHomeBazi = (key) => {
+    setHomeBaziKey(key);
+    try {
+      globalThis.localStorage?.setItem(HOME_BAZI_KEY, key);
+    } catch {
+      // 记不住选择也不影响显示
+    }
+  };
+
+  // 需要紫微排盘库的场景：紫微录入页、紫微命盘，以及首页有可用的紫微档案。
+  const needsZiweiLib = ['input', 'chart'].includes(view) || homeReadyRecords.length > 0;
+  React.useEffect(() => {
+    if (!needsZiweiLib || ziweiLib || ziweiLibFailed) return undefined;
+    let cancelled = false;
+    loadZiweiLib()
+      .then((lib) => { if (!cancelled) setZiweiLib(lib); })
+      .catch((error) => {
+        console.warn('紫微排盘库加载失败:', error);
+        if (!cancelled) setZiweiLibFailed(true);
+      });
+    return () => { cancelled = true; };
+  }, [needsZiweiLib, ziweiLib, ziweiLibFailed]);
+
   const homeFortuneState = React.useMemo(() => {
     if (!homeProfile) {
       return {
@@ -681,10 +766,15 @@ export default function App() {
           : null,
       };
     }
+    if (!ziweiLib) {
+      return ziweiLibFailed
+        ? { data: null, error: '紫微排盘组件没能下载，可能是网络不稳定，请稍后重试。', retry: true }
+        : { data: null, error: null, loading: true };
+    }
 
     try {
       return {
-        data: buildHomeFortune(homeProfile, homePeriod, homeNow),
+        data: ziweiLib.buildHomeFortune(homeProfile, homePeriod, homeNow),
         error: null,
       };
     } catch (error) {
@@ -694,7 +784,7 @@ export default function App() {
         error: error instanceof Error ? error.message : '当前档案无法生成运势简报',
       };
     }
-  }, [homeNow, homePeriod, homeProfile, ziweiRecords.length]);
+  }, [homeNow, homePeriod, homeProfile, ziweiLib, ziweiLibFailed, ziweiRecords.length]);
 
   const homeFortune = homeFortuneState.data;
 
@@ -812,7 +902,7 @@ export default function App() {
   };
 
   const showsMobileNav = !showWelcomeCover && ['home', 'input', 'archive'].includes(view);
-  const usesOwnHeader = ['money', 'bazi', 'archive', 'videos', 'english', 'chart', 'about'].includes(view);
+  const usesOwnHeader = ['money', 'bazi', 'archive', 'videos', 'chart', 'about', 'bagua'].includes(view);
 
   return (
     <div className={`app-shell ${showsMobileNav ? 'app-shell--mobile-nav' : ''} ${view === 'chart' ? 'app-shell--chart' : ''}`}>
@@ -837,7 +927,7 @@ export default function App() {
             )}
             <div className="brand-seal" aria-hidden="true">古</div>
             <div className="brand-copy">
-              <h1 className="brand-name">古书派·紫微</h1>
+              <h1 className="brand-name">古书派</h1>
               <p className="brand-caption">传统命理 · 当代排盘</p>
             </div>
           </div>
@@ -878,14 +968,14 @@ export default function App() {
         ) : view === 'home' ? (
           // --- HOME PORTAL VIEW ---
           <div className="home-page animate-in fade-in duration-500">
-            <div className={`home-overview ${homeFortune || lastBaziRecord ? 'home-overview--personalized' : 'home-overview--empty'}`}>
+            <div className={`home-overview ${homeFortune || homeBaziRecord ? 'home-overview--personalized' : 'home-overview--empty'}`}>
               <div className="home-briefs">
-              {lastBaziRecord && !homeFortune && (
+              {homeBaziRecord && !homeFortune && (
                 <Suspense fallback={null}>
-                  <HomeBaziToday record={lastBaziRecord} now={homeNow} onOpenChart={handleLoadRecord} onOpenZiwei={() => setView('input')} />
+                  <HomeBaziToday record={homeBaziRecord} source={homeBazi} candidates={homeBaziCandidates} onSelect={selectHomeBazi} now={homeNow} onOpenChart={handleLoadRecord} onOpenZiwei={() => setView('input')} />
                 </Suspense>
               )}
-              {(homeFortune || !lastBaziRecord) && (
+              {(homeFortune || !homeBaziRecord) && (
               <section className={`fortune-brief ${homeFortune ? 'fortune-brief--personalized' : 'fortune-brief--empty'}`} aria-labelledby="fortune-brief-title">
                 <header className="fortune-brief-header">
                   <div>
@@ -925,7 +1015,7 @@ export default function App() {
                     )}
 
                     <div className="fortune-periods" role="group" aria-label="选择运势时间层">
-                      {HOME_FORTUNE_PERIODS.map((period) => (
+                      {ziweiLib.HOME_FORTUNE_PERIODS.map((period) => (
                         <button
                           key={period.key}
                           type="button"
@@ -1004,41 +1094,41 @@ export default function App() {
                   </>
                 ) : (
                   <div className="fortune-empty-content">
-                    <p>{homeFortuneState.error || '排一次八字，或保存本人的紫微命盘，首页便会自动显示今天的运势重点、喜忌与宜忌。'}</p>
-                    <div className="fortune-empty-actions">
+                    <p>{homeFortuneState.loading ? '正在生成今日简报…' : homeFortuneState.error || '排一次八字，或保存本人的紫微命盘，首页便会自动显示今天的运势重点、喜忌与宜忌。'}</p>
+                    {!homeFortuneState.loading && <div className="fortune-empty-actions">
                       <button type="button" onClick={() => { setBaziRecord(null); setView('bazi'); }}>
                         排我的八字 <span aria-hidden="true">→</span>
                       </button>
-                      <button type="button" onClick={() => setView(homeFortuneState.error ? 'archive' : 'input')}>
-                        {homeFortuneState.error ? '检查紫微档案' : '保存紫微命盘'} <span aria-hidden="true">→</span>
+                      <button type="button" onClick={() => (homeFortuneState.retry ? setZiweiLibFailed(false) : setView(homeFortuneState.error ? 'archive' : 'input'))}>
+                        {homeFortuneState.retry ? '重新加载' : homeFortuneState.error ? '检查紫微档案' : '保存紫微命盘'} <span aria-hidden="true">→</span>
                       </button>
-                    </div>
+                    </div>}
                     <span>出生资料只保存在当前设备</span>
                   </div>
                 )}
               </section>
               )}
-              {lastBaziRecord && homeFortune && (
+              {homeBaziRecord && homeFortune && (
                 <Suspense fallback={null}>
-                  <HomeBaziToday record={lastBaziRecord} now={homeNow} onOpenChart={handleLoadRecord} />
+                  <HomeBaziToday record={homeBaziRecord} source={homeBazi} candidates={homeBaziCandidates} onSelect={selectHomeBazi} now={homeNow} onOpenChart={handleLoadRecord} />
                 </Suspense>
               )}
               </div>
 
-              <section className={`home-hero ${homeFortune || lastBaziRecord ? 'home-hero--personalized' : ''}`} aria-labelledby="home-title">
-                <p className="section-kicker">{homeFortune || lastBaziRecord ? '每日一看 · 把握当下' : '古法为体 · 数理为用'}</p>
+              <section className={`home-hero ${homeFortune || homeBaziRecord ? 'home-hero--personalized' : ''}`} aria-labelledby="home-title">
+                <p className="section-kicker">{homeFortune || homeBaziRecord ? '每日一看 · 把握当下' : '古法为体 · 数理为用'}</p>
                 <h2 id="home-title" className="home-title">
-                  {homeFortune || lastBaziRecord ? <>从当下入手，<em>再观人生全局</em></> : <>以星曜为镜，<em>观人生脉络</em></>}
+                  {homeFortune || homeBaziRecord ? <>从当下入手，<em>再观人生全局</em></> : <>以星曜为镜，<em>观人生脉络</em></>}
                 </h2>
                 <p className="home-subtitle">
-                  {homeFortune || lastBaziRecord
+                  {homeFortune || homeBaziRecord
                     ? '先用三十秒看懂今天的重点，需要时再展开命盘依据。少一点术语堆叠，多一点可以落实的提示。'
                     : '从一张命盘开始，查看紫微十二宫与八字四柱、大运流年。传统术数，用更清晰的方式呈现。'}
                 </p>
                 <div className="home-assurances" aria-label="产品特点">
-                  <span className="assurance-chip">{homeFortune || lastBaziRecord ? '三十秒简报' : '专业命盘'}</span>
-                  <span className="assurance-chip">{homeFortune || lastBaziRecord ? '喜忌提示' : '运限推演'}</span>
-                  <span className="assurance-chip">{homeFortune || lastBaziRecord ? '依据可展开' : '本地保存'}</span>
+                  <span className="assurance-chip">{homeFortune || homeBaziRecord ? '三十秒简报' : '专业命盘'}</span>
+                  <span className="assurance-chip">{homeFortune || homeBaziRecord ? '喜忌提示' : '运限推演'}</span>
+                  <span className="assurance-chip">{homeFortune || homeBaziRecord ? '依据可展开' : '本地保存'}</span>
                 </div>
               </section>
             </div>
@@ -1369,18 +1459,6 @@ export default function App() {
           }>
             <VideoLessons onBack={() => setView('home')} />
           </Suspense>
-        ) : view === 'english' ? (
-          // --- ENGLISH LEARNING VIEW ---
-          <Suspense fallback={
-            <div className="flex-1 flex items-center justify-center text-white">
-              <div className="text-center">
-                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p>正在加载英语模块...</p>
-              </div>
-            </div>
-          }>
-            <EnglishLearning onBack={() => setView('home')} />
-          </Suspense>
         ) : view === 'bazi' ? (
           // --- BAZI DIVINATION VIEW ---
           <Suspense fallback={
@@ -1494,7 +1572,7 @@ export default function App() {
         <button
           ref={moreOpenerRef}
           type="button"
-          className={isMoreOpen || ['money', 'videos', 'english', 'bagua'].includes(view) ? 'mobile-nav-item mobile-nav-item--active' : 'mobile-nav-item'}
+          className={isMoreOpen || ['money', 'videos', 'bagua'].includes(view) ? 'mobile-nav-item mobile-nav-item--active' : 'mobile-nav-item'}
           aria-haspopup="dialog"
           aria-expanded={isMoreOpen}
           onClick={() => setIsMoreOpen((isOpen) => !isOpen)}

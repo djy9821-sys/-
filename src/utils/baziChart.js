@@ -236,7 +236,7 @@ export const describeGanZhi = (ganZhi, dayGan) => {
   };
 };
 
-const buildLiuNian = (liuNian, currentBaziYear, dayGan, sourceDaYunIndex) => {
+const buildLiuNian = (liuNian, currentBaziYear, dayGan, sourceDaYunIndex, ageOffset = 0) => {
   const ganZhi = liuNian.getGanZhi();
   const gan = ganZhi.slice(0, 1);
   const zhi = ganZhi.slice(1, 2);
@@ -247,7 +247,7 @@ const buildLiuNian = (liuNian, currentBaziYear, dayGan, sourceDaYunIndex) => {
     index: liuNian.getIndex(),
     sourceDaYunIndex,
     year: liuNian.getYear(),
-    age: liuNian.getAge(),
+    age: liuNian.getAge() + ageOffset,
     ganZhi,
     gan,
     zhi,
@@ -277,7 +277,7 @@ const solarToLocalTimestamp = (solar) => new Date(
   solar.getSecond(),
 ).getTime();
 
-const buildDaYun = (daYun, now, yunStartSolar, currentBaziYear, dayGan) => {
+const buildDaYun = (daYun, now, yunStartSolar, currentBaziYear, dayGan, ageOffset = 0) => {
   const ganZhi = daYun.getGanZhi();
   const gan = ganZhi.slice(0, 1);
   const zhi = ganZhi.slice(1, 2);
@@ -293,8 +293,8 @@ const buildDaYun = (daYun, now, yunStartSolar, currentBaziYear, dayGan) => {
     name: '大运',
     type: 'dayun',
     index: daYun.getIndex(),
-    startAge: daYun.getStartAge(),
-    endAge: daYun.getEndAge(),
+    startAge: daYun.getStartAge() + ageOffset,
+    endAge: daYun.getEndAge() + ageOffset,
     startYear: daYun.getStartYear(),
     endYear: daYun.getEndYear(),
     exactStartSolar: exactStartSolar.toYmdHms(),
@@ -316,7 +316,7 @@ const buildDaYun = (daYun, now, yunStartSolar, currentBaziYear, dayGan) => {
     xunKong: daYun.getXunKong(),
     // 大运以实际交运时刻为边界，而不是每年元旦粗略切换。
     isCurrent: nowTimestamp >= exactStartTimestamp && nowTimestamp < exactEndTimestamp,
-    liuNian: daYun.getLiuNian().map((item) => buildLiuNian(item, currentBaziYear, dayGan, daYun.getIndex())),
+    liuNian: daYun.getLiuNian().map((item) => buildLiuNian(item, currentBaziYear, dayGan, daYun.getIndex(), ageOffset)),
   };
 };
 
@@ -539,12 +539,15 @@ export const buildBaziChart = (input, now = new Date()) => {
     .getLunar()
     .getYearInGanZhiExact();
   const currentBaziYear = now.getFullYear() - (nowYearGanZhi === midYearGanZhi ? 0 : 1);
+  // 虚岁按农历年算：出生即 1 岁，每过一个春节加 1 岁。lunar-javascript 按公历年份算，
+  // 元旦到春节之间出生的人（农历还在上一年）会少算一岁，这里把差值补上。
+  const ageOffset = lunar.getSolar().getYear() - lunar.getYear();
   const yunSource = eightChar.getYun(normalized.gender === 'male' ? 1 : 0, 2);
   const startSolar = yunSource.getStartSolar();
   const daYunSources = yunSource.getDaYun(14);
   const dayun = daYunSources
     .filter((item) => item.getIndex() > 0 && item.getGanZhi())
-    .map((item) => buildDaYun(item, now, startSolar, currentBaziYear, dayMasterGan))
+    .map((item) => buildDaYun(item, now, startSolar, currentBaziYear, dayMasterGan, ageOffset))
     .map((item) => ({ ...withShensha(item), liuNian: item.liuNian.map(withShensha) }));
 
   // 起运之前的年份行小运：大运列表里的第 0 步没有干支，这里单独整理。
@@ -553,13 +556,13 @@ export const buildBaziChart = (input, now = new Date()) => {
   const xiaoYunYears = (childhood ? childhood.getLiuNian() : []).map((item, index) => {
     const xiaoYunGanZhi = childhoodXiaoYun[index]?.getGanZhi();
     return {
-      ...withShensha(buildLiuNian(item, currentBaziYear, dayMasterGan, 0)),
+      ...withShensha(buildLiuNian(item, currentBaziYear, dayMasterGan, 0, ageOffset)),
       xiaoYun: xiaoYunGanZhi ? withShensha({ name: '小运', ...describeGanZhi(xiaoYunGanZhi, dayMasterGan) }) : null,
     };
   });
   const xiaoYun = xiaoYunYears.length ? {
     startAge: childhood.getStartAge(),
-    endAge: childhood.getEndAge(),
+    endAge: childhood.getEndAge() + ageOffset,
     startYear: childhood.getStartYear(),
     endYear: childhood.getEndYear(),
     years: xiaoYunYears,

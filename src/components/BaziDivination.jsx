@@ -28,7 +28,7 @@ import {
 } from '../utils/baziChart';
 import { archiveManager } from '../utils/archiveManager';
 import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from '../utils/birthPlaces';
-import { ARCHIVE_GROUP_OPTIONS, buildBaziRecord, clearLastBaziRecord, parseClockTime, readLastBaziRecord, recordToBaziForm, saveLastBaziRecord } from '../utils/baziRecord';
+import { ARCHIVE_GROUP_OPTIONS, buildBaziRecord, clearLastBaziRecord, findSameBaziRecord, parseClockTime, readLastBaziRecord, recordToBaziForm, saveLastBaziRecord } from '../utils/baziRecord';
 import { isChinaDst } from '../utils/trueSolarTime';
 import {
     buildLiuRi,
@@ -85,6 +85,13 @@ const describeSavedForm = (form) => {
     return `${form.personName?.trim() || '未命名'} · ${date} ${hour}`;
 };
 
+// 八字页的三步记在浏览器历史里（history.state.baziStep），手机返回键和左上角返回按钮一样逐步后退。
+const BAZI_STEPS = ['landing', 'input', 'result'];
+const readHistoryStep = () => {
+    const step = globalThis.history?.state?.baziStep;
+    return BAZI_STEPS.includes(step) ? step : null;
+};
+
 const strongestNatalMark = (natalItems, key, label, item) => {
     const relations = findRelations([{ key, label, gan: item.gan, zhi: item.zhi }, ...natalItems], { focusKeys: [key] })
         .filter(({ scope, tone }) => scope !== 'gan' && tone !== 'break');
@@ -98,7 +105,16 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const [lastForm, setLastForm] = useState(() => (initialRecord ? null : readLastChartForm()));
     // 没有从档案打开时，用上一次的生辰预填输入页。
     const prefill = initialForm ?? lastForm;
-    const [step, setStep] = useState(initialForm ? 'result' : 'landing');
+    const [step, setStep] = useState(() => {
+        if (initialForm) return 'result';
+        // 从别的页面按返回键回到八字页时，回到离开前的那一步。
+        const restored = readHistoryStep();
+        return restored && restored !== 'landing' && prefill ? restored : 'landing';
+    });
+    const initialStepRef = useRef(step);
+    const stepIndexRef = useRef(0);
+    // 清除「上次的命盘」后先留一份，卷首页可以撤销，避免误触就丢。
+    const [forgottenRecord, setForgottenRecord] = useState(null);
     const [calendarType, setCalendarType] = useState(prefill?.calendarType ?? 'solar');
     const [birthYear, setBirthYear] = useState(prefill?.year ?? 1990);
     const [birthMonth, setBirthMonth] = useState(prefill?.month ?? 1);
@@ -394,6 +410,25 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     }, []);
 
     useEffect(() => {
+        const state = window.history.state ?? {};
+        stepIndexRef.current = readHistoryStep() ? Number(state.baziStepIndex) || 0 : 0;
+        window.history.replaceState({ ...state, baziStep: initialStepRef.current, baziStepIndex: stepIndexRef.current }, '');
+        const handlePopState = (event) => {
+            const target = event.state?.baziStep;
+            if (!BAZI_STEPS.includes(target)) return;
+            stepIndexRef.current = Number(event.state.baziStepIndex) || 0;
+            if (calculateTimerRef.current) {
+                window.clearTimeout(calculateTimerRef.current);
+                calculateTimerRef.current = null;
+            }
+            setLoading(false);
+            setStep(target);
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
+    useEffect(() => {
         const refreshArchive = () => setArchiveRecords(archiveManager.getRecords());
         window.addEventListener('archive-updated', refreshArchive);
         return () => window.removeEventListener('archive-updated', refreshArchive);
@@ -465,24 +500,67 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         const record = buildBaziRecord(collectForm(), chart, { group: 'self' });
         saveLastBaziRecord(record);
         setLastForm(recordToBaziForm(record));
+        setForgottenRecord(null);
     };
 
     const forgetLastChart = () => {
+        setForgottenRecord(readLastBaziRecord());
         clearLastBaziRecord();
         setLastForm(null);
+    };
+
+    const undoForgetLastChart = () => {
+        if (!forgottenRecord) return;
+        saveLastBaziRecord(forgottenRecord);
+        setLastForm(recordToBaziForm(forgottenRecord));
+        setForgottenRecord(null);
+    };
+
+    // 前进到下一步：新增一条历史，返回键能回到上一步。
+    const pushStep = (next) => {
+        const state = window.history.state ?? {};
+        stepIndexRef.current += 1;
+        window.history.pushState({
+            ...state,
+            gushupaiDepth: (state.gushupaiDepth ?? 0) + 1,
+            baziStep: next,
+            baziPrev: step,
+            baziStepIndex: stepIndexRef.current,
+        }, '');
+        setStep(next);
+    };
+
+    // 退回某一步：上一条历史正好是它就用浏览器后退，否则原地改写当前这条，避免历史越堆越多。
+    const goBackTo = (wanted) => {
+        const state = window.history.state ?? {};
+        if (stepIndexRef.current > 0 && state.baziPrev === wanted) {
+            window.history.back();
+            return;
+        }
+        window.history.replaceState({ ...state, baziStep: wanted }, '');
+        setStep(wanted);
     };
 
     const handleSaveToArchive = () => {
         if (!baziResult) return;
         const record = buildBaziRecord(collectForm(), baziResult, { group: saveGroup, note: saveNote });
-        const saved = archiveManager.addRecord(record);
+        // 同名、同一张盘已经在档案里（比如从档案打开后再点保存）：更新原来那条，不再重复存一份。
+        const existing = findSameBaziRecord(archiveManager.getRecords(), record);
+        const saved = existing
+            ? archiveManager.updateRecord(existing.id, { group: record.group, note: record.note || existing.note, solarDate: record.solarDate, data: record.data })
+            : archiveManager.addRecord(record);
         if (!saved) {
             setSaveNotice({ type: 'error', message: '保存失败，请检查浏览器存储空间后重试。' });
             return;
         }
         setSavePanelOpen(false);
         setSaveNote('');
-        setSaveNotice({ type: 'success', message: `已保存「${saved.name}」的八字命盘，可在档案或排盘页「从档案带入」中找到。` });
+        setSaveNotice({
+            type: 'success',
+            message: existing
+                ? `档案里已经有「${saved.name}」的这张命盘，已更新分组和备注，没有重复保存。`
+                : `已保存「${saved.name}」的八字命盘，可在档案或排盘页「从档案带入」中找到。`,
+        });
     };
 
     const changeCalendarType = (nextType) => {
@@ -527,7 +605,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         if (!lastForm) return;
         applyFormValues(lastForm);
         resetResultView();
-        setStep('result');
+        pushStep('result');
     };
 
     const handleCalculate = () => {
@@ -538,14 +616,14 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         setLoading(true);
         calculateTimerRef.current = window.setTimeout(() => {
             calculateTimerRef.current = null;
-            setStep('result');
+            pushStep('result');
             setLoading(false);
         }, 350);
     };
 
     const handleHeaderBack = () => {
         if (step === 'result') {
-            setStep('input');
+            goBackTo('input');
             return;
         }
         if (calculateTimerRef.current) {
@@ -553,7 +631,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
             calculateTimerRef.current = null;
         }
         setLoading(false);
-        setStep('landing');
+        goBackTo('landing');
     };
 
     const selectDaYun = (daYun) => {
@@ -661,8 +739,9 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         return (
             <BaziLanding
                 onBack={onBack}
-                onStart={() => setStep('input')}
+                onStart={() => pushStep('input')}
                 lastChart={lastForm ? { label: describeSavedForm(lastForm), onOpen: openLastChart, onForget: forgetLastChart } : null}
+                forgotten={!lastForm && forgottenRecord ? { label: describeSavedForm(recordToBaziForm(forgottenRecord)), onUndo: undoForgetLastChart } : null}
             />
         );
     }
@@ -1135,7 +1214,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                 </article>
 
                                 <div className="mt-4 grid grid-cols-3 gap-2 print:hidden sm:gap-3">
-                                    <button type="button" onClick={() => setStep('input')} className="min-h-11 rounded-xl border border-[#dcb471]/40 px-2 text-sm font-bold text-[#f0ce91] hover:bg-[#dcb471]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8]">重新排盘</button>
+                                    <button type="button" onClick={() => goBackTo('input')} className="min-h-11 rounded-xl border border-[#dcb471]/40 px-2 text-sm font-bold text-[#f0ce91] hover:bg-[#dcb471]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8]">重新排盘</button>
                                     <button type="button" onClick={() => { setSavePanelOpen((open) => !open); setSaveNotice(null); }} aria-expanded={savePanelOpen} aria-controls="bazi-save-panel" className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-[#dcb471]/40 px-2 text-sm font-bold text-[#f0ce91] hover:bg-[#dcb471]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8]"><Save className="size-4" aria-hidden="true" />存入档案</button>
                                     <button type="button" onClick={() => window.print()} className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-[#2d6b62] px-2 text-sm font-bold text-white hover:bg-[#245a52] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#75b4aa]"><Printer className="size-4" aria-hidden="true" />导出细盘</button>
                                 </div>

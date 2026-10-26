@@ -358,3 +358,12 @@ h1 span {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* 起卦页底部有进度与「点击生一爻」按钮：错误提示放到它上方，避免被挡住。 */
+.full-bagua-experience .error {
+  bottom: calc(132px + env(safe-area-inset-bottom));
+}
+
+.full-bagua-experience .manual-help {
+  bottom: calc(132px + env(safe-area-inset-bottom));
+}

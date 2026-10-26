@@ -19,9 +19,10 @@ const ElementChip = ({ item, tone }) => (
     </span>
 );
 
-const Check = ({ ok, label, detail }) => (
+// mark 用于"需要什么"的提示（如调候宜见火），显示五行字而不是对勾，避免看成"已满足"。
+const Check = ({ ok, label, detail, mark = null }) => (
     <li className="flex items-start gap-2 text-xs leading-5 text-[#514941]">
-        <span className={`mt-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${ok ? 'bg-[#2d6b62]' : 'bg-[#9b9185]'}`} aria-hidden="true">{ok ? '✓' : '–'}</span>
+        <span className={`mt-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white ${mark ? 'bg-[#b06a1f]' : ok ? 'bg-[#2d6b62]' : 'bg-[#9b9185]'}`} aria-hidden="true">{mark ?? (ok ? '✓' : '–')}</span>
         <span><b>{label}</b>：{detail}</span>
     </li>
 );
@@ -76,7 +77,7 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster }
                     <Check ok={strength.deLing} label="得令" detail={strength.monthMain ? `月令本气 ${strength.monthMain.gan}（${strength.monthMain.role}）${strength.deLing ? '帮扶日主' : '不帮日主'}` : '—'} />
                     <Check ok={strength.deDi.length > 0} label="得地" detail={strength.deDi.length ? strength.deDi.map((item) => `${item.name}${item.zhi}${item.tongGen ? '（通根）' : '（有印）'}`).join('、') : '地支中没有比劫或印的根气'} />
                     <Check ok={strength.deShi.length > 0} label="得势" detail={strength.deShi.length ? strength.deShi.map((item) => `${item.name}${item.gan}（${item.role}）`).join('、') : '天干没有比劫或印相帮'} />
-                    {strength.tiaoHou && <Check ok label="调候" detail={`${strength.tiaoHou.season}，宜见${strength.tiaoHou.element}`} />}
+                    {strength.tiaoHou && <Check mark={strength.tiaoHou.element} label="调候" detail={`${strength.tiaoHou.season}，宜见${strength.tiaoHou.element}`} />}
                 </ul>
                 {strength.hint && <p className="mt-2 rounded-lg bg-[#b06a1f]/[0.08] px-2.5 py-1.5 text-xs text-[#7f4b12]">{strength.hint}</p>}
             </div>
