@@ -85,3 +85,16 @@
 - **新增起卦方式**：`utils/liuyaoCast.js`：手动录卦（`components/liuyao/ManualCast.jsx`，按背面数录入）、时间起卦（梅花易数：农历年支数 + 月 + 日取上卦，加时辰数取下卦，总和除 6 取动爻）、报数起卦（两个数分别除 8 取上下卦，和除 6 取动爻）。档案 `data` 新增 `topic`、`gender`、`castNote`（起卦参数说明），`method` 支持 coins / gesture / manual / time / number，不认识的值回退（`liuyaoRecord.js`）。
 - **文案**：`index.html` 描述 / 关键词 / OG、`manifest.json` 描述与「六爻起卦」快捷方式、关于页的统计说明。
 - **测试**：新增 `analytics`、`liuyao-judge`（含 64 卦 × 12 类别 × 3 种性别全覆盖）、`liuyao-cast`；`liuyao-record` 随字段更新。
+
+---
+
+## 2026-10-26 第五轮（分支 `claude/round5-bazi-insight`，基于 `claude/round4-insights`，PR #7，尚未上线）
+
+- **格局与命局组合**：`utils/baziPattern.js` 的 `judgeBaziPattern(chart, strength)`：按月令取格（禄位建禄格、阳干刃位羊刃格、阴干劫财月劫格，其余看月支藏干谁透干，本气优先，辰戌丑未不透本气取中余气标「杂气」）；同党比例极端时提示疑似从格 / 专旺 / 从强 / 化气，只标「疑似」；按透干十神与五行力量识别常见组合（官杀混杂、伤官见官、食神制杀、枭神夺食、伤官配印、官印相生、财官相生、羊刃驾杀、财多身弱、杀重身轻、比劫争财、印重身强、食伤泄秀、身旺无依、印星护身、日坐十神）；`analyzeWuxingGap` 区分「八个字里没有」与「藏干里也没有」，并按喜忌提示缺的是否该补。结果页新增「格局与命局组合」一节（`components/bazi/BaziPatternPanel.jsx`），摘要卡加格局 chip 与五行缺失一句；`buildBaziPrompt` 加【格局与组合（程序初判）】。阈值都在 `detectTraits` / `detectSpecialPattern` 里，改动请同步 `test/bazi-pattern.test.js`。
+- **太岁与喜忌标注**：`utils/baziYearMarks.js`：值 / 冲 / 刑 / 害 / 破太岁、伏吟 / 反吟日柱、冲日支、岁运并临 / 岁运反吟，以及天干地支对日主的喜忌（`elementToneOf` 移到 `baziStrength.js` 共用）。大运卡片底边两段色条（左天干右地支），流年按钮右上角喜忌圆点 + 太岁小标签，所选流年下方一句说明；首页「八字 · 今日」流年后面也标太岁；提示词【所选运限】加「流年标注」。
+- **原局合冲刑害**：基本命盘下直接列原局四柱之间的关系；专业细盘里收在「原局内部的合冲刑害」折叠块。术语说明加「合化」「太岁」。
+- **神煞补全**：国印贵人、天医、金舆、灾煞、孤辰、寡宿、魁罡、阴差阳错、十恶大败（后三者只看日柱，`target.key === 'day'`）；`SHENSHA_NOTES` 给每个神煞一句简释。
+- **时辰不详**：`buildBaziChart` 接受 `timeMode: 'unknown'`：按正午排年月日三柱，时柱为占位（`unknown: true`，各字段空），命宫 / 身宫不排，`yun.estimated = true`（起运按正午估算，误差约两个月）。表格、旺衰、关系、神煞、今日卡都能处理空时柱；档案 `data.timeMode = 'unknown'`、`timeHour = null`（`recordToBaziForm` 识别；紫微「从档案带入」排除这类记录；档案列表显示「时辰不详」）。顺手修了 `recordToBaziForm` 把 `timeHour: null` 当成 0（早子时）的问题。
+- **带生辰参数的链接**：`utils/baziLink.js`：`#/bazi?cal=s&d=1998-1-2&h=4&g=m&n=…`（精确模式 `c=07:30&lon=&tz=&prov=&city=&dst=1&tst=0`，时辰不详 `h=x`，晚子换日 `sect=1`）。`App.jsx` 的 `routeFromHash` 只看问号前面，`baziRecordFromHash` 把参数解成临时记录交给 `BaziDivination initialRecord`（首次同步会把地址改回 `#/bazi`）。结果页新增「分享链接」（有分享面板就分享，否则复制），事件 `bazi_link_share`。
+- **所在地「用当前定位」**：`currentPlace.js` 的 `locateCurrentPlace()`：浏览器定位取经度，时区取设备时区（`deviceTimezone`），只保存经度、时区与 `source: 'geo'`，不保存坐标；`placeDisplayName` 统一显示名（城市 / 省份 / 「当前定位 东经 x°」）。`PlaceSetting.jsx` 加按钮，拒绝 / 超时 / 不支持各有提示，事件 `place_set`（`source: geo | manual`）、`place_locate_failed`。时区下拉在定位得到常用列表之外的时区时补一项。
+- **测试**：新增 `bazi-pattern`、`bazi-year-marks`、`bazi-unknown-hour`、`bazi-link`；`current-place`、`bazi-shensha` 随改动更新。环境仍装不上 npm 依赖，lint / build 以 GitHub CI 为准。
