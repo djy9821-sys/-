@@ -7,6 +7,7 @@ import { recordToBaziForm } from '../../utils/baziRecord';
 import { baziFormToChartInput } from '../../utils/baziInput';
 import { buildBaziToday } from '../../utils/baziToday';
 import { buildBaziPrompt } from '../../utils/baziPrompt';
+import PlaceSetting from '../common/PlaceSetting';
 
 const TONE_LABEL = { good: '喜', bad: '忌', neutral: '平' };
 const TONE_CLASS = {
@@ -55,7 +56,7 @@ const ToneChip = ({ label, item }) => (
     </span>
 );
 
-export default function HomeBaziToday({ record, source = null, candidates = [], onSelect, now, onOpenChart, onOpenZiwei }) {
+export default function HomeBaziToday({ record, source = null, candidates = [], onSelect, now, deviceNow = now, onOpenChart, onOpenZiwei }) {
     const [notice, setNotice] = useState(null);
 
     const state = useMemo(() => {
@@ -131,6 +132,7 @@ export default function HomeBaziToday({ record, source = null, candidates = [], 
                 {liuNian && <span>流年 <b className="font-serif text-[#3b342e]">{liuNian.ganZhi}</b></span>}
                 {daYun && <span>{daYun.name === '小运' ? '小运' : '大运'} <b className="font-serif text-[#3b342e]">{daYun.ganZhi}</b></span>}
             </p>
+            <PlaceSetting tone="paper" now={deviceNow} className="mt-1.5 text-[11px]" />
 
             <div className="mt-3">
                 <p className="text-xs font-bold text-[#514941]">今天与命局</p>
