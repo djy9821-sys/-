@@ -7,6 +7,7 @@ import { recordToBaziForm } from '../../utils/baziRecord';
 import { baziFormToChartInput } from '../../utils/baziInput';
 import { buildBaziToday } from '../../utils/baziToday';
 import { buildBaziPrompt } from '../../utils/baziPrompt';
+import { getLiuNianMarks } from '../../utils/baziYearMarks';
 import { track } from '../../utils/analytics';
 import PlaceSetting from '../common/PlaceSetting';
 
@@ -74,10 +75,12 @@ export default function HomeBaziToday({ record, source = null, candidates = [], 
 
     if (!state) return null;
     const { form, chart, today } = state;
-    const { liuRi, liuShi, liuYue, liuNian, daYun, relations, dayTone } = today;
+    const { liuRi, liuShi, liuYue, liuNian, daYun, relations, dayTone, strength } = today;
     const almanac = liuRi.almanac;
     const name = form.personName?.trim() || '命主';
     const topRelations = relations.slice(0, 4);
+    // 今年是否犯太岁、岁运并临：只列标注，不列喜忌（流日已有）。
+    const yearLabels = liuNian ? getLiuNianMarks(liuNian, { chart, daYun, strength }).labels : [];
 
     const copyForAi = async () => {
         track('ai_export', { kind: 'bazi_today', scope: 'day', channel: 'copy' });
@@ -131,7 +134,12 @@ export default function HomeBaziToday({ record, source = null, candidates = [], 
             <p className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#5f574f]">
                 {liuShi && <span>此刻 <b className="font-serif text-[#3b342e]">{liuShi.hourName} {liuShi.ganZhi}</b></span>}
                 <span>流月 <b className="font-serif text-[#3b342e]">{liuYue.ganZhi}</b></span>
-                {liuNian && <span>流年 <b className="font-serif text-[#3b342e]">{liuNian.ganZhi}</b></span>}
+                {liuNian && (
+                    <span>
+                        流年 <b className="font-serif text-[#3b342e]">{liuNian.ganZhi}</b>
+                        {yearLabels.length > 0 && <span className="ml-1 rounded bg-[#b06a1f]/[0.12] px-1 text-[11px] font-bold text-[#7f4b12]">{yearLabels.join('·')}</span>}
+                    </span>
+                )}
                 {daYun && <span>{daYun.name === '小运' ? '小运' : '大运'} <b className="font-serif text-[#3b342e]">{daYun.ganZhi}</b></span>}
             </p>
             <PlaceSetting tone="paper" now={deviceNow} className="mt-1.5 text-[11px]" />
