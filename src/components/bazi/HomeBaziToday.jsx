@@ -55,7 +55,7 @@ const ToneChip = ({ label, item }) => (
     </span>
 );
 
-export default function HomeBaziToday({ record, now, onOpenChart, onOpenZiwei }) {
+export default function HomeBaziToday({ record, source = null, candidates = [], onSelect, now, onOpenChart, onOpenZiwei }) {
     const [notice, setNotice] = useState(null);
 
     const state = useMemo(() => {
@@ -99,6 +99,22 @@ export default function HomeBaziToday({ record, now, onOpenChart, onOpenZiwei })
                 </div>
                 <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-[#a33b30]/40 bg-[#a33b30]/[0.06] font-serif text-lg font-bold text-[#96372e]" aria-hidden="true">八</span>
             </header>
+
+            {candidates.length > 1 && onSelect && (
+                <div className="mt-2.5 flex flex-wrap gap-1.5" role="group" aria-label="选择显示谁的八字">
+                    {candidates.slice(0, 6).map((item) => (
+                        <button
+                            key={item.key}
+                            type="button"
+                            aria-pressed={item.key === source?.key}
+                            onClick={() => onSelect(item.key)}
+                            className={`inline-flex min-h-8 items-center rounded-full border px-2.5 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${item.key === source?.key ? 'border-[#2d6b62] bg-[#2d6b62] text-white' : 'border-[#cbbfac] bg-[#fffaf0]/80 text-[#5f574f] hover:border-[#2d6b62]'}`}
+                        >
+                            {item.label}
+                        </button>
+                    ))}
+                </div>
+            )}
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-baseline gap-1.5 rounded-lg border border-[#a33b30]/35 bg-[#fffaf0] px-3 py-1.5">
@@ -153,7 +169,7 @@ export default function HomeBaziToday({ record, now, onOpenChart, onOpenZiwei })
                 </p>
             )}
             <p className="mt-2.5 text-[11px] leading-5 text-[#9b9185]">
-                按八字页上次排的盘计算，喜忌为程序估算，仅供参考。
+                {source && !source.isLast ? `按档案「${source.label}」计算` : '按八字页上次排的盘计算'}，喜忌为程序估算，仅供参考。
                 {onOpenZiwei && (
                     <button type="button" onClick={onOpenZiwei} className="ml-1 font-bold text-[#2d6b62] underline-offset-2 hover:underline">
                         也看紫微运势 →

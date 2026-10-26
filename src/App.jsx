@@ -3,7 +3,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import WelcomeCover from "./components/WelcomeCover";
 import { AlertCircle, ArrowLeft, CheckCircle2, Save } from "lucide-react";
 import { archiveManager } from './utils/archiveManager';
-import { readLastBaziRecord } from './utils/baziRecord';
+import { readLastBaziRecord, recordToBaziForm } from './utils/baziRecord';
 
 // Lazy load the heavy components
 const MoneyDivination = lazy(() => import("./components/MoneyDivination"));
@@ -18,6 +18,20 @@ const HomeBaziToday = lazy(() => import("./components/bazi/HomeBaziToday"));
 const AboutView = lazy(() => import("./components/AboutView"));
 
 const APP_VERSION = import.meta.env.VITE_APP_BUILD || 'dev';
+
+// 首页「八字 · 今日」显示谁的盘：记住上次的选择，默认档案里的「自己」。
+const HOME_BAZI_KEY = 'gushupai-home-bazi-profile';
+const readHomeBaziKey = () => {
+  try {
+    return globalThis.localStorage?.getItem(HOME_BAZI_KEY) ?? null;
+  } catch {
+    return null;
+  }
+};
+const baziSignature = (record) => {
+  const form = recordToBaziForm(record);
+  return form ? [form.calendarType, form.year, form.month, form.day, form.hourIndex, form.clockTime, form.gender].join('|') : '';
+};
 
 // 紫微排盘库（iztro 与农历库）压缩后约 250 KB，首页初次访问用不到。
 // 打开紫微录入、命盘，或首页需要生成紫微简报时才下载，下载一次后共用。
@@ -292,6 +306,7 @@ export default function App() {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [lastBaziRecord, setLastBaziRecord] = useState(() => readLastBaziRecord());
   const [ziweiLib, setZiweiLib] = useState(null);
+  const [homeBaziKey, setHomeBaziKey] = useState(readHomeBaziKey);
 
   const birthDateParts = getBirthDateParts(birthday);
   const leapMonthAvailable = calendarType === 'lunar'
@@ -697,6 +712,35 @@ export default function App() {
       || null;
   }, [homeProfileId, homeReadyRecords]);
 
+  // 首页八字：档案里的八字命盘（自己排在最前），加上八字页上次排的盘（与档案重复时不再列出）。
+  const homeBaziCandidates = React.useMemo(() => {
+    const archived = archiveRecords
+      .filter((record) => record.type === 'bazi' && recordToBaziForm(record))
+      .sort((a, b) => Number(b.group === 'self') - Number(a.group === 'self'))
+      .map((record) => ({ key: record.id, record, label: record.name || '未命名' }));
+    if (lastBaziRecord) {
+      const signature = baziSignature(lastBaziRecord);
+      if (!archived.some(({ record }) => baziSignature(record) === signature)) {
+        archived.push({ key: 'last', record: lastBaziRecord, label: lastBaziRecord.name && lastBaziRecord.name !== '未命名' ? lastBaziRecord.name : '上次排盘', isLast: true });
+      }
+    }
+    return archived;
+  }, [archiveRecords, lastBaziRecord]);
+  const homeBazi = homeBaziCandidates.find(({ key }) => key === homeBaziKey)
+    ?? homeBaziCandidates.find(({ record }) => record.group === 'self' && record.type === 'bazi')
+    ?? homeBaziCandidates.find(({ isLast }) => isLast)
+    ?? homeBaziCandidates[0]
+    ?? null;
+  const homeBaziRecord = homeBazi?.record ?? null;
+  const selectHomeBazi = (key) => {
+    setHomeBaziKey(key);
+    try {
+      globalThis.localStorage?.setItem(HOME_BAZI_KEY, key);
+    } catch {
+      // 记不住选择也不影响显示
+    }
+  };
+
   // 需要紫微排盘库的场景：紫微录入页、紫微命盘，以及首页有可用的紫微档案。
   const needsZiweiLib = ['input', 'chart'].includes(view) || homeReadyRecords.length > 0;
   React.useEffect(() => {
@@ -915,14 +959,14 @@ export default function App() {
         ) : view === 'home' ? (
           // --- HOME PORTAL VIEW ---
           <div className="home-page animate-in fade-in duration-500">
-            <div className={`home-overview ${homeFortune || lastBaziRecord ? 'home-overview--personalized' : 'home-overview--empty'}`}>
+            <div className={`home-overview ${homeFortune || homeBaziRecord ? 'home-overview--personalized' : 'home-overview--empty'}`}>
               <div className="home-briefs">
-              {lastBaziRecord && !homeFortune && (
+              {homeBaziRecord && !homeFortune && (
                 <Suspense fallback={null}>
-                  <HomeBaziToday record={lastBaziRecord} now={homeNow} onOpenChart={handleLoadRecord} onOpenZiwei={() => setView('input')} />
+                  <HomeBaziToday record={homeBaziRecord} source={homeBazi} candidates={homeBaziCandidates} onSelect={selectHomeBazi} now={homeNow} onOpenChart={handleLoadRecord} onOpenZiwei={() => setView('input')} />
                 </Suspense>
               )}
-              {(homeFortune || !lastBaziRecord) && (
+              {(homeFortune || !homeBaziRecord) && (
               <section className={`fortune-brief ${homeFortune ? 'fortune-brief--personalized' : 'fortune-brief--empty'}`} aria-labelledby="fortune-brief-title">
                 <header className="fortune-brief-header">
                   <div>
@@ -1055,27 +1099,27 @@ export default function App() {
                 )}
               </section>
               )}
-              {lastBaziRecord && homeFortune && (
+              {homeBaziRecord && homeFortune && (
                 <Suspense fallback={null}>
-                  <HomeBaziToday record={lastBaziRecord} now={homeNow} onOpenChart={handleLoadRecord} />
+                  <HomeBaziToday record={homeBaziRecord} source={homeBazi} candidates={homeBaziCandidates} onSelect={selectHomeBazi} now={homeNow} onOpenChart={handleLoadRecord} />
                 </Suspense>
               )}
               </div>
 
-              <section className={`home-hero ${homeFortune || lastBaziRecord ? 'home-hero--personalized' : ''}`} aria-labelledby="home-title">
-                <p className="section-kicker">{homeFortune || lastBaziRecord ? '每日一看 · 把握当下' : '古法为体 · 数理为用'}</p>
+              <section className={`home-hero ${homeFortune || homeBaziRecord ? 'home-hero--personalized' : ''}`} aria-labelledby="home-title">
+                <p className="section-kicker">{homeFortune || homeBaziRecord ? '每日一看 · 把握当下' : '古法为体 · 数理为用'}</p>
                 <h2 id="home-title" className="home-title">
-                  {homeFortune || lastBaziRecord ? <>从当下入手，<em>再观人生全局</em></> : <>以星曜为镜，<em>观人生脉络</em></>}
+                  {homeFortune || homeBaziRecord ? <>从当下入手，<em>再观人生全局</em></> : <>以星曜为镜，<em>观人生脉络</em></>}
                 </h2>
                 <p className="home-subtitle">
-                  {homeFortune || lastBaziRecord
+                  {homeFortune || homeBaziRecord
                     ? '先用三十秒看懂今天的重点，需要时再展开命盘依据。少一点术语堆叠，多一点可以落实的提示。'
                     : '从一张命盘开始，查看紫微十二宫与八字四柱、大运流年。传统术数，用更清晰的方式呈现。'}
                 </p>
                 <div className="home-assurances" aria-label="产品特点">
-                  <span className="assurance-chip">{homeFortune || lastBaziRecord ? '三十秒简报' : '专业命盘'}</span>
-                  <span className="assurance-chip">{homeFortune || lastBaziRecord ? '喜忌提示' : '运限推演'}</span>
-                  <span className="assurance-chip">{homeFortune || lastBaziRecord ? '依据可展开' : '本地保存'}</span>
+                  <span className="assurance-chip">{homeFortune || homeBaziRecord ? '三十秒简报' : '专业命盘'}</span>
+                  <span className="assurance-chip">{homeFortune || homeBaziRecord ? '喜忌提示' : '运限推演'}</span>
+                  <span className="assurance-chip">{homeFortune || homeBaziRecord ? '依据可展开' : '本地保存'}</span>
                 </div>
               </section>
             </div>
