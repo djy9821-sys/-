@@ -5,6 +5,7 @@ import { AlertCircle, ArrowLeft, CheckCircle2, Save } from "lucide-react";
 import { archiveManager } from './utils/archiveManager';
 import { readLastBaziRecord, recordToBaziForm } from './utils/baziRecord';
 import { toLocalSolarNow } from './utils/currentPlace';
+import { track } from './utils/analytics';
 import { useCurrentPlace } from './components/common/useCurrentPlace';
 import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from './utils/birthPlaces';
 
@@ -473,6 +474,36 @@ export default function App() {
   };
   const ziweiExactReady = ziweiTimeMode !== 'exact' || Boolean(ziweiExact);
 
+  // 紫微录入页「从档案带入」：八字与紫微档案的生辰字段相同，精确时间设置也一并带入。
+  const ziweiArchiveCandidates = React.useMemo(
+    () => archiveRecords
+      .map((record) => ({ record, form: recordToBaziForm(record) }))
+      .filter(({ form }) => form),
+    [archiveRecords],
+  );
+  const applyZiweiArchiveRecord = (recordId) => {
+    const candidate = ziweiArchiveCandidates.find(({ record }) => record.id === recordId);
+    if (!candidate) return;
+    const { form } = candidate;
+    const pad = (value) => String(value).padStart(2, '0');
+    setName(form.personName);
+    setGender(form.gender);
+    setCalendarType(form.calendarType);
+    setBirthday(`${form.year}-${pad(Math.abs(form.month))}-${pad(form.day)}`);
+    setIsLeapMonth(form.month < 0);
+    setBirthTime(form.hourIndex);
+    if (form.timeMode === 'exact') {
+      setZiweiTimeMode('exact');
+      setZiweiClock(form.clockTime);
+      setZiweiPlace({ province: form.placeProvince, city: form.placeCity, longitude: form.longitude, timezone: form.timezone });
+      // 记录里没有明确开夏令时的，按出生日期自动判断。
+      setZiweiDst(form.applyDst || null);
+    } else {
+      setZiweiTimeMode('shichen');
+    }
+    track('archive_prefill', { record_type: candidate.record.type, target: 'ziwei' });
+  };
+
   // 页面切换写入浏览器历史；返回首页时退回历史起点，避免来回堆叠。
   const routeSyncedRef = React.useRef(false);
   React.useEffect(() => {
@@ -482,6 +513,7 @@ export default function App() {
       return;
     }
     document.title = VIEW_TITLES[view] ?? VIEW_TITLES.home;
+    track('tool_view', { tool: view });
     const target = hashForView(view);
     const currentHash = window.location.hash.replace(/^#\/?$/, '');
     const firstSync = !routeSyncedRef.current;
@@ -648,7 +680,8 @@ export default function App() {
     if (deferredPrompt) {
       try {
         await deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
+        const choice = await deferredPrompt.userChoice;
+        track('pwa_install', { outcome: choice?.outcome ?? 'unknown' });
       } catch (error) {
         console.warn('Native install prompt unavailable:', error);
         setShowInstallModal(true);
@@ -690,8 +723,10 @@ export default function App() {
       if (ziweiExact) setBirthTime(ziweiExact.hourIndex);
       setHoroscope(newHoroscope);
       setView('chart');
+      track('ziwei_chart', { time_mode: ziweiExact ? 'exact' : 'shichen', calendar: calendarType });
     } catch (error) {
       console.error("Error generating horoscope:", error);
+      track('ziwei_chart_failed', { time_mode: ziweiExact ? 'exact' : 'shichen', calendar: calendarType });
       alert("生成星盘失败，请检查日期和时间格式是否正确。");
       setHoroscope(null);
     }
@@ -709,6 +744,7 @@ export default function App() {
   };
 
   const handleLoadRecord = async (record) => {
+    track('archive_open', { record_type: record.type });
     if (record.type === 'bazi') {
       setBaziRecord(record);
       setView('bazi');
@@ -824,6 +860,7 @@ export default function App() {
     setIsSaveModalOpen(false);
     setSaveNote(''); // Reset
     setArchiveNotice({ type: 'success', message: `已保存「${savedRecord.name}」的紫微命盘` });
+    track('archive_save', { record_type: 'ziwei', time_mode: ziweiExact ? 'exact' : 'shichen' });
   };
 
   const ziweiRecords = React.useMemo(
@@ -844,12 +881,20 @@ export default function App() {
       || null;
   }, [homeProfileId, homeReadyRecords]);
 
-  // 首页八字：档案里的八字命盘（自己排在最前），加上八字页上次排的盘（与档案重复时不再列出）。
+  // 首页八字：档案里的八字命盘（自己排在最前），只存了紫微命盘的人也按同一份生辰算八字今日，
+  // 再加上八字页上次排的盘（与档案重复时不再列出）。
   const homeBaziCandidates = React.useMemo(() => {
-    const archived = archiveRecords
+    const baziArchived = archiveRecords
       .filter((record) => record.type === 'bazi' && recordToBaziForm(record))
       .sort((a, b) => Number(b.group === 'self') - Number(a.group === 'self'))
       .map((record) => ({ key: record.id, record, label: record.name || '未命名' }));
+    const seen = new Set(baziArchived.map(({ record }) => `${(record.name ?? '').trim()}|${baziSignature(record)}`));
+    const ziweiArchived = archiveRecords
+      .filter((record) => record.type === 'ziwei' && recordToBaziForm(record))
+      .filter((record) => !seen.has(`${(record.name ?? '').trim()}|${baziSignature(record)}`))
+      .sort((a, b) => Number(b.group === 'self') - Number(a.group === 'self'))
+      .map((record) => ({ key: record.id, record, label: `${record.name || '未命名'} · 紫微`, fromZiwei: true }));
+    const archived = [...baziArchived, ...ziweiArchived];
     if (lastBaziRecord) {
       const signature = baziSignature(lastBaziRecord);
       if (!archived.some(({ record }) => baziSignature(record) === signature)) {
@@ -861,9 +906,16 @@ export default function App() {
   const homeBazi = homeBaziCandidates.find(({ key }) => key === homeBaziKey)
     ?? homeBaziCandidates.find(({ record }) => record.group === 'self' && record.type === 'bazi')
     ?? homeBaziCandidates.find(({ isLast }) => isLast)
+    ?? homeBaziCandidates.find(({ record }) => record.group === 'self')
     ?? homeBaziCandidates[0]
     ?? null;
   const homeBaziRecord = homeBazi?.record ?? null;
+  // 「看今日详情」进八字页：来源是紫微档案时也按八字打开（八字页能直接读紫微档案的生辰）。
+  const openBaziToday = (record) => {
+    track('archive_open', { record_type: record.type, opened_as: 'bazi' });
+    setBaziRecord(record);
+    setView('bazi');
+  };
   const selectHomeBazi = (key) => {
     setHomeBaziKey(key);
     try {
@@ -982,6 +1034,7 @@ export default function App() {
           url: cleanUrl.toString(),
         });
         setHomeShareNotice({ type: 'success', message: '已完成分享，内容不含姓名与出生资料' });
+        track('fortune_share', { period: homePeriod, channel: 'share' });
         return;
       } catch (error) {
         if (error?.name === 'AbortError') return;
@@ -991,6 +1044,7 @@ export default function App() {
     try {
       await copyPlainText(`${shareText}\n${cleanUrl}`);
       setHomeShareNotice({ type: 'success', message: '已复制隐私版摘要，不含姓名与出生资料' });
+      track('fortune_share', { period: homePeriod, channel: 'copy' });
     } catch {
       setHomeShareNotice({ type: 'error', message: '暂时无法分享，请稍后再试' });
     }
@@ -1108,7 +1162,7 @@ export default function App() {
               <div className="home-briefs">
               {homeBaziRecord && !homeFortune && (
                 <Suspense fallback={null}>
-                  <HomeBaziToday record={homeBaziRecord} source={homeBazi} candidates={homeBaziCandidates} onSelect={selectHomeBazi} now={homeSolarNow} deviceNow={homeNow} onOpenChart={handleLoadRecord} onOpenZiwei={() => setView('input')} />
+                  <HomeBaziToday record={homeBaziRecord} source={homeBazi} candidates={homeBaziCandidates} onSelect={selectHomeBazi} now={homeSolarNow} deviceNow={homeNow} onOpenChart={openBaziToday} onOpenZiwei={() => setView('input')} />
                 </Suspense>
               )}
               {(homeFortune || !homeBaziRecord) && (
@@ -1246,7 +1300,7 @@ export default function App() {
               )}
               {homeBaziRecord && homeFortune && (
                 <Suspense fallback={null}>
-                  <HomeBaziToday record={homeBaziRecord} source={homeBazi} candidates={homeBaziCandidates} onSelect={selectHomeBazi} now={homeSolarNow} deviceNow={homeNow} onOpenChart={handleLoadRecord} />
+                  <HomeBaziToday record={homeBaziRecord} source={homeBazi} candidates={homeBaziCandidates} onSelect={selectHomeBazi} now={homeSolarNow} deviceNow={homeNow} onOpenChart={openBaziToday} />
                 </Suspense>
               )}
               </div>
@@ -1389,6 +1443,28 @@ export default function App() {
                   handleStartScan();
                 }}
               >
+                {ziweiArchiveCandidates.length > 0 && (
+                  <div className="form-fieldset">
+                    <label htmlFor="ziwei-archive" className="field-label">
+                      从档案带入<span className="field-optional">选填</span>
+                    </label>
+                    <select
+                      id="ziwei-archive"
+                      value=""
+                      onChange={(event) => applyZiweiArchiveRecord(event.target.value)}
+                      className="field-control"
+                      aria-describedby="ziwei-archive-hint"
+                    >
+                      <option value="">选择已保存的命主…</option>
+                      {ziweiArchiveCandidates.map(({ record, form }) => (
+                        <option key={record.id} value={record.id}>
+                          {record.name || '未命名'} · {record.type === 'bazi' ? '八字' : '紫微'} · {form.calendarType === 'lunar' ? '农历' : '公历'}{form.year}-{Math.abs(form.month)}-{form.day}
+                        </option>
+                      ))}
+                    </select>
+                    <p id="ziwei-archive-hint" className="field-hint">八字档案里的生辰也能直接排紫微盘，带入后仍可修改。</p>
+                  </div>
+                )}
                 <fieldset className="form-fieldset">
                   <legend className="field-legend">历法</legend>
                   <div className="segmented-control" aria-label="选择出生日期历法">
