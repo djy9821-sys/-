@@ -481,6 +481,21 @@ const resolveExactMoment = (normalized) => {
   };
 };
 
+/**
+ * 只做出生时间换算，不排八字：钟表时间 → 真太阳时 → 时辰（含交界提示）。
+ * 供紫微等模块复用，保证同一个人在各模块里算出同一个时辰。
+ * @returns {{ hourIndex: number, hourName: string, timeInfo: object }}
+ */
+export const resolveExactBirth = (input) => {
+  const normalized = validateInput({ ...input, timeMode: 'exact', gender: input.gender ?? 'male' });
+  const resolved = resolveExactMoment(normalized);
+  return {
+    hourIndex: resolved.hourIndex,
+    hourName: BAZI_HOUR_OPTIONS[resolved.hourIndex].name,
+    timeInfo: resolved.timeInfo,
+  };
+};
+
 export const buildBaziChart = (input, now = new Date()) => {
   const normalized = validateInput(input);
   if (!(now instanceof Date) || Number.isNaN(now.getTime())) {
