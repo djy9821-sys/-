@@ -192,6 +192,42 @@ function handleResults(results) {
   }
 }
 
+// 先用网站自己提供的模型文件（构建时复制，国内也能访问），失败再试 CDN。
+const MEDIAPIPE_HANDS_BASES = [
+  import.meta.env.VITE_MEDIAPIPE_HANDS_BASE,
+  'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/'
+].filter(Boolean);
+const MODEL_TIMEOUT_MS = 25000;
+
+async function createHands(Hands) {
+  let lastError = null;
+  for (const base of MEDIAPIPE_HANDS_BASES) {
+    const instance = new Hands({ locateFile: (file) => base + file });
+    instance.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.55,
+      minTrackingConfidence: 0.55
+    });
+    try {
+      await Promise.race([
+        instance.initialize(),
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('手势模型加载超时')), MODEL_TIMEOUT_MS);
+        })
+      ]);
+      return instance;
+    } catch (error) {
+      lastError = error;
+      instance.close?.();
+    }
+  }
+  const failure = new Error('手势识别模型加载失败');
+  failure.name = 'ModelUnavailableError';
+  failure.cause = lastError;
+  throw failure;
+}
+
 async function enableCamera() {
   clearError();
   enterExperience('camera');
@@ -201,16 +237,7 @@ async function enableCamera() {
       import('@mediapipe/hands'),
       import('@mediapipe/camera_utils')
     ]);
-    hands = new Hands({
-      locateFile: (file) =>
-        'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/' + file
-    });
-    hands.setOptions({
-      maxNumHands: 1,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.55,
-      minTrackingConfidence: 0.55
-    });
+    hands = await createHands(Hands);
     hands.onResults(handleResults);
 
     mediaPipeCamera = new Camera(video, {
@@ -229,7 +256,9 @@ async function enableCamera() {
   } catch (error) {
     stopCamera();
     showError(
-      '摄像头不可用，已切换到手动模式。Camera unavailable; manual mode is active.'
+      error?.name === 'ModelUnavailableError'
+        ? '手势识别模型没能加载（网络较慢或无法访问模型文件），已切换到手动模式，点击画面即可操作。'
+        : '摄像头不可用，已切换到手动模式。Camera unavailable; manual mode is active.'
     );
     console.error(error);
   }
