@@ -17,7 +17,7 @@ import {
     X,
 } from 'lucide-react';
 import { archiveManager } from '../utils/archiveManager';
-import { recordToBaziForm } from '../utils/baziRecord';
+import { parseClockTime, recordToBaziForm } from '../utils/baziRecord';
 
 const GROUP_META = {
     self: { label: '自己', icon: User },
@@ -135,7 +135,11 @@ const prepareImportedRecord = (record) => {
 const getRecordTime = (record) => {
     if (record?.timeHour == null || record.timeHour === '') return '时辰未记录';
     const value = Number(record?.timeHour);
-    return Number.isInteger(value) && TIME_LABELS[value] ? TIME_LABELS[value] : '时辰未记录';
+    const label = Number.isInteger(value) && TIME_LABELS[value] ? TIME_LABELS[value] : '';
+    // 八字精确到分钟的命盘：显示钟表时间，时辰是按真太阳时换算的结果。
+    const exactClock = record?.type === 'bazi' && record?.data?.timeMode === 'exact' && parseClockTime(record.data.clockTime);
+    if (exactClock && label) return `${record.data.clockTime} ${label}`;
+    return label || '时辰未记录';
 };
 
 export default function ArchiveView({ onBack, onLoadRecord }) {
@@ -485,7 +489,9 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
                                                                             <span className="shrink-0 rounded-full border border-[#b9ad98] bg-[#fffaf0]/65 px-2 py-0.5 text-[9px] font-bold text-[#756d63]">{groupMeta.label}</span>
                                                                         </span>
                                                                         <span className="mt-1 block text-[11px] leading-5 text-[#756d63] sm:text-xs">
-                                                                            {getRecordType(record)} · {getGenderLabel(record)} · {getCalendarLabel(record)} {getRecordDate(record)} · {getRecordTime(record)}
+                                                                            {[getRecordType(record), getGenderLabel(record), `${getCalendarLabel(record)} ${getRecordDate(record)}`, getRecordTime(record)].map((part, index) => (
+                                                                                <React.Fragment key={index}>{index > 0 && ' · '}<span className="whitespace-nowrap">{part}</span></React.Fragment>
+                                                                            ))}
                                                                         </span>
                                                                         {recordNote && <span className="mt-1 block truncate text-[11px] text-[#8c8174]">备注：{recordNote}</span>}
                                                                     </span>
