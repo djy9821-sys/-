@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { archiveManager } from '../utils/archiveManager';
 import { parseClockTime, recordToBaziForm } from '../utils/baziRecord';
+import { describeLiuYaoRecord, isLiuYaoRecord } from '../utils/liuyaoRecord';
 
 const GROUP_META = {
     self: { label: '自己', icon: User },
@@ -47,6 +48,7 @@ const TIME_LABELS = {
 const TYPE_LABELS = {
     ziwei: '紫微斗数',
     bazi: '八字',
+    liuyao: '六爻卦例',
     money: '金钱卦',
     unknown: '其他记录',
 };
@@ -92,7 +94,7 @@ const getGenderLabel = (record) => (
     record?.gender === 'male' ? '乾造' : record?.gender === 'female' ? '坤造' : '性别未记录'
 );
 
-const canOpenRecord = (record) => (record?.type === 'bazi' ? recordToBaziForm(record) !== null : record?.type === 'ziwei'
+const canOpenRecord = (record) => (record?.type === 'liuyao' ? isLiuYaoRecord(record) : record?.type === 'bazi' ? recordToBaziForm(record) !== null : record?.type === 'ziwei'
     && ['male', 'female'].includes(record?.gender)
     && (
         ['solar', 'lunar'].includes(record?.calendarType)
@@ -130,6 +132,15 @@ const prepareImportedRecord = (record) => {
         createdAt: Number.isFinite(Number(record.createdAt)) ? Number(record.createdAt) : Date.now(),
         updatedAt: Number.isFinite(Number(record.updatedAt)) ? Number(record.updatedAt) : Date.now(),
     };
+};
+
+// 列表里每条记录的说明文字：命盘记录显示生辰，六爻卦例显示本卦变卦与起卦时间。
+const getRecordSummaryParts = (record) => {
+    if (record?.type === 'liuyao') {
+        const summary = describeLiuYaoRecord(record);
+        return [getRecordType(record), summary.hexagramText, summary.castText, summary.dayText, summary.methodText].filter(Boolean);
+    }
+    return [getRecordType(record), getGenderLabel(record), `${getCalendarLabel(record)} ${getRecordDate(record)}`, getRecordTime(record)];
 };
 
 const getRecordTime = (record) => {
@@ -189,10 +200,7 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
             const searchableText = [
                 toDisplayText(record?.name),
                 toDisplayText(record?.note),
-                getRecordDate(record),
-                getRecordType(record),
-                getCalendarLabel(record),
-                getRecordTime(record),
+                ...getRecordSummaryParts(record),
                 getGroupMeta(getGroupId(record)).label,
             ].filter(Boolean).join(' ').toLocaleLowerCase('zh-CN');
             return matchesGroup && (!query || searchableText.includes(query));
@@ -464,6 +472,7 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
                                                 const recordName = toDisplayText(record.name, '未命名');
                                                 const recordNote = toDisplayText(record.note);
                                                 const isOpenable = canOpenRecord(record);
+                                                const isLiuYao = record.type === 'liuyao';
                                                 return (
                                                     <article key={record.id} className="overflow-hidden rounded-2xl border border-[#d0c4b2] bg-[#f2eadc] text-[#302a25] shadow-lg shadow-black/15">
                                                         <div className="flex items-stretch">
@@ -472,16 +481,18 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
                                                                 onClick={() => isOpenable && onLoadRecord?.(record)}
                                                                 disabled={!isOpenable}
                                                                 className="group min-h-[5.5rem] min-w-0 flex-1 px-4 py-3 text-left transition-colors hover:bg-[#fffaf0]/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2d6b62] disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                                                                aria-label={isOpenable ? `打开${recordName}的${getRecordType(record)}命盘` : `${recordName}的${getRecordType(record)}暂不支持打开或资料不完整`}
+                                                                aria-label={isOpenable ? (isLiuYao ? `查看卦例「${recordName}」` : `打开${recordName}的${getRecordType(record)}命盘`) : `${recordName}的${getRecordType(record)}暂不支持打开或资料不完整`}
                                                             >
                                                                 <div className="flex items-start gap-3">
-                                                                    <span className={`mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-xl border font-serif text-base font-bold ${record.gender === 'female'
-                                                                        ? 'border-[#a33b30]/35 bg-[#a33b30]/[0.06] text-[#96372e]'
-                                                                        : record.gender === 'male'
-                                                                            ? 'border-[#2d6b62]/35 bg-[#2d6b62]/[0.07] text-[#2d6b62]'
-                                                                            : 'border-[#b9ad98] bg-[#e9dfcd] text-[#756d63]'
+                                                                    <span className={`mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-xl border font-serif text-base font-bold ${isLiuYao
+                                                                        ? 'border-[#9a7119]/40 bg-[#9a7119]/[0.08] text-[#7d5c14]'
+                                                                        : record.gender === 'female'
+                                                                            ? 'border-[#a33b30]/35 bg-[#a33b30]/[0.06] text-[#96372e]'
+                                                                            : record.gender === 'male'
+                                                                                ? 'border-[#2d6b62]/35 bg-[#2d6b62]/[0.07] text-[#2d6b62]'
+                                                                                : 'border-[#b9ad98] bg-[#e9dfcd] text-[#756d63]'
                                                                     }`} aria-hidden="true">
-                                                                        {recordName.slice(0, 1)}
+                                                                        {isLiuYao ? '卦' : recordName.slice(0, 1)}
                                                                     </span>
                                                                     <span className="min-w-0 flex-1">
                                                                         <span className="flex items-center gap-2">
@@ -489,14 +500,14 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
                                                                             <span className="shrink-0 rounded-full border border-[#b9ad98] bg-[#fffaf0]/65 px-2 py-0.5 text-[9px] font-bold text-[#756d63]">{groupMeta.label}</span>
                                                                         </span>
                                                                         <span className="mt-1 block text-[11px] leading-5 text-[#756d63] sm:text-xs">
-                                                                            {[getRecordType(record), getGenderLabel(record), `${getCalendarLabel(record)} ${getRecordDate(record)}`, getRecordTime(record)].map((part, index) => (
+                                                                            {getRecordSummaryParts(record).map((part, index) => (
                                                                                 <React.Fragment key={index}>{index > 0 && ' · '}<span className="whitespace-nowrap">{part}</span></React.Fragment>
                                                                             ))}
                                                                         </span>
                                                                         {recordNote && <span className="mt-1 block truncate text-[11px] text-[#8c8174]">备注：{recordNote}</span>}
                                                                     </span>
                                                                     <span className="mt-3 inline-flex shrink-0 items-center gap-1 text-[10px] font-bold text-[#2d6b62] sm:text-xs">
-                                                                        {isOpenable ? '排盘' : '暂不可开'} {isOpenable && <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />}
+                                                                        {isOpenable ? (isLiuYao ? '查看' : '排盘') : '暂不可开'} {isOpenable && <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />}
                                                                     </span>
                                                                 </div>
                                                             </button>
