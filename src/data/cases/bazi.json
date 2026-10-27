@@ -1,0 +1,16 @@
+{
+  "module": "bazi",
+  "entries": [
+    {
+      "id": "bazi.qing.qianlong",
+      "name": "清高宗（乾隆帝）",
+      "source": { "title": "清史稿", "section": "高宗本纪一" },
+      "birth": { "calendar": "lunar", "year": 1711, "month": 8, "day": 13, "hourIndex": 0, "isLeapMonth": false, "gender": "male" },
+      "pillars": ["辛卯", "丁酉", "庚午", "丙子"],
+      "original": "示例条目：此处应抄录原书记载的原文（生辰或断语）。《清史稿·高宗本纪》记其生于康熙五十年八月十三日；子时为通行说法，正式录入时请补原文并注明页卷。",
+      "vernacular": "",
+      "notes": "四柱与程序排盘一致（test/golden/bazi.json 的 qianlong 命例）。本条只示范格式，status 留 draft，待补原文后改为 translated。",
+      "status": "draft"
+    }
+  ]
+}
