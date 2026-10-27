@@ -10,6 +10,8 @@ import BaziFlowPanel, { RelationList } from './bazi/BaziFlowPanel';
 import BaziPatternPanel from './bazi/BaziPatternPanel';
 import BaziClassicsPanel from './bazi/BaziClassicsPanel';
 import BaziPromptExport from './bazi/BaziPromptExport';
+import { useClassicsLibrary } from './common/ClassicsPanel.jsx';
+import { baziContextOf, matchEntries } from '../data/classics/index.js';
 import BaziShareCardModal from './bazi/BaziShareCardModal';
 import BaziStrengthPanel from './bazi/BaziStrengthPanel';
 import { BoundaryNotice, SectionHeading } from './bazi/BaziBits';
@@ -454,6 +456,12 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
 
     // 原局四柱之间的合冲刑害（不含运限）。
     const natalRelations = useMemo(() => findRelations(natalItems), [natalItems]);
+    // 古籍库里与本命相关的条目：附进「导出给 AI」的提示词（古籍库按需加载，未加载完就先不附）。
+    const { data: classicsData } = useClassicsLibrary(Boolean(baziResult));
+    const classicsHits = useMemo(() => {
+        if (!classicsData?.library || !baziResult) return null;
+        return matchEntries(classicsData.library, baziContextOf({ chart: baziResult, strength, judge: patternJudge, relations: natalRelations }));
+    }, [classicsData, baziResult, strength, patternJudge, natalRelations]);
     // 本命四柱所见的神煞（去重，按收录顺序），供「神煞查法与出处」先列。
     const natalShenshaNames = useMemo(() => {
         const seen = new Set((baziResult?.pillars ?? []).flatMap((pillar) => pillar.shensha ?? []));
@@ -1526,6 +1534,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                 selections={promptSelections}
                                                 defaultScope={DEPTH_TO_PROMPT_SCOPE[compareDepth]}
                                                 now={chartAsOf}
+                                                classics={classicsHits}
                                                 onLocateNow={returnFlowToNow}
                                                 onPickTime={() => scrollToSection(flowSectionRef)}
                                             />
