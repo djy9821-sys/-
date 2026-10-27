@@ -19,6 +19,13 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   // 格局与择日两节都在。
   await expect(result.getByRole('heading', { name: /格局与命局组合/ })).toBeVisible();
   await expect(result.getByRole('heading', { name: /择日参考/ })).toBeVisible();
+  // 古籍原文：正官格命中《子平真诠》成败两段，白话默认，切到原文能看到原句。
+  await expect(result.getByRole('heading', { name: /古籍原文/ })).toBeVisible();
+  const classics = result.getByTestId('bazi-classics');
+  await expect(classics.getByTestId('bazi-classic-entry').first()).toContainText('子平真诠');
+  await expect(classics).toContainText('格局·正官格');
+  await classics.getByRole('button', { name: '原文' }).click();
+  await expect(classics).toContainText('官逢财印，又无刑冲破害');
 });
 
 test('手动录入排盘、存档，再从档案打开', async ({ page }) => {
