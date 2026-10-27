@@ -11,6 +11,9 @@ import { getShensha, SHENSHA_SOURCES } from './baziShensha.js';
 import { cite } from '../data/classics.js';
 import { analyzeStrength } from './baziStrength.js';
 import { describeYearMarks, describeYearSummary, getLiuNianMarks } from './baziYearMarks.js';
+import { PROMPT_CLASSICS_LIMIT, classicsPromptLines } from './classicsPrompt.js';
+
+export { PROMPT_CLASSICS_LIMIT };
 
 export const PROMPT_SCOPES = Object.freeze([
   { value: 'natal', label: '本命' },
@@ -54,31 +57,6 @@ const shenshaSourceLines = (chart) => {
     });
   if (!lines.length) return ['- 本命四柱未见本程序收录的神煞。'];
   return [...lines, `神煞口诀主要取自${cite('sanming')}，禄取${cite('yuanhai')}，红鸾天喜取${cite('xieji')}；请以这些古籍的本义解释，吉凶仍以五行喜忌为主。`];
-};
-
-/** 提示词里最多附几条古籍原文：太多会把 AI 的注意力淹掉，也让提示词过长。 */
-export const PROMPT_CLASSICS_LIMIT = 6;
-
-/**
- * 与本命相关的古籍原文（古籍库 matchEntries 的命中结果，已按相关度排好序），只附原文不附白话：
- * 让 AI 按原书本义解释，白话由本程序另行标注审核状态，不混进去。
- */
-const classicsLines = (classics) => {
-  const hits = (classics ?? []).filter((hit) => hit?.entry?.original);
-  if (!hits.length) return null;
-  const shown = hits.slice(0, PROMPT_CLASSICS_LIMIT);
-  const lines = shown.map(({ entry, reason }) => {
-    const where = `《${entry.book}》${entry.volume ? `·${entry.volume}` : ''}·${entry.section}`;
-    const original = String(entry.original).replace(/\s*\n\s*/g, ' ').trim();
-    return `- ${where}「${entry.title}」${reason ? `（匹配：${reason}）` : ''}：${original}`;
-  });
-  const tail = hits.length > shown.length
-    ? `古籍库里与本命相关的原文共 ${hits.length} 条，这里只附最相关的 ${shown.length} 条。`
-    : '';
-  return [
-    ...lines,
-    `${tail}以上原文取自公版古籍逐字录入（条目状态：${shown.map(({ entry }) => entry.status === 'reviewed' ? '已审' : entry.status === 'translated' ? '待审' : '仅原文').join('、')}）。请以原文本义为据分析，引用时注明书名与篇目；原文与程序初判不一致时，说明差异而不是硬套。`,
-  ];
 };
 
 const birthLines = (chart, personName) => {
@@ -265,7 +243,7 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
   sections.push(['【旺衰参考（程序估算）】', ...strengthLines(chart, strength)].join('\n'));
   sections.push(['【格局与组合（程序初判）】', ...patternLines(chart, strength)].join('\n'));
   sections.push(['【神煞查法出处】', ...shenshaSourceLines(chart)].join('\n'));
-  const classicsSection = classicsLines(classics);
+  const classicsSection = classicsPromptLines(classics);
   if (classicsSection) sections.push(['【古籍原文（与本命相关）】', ...classicsSection].join('\n'));
 
   // 流月、流日、流时没有预先算好的神煞，在这里按本命补上。
