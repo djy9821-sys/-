@@ -45,6 +45,40 @@ test('录入生辰生成紫微命盘，常用功能里复制分享链接，链�
   await expect(other).toHaveURL(/#\/ziwei\/chart$/);
 });
 
+test('常用功能里的古籍原文：默认看命宫，列出宫中星曜与古籍条目，可换宫', async ({ page }) => {
+  await page.goto('/#/ziwei');
+  await fillBirthForm(page);
+  await expect(page.getByTestId('ziwei-chart-title')).toBeVisible({ timeout: 30_000 });
+
+  await page.getByRole('button', { name: '常用功能' }).click();
+  await page.getByTestId('ziwei-common-menu').getByRole('button', { name: '古籍原文' }).click();
+  const modal = page.getByTestId('ziwei-classics-modal');
+  await expect(modal).toBeVisible();
+  await expect(modal.getByRole('heading', { name: /古籍原文/ })).toBeVisible();
+
+  // 1990-05-20 午时：命宫在亥，紫微旺、七杀平同宫，身宫同在命宫。
+  const palacePicker = modal.getByRole('group', { name: '选择宫位' });
+  await expect(palacePicker.getByRole('button', { name: /^命宫/ })).toHaveAttribute('aria-pressed', 'true');
+  const stars = modal.getByTestId('ziwei-classics-stars');
+  await expect(stars).toContainText('命宫（身宫）·亥宫');
+  await expect(stars).toContainText('紫微旺');
+  await expect(stars).toContainText('七杀平');
+
+  const entries = modal.getByTestId('ziwei-classic-entry');
+  await expect(entries.first()).toContainText('紫微', { timeout: 15_000 });
+  await expect(entries.first()).toContainText('星曜·紫微');
+  await expect(entries.first()).toContainText('《紫微斗数全书》');
+
+  // 换到迁移宫：天府得，条目随之变化（库里暂无天府条目时显示「暂时没有」提示）。
+  await palacePicker.getByRole('button', { name: /^迁移/ }).click();
+  await expect(stars).toContainText('迁移·巳宫');
+  await expect(stars).toContainText('天府得');
+  await expect(modal.getByTestId('ziwei-classics-panel-summary')).toContainText('库内共');
+
+  await modal.getByRole('button', { name: '关闭' }).click();
+  await expect(modal).toBeHidden();
+});
+
 test('精确到分钟的紫微链接按真太阳时换算时辰', async ({ page }) => {
   await page.goto('/#/ziwei?cal=s&d=1988-07-15&g=f&c=09%3A05&lon=114.51&prov=%E6%B2%B3%E5%8C%97&city=%E7%9F%B3%E5%AE%B6%E5%BA%84&n=%E7%9F%B3%E5%AE%B6%E5%BA%84');
   await expect(page.getByTestId('ziwei-chart-title')).toBeVisible({ timeout: 30_000 });
