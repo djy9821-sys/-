@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 import {
   baziContextOf, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
-  patternNamesOf, searchGlossary, termsIn, ziweiContextOf,
+  patternNamesOf, searchGlossary, termsIn, ziweiContextOf, ziweiPalaceContextOf,
 } from '../src/data/classics/library.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
@@ -112,6 +112,35 @@ test('匹配规则：任一条件命中、键内任一取值、复数键、只�
   assert.equal(conditionMatches({ module: 'ziwei', note: 'x' }, ziweiContextOf({ stars: ['紫微'] })), null);
   assert.equal(conditionMatches({ module: 'ziwei', star: '紫微' }, { module: 'bazi', star: ['紫微'] }), null);
   assert.deepEqual(conditionMatches({ module: 'ziwei', palace: '交友' }, ziweiContextOf({ palace: '仆役' })), [{ key: 'palace', value: '仆役' }]);
+});
+
+test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算，身宫同宫时命宫身宫都给，四化去掉「化」字）', () => {
+  const palace = {
+    name: '命宫', earthlyBranch: '亥', isBodyPalace: true,
+    majorStars: [{ name: '紫微', brightness: '旺', mutagen: '' }, { name: '七杀', brightness: '平', mutagen: '化权' }],
+    minorStars: [{ name: '文曲', brightness: '', mutagen: '忌' }],
+    adjectiveStars: [{ name: '天巫' }, { name: '天官' }],
+  };
+  const ctx = ziweiPalaceContextOf(palace, { gender: 'female' });
+  assert.deepEqual(ctx, {
+    module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], palace: ['命宫', '身宫'], branches: ['亥'],
+    brightness: ['旺', '平'], mutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女',
+  });
+  assert.deepEqual(ziweiPalaceContextOf({ name: '交友', earthlyBranch: '辰', majorStars: [] }, { gender: '男' }).palace, ['仆役']);
+  assert.equal(ziweiPalaceContextOf(null), null);
+
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.p.001', title: '紫微守命', original: '甲', status: 'draft', applies: [{ module: 'ziwei', star: '紫微', palace: '命宫' }] },
+      { id: 'ziwei.p.002', title: '紫微守身', original: '乙', status: 'draft', applies: [{ module: 'ziwei', star: '紫微', palace: '身宫' }] },
+      { id: 'ziwei.p.003', title: '女命文曲化忌', original: '丙', status: 'draft', applies: [{ module: 'ziwei', star: '文曲', mutagen: '忌', gender: '女' }] },
+      { id: 'ziwei.p.004', title: '紫微在午', original: '丁', status: 'draft', applies: [{ module: 'ziwei', star: '紫微', branches: '午' }] },
+    ],
+  }]);
+  // 文曲化忌那条命中三个键，排最前；命宫、身宫两条各命中两个键，按 id 排。
+  assert.deepEqual(matchEntries(lib, ctx).map(({ entry }) => entry.id), ['ziwei.p.003', 'ziwei.p.001', 'ziwei.p.002']);
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf({ ...palace, isBodyPalace: false })).map(({ entry }) => entry.id), ['ziwei.p.001']);
 });
 
 test('排序与筛选：条件更具体的在前，同样具体时已审 > 待审 > 仅原文；可按状态过滤与限制条数', () => {
