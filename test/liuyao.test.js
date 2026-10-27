@@ -47,7 +47,7 @@ test('爻辞齐全且按通行本校对', () => {
   assert.equal(getYaoCi('乾为天', 7), null);
 });
 
-test('铜钱字面数 → 爻值', () => {
+test('铜钱阳面（背面）数 → 爻值：三背老阳、三字老阴', () => {
   assert.deepEqual([0, 1, 2, 3].map(coinsToLineValue), [6, 7, 8, 9]);
 });
 

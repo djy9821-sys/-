@@ -45,7 +45,8 @@ import {
     resolveFlowSelection,
 } from '../utils/baziFlow';
 import { findRelations } from '../utils/baziRelations';
-import { getShensha } from '../utils/baziShensha';
+import { getShensha, SHENSHA_ORDER, SHENSHA_SOURCES } from '../utils/baziShensha';
+import { cite } from '../data/classics';
 import { analyzeStrength } from '../utils/baziStrength';
 import { judgeBaziPattern } from '../utils/baziPattern';
 import { describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks } from '../utils/baziYearMarks';
@@ -436,6 +437,11 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
 
     // 原局四柱之间的合冲刑害（不含运限）。
     const natalRelations = useMemo(() => findRelations(natalItems), [natalItems]);
+    // 本命四柱所见的神煞（去重，按收录顺序），供「神煞查法与出处」先列。
+    const natalShenshaNames = useMemo(() => {
+        const seen = new Set((baziResult?.pillars ?? []).flatMap((pillar) => pillar.shensha ?? []));
+        return SHENSHA_ORDER.filter((name) => seen.has(name));
+    }, [baziResult]);
 
     // 流年按钮上的太岁、岁运并临与喜忌标记；起运前的年份以当年小运为「运」。
     const liuNianMarks = useMemo(() => {
@@ -1251,6 +1257,27 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                                     </div>
                                                                 ))}
                                                             </dl>
+                                                        </details>
+                                                        <details className="mt-3 overflow-hidden rounded-xl border border-[#cbbfac]/80 bg-[#fffaf0]/55">
+                                                            <summary className="flex min-h-11 cursor-pointer items-center justify-between px-3 text-sm font-bold text-[#514941] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2d6b62]">
+                                                                神煞查法与出处 <span className="text-xs font-normal text-[#81776b]">{natalShenshaNames.length ? `本命见 ${natalShenshaNames.length} 种` : '本命未见'}</span>
+                                                            </summary>
+                                                            <div className="border-t border-[#cbbfac]/70 px-3 py-3">
+                                                                <p className="text-[11px] leading-5 text-[#81776b]">查法沿用{cite('sanming')}等古籍口诀，与通行排盘一致；有流派差异的在条目里注明。先列本命所见，再列其余。</p>
+                                                                <dl className="mt-2 grid gap-x-5 gap-y-2.5 sm:grid-cols-2">
+                                                                    {[...natalShenshaNames, ...SHENSHA_ORDER.filter((name) => !natalShenshaNames.includes(name))].map((name) => {
+                                                                        const source = SHENSHA_SOURCES[name];
+                                                                        if (!source) return null;
+                                                                        const present = natalShenshaNames.includes(name);
+                                                                        return (
+                                                                            <div key={name} className={present ? '' : 'opacity-70'}>
+                                                                                <dt className="text-xs font-bold text-[#2d6b62]">{name}{present ? <span className="ml-1 rounded border border-[#2d6b62]/40 px-1 text-[10px] font-normal text-[#245a52]">本命</span> : null} <span className="font-normal text-[#81776b]">{cite(source.classic, source.section)}</span></dt>
+                                                                                <dd className="mt-0.5 text-[11px] leading-5 text-[#6f665d]">{source.rule}{source.quote ? <span className="block text-[#514941]">口诀：{source.quote}</span> : null}{source.variant ? <span className="block">{source.variant}</span> : null}</dd>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </dl>
+                                                            </div>
                                                         </details>
                                                     </>
                                                 ) : (

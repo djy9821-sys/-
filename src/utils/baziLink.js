@@ -121,6 +121,7 @@ const DATE_PATTERN = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
  * @param {number|string|null} [form.longitude]
  * @param {number} [form.timezone]
  * @param {boolean|null} [form.applyDst] null 表示按年份自动判断
+ * @param {'next'|'same'} [form.lateZiMode] 晚子时流派（默认换次日；不换日时写入 zi=s）
  */
 export const encodeZiweiLink = (form, { name = '' } = {}) => {
   const date = DATE_PATTERN.exec(form?.birthDate ?? '');
@@ -144,6 +145,7 @@ export const encodeZiweiLink = (form, { name = '' } = {}) => {
     const hourIndex = Number(form.hourIndex);
     params.set('h', String(Number.isInteger(hourIndex) && hourIndex >= 0 && hourIndex <= 12 ? hourIndex : 0));
   }
+  if (form.lateZiMode === 'same') params.set('zi', 's');
   const personName = (name || form.name || '').trim().slice(0, NAME_LIMIT);
   if (personName) params.set('n', personName);
   return params.toString();
@@ -186,16 +188,19 @@ export const decodeZiweiLink = (query) => {
     group: 'other',
     note: '',
     fromLink: true,
-    data: exact ? {
-      timeMode: 'exact',
-      clockTime: exact,
-      placeProvince: params.get('prov') ?? '',
-      placeCity: params.get('city') ?? '',
-      longitude: Number.isFinite(longitude) && longitude >= -180 && longitude <= 180 ? longitude : null,
-      timezone: Number.isFinite(timezone) && timezone >= -12 && timezone <= 14 ? timezone : 8,
-      applyTrueSolar: Number.isFinite(longitude),
-      applyDst: dst === '1' ? true : dst === '0' ? false : null,
-    } : {},
+    data: {
+      lateZi: params.get('zi') === 's' ? 'same' : 'next',
+      ...(exact ? {
+        timeMode: 'exact',
+        clockTime: exact,
+        placeProvince: params.get('prov') ?? '',
+        placeCity: params.get('city') ?? '',
+        longitude: Number.isFinite(longitude) && longitude >= -180 && longitude <= 180 ? longitude : null,
+        timezone: Number.isFinite(timezone) && timezone >= -12 && timezone <= 14 ? timezone : 8,
+        applyTrueSolar: Number.isFinite(longitude),
+        applyDst: dst === '1' ? true : dst === '0' ? false : null,
+      } : {}),
+    },
   };
 };
 

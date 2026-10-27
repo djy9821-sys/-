@@ -27,8 +27,6 @@ export const LIUYAO_TOPICS = Object.freeze([
 
 const TOPIC_BY_VALUE = Object.fromEntries(LIUYAO_TOPICS.map((topic) => [topic.value, topic]));
 
-const SIX_CLASH_HEXAGRAMS = new Set(['乾为天', '坤为地', '震为雷', '巽为风', '坎为水', '离为火', '艮为山', '兑为泽', '天雷无妄', '雷天大壮']);
-const SIX_HARMONY_HEXAGRAMS = new Set(['天地否', '地天泰', '泽水困', '水泽节', '火山旅', '山火贲']);
 /** 五行的墓库（土随水，墓于辰）。 */
 const TOMB = Object.freeze({ 木: '未', 火: '戌', 金: '丑', 水: '辰', 土: '辰' });
 /** 进神：亥子、寅卯、巳午、申酉、丑辰未戌，前者化后者为进。 */
@@ -411,20 +409,21 @@ export const judgeLiuYao = (reading, options = {}) => {
 
   // 五、卦象
   const structure = [];
-  if (SIX_CLASH_HEXAGRAMS.has(hexagram.name)) {
+  // 六冲、六合按三对爻的地支算（liuyao.js 的 hexagramRelationOf）：六冲十卦、六合八卦。
+  if (hexagram.relation === '六冲') {
     total -= 1;
     structure.push('本卦六冲，事多散、快，难以久长');
   }
-  if (SIX_HARMONY_HEXAGRAMS.has(hexagram.name)) {
+  if (hexagram.relation === '六合') {
     total += 1;
     structure.push('本卦六合，事易成但进展缓');
   }
   if (changed) {
-    if (SIX_CLASH_HEXAGRAMS.has(changed.name)) {
+    if (changed.relation === '六冲') {
       total -= 1;
       structure.push('变卦六冲，先聚后散');
     }
-    if (SIX_HARMONY_HEXAGRAMS.has(changed.name)) {
+    if (changed.relation === '六合') {
       total += 1;
       structure.push('变卦六合，终能成局');
     }

@@ -357,6 +357,7 @@ a:focus-visible {
 .panel-subtitle { max-width: 340px; margin: 8px 0 0; color: rgba(16, 32, 27, 0.58); font-size: 13px; line-height: 1.65; }
 .birth-form { display: grid; gap: 21px; padding: 24px 26px 28px; }
 .form-fieldset { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.late-zi-choice { display: grid; gap: 6px; margin-top: 4px; }
 .field-label, .field-legend { margin: 0; padding: 0; color: rgba(16, 32, 27, 0.75); font-size: 12px; font-weight: 800; letter-spacing: 0.05em; }
 .field-optional { margin-left: 5px; color: rgba(16, 32, 27, 0.38); font-weight: 500; }
 .field-hint { margin: 0; color: rgba(16, 32, 27, 0.48); font-size: 11px; line-height: 1.55; }
