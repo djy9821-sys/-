@@ -4,6 +4,7 @@ import {
   LunarYear,
   Solar,
 } from 'lunar-javascript';
+import { buildShenshaContext, getShensha } from './baziShensha.js';
 import {
   formatClock,
   getShichenBoundary,
@@ -171,6 +172,8 @@ const getPillar = (eightChar, definition) => {
       wuxing: GAN_WUXING[hiddenGan] ?? '',
     })),
     diShi: eightChar[`get${prefix}DiShi`](),
+    // 自坐：本柱天干在本柱地支的十二长生（问真“自坐”一栏）。
+    ziZuo: getDayMasterDiShi(gan, zhi),
     xun: eightChar[`get${prefix}Xun`](),
     xunKong: eightChar[`get${prefix}XunKong`](),
     naYin: eightChar[`get${prefix}NaYin`](),
@@ -227,12 +230,13 @@ export const describeGanZhi = (ganZhi, dayGan) => {
     naYin: LunarUtil.NAYIN[ganZhi] ?? '',
     diShi: getDayMasterDiShi(dayGan, zhi),
     diShiBasis: '日主临支',
+    ziZuo: getDayMasterDiShi(gan, zhi),
     xun: LunarUtil.getXun(ganZhi),
     xunKong: LunarUtil.getXunKong(ganZhi),
   };
 };
 
-const buildLiuNian = (liuNian, currentBaziYear, dayGan, sourceDaYunIndex) => {
+const buildLiuNian = (liuNian, currentBaziYear, dayGan, sourceDaYunIndex, ageOffset = 0) => {
   const ganZhi = liuNian.getGanZhi();
   const gan = ganZhi.slice(0, 1);
   const zhi = ganZhi.slice(1, 2);
@@ -243,7 +247,7 @@ const buildLiuNian = (liuNian, currentBaziYear, dayGan, sourceDaYunIndex) => {
     index: liuNian.getIndex(),
     sourceDaYunIndex,
     year: liuNian.getYear(),
-    age: liuNian.getAge(),
+    age: liuNian.getAge() + ageOffset,
     ganZhi,
     gan,
     zhi,
@@ -256,6 +260,7 @@ const buildLiuNian = (liuNian, currentBaziYear, dayGan, sourceDaYunIndex) => {
     naYin: LunarUtil.NAYIN[ganZhi] ?? '',
     diShi: getDayMasterDiShi(dayGan, zhi),
     diShiBasis: '日主临支',
+    ziZuo: getDayMasterDiShi(gan, zhi),
     xun: liuNian.getXun(),
     xunKong: liuNian.getXunKong(),
     // 八字流年以立春为界，不能直接用公历年份判断。
@@ -272,7 +277,7 @@ const solarToLocalTimestamp = (solar) => new Date(
   solar.getSecond(),
 ).getTime();
 
-const buildDaYun = (daYun, now, yunStartSolar, currentBaziYear, dayGan) => {
+const buildDaYun = (daYun, now, yunStartSolar, currentBaziYear, dayGan, ageOffset = 0) => {
   const ganZhi = daYun.getGanZhi();
   const gan = ganZhi.slice(0, 1);
   const zhi = ganZhi.slice(1, 2);
@@ -288,8 +293,8 @@ const buildDaYun = (daYun, now, yunStartSolar, currentBaziYear, dayGan) => {
     name: '大运',
     type: 'dayun',
     index: daYun.getIndex(),
-    startAge: daYun.getStartAge(),
-    endAge: daYun.getEndAge(),
+    startAge: daYun.getStartAge() + ageOffset,
+    endAge: daYun.getEndAge() + ageOffset,
     startYear: daYun.getStartYear(),
     endYear: daYun.getEndYear(),
     exactStartSolar: exactStartSolar.toYmdHms(),
@@ -306,11 +311,12 @@ const buildDaYun = (daYun, now, yunStartSolar, currentBaziYear, dayGan) => {
     naYin: LunarUtil.NAYIN[ganZhi] ?? '',
     diShi: getDayMasterDiShi(dayGan, zhi),
     diShiBasis: '日主临支',
+    ziZuo: getDayMasterDiShi(gan, zhi),
     xun: daYun.getXun(),
     xunKong: daYun.getXunKong(),
     // 大运以实际交运时刻为边界，而不是每年元旦粗略切换。
     isCurrent: nowTimestamp >= exactStartTimestamp && nowTimestamp < exactEndTimestamp,
-    liuNian: daYun.getLiuNian().map((item) => buildLiuNian(item, currentBaziYear, dayGan, daYun.getIndex())),
+    liuNian: daYun.getLiuNian().map((item) => buildLiuNian(item, currentBaziYear, dayGan, daYun.getIndex(), ageOffset)),
   };
 };
 
@@ -327,11 +333,13 @@ const validateInput = (input) => {
   const year = toInteger(input.year, '出生年');
   const month = toInteger(input.month, '出生月');
   const day = toInteger(input.day, '出生日');
-  const timeMode = input.timeMode === 'exact' ? 'exact' : 'shichen';
+  const timeMode = input.timeMode === 'exact' ? 'exact' : input.timeMode === 'unknown' ? 'unknown' : 'shichen';
   let hourIndex = null;
   let hourOption = null;
   let exact = null;
-  if (timeMode === 'exact') {
+  if (timeMode === 'unknown') {
+    // 时辰不详：只排年月日三柱；日柱与起运按正午估算（同一天任何时辰日柱相同，晚子时除外）。
+  } else if (timeMode === 'exact') {
     const clockHour = toInteger(input.clockHour, '出生小时');
     const clockMinute = toInteger(input.clockMinute, '出生分钟');
     if (clockHour < 0 || clockHour > 23 || clockMinute < 0 || clockMinute > 59) {
@@ -408,6 +416,29 @@ export const getClockSolarDate = (calendarType, year, month, day) => {
 
 const momentToSolar = (moment) => Solar.fromYmdHms(moment.year, moment.month, moment.day, moment.hour, moment.minute, 0);
 
+/** 时辰不详时的时柱占位：各字段留空，表格与提示词显示「不详」。 */
+const UNKNOWN_TIME_PILLAR = Object.freeze({
+  key: 'time',
+  name: '时柱',
+  unknown: true,
+  ganZhi: '',
+  gan: '',
+  zhi: '',
+  ganShiShen: '',
+  hiddenGans: [],
+  hiddenShiShens: [],
+  hiddenGanDetails: [],
+  diShi: '',
+  ziZuo: '',
+  xun: '',
+  xunKong: '',
+  naYin: '',
+  ganWuxing: '',
+  zhiWuxing: '',
+  wuxing: { gan: '', zhi: '' },
+  shensha: [],
+});
+
 /**
  * 精确时间模式：钟表时间 →（夏令时）→ 真太阳时，并给出时辰交界提示。
  */
@@ -475,6 +506,21 @@ const resolveExactMoment = (normalized) => {
   };
 };
 
+/**
+ * 只做出生时间换算，不排八字：钟表时间 → 真太阳时 → 时辰（含交界提示）。
+ * 供紫微等模块复用，保证同一个人在各模块里算出同一个时辰。
+ * @returns {{ hourIndex: number, hourName: string, timeInfo: object }}
+ */
+export const resolveExactBirth = (input) => {
+  const normalized = validateInput({ ...input, timeMode: 'exact', gender: input.gender ?? 'male' });
+  const resolved = resolveExactMoment(normalized);
+  return {
+    hourIndex: resolved.hourIndex,
+    hourName: BAZI_HOUR_OPTIONS[resolved.hourIndex].name,
+    timeInfo: resolved.timeInfo,
+  };
+};
+
 export const buildBaziChart = (input, now = new Date()) => {
   const normalized = validateInput(input);
   if (!(now instanceof Date) || Number.isNaN(now.getTime())) {
@@ -483,7 +529,8 @@ export const buildBaziChart = (input, now = new Date()) => {
 
   let lunar;
   let solar;
-  let timeInfo = { mode: 'shichen' };
+  let timeInfo = { mode: normalized.timeMode };
+  const timeUnknown = normalized.timeMode === 'unknown';
   if (normalized.timeMode === 'exact') {
     const resolved = resolveExactMoment(normalized);
     solar = momentToSolar(resolved.corrected);
@@ -516,12 +563,16 @@ export const buildBaziChart = (input, now = new Date()) => {
 
   const eightChar = lunar.getEightChar();
   eightChar.setSect(normalized.daySect);
-  const pillars = PILLAR_DEFINITIONS.map((definition) => getPillar(eightChar, definition));
+  const rawPillars = PILLAR_DEFINITIONS
+    .map((definition) => (timeUnknown && definition.key === 'time' ? UNKNOWN_TIME_PILLAR : getPillar(eightChar, definition)));
+  const shenshaContext = buildShenshaContext(rawPillars);
+  const withShensha = (item) => ({ ...item, shensha: getShensha(item, shenshaContext) });
+  const pillars = rawPillars.map(withShensha);
   const dayMasterGan = eightChar.getDayGan();
   const surfaceWuxingCount = { '木': 0, '火': 0, '土': 0, '金': 0, '水': 0 };
   pillars.forEach(({ ganWuxing, zhiWuxing }) => {
-    surfaceWuxingCount[ganWuxing] += 1;
-    surfaceWuxingCount[zhiWuxing] += 1;
+    if (ganWuxing) surfaceWuxingCount[ganWuxing] += 1;
+    if (zhiWuxing) surfaceWuxingCount[zhiWuxing] += 1;
   });
 
   const nowSolar = Solar.fromDate(now);
@@ -530,24 +581,57 @@ export const buildBaziChart = (input, now = new Date()) => {
     .getLunar()
     .getYearInGanZhiExact();
   const currentBaziYear = now.getFullYear() - (nowYearGanZhi === midYearGanZhi ? 0 : 1);
+  // 虚岁按农历年算：出生即 1 岁，每过一个春节加 1 岁。lunar-javascript 按公历年份算，
+  // 元旦到春节之间出生的人（农历还在上一年）会少算一岁，这里把差值补上。
+  const ageOffset = lunar.getSolar().getYear() - lunar.getYear();
   const yunSource = eightChar.getYun(normalized.gender === 'male' ? 1 : 0, 2);
   const startSolar = yunSource.getStartSolar();
-  const dayun = yunSource
-    .getDaYun(14)
+  const daYunSources = yunSource.getDaYun(14);
+  const dayun = daYunSources
     .filter((item) => item.getIndex() > 0 && item.getGanZhi())
-    .map((item) => buildDaYun(item, now, startSolar, currentBaziYear, dayMasterGan));
-  const currentLiuNian = dayun
-    .flatMap((item) => item.liuNian)
+    .map((item) => buildDaYun(item, now, startSolar, currentBaziYear, dayMasterGan, ageOffset))
+    .map((item) => ({ ...withShensha(item), liuNian: item.liuNian.map(withShensha) }));
+
+  // 起运之前的年份行小运：大运列表里的第 0 步没有干支，这里单独整理。
+  const childhood = daYunSources.find((item) => item.getIndex() === 0);
+  const childhoodXiaoYun = childhood ? childhood.getXiaoYun() : [];
+  const xiaoYunYears = (childhood ? childhood.getLiuNian() : []).map((item, index) => {
+    const xiaoYunGanZhi = childhoodXiaoYun[index]?.getGanZhi();
+    return {
+      ...withShensha(buildLiuNian(item, currentBaziYear, dayMasterGan, 0, ageOffset)),
+      xiaoYun: xiaoYunGanZhi ? withShensha({ name: '小运', ...describeGanZhi(xiaoYunGanZhi, dayMasterGan) }) : null,
+    };
+  });
+  const xiaoYun = xiaoYunYears.length ? {
+    startAge: childhood.getStartAge(),
+    endAge: childhood.getEndAge() + ageOffset,
+    startYear: childhood.getStartYear(),
+    endYear: childhood.getEndYear(),
+    years: xiaoYunYears,
+  } : null;
+
+  const currentLiuNian = [...dayun.flatMap((item) => item.liuNian), ...xiaoYunYears]
     .find((item) => item.isCurrent) ?? null;
 
   return {
     input: {
       ...normalized,
       exact: normalized.exact ? { ...normalized.exact } : null,
-      hourOption: { ...normalized.hourOption },
+      hourOption: normalized.hourOption ? { ...normalized.hourOption } : null,
     },
     timeInfo,
     pillars,
+    shenshaContext,
+    extras: {
+      taiYuan: eightChar.getTaiYuan(),
+      taiYuanNaYin: eightChar.getTaiYuanNaYin(),
+      // 命宫、身宫都由月支与时支推出，时辰不详时不排。
+      mingGong: timeUnknown ? '' : eightChar.getMingGong(),
+      mingGongNaYin: timeUnknown ? '' : eightChar.getMingGongNaYin(),
+      shenGong: timeUnknown ? '' : eightChar.getShenGong(),
+      shenGongNaYin: timeUnknown ? '' : eightChar.getShenGongNaYin(),
+    },
+    timeUnknown,
     dayMaster: {
       gan: dayMasterGan,
       wuxing: GAN_WUXING[dayMasterGan] ?? '',
@@ -581,8 +665,11 @@ export const buildBaziChart = (input, now = new Date()) => {
       startHour: yunSource.getStartHour(),
       startSolar: startSolar.toYmdHms(),
       forward: yunSource.isForward(),
+      // 时辰不详时按正午起算：三天折一年，十二小时的误差约合两个月。
+      estimated: timeUnknown,
       currentLiuNian,
       dayun,
+      xiaoYun,
     },
   };
 };

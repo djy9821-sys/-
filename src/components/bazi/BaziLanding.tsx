@@ -1,10 +1,23 @@
 import { useEffect, useRef } from 'react';
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronRight, History, X } from 'lucide-react';
 import './BaziLanding.css';
+
+type LastChart = {
+  label: string;
+  onOpen: () => void;
+  onForget: () => void;
+};
+
+type ForgottenChart = {
+  label: string;
+  onUndo: () => void;
+};
 
 type BaziLandingProps = {
   onBack: () => void;
   onStart: () => void;
+  lastChart?: LastChart | null;
+  forgotten?: ForgottenChart | null;
 };
 
 const PILLARS = [
@@ -23,7 +36,7 @@ const CHAPTERS = [
 
 const JOURNEY = ['录生辰', '排四柱', '明五行', '辨十神', '看运限'] as const;
 
-export default function BaziLanding({ onBack, onStart }: BaziLandingProps) {
+export default function BaziLanding({ onBack, onStart, lastChart = null, forgotten = null }: BaziLandingProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -109,8 +122,32 @@ export default function BaziLanding({ onBack, onStart }: BaziLandingProps) {
         </ol>
 
         <div className="bazi-landing__action">
-          <button type="button" onClick={onStart}>
-            <span>录入生辰 · 起命盘</span>
+          {lastChart && (
+            <div className="bazi-landing__resume">
+              <button type="button" className="bazi-landing__resume-open" onClick={lastChart.onOpen}>
+                <History aria-hidden="true" />
+                <span>
+                  <strong>查看上次的命盘</strong>
+                  <small>{lastChart.label}</small>
+                </span>
+                <ChevronRight aria-hidden="true" />
+              </button>
+              <button type="button" className="bazi-landing__resume-forget" onClick={lastChart.onForget} aria-label="清除上次的命盘记录">
+                <X aria-hidden="true" />
+              </button>
+            </div>
+          )}
+          {!lastChart && forgotten && (
+            <div className="bazi-landing__resume" role="status">
+              <span className="bazi-landing__resume-note">
+                <strong>已清除上次的命盘</strong>
+                <small>{forgotten.label}</small>
+              </span>
+              <button type="button" className="bazi-landing__resume-undo" onClick={forgotten.onUndo}>撤销</button>
+            </div>
+          )}
+          <button type="button" className="bazi-landing__start" onClick={onStart}>
+            <span>{lastChart ? '录入新的生辰' : '录入生辰 · 起命盘'}</span>
             <ChevronRight aria-hidden="true" />
           </button>
           <p><span aria-hidden="true">◆</span> 本地排盘 · 生辰资料不上传</p>

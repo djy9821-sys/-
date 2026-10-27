@@ -563,8 +563,12 @@ export function createBaguaExperience(canvas, onStateChange = () => {}) {
     camera.updateProjectionMatrix();
   }
 
+  let frameId = 0;
+  let disposed = false;
+
   function render() {
-    requestAnimationFrame(render);
+    if (disposed) return;
+    frameId = requestAnimationFrame(render);
     const delta = Math.min(clock.getDelta(), 0.04);
     const time = clock.elapsedTime;
     stars.rotation.z += delta * 0.004;
@@ -598,7 +602,27 @@ export function createBaguaExperience(canvas, onStateChange = () => {}) {
   window.addEventListener('resize', resize);
   render();
 
+  // 离开页面时停止动画循环并释放 GPU 资源，否则每次进出都会多一个渲染循环。
+  function dispose() {
+    if (disposed) return;
+    disposed = true;
+    cancelAnimationFrame(frameId);
+    window.removeEventListener('resize', resize);
+    scene.traverse((object) => {
+      object.geometry?.dispose?.();
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      materials.forEach((material) => {
+        material?.map?.dispose?.();
+        material?.dispose?.();
+      });
+    });
+    bloom.dispose?.();
+    composer.dispose?.();
+    renderer.dispose();
+  }
+
   return {
+    dispose,
     get state() {
       return state;
     },

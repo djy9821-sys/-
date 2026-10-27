@@ -271,6 +271,10 @@ a:focus-visible {
 .fortune-empty-content p { margin: 0; color: rgba(16, 32, 27, 0.64); font-size: 14px; line-height: 1.8; }
 .fortune-empty-content button { display: inline-flex; min-height: 46px; margin-top: 18px; padding: 0 16px; align-items: center; gap: 8px; border: 1px solid rgba(39, 126, 112, 0.3); border-radius: 12px 12px 12px 4px; color: #1c665a; background: rgba(85, 187, 168, 0.1); font-size: 12px; font-weight: 900; }
 .fortune-empty-content > span { margin-top: 12px; color: rgba(16, 32, 27, 0.4); font-size: 10px; }
+.fortune-empty-actions { display: flex; margin-top: 18px; flex-wrap: wrap; gap: 8px; }
+.fortune-empty-actions button { margin-top: 0 !important; }
+.fortune-empty-actions button:first-child { border-color: rgba(163, 59, 48, 0.35); color: #8f3027; background: rgba(163, 59, 48, 0.07); }
+.home-briefs { display: flex; min-width: 0; flex-direction: column; gap: 18px; }
 
 .primary-destiny-card {
   position: relative;
@@ -406,6 +410,7 @@ select.field-control { cursor: pointer; }
 .choice-button[aria-pressed="true"] { border-color: rgba(169, 47, 38, 0.42); color: var(--cinnabar-600); background: rgba(216, 90, 69, 0.08); box-shadow: inset 0 0 0 1px rgba(169, 47, 38, 0.08); }
 .submit-button { min-height: 54px; margin-top: 3px; border-radius: 14px 14px 14px 4px; color: #fff8e8; background: linear-gradient(135deg, #cb4a38, #99271f); box-shadow: 0 14px 28px rgba(169, 47, 38, 0.22); font-size: 16px; font-weight: 900; letter-spacing: 0.12em; transition: filter 160ms ease, transform 160ms ease, box-shadow 160ms ease; }
 .submit-button:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 17px 32px rgba(169, 47, 38, 0.28); }
+.submit-button:disabled { cursor: not-allowed; filter: saturate(0.4); opacity: 0.6; transform: none; box-shadow: none; }
 .privacy-note { display: flex; margin: -5px 0 0; align-items: flex-start; gap: 7px; color: rgba(16, 32, 27, 0.48); font-size: 10px; line-height: 1.55; }
 .chart-scroll-area { padding-bottom: max(6rem, calc(5rem + env(safe-area-inset-bottom, 0px))); }
 .safe-modal-padding { padding-top: max(1rem, env(safe-area-inset-top, 0px)); padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px)); }

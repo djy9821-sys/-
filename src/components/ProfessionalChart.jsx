@@ -11,6 +11,7 @@ import {
     generateBabyPrompt
 } from '../utils/aiPrompts';
 import { findBestConceptionDates } from '../utils/babySelector';
+import { track } from '../utils/analytics';
 import {
     buildCurrentFortuneContext,
     FORTUNE_HOUR_OPTIONS,
@@ -140,7 +141,7 @@ const getFlyPalaceShortName = (name = '') => FLY_PALACE_SHORT_NAMES[name] || Str
 // Helper: Get Year Stem (0-9 index)
 const getYearStemIndex = (year) => (year - 4) % 10;
 
-function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, onQuickChart }) {
+function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, onQuickChart, onShareLink = null }) {
     const palaces = useMemo(() => {
         if (!horoscope) return [];
         return horoscope.palaces;
@@ -503,6 +504,16 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     const visibleCenterPillars = hideBirthDetails ? ['—', '—', '—', '—'] : centerPillarParts;
     const birthInputLabel = `${basicInfo.calendarType === 'lunar' ? `农历${basicInfo.isLeapMonth ? '闰月' : ''}` : '公历'} ${basicInfo.birthday || '-'}`;
     const birthSolarLabel = horoscope.solarDate || (basicInfo.calendarType === 'solar' ? basicInfo.birthday : '-');
+    // 录入时选了「精确到分钟」并填了出生地，才算真正校正过真太阳时。
+    const trueSolar = basicInfo.trueSolar;
+    const trueSolarLabel = trueSolar?.applied
+        ? `${trueSolar.correctedDate} ${trueSolar.correctedTime} · ${trueSolar.hourName}（${trueSolar.placeName || '自定义经度'}，比钟表${trueSolar.totalMinutes >= 0 ? '快' : '慢'} ${Math.abs(trueSolar.totalMinutes).toFixed(0)} 分钟${trueSolar.boundary ? `；离时辰交界 ${trueSolar.boundary.minutesToBoundary} 分钟，另一可能为${trueSolar.boundary.alternative.hourName}` : ''}）`
+        : trueSolar
+            ? `按钟表 ${trueSolar.clockTime} 定时辰，未填出生地经度，没有校正`
+            : '未校正：录入时选「精确到分钟」并填出生地，可按真太阳时定时辰';
+    const trueSolarShortLabel = trueSolar?.applied
+        ? `${trueSolar.correctedTime} ${trueSolar.hourName}（${trueSolar.placeName || '自定义经度'}）`
+        : '未校正（需出生地与分钟）';
     const birthClockLabel = `${birthSolarLabel} ${basicInfo.birthTime || horoscope.time || '-'}`;
     const firstDaxianPalace = sortedDaxianPalaces[0] || null;
     const viewedDaxianPalace = selectedDaxianPalace || currentDaxianPalace || firstDaxianPalace;
@@ -1822,6 +1833,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
             }
 
             if (prompt) {
+                track('ai_export', { kind: 'ziwei', scope: type, channel: 'copy' });
                 await copyToClipboard(prompt);
                 setShowAiMenu(false);
             }
@@ -1855,6 +1867,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                 const bestDates = await findBestConceptionDates(selectedBabyType);
 
                 const prompt = generateBabyPrompt(selectedBabyType, basicInfo, horoscope, partnerHoroscope, bestDates);
+                track('ai_export', { kind: 'ziwei', scope: 'baby', channel: 'copy' });
 
                 navigator.clipboard.writeText(prompt).then(() => {
                     alert(`✅ 已生成【${selectedBabyType === 'leader' ? '帝王' : selectedBabyType === 'iq' ? '文昌' : selectedBabyType === 'sport' ? '武曲' : '陶朱'}起居注】指令！\n\n已为您筛选出未来14天内Top3最佳受孕时机。\n请发送给AI获取详细解读。`);
@@ -2142,7 +2155,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 <div><dt>出生公历</dt><dd>{hideBirthDetails ? '已隐藏' : birthSolarLabel}</dd></div>
                                 <div><dt>出生钟表时</dt><dd>{hideBirthDetails ? '已隐藏' : basicInfo.birthTime || horoscope.time || '-'}</dd></div>
                                 <div><dt>出生农历</dt><dd>{hideBirthDetails ? '已隐藏' : horoscope.lunarDate || basicInfo.lunarDate || '-'}</dd></div>
-                                <div className="is-warning"><dt>真太阳时</dt><dd>{hideBirthDetails ? '已隐藏' : '未校正：缺少出生地点、经度及准确分钟，不能可靠计算'}</dd></div>
+                                <div className={basicInfo.trueSolar?.applied ? '' : 'is-warning'}><dt>真太阳时</dt><dd>{hideBirthDetails ? '已隐藏' : trueSolarLabel}</dd></div>
                                 <div><dt>制盘时间</dt><dd>{currentTimeLabel}</dd></div>
                             </dl>
                         </section>
@@ -2383,7 +2396,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                             <p><span>姓名：</span><strong>{basicInfo.name || '匿名'}</strong><span className="wenmo-profile-side">{yinYangGenderLabel} · 虚岁{virtualAge}</span></p>
                             <p><span>出生公历：</span><strong>{hideBirthDetails ? '已隐藏' : birthClockLabel}</strong></p>
                             <p><span>出生农历：</span><strong>{hideBirthDetails ? '已隐藏' : horoscope.lunarDate || basicInfo.lunarDate || '-'}</strong></p>
-                            <p><span>真太阳时：</span><strong className="wenmo-profile-warning">{hideBirthDetails ? '已隐藏' : '未校正（需出生地与分钟）'}</strong></p>
+                            <p><span>真太阳时：</span><strong className={basicInfo.trueSolar?.applied ? '' : 'wenmo-profile-warning'}>{hideBirthDetails ? '已隐藏' : trueSolarShortLabel}</strong></p>
                             <p><span>命主：</span><strong>{horoscope.soul || '-'}</strong><span>身主：</span><strong>{horoscope.body || '-'}</strong><span>生肖：</span><strong>{horoscope.zodiac || '-'}</strong></p>
                             <p><span>命宫：</span><strong>{horoscope.earthlyBranchOfSoulPalace || '-'}宫</strong><span>身宫：</span><strong>{horoscope.earthlyBranchOfBodyPalace || '-'}宫</strong></p>
                             <p><span>当前查看：</span><strong>{currentViewLabel}</strong></p>
@@ -2668,6 +2681,15 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                     window.print();
                                 }}
                             >打印分享</button>
+                            {onShareLink && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowCommonMenu(false);
+                                        onShareLink();
+                                    }}
+                                >分享链接</button>
+                            )}
                         </nav>
                     )}
                 </div>
@@ -3044,7 +3066,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 关闭
                             </button>
                             <button
-                                onClick={() => copyToClipboard(promptPreview.text)}
+                                onClick={() => { track('ai_export', { kind: 'ziwei', scope: 'fortune', channel: 'copy' }); copyToClipboard(promptPreview.text); }}
                                 className="px-5 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-bold shadow hover:opacity-90"
                             >
                                 复制完整话术

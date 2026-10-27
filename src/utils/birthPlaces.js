@@ -61,5 +61,5 @@ export const findBirthPlace = (province, city) => BIRTH_PROVINCES
 
 export const TIMEZONE_OPTIONS = Object.freeze([5, 5.5, 6, 7, 8, 9, 10].map((value) => Object.freeze({
   value,
-  label: `UTC+${value}${value === 8 ? '（北京时间）' : ''}`,
+  label: `UTC+${value}${value === 8 ? ' 北京时间' : ''}`,
 })));

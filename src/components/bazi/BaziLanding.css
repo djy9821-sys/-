@@ -31,7 +31,7 @@
   inset: 0;
   min-height: 780px;
   opacity: 0.28;
-  background-image: url('../../assets/bazi_landscape.jpg');
+  background-image: url('../../assets/bazi_landscape.webp');
   background-position: 50% 22%;
   background-size: max(760px, 130vw) auto;
   background-repeat: no-repeat;
@@ -322,7 +322,7 @@
 .bazi-landing__journey li:not(:last-child)::after { margin: 0 5px; color: rgba(220, 180, 113, 0.34); content: '→'; }
 
 .bazi-landing__action { margin-top: 12px; text-align: center; }
-.bazi-landing__action button {
+.bazi-landing__action .bazi-landing__start {
   display: flex;
   width: 100%;
   min-height: 54px;
@@ -342,8 +342,70 @@
   font-weight: 700;
   letter-spacing: 0.13em;
 }
-.bazi-landing__action button:active { background: linear-gradient(135deg, #a92f26, #741713); }
-.bazi-landing__action button svg { width: 18px; height: 18px; }
+.bazi-landing__action .bazi-landing__start:active { background: linear-gradient(135deg, #a92f26, #741713); }
+.bazi-landing__action .bazi-landing__start svg { width: 18px; height: 18px; }
+.bazi-landing__resume { display: flex; margin-bottom: 10px; gap: 6px; }
+.bazi-landing__resume-open {
+  display: flex;
+  min-width: 0;
+  min-height: 56px;
+  padding: 8px 12px;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(85, 187, 168, 0.45);
+  border-radius: 14px;
+  color: #fbf7ed;
+  background: rgba(4, 25, 26, 0.78);
+  text-align: left;
+}
+.bazi-landing__resume-open:hover { border-color: rgba(85, 187, 168, 0.75); }
+.bazi-landing__resume-open > svg { width: 18px; height: 18px; flex-shrink: 0; color: #55bba8; }
+.bazi-landing__resume-open span { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+.bazi-landing__resume-open strong { color: #f0ce91; font-size: 14px; letter-spacing: 0.08em; }
+.bazi-landing__resume-open small { overflow: hidden; color: rgba(251, 247, 237, 0.68); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.bazi-landing__resume-forget {
+  display: inline-flex;
+  width: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(220, 180, 113, 0.2);
+  border-radius: 14px;
+  color: rgba(251, 247, 237, 0.55);
+  background: rgba(4, 25, 26, 0.6);
+}
+.bazi-landing__resume-forget:hover { color: #fbf7ed; }
+.bazi-landing__resume-forget svg { width: 16px; height: 16px; }
+.bazi-landing__resume-note {
+  display: flex;
+  min-width: 0;
+  min-height: 56px;
+  padding: 8px 12px;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px dashed rgba(220, 180, 113, 0.35);
+  border-radius: 14px;
+  background: rgba(4, 25, 26, 0.6);
+}
+.bazi-landing__resume-note strong { color: rgba(251, 247, 237, 0.82); font-size: 13px; letter-spacing: 0.06em; }
+.bazi-landing__resume-note small { overflow: hidden; color: rgba(251, 247, 237, 0.55); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.bazi-landing__resume-undo {
+  min-width: 72px;
+  flex-shrink: 0;
+  padding: 0 14px;
+  border: 1px solid rgba(85, 187, 168, 0.55);
+  border-radius: 14px;
+  color: #55bba8;
+  background: rgba(4, 25, 26, 0.78);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.bazi-landing__resume-undo:hover { border-color: rgba(85, 187, 168, 0.85); color: #fbf7ed; }
+.bazi-landing__resume button:focus-visible,
+.bazi-landing__action .bazi-landing__start:focus-visible { outline: 2px solid #55bba8; outline-offset: 2px; }
 .bazi-landing__action p { margin: 8px 0 0; color: rgba(251, 247, 237, 0.58); font-size: 10px; letter-spacing: 0.08em; }
 .bazi-landing__action p span { margin-right: 4px; color: rgba(85, 187, 168, 0.62); font-size: 7px; }
 

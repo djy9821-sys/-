@@ -2,28 +2,49 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
+import { installErrorReporting, track } from './utils/analytics.js'
 
-// Remove the legacy PWA worker. It used to serve an old cached index before
-// the new bundle could load, which made the custom domain appear out of date.
-const removeLegacyServiceWorkers = async () => {
-  if (!('serviceWorker' in navigator)) return;
+// 页面出错时只上报错误类型与一句信息（见 utils/analytics.js），不带任何生辰资料。
+installErrorReporting();
 
-  try {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(registrations.map((registration) => registration.unregister()));
-    if ('caches' in globalThis) {
-      const cacheNames = await globalThis.caches.keys();
-      await Promise.all(cacheNames.map((cacheName) => globalThis.caches.delete(cacheName)));
-    }
-  } catch (error) {
-    console.warn('Unable to remove legacy service worker:', error);
-  }
+// 离线缓存：页面始终先走网络（见 public/sw.js），断网或网络很慢时用上次的缓存打开。
+// 旧版 Workbox 缓存会在新脚本启用时自动清掉。
+const registerServiceWorker = () => {
+  if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((error) => {
+      console.warn('离线缓存未启用:', error);
+    });
+  });
 };
 
-void removeLegacyServiceWorkers();
+registerServiceWorker();
+
+// 八字、档案、紫微命盘等页面是用到时才下载的。网站刚更新（旧页面里记的文件已不存在）
+// 或网络抖动时会下载失败：自动刷新一次拿最新版本。10 秒内已经刷新过还失败，
+// 或记不住刷新时间时，不再刷新，交给下面的错误提示，避免反复刷新。
+const CHUNK_RELOAD_KEY = 'gushupai-chunk-reload-at';
+window.addEventListener('vite:preloadError', (event) => {
+  try {
+    const lastReload = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY)) || 0;
+    if (Date.now() - lastReload < 10_000) {
+      track('chunk_load_failed', { retried: true });
+      return;
+    }
+    sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+  } catch {
+    return;
+  }
+  track('chunk_load_failed', { retried: false });
+  event.preventDefault();
+  window.location.reload();
+});
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 )
