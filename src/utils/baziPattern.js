@@ -8,7 +8,9 @@
  * - 命局特点：按天干透出的十神与五行力量识别常见组合（伤官见官、官杀混杂、
  *   食神制杀、财多身弱……），每条附依据与一句简短说明，措辞避免绝对化。
  * - 五行缺失：区分"八个字里没有"与"藏干里也没有"，并提醒缺的不一定是喜用。
+ * - 成败：取格之后按《子平真诠·论用神成败救应》判成、败、成中有败、败中有成（baziPatternSuccess.js）。
  */
+import { judgePatternSuccess } from './baziPatternSuccess.js';
 
 const GAN_WUXING = { 甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水' };
 const ZHI_WUXING = { 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' };
@@ -294,6 +296,7 @@ export const analyzeWuxingGap = (chart, strength) => {
 export const judgeBaziPattern = (chart, strength) => {
   const summary = summarize(chart, strength);
   const pattern = determinePattern(chart, summary);
+  const chengBai = judgePatternSuccess(chart, strength, pattern, summary);
   const special = detectSpecialPattern(chart, strength, summary);
   const traits = detectTraits(chart, strength, summary);
   const absent = detectAbsentRoles(summary);
@@ -303,11 +306,12 @@ export const judgeBaziPattern = (chart, strength) => {
 
   const points = [];
   if (pattern) points.push(`格局：${pattern.name}。${pattern.basis}`);
+  if (chengBai) points.push(`成败（${chengBai.source}）：${pattern.name}${chengBai.verdict}。${chengBai.summary}`);
   if (special) points.push(`${special.name}：${special.basis}${special.note}`);
   points.push(`十神力量：${ROLES.map((role) => `${role}${Math.round(roleShare[role])}%`).join(' ')}${absent.length ? `；${absent.map((item) => item.text).join('、')}` : ''}`);
   traits.forEach((item) => points.push(`${item.name}：${item.basis}${item.note}`));
   points.push(`${wuxingGap.text}。${wuxingGap.hint}`);
   if (timeUnknown) points.push('出生时辰不详，以上按年月日三柱判断，时柱相关的格局与十神未计。');
 
-  return { pattern, special, traits, absent, wuxingGap, roleShare, timeUnknown, points };
+  return { pattern, chengBai, special, traits, absent, wuxingGap, roleShare, timeUnknown, points };
 };
