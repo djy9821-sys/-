@@ -5,7 +5,7 @@ import { AlertCircle, ArrowLeft, CheckCircle2, Save } from "lucide-react";
 import { archiveManager } from './utils/archiveManager';
 import { readLastBaziRecord, recordToBaziForm } from './utils/baziRecord';
 import { placeDisplayName, toLocalSolarNow } from './utils/currentPlace';
-import { decodeBaziLink, hashQueryOf } from './utils/baziLink';
+import { buildZiweiShareUrl, decodeBaziLink, decodeZiweiLink, hashQueryOf } from './utils/baziLink';
 import { track } from './utils/analytics';
 import { useCurrentPlace } from './components/common/useCurrentPlace';
 import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from './utils/birthPlaces';
@@ -96,6 +96,8 @@ const VIEW_TITLES = Object.freeze({
 const routeFromHash = (hash = '') => hash.replace(/^#\/?/, '').split('?')[0].replace(/\/$/, '');
 // 带生辰参数的八字链接 → 临时记录，打开即出盘。
 const baziRecordFromHash = (hash = '') => (viewFromHash(hash) === 'bazi' ? decodeBaziLink(hashQueryOf(hash)) : null);
+// 带生辰参数的紫微链接（#/ziwei?…）→ 紫微记录，交给 handleLoadRecord 直接排盘。
+const ziweiRecordFromHash = (hash = '') => (viewFromHash(hash) === 'input' ? decodeZiweiLink(hashQueryOf(hash)) : null);
 const viewFromHash = (hash = '') => {
   const route = routeFromHash(hash);
   return ROUTE_VIEWS[route] ?? LEGACY_ROUTES[route]?.view ?? 'home';
@@ -310,6 +312,8 @@ export default function App() {
   const [view, setView] = useState(initialViewFromLocation); // 'home', 'input', 'chart', 'liuyao', 'archive', 'videos', 'bazi', 'about'
   // 从档案打开的八字命例；从首页或底部导航进入八字时为空。
   const [baziRecord, setBaziRecord] = useState(() => baziRecordFromHash(globalThis.location?.hash));
+  // 带参数的紫微链接：先记下来，等组件挂好后再加载排盘库出盘（见下方 effect）。
+  const pendingZiweiLinkRef = React.useRef(ziweiRecordFromHash(globalThis.location?.hash));
   // 从档案打开的六爻卦例，以及旧地址 #/money、#/bagua 预选的起卦方式。
   const [liuyaoRecord, setLiuyaoRecord] = useState(null);
   const [liuyaoMethod, setLiuyaoMethod] = useState(() => liuyaoMethodFromHash(globalThis.location?.hash));
@@ -543,9 +547,11 @@ export default function App() {
       const next = viewFromHash(window.location.hash);
       const legacyMethod = liuyaoMethodFromHash(window.location.hash);
       const linkedBazi = baziRecordFromHash(window.location.hash);
+      const linkedZiwei = ziweiRecordFromHash(window.location.hash);
       setIsMoreOpen(false);
       if (legacyMethod) setLiuyaoMethod(legacyMethod);
       if (linkedBazi) setBaziRecord(linkedBazi);
+      if (linkedZiwei) pendingZiweiLinkRef.current = linkedZiwei;
       setView(next === 'chart' && !horoscope ? 'input' : next);
     };
     window.addEventListener('popstate', handlePopState);
@@ -827,6 +833,63 @@ export default function App() {
       } catch {
         alert('读取档案失败，数据可能损坏');
       }
+    }
+  };
+
+  // 打开 #/ziwei?cal=…&d=… 这类链接：排盘库加载后直接出盘，不用再填表。
+  // 放进 setTimeout 里执行并在回调里清掉，StrictMode 重复挂载也只出一次盘。
+  React.useEffect(() => {
+    if (!pendingZiweiLinkRef.current) return undefined;
+    const timer = window.setTimeout(() => {
+      const record = pendingZiweiLinkRef.current;
+      pendingZiweiLinkRef.current = null;
+      if (record) {
+        track('ziwei_link_open', { time_mode: record.data?.timeMode === 'exact' ? 'exact' : 'shichen' });
+        handleLoadRecord(record);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  });
+
+  // 紫微命盘的分享链接：带生辰参数，对方打开即出盘；没有分享面板的设备直接复制。
+  const handleShareZiweiLink = async () => {
+    if (!horoscope) return;
+    const url = buildZiweiShareUrl({
+      calendarType,
+      birthDate: birthday,
+      isLeapMonth: effectiveIsLeapMonth,
+      gender,
+      timeMode: ziweiTimeMode === 'exact' && ziweiExact ? 'exact' : 'shichen',
+      hourIndex: Number(birthTime),
+      clockTime: ziweiClock,
+      placeProvince: ziweiPlace.province,
+      placeCity: ziweiPlace.city,
+      longitude: ziweiPlace.longitude,
+      timezone: ziweiPlace.timezone,
+      applyDst: ziweiDst,
+    }, { name });
+    if (!url) {
+      setArchiveNotice({ type: 'error', message: '生成链接失败：出生日期不完整。' });
+      return;
+    }
+    const title = `${cleanText(name) || '命主'}的紫微命盘 · 古书派`;
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title, url });
+        track('ziwei_link_share', { channel: 'share', time_mode: ziweiTimeMode });
+        return;
+      } catch (error) {
+        if (error?.name === 'AbortError') return;
+        // 分享面板不可用时改为复制
+      }
+    }
+    try {
+      await copyPlainText(url);
+      setArchiveNotice({ type: 'success', message: '命盘链接已复制：对方打开就能看到这张盘（链接里只有生辰与称呼）。' });
+      track('ziwei_link_share', { channel: 'copy', time_mode: ziweiTimeMode });
+    } catch {
+      setArchiveNotice({ type: 'error', message: `复制失败，可以手动复制：${url}` });
+      track('ziwei_link_share', { channel: 'manual', time_mode: ziweiTimeMode });
     }
   };
 
@@ -1806,6 +1869,7 @@ export default function App() {
                   onSave={openSaveArchive}
                   onOpenArchive={() => setView('archive')}
                   onQuickChart={() => setView('input')}
+                  onShareLink={handleShareZiweiLink}
                 />
                 </Suspense>
               </div>

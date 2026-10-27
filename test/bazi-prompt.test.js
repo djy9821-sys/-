@@ -45,6 +45,7 @@ test('流时提示词包含出生信息、四柱、各层运限与关系', () =>
 test('范围决定带入的运限层级与提问', () => {
   const year = buildBaziPrompt({ chart, scope: 'year', selections, now });
   assert.ok(year.includes('- 流年（2026 年'));
+  assert.ok(year.includes('- 流年提要（程序合成，供参考）：'));
   assert.ok(!year.includes('- 流月（'));
   assert.ok(year.includes('哪些月份比较顺'));
   assert.ok(year.includes('【2026 年各月（以节令换月）】'));
@@ -60,6 +61,7 @@ test('范围决定带入的运限层级与提问', () => {
 
   const natal = buildBaziPrompt({ chart, scope: 'natal', selections, now });
   assert.ok(!natal.includes('【所选运限】'));
+  assert.ok(!natal.includes('流年提要'));
   assert.ok(natal.includes('【原局内部的干支关系】'));
   assert.ok(natal.includes('辰酉合'));
   assert.ok(natal.includes('喜用神与忌神'));

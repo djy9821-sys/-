@@ -1,0 +1,95 @@
+import { expect, test } from '@playwright/test';
+import { captureClipboard, hashOf, lastCopiedText, skipWelcomeCover } from './helpers.js';
+
+// 1990-05-20 午时 男：庚午 辛巳 乙酉 壬午，日主乙木。
+const LINK = '/#/bazi?cal=s&d=1990-5-20&g=m&h=6&n=%E6%B5%8B%E8%AF%95';
+
+test.beforeEach(async ({ page }) => {
+  await skipWelcomeCover(page);
+  await captureClipboard(page);
+});
+
+test('带生辰参数的链接打开即出盘', async ({ page }) => {
+  await page.goto(LINK);
+  const result = page.getByRole('region', { name: '八字排盘结果' });
+  await expect(result).toBeVisible();
+  await expect(result).toContainText('测试 · 乾造');
+  await expect(result).toContainText('乙木');
+  await expect(result).toContainText('1990.5.20');
+  // 格局与择日两节都在。
+  await expect(result.getByRole('heading', { name: /格局与命局组合/ })).toBeVisible();
+  await expect(result.getByRole('heading', { name: /择日参考/ })).toBeVisible();
+});
+
+test('手动录入排盘、存档，再从档案打开', async ({ page }) => {
+  await page.goto('/#/bazi');
+  await page.locator('.bazi-landing__start').click();
+
+  const form = page.getByRole('region', { name: '八字出生信息输入' });
+  await expect(form).toBeVisible();
+  await form.getByLabel('命主称呼').fill('端到端');
+  await form.getByLabel('出生年份').selectOption('1990');
+  await form.getByLabel('出生月份').selectOption('5');
+  await form.getByLabel('出生日期').selectOption('20');
+  await form.getByRole('button', { name: '只知道时辰' }).click();
+  await form.getByLabel('出生时辰').selectOption('6');
+  await form.getByRole('button', { name: '男命' }).click();
+  await form.getByRole('button', { name: '起命盘' }).click();
+
+  const result = page.getByRole('region', { name: '八字排盘结果' });
+  await expect(result).toBeVisible();
+  await expect(result).toContainText('端到端 · 乾造');
+  await expect(result).toContainText('乙木');
+
+  // 存入档案。
+  await page.getByRole('button', { name: '存入档案' }).click();
+  await page.locator('#bazi-save-panel').getByRole('button', { name: '保存' }).click();
+  await expect(page.getByRole('status').filter({ hasText: '已保存「端到端」' })).toBeVisible();
+
+  // 到档案页打开这条记录，回到结果页。
+  await page.goto('/#/archive');
+  await page.getByRole('button', { name: '打开端到端的八字命盘' }).click();
+  await expect(page.getByRole('region', { name: '八字排盘结果' })).toContainText('端到端 · 乾造');
+});
+
+test('分享链接复制后，用它打开得到同一张盘', async ({ page, context }) => {
+  await page.goto(LINK);
+  await page.getByRole('button', { name: '分享链接' }).click();
+  const copied = await lastCopiedText(page);
+  expect(copied).toContain('#/bazi?');
+  expect(copied).toContain('d=1990-5-20');
+
+  const other = await context.newPage();
+  await other.goto(hashOf(copied));
+  const result = other.getByRole('region', { name: '八字排盘结果' });
+  await expect(result).toContainText('测试 · 乾造');
+  await expect(result).toContainText('乙木');
+});
+
+test('择日参考可切换事务、跳到流日；分享图片生成预览', async ({ page }) => {
+  await page.goto(LINK);
+  const zeri = page.getByRole('group', { name: '事务类型' });
+  await expect(zeri).toBeVisible();
+  await zeri.getByRole('button', { name: '搬家入宅' }).click();
+  await expect(page.getByRole('status').filter({ hasText: /较宜 \d+ 天/ })).toBeVisible();
+  const jump = page.getByRole('button', { name: '看这天' }).first();
+  await jump.click();
+  // 跳转后流日面板展开到对应日期，专业盘同步。
+  await expect(page.getByRole('status').filter({ hasText: '专业盘已更新' })).toBeAttached();
+
+  await page.getByRole('button', { name: '分享图片' }).click();
+  const image = page.getByTestId('bazi-share-card-image');
+  await expect(image).toBeVisible();
+  const src = await image.getAttribute('src');
+  expect(src?.startsWith('data:image/png;base64,')).toBeTruthy();
+  await page.getByRole('button', { name: '关闭分享图' }).last().click();
+  await expect(image).toBeHidden();
+});
+
+test('时辰不详也能排盘：三柱、无命宫', async ({ page }) => {
+  await page.goto('/#/bazi?cal=s&d=1990-5-20&g=f&h=x');
+  const result = page.getByRole('region', { name: '八字排盘结果' });
+  await expect(result).toContainText('坤造');
+  await expect(result).toContainText('不详 · 按三柱排盘');
+  await expect(result).toContainText('需时辰');
+});

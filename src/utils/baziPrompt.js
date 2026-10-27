@@ -9,7 +9,7 @@ import { judgeBaziPattern } from './baziPattern.js';
 import { findRelations } from './baziRelations.js';
 import { getShensha } from './baziShensha.js';
 import { analyzeStrength } from './baziStrength.js';
-import { describeYearMarks, getLiuNianMarks } from './baziYearMarks.js';
+import { describeYearMarks, describeYearSummary, getLiuNianMarks } from './baziYearMarks.js';
 
 export const PROMPT_SCOPES = Object.freeze([
   { value: 'natal', label: '本命' },
@@ -234,11 +234,14 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
 
   if (layers.length) {
     const almanac = rank >= 3 ? almanacLine(liuRi) : null;
-    const yearMarks = liuNian ? describeYearMarks(liuNian, getLiuNianMarks(liuNian, { chart, daYun, strength })) : '';
+    const marks = liuNian ? getLiuNianMarks(liuNian, { chart, daYun, strength }) : null;
+    const yearMarks = liuNian ? describeYearMarks(liuNian, marks) : '';
+    const yearSummary = liuNian ? describeYearSummary(liuNian, { chart, daYun, strength, marks }) : null;
     sections.push([
       '【所选运限】',
       ...layers.map((layer) => layer.text),
       ...(yearMarks ? [`- 流年标注：${yearMarks}`] : []),
+      ...(yearSummary ? [`- 流年提要（程序合成，供参考）：${yearSummary.headline}。${yearSummary.text}`] : []),
       ...(almanac ? [almanac] : []),
     ].join('\n'));
   }

@@ -4,7 +4,9 @@ import assert from 'node:assert/strict';
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
 import { buildShenshaContext, getShensha } from '../src/utils/baziShensha.js';
-import { describeTaiSui, describeYearMarks, getDaYunMarks, getLiuNianMarks } from '../src/utils/baziYearMarks.js';
+import * as yearMarks from '../src/utils/baziYearMarks.js';
+
+const { describeTaiSui, describeYearMarks, getDaYunMarks, getLiuNianMarks } = yearMarks;
 
 const NOW = new Date('2026-10-26T10:00:00');
 // 1998-01-02 辰时男：丁丑 壬子 己酉 戊辰
@@ -73,4 +75,37 @@ test('新增神煞：国印、金舆、天医、孤辰寡宿、魁罡、阴差�
   // 丙子日阴差阳错。
   const context2 = buildShenshaContext([pillar('year', '甲子'), pillar('month', '丙寅'), pillar('day', '丙子'), pillar('time', '戊子')]);
   assert.ok(getShensha(pillar('day', '丙子'), context2).includes('阴差阳错'));
+});
+
+test('流年提要：十神主题、地支喜忌、太岁提醒与总体倾向', () => {
+  const { describeYearSummary } = yearMarks;
+  const liuNian = chart.yun.dayun.flatMap((item) => item.liuNian).find((item) => item.year === 2026);
+  assert.equal(liuNian.ganZhi, '丙午');
+  const daYun = chart.yun.dayun.find((item) => item.liuNian.includes(liuNian));
+  const summary = describeYearSummary(liuNian, { chart, daYun, strength });
+  assert.equal(summary.tone, 'good');
+  assert.equal(summary.headline, '顺势进取之年');
+  assert.match(summary.text, /^流年天干丙为正印，为喜用，主学习、长辈与庇荫：/);
+  assert.match(summary.text, /地支午火为喜用（印，藏干主气偏印）/);
+  assert.match(summary.text, /害太岁，提防口舌与暗中阻碍/);
+  assert.equal(summary.sentences.length, 3);
+
+  // 2027 丁未：冲太岁又刑太岁，标题以变动为先；地支未土为比劫喜用。
+  const next = daYun.liuNian.find((item) => item.year === 2027) ?? chart.yun.dayun.flatMap((item) => item.liuNian).find((item) => item.year === 2027);
+  const nextSummary = describeYearSummary(next, { chart, daYun, strength });
+  assert.equal(nextSummary.headline, '变动之年');
+  assert.match(nextSummary.text, /冲太岁的变动之年/);
+  assert.equal(nextSummary.tone, 'mixed');
+
+  // 没有标注时补一句总体倾向；忌神流年为宜守。
+  const plain = describeYearSummary({ ...liuNianOf('庚子'), ganShiShen: '伤官', hiddenShiShens: ['偏财'] }, { chart, strength });
+  assert.match(plain.text, /为伤官，为忌神/);
+  assert.match(plain.text, /地支子水为忌神（财，藏干主气偏财）/);
+  assert.equal(plain.tone, 'bad');
+  assert.equal(plain.headline, '宜守不宜攻');
+  // 旺衰为空：只有中性主题与平稳倾向。
+  const neutral = describeYearSummary({ ...liuNianOf('戊寅'), ganShiShen: '劫财' }, { chart });
+  assert.match(neutral.text, /流年天干戊为劫财，主破财、冲动与朋友牵连：钱财与朋友之间要分清/);
+  assert.equal(neutral.tone, 'neutral');
+  assert.equal(describeYearSummary(null, { chart }), null);
 });

@@ -86,3 +86,146 @@ export const describeYearMarks = (liuNian, marks) => {
   }
   return parts.join(' · ');
 };
+
+// 流年天干十神的主题：喜用时怎么用、忌神时防什么、不分喜忌时的中性说法。
+const TEN_GOD_THEMES = Object.freeze({
+  正官: {
+    domain: '事业名位、规矩与责任',
+    good: '容易被赋予职责与名分，适合求职、升迁、考试与处理公家、合规的事',
+    bad: '约束与压力加重，容易被规则、上级或官非琐事牵制，少逞强、守规矩',
+    neutral: '职责与规矩的事会多起来，按部就班、守信守约最稳',
+  },
+  七杀: {
+    domain: '压力、竞争与决断',
+    good: '冲劲与决断力强，适合开拓新局、攻坚和处理棘手的事',
+    bad: '竞争与冲突多，易有意外、过劳与被人为难，宜稳不宜冒进，留意安全',
+    neutral: '压力与挑战并存，有多大把握做多大事，别硬扛',
+  },
+  正财: {
+    domain: '正财收入与务实经营',
+    good: '正财可期，适合按部就班积累、处理置业与长期投资',
+    bad: '财来财去、开支与人情负担增多，财务上留余量，慎担保借贷',
+    neutral: '财务上以稳为主，收入与开支都要算清楚',
+  },
+  偏财: {
+    domain: '机会财、人脉与交际',
+    good: '交际与机会增多，适合拓展客户、合作与副业',
+    bad: '花钱与应酬增多，投机心起，要防大进大出与被人情套住',
+    neutral: '机会与花销一起来，别为了面子乱花钱',
+  },
+  食神: {
+    domain: '表达、享受与创作',
+    good: '心情舒展、口才与品味出彩，适合学习表达、创作与饮食、休闲相关的经营',
+    bad: '容易贪图安逸、重享受而拖延，饮食与作息要节制',
+    neutral: '适合把想法说出来、做出来，但别只顾享受忘了正事',
+  },
+  伤官: {
+    domain: '才华、个性与变动',
+    good: '灵感与才华外显，适合创作、演讲、转型和争取曝光',
+    bad: '言多易失、与上级或权威冲突，情绪、官非与口舌要留意',
+    neutral: '想法多、变化多，表达之前先想清后果',
+  },
+  正印: {
+    domain: '学习、长辈与庇荫',
+    good: '适合进修考证、沉淀积累，长辈与贵人多助，心态安稳',
+    bad: '想得多做得少，容易依赖或被长辈、旧观念牵绊，行动力偏弱',
+    neutral: '适合学习与准备，但要给自己定明确的行动节点',
+  },
+  偏印: {
+    domain: '专业技艺、独处与另类思考',
+    good: '适合钻研专业技术、独立研究与宗哲身心之学',
+    bad: '孤独感与多疑加重，提防小人、合同里的细节与健康小毛病，少钻牛角尖',
+    neutral: '一个人琢磨的事会多，记得多和人交流对一对信息',
+  },
+  比肩: {
+    domain: '自主、同辈与竞争',
+    good: '自信与行动力强，朋友同辈相助，适合独立做主、带团队',
+    bad: '争财争权，花钱较冲动，合作与合伙要把权责写清楚',
+    neutral: '靠自己的年份，与人合作先谈好分工',
+  },
+  劫财: {
+    domain: '破财、冲动与朋友牵连',
+    good: '敢拼敢争，适合开拓、攻坚与靠朋友圈子成事',
+    bad: '易因朋友、投机或冲动破财，借贷担保与赌性决策要慎',
+    neutral: '钱财与朋友之间要分清，大额支出先冷静一天',
+  },
+});
+
+// 太岁、岁运标注对应的一句提醒。
+const MARK_ADVICE = Object.freeze({
+  岁运并临: '大运与流年同气，吉凶都会被放大，重大决定格外慎重',
+  反吟日柱: '流年天克地冲日柱，身体、婚姻与居所都可能有大变动，宜稳守',
+  伏吟日柱: '流年与日柱伏吟，心绪反复、旧事重提，宜安静处理内部事务',
+  冲太岁: '冲太岁的变动之年，搬迁、换工作、出行多，宜主动安排变动，不宜被动受冲',
+  刑太岁: '刑太岁，人事与是非上多留意，签约、合伙要白纸黑字',
+  害太岁: '害太岁，提防口舌与暗中阻碍，少掺和他人纷争',
+  破太岁: '破太岁，琐碎耗损多，财务与健康上的小事要及早处理',
+  值太岁: '本命年值太岁，宜守不宜攻，适合调整、沉淀与打基础',
+  冲日支: '冲日支，配偶、合作关系与居住环境容易有波动',
+  岁运反吟: '大运与流年天克地冲，环境变化大，是重大转折之年',
+});
+
+const HEADLINE_BY_MARK = Object.freeze([
+  ['岁运并临', '吉凶放大，谨慎决断'],
+  ['反吟日柱', '动荡变化，宜稳守'],
+  ['岁运反吟', '重大转折之年'],
+  ['冲太岁', '变动之年'],
+  ['值太岁', '本命年，宜守不宜攻'],
+]);
+const HEADLINE_BY_TONE = Object.freeze({
+  good: '顺势进取之年',
+  bad: '宜守不宜攻',
+  mixed: '喜忌参半，分清主次',
+  neutral: '平稳过渡之年',
+});
+const TONE_ADVICE = Object.freeze({
+  good: '整体顺遂，可以主动争取',
+  bad: '整体阻力偏多，以稳为主、少折腾',
+  mixed: '喜忌参半：喜用主管的事主动些，忌神主管的事保守些',
+  neutral: '平平之年，按既定计划推进即可',
+});
+
+/**
+ * 流年提要：两三句话说清这一年的主题（天干十神）、地支喜忌与太岁、岁运标注。
+ * @returns {{ tone: 'good'|'bad'|'mixed'|'neutral', headline: string, sentences: string[], text: string } | null}
+ */
+export const describeYearSummary = (liuNian, { chart = null, daYun = null, strength = null, marks = null } = {}) => {
+  if (!liuNian?.gan || !liuNian?.zhi) return null;
+  const resolved = marks ?? getLiuNianMarks(liuNian, { chart, daYun, strength });
+  const favor = resolved.favor;
+  const ganTone = favor?.gan?.tone ?? 'neutral';
+  const zhiTone = favor?.zhi?.tone ?? 'neutral';
+  const sentences = [];
+
+  const theme = TEN_GOD_THEMES[liuNian.ganShiShen];
+  if (theme) {
+    const toneKey = ganTone === 'good' ? 'good' : ganTone === 'bad' ? 'bad' : 'neutral';
+    const favorNote = ganTone === 'good' ? '，为喜用' : ganTone === 'bad' ? '，为忌神' : '';
+    sentences.push(`流年天干${liuNian.gan}为${liuNian.ganShiShen}${favorNote}，主${theme.domain}：${theme[toneKey]}。`);
+  }
+
+  if (favor && zhiTone !== 'neutral') {
+    const hiddenMain = liuNian.hiddenShiShens?.[0] ?? '';
+    const hidden = hiddenMain ? `，藏干主气${hiddenMain}` : '';
+    sentences.push(zhiTone === 'good'
+      ? `地支${liuNian.zhi}${favor.zhi.element}为喜用（${favor.zhi.role}${hidden}），落到人事与环境上多有助力。`
+      : `地支${liuNian.zhi}${favor.zhi.element}为忌神（${favor.zhi.role}${hidden}），具体推进时牵绊较多，留足余量。`);
+  }
+
+  const advices = resolved.labels.map((label) => MARK_ADVICE[label]).filter(Boolean);
+  if (advices.length) sentences.push(`${advices.slice(0, 2).join('；')}。`);
+
+  const hardMark = resolved.labels.some((label) => ['岁运并临', '反吟日柱', '岁运反吟', '冲太岁'].includes(label));
+  let tone = favor?.overall ?? 'neutral';
+  if (hardMark && tone === 'good') tone = 'mixed';
+  if (hardMark && tone === 'neutral') tone = 'bad';
+  if (!resolved.labels.length || !advices.length) sentences.push(`${TONE_ADVICE[tone]}。`);
+
+  const markHeadline = HEADLINE_BY_MARK.find(([label]) => resolved.labels.includes(label))?.[1];
+  return {
+    tone,
+    headline: markHeadline ?? HEADLINE_BY_TONE[tone],
+    sentences,
+    text: sentences.join(''),
+  };
+};

@@ -166,13 +166,13 @@ test('中宫展示可核验的出生资料并提供手机友好的完整说明',
   assert.match(styles, /@media \(max-width: 360px\)[\s\S]*?\.wenmo-center-layer-status \{ grid-template-columns: repeat\(3/);
 });
 
-test('常用功能采用左下向上展开的八项竖向菜单并接通隐私与显示开关', async () => {
+test('常用功能采用左下向上展开的九项竖向菜单并接通隐私、显示开关与分享链接', async () => {
   const source = await readProjectFile('src/components/ProfessionalChart.jsx');
   const styles = await readProjectFile('src/index.css');
   const menuStart = source.indexOf('data-testid="ziwei-common-menu"');
   const menuEnd = source.indexOf('</nav>', menuStart);
   const menuSource = source.slice(menuStart, menuEnd);
-  const expectedItems = ['AI 分析', '格局分析', '精简星曜', '命盘调整', '显示模式', '隐藏生辰', '截图保存', '打印分享'];
+  const expectedItems = ['AI 分析', '格局分析', '精简星曜', '命盘调整', '显示模式', '隐藏生辰', '截图保存', '打印分享', '分享链接'];
 
   assert.ok(menuStart > 0 && menuEnd > menuStart);
   expectedItems.forEach((label) => assert.match(menuSource, new RegExp(`>${label}</button>`)));
@@ -194,6 +194,8 @@ test('常用功能采用左下向上展开的八项竖向菜单并接通隐私�
   assert.match(source, /handleScreenshotSave/);
   assert.match(source, /canvas\.toBlob\(resolve, 'image\/png'/);
   assert.match(source, /<button type="button" onClick=\{onSave\}>保存档案<\/button>/);
+  assert.match(source, /onShareLink = null/);
+  assert.match(menuSource, /\{onShareLink && \(/);
 
   assert.match(styles, /\.wenmo-common-anchor \{ position: relative/);
   assert.match(styles, /\.wenmo-common-menu\s*\{[\s\S]*?bottom: calc\(100% \+ 4px\);[\s\S]*?display: grid;[\s\S]*?width: clamp\(104px, 32vw, 126px\);[\s\S]*?max-height: min\(60dvh, 352px\)/);
