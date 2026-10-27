@@ -4,9 +4,10 @@
  *
  * 各模块只负责算 ctx（baziContextOf / ziweiContextOf / liuyaoContextOf），界面在这里统一。
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { BookOpen } from 'lucide-react';
-import { CONDITION_LABELS, STATUS_LABELS, loadClassicsLibrary, matchEntries } from '../../data/classics/index.js';
+import { CONDITION_LABELS, STATUS_LABELS, matchEntries } from '../../data/classics/index.js';
+import { useClassicsLibrary } from './useClassicsLibrary.js';
 
 const MODES = [
     ['vernacular', '白话'],
@@ -82,24 +83,6 @@ export const ClassicsEntryCard = ({ hit, mode, testId = 'classic-entry' }) => {
             )}
         </article>
     );
-};
-
-/** 古籍库只加载一次，各处面板共用；enabled 为假时先不加载（比如还没排出盘）。 */
-export const useClassicsLibrary = (enabled = true) => {
-    const [data, setData] = useState(null);
-    const [error, setError] = useState(null);
-    useEffect(() => {
-        if (!enabled) return undefined;
-        let alive = true;
-        loadClassicsLibrary()
-            .then((loaded) => { if (alive) setData(loaded); })
-            .catch((loadError) => {
-                console.error('古籍库加载失败:', loadError);
-                if (alive) setError(loadError);
-            });
-        return () => { alive = false; };
-    }, [enabled]);
-    return { data, error };
 };
 
 /**
