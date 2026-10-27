@@ -7,7 +7,8 @@
  */
 import { judgeBaziPattern } from './baziPattern.js';
 import { findRelations } from './baziRelations.js';
-import { getShensha } from './baziShensha.js';
+import { getShensha, SHENSHA_SOURCES } from './baziShensha.js';
+import { cite } from '../data/classics.js';
 import { analyzeStrength } from './baziStrength.js';
 import { describeYearMarks, describeYearSummary, getLiuNianMarks } from './baziYearMarks.js';
 
@@ -41,6 +42,19 @@ const describePillar = (label, item, { diShiLabel = '星运', shensha } = {}) =>
 };
 
 const formatMinutes = (value) => `${value >= 0 ? '+' : '−'}${Math.abs(value).toFixed(1)} 分钟`;
+
+/** 本命四柱所见神煞的查法与古籍出处，让 AI 按原书法则理解，而不是各说各话。 */
+const shenshaSourceLines = (chart) => {
+  const seen = [...new Set(chart.pillars.flatMap((pillar) => pillar.shensha ?? []))];
+  const lines = seen
+    .filter((name) => SHENSHA_SOURCES[name])
+    .map((name) => {
+      const source = SHENSHA_SOURCES[name];
+      return `- ${name}：${cite(source.classic, source.section)}。${source.rule}${source.variant ? `（${source.variant}）` : ''}`;
+    });
+  if (!lines.length) return ['- 本命四柱未见本程序收录的神煞。'];
+  return [...lines, `神煞口诀主要取自${cite('sanming')}，禄取${cite('yuanhai')}，红鸾天喜取${cite('xieji')}；请以这些古籍的本义解释，吉凶仍以五行喜忌为主。`];
+};
 
 const birthLines = (chart, personName) => {
   const { input, timeInfo, solarInfo, lunarInfo } = chart;
@@ -218,6 +232,7 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
   sections.push(['【大运】', ...daYunLines(chart, daYun)].join('\n'));
   sections.push(['【旺衰参考（程序估算）】', ...strengthLines(chart, strength)].join('\n'));
   sections.push(['【格局与组合（程序初判）】', ...patternLines(chart, strength)].join('\n'));
+  sections.push(['【神煞查法出处】', ...shenshaSourceLines(chart)].join('\n'));
 
   // 流月、流日、流时没有预先算好的神煞，在这里按本命补上。
   const layerPillar = (label, item) => describePillar(label, item, {
