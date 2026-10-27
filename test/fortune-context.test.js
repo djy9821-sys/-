@@ -150,5 +150,13 @@ test('早晚子时的话术时段正确', () => {
 
   assert.equal(lateContext.selection.hour, 12);
   assert.match(latePrompt, /晚子时 23:00-24:00/);
-  assert.match(latePrompt, /流日按次日换日/);
+  assert.match(latePrompt, /晚子时换次日：流日、流时按次日子时/);
+  // 换次日：日期按次日，流日宫位与干支和次日早子时一致。
+  assert.equal(lateContext.solarDate, '2024-2-11');
+  const nextMorning = buildCurrentFortuneContext({ horoscope, basicInfo: BASIC_INFO, type: 'hourly', now: new Date(2024, 1, 11, 0, 30) });
+  assert.equal(lateContext.selection.day, nextMorning.selection.day);
+  assert.equal(lateContext.fortune.daily.index, nextMorning.fortune.daily.index);
+  assert.equal(lateContext.fortune.daily.heavenlyStem, nextMorning.fortune.daily.heavenlyStem);
+  assert.equal(lateContext.fortune.hourly.index, nextMorning.fortune.hourly.index);
+  assert.equal(lateContext.activeStems.daily, nextMorning.activeStems.daily);
 });
