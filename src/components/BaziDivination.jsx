@@ -3,11 +3,12 @@
  * 计算由 baziChart 统一提供；页面采用紧凑、专业的命盘信息架构。
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Bot, Calendar, CalendarCheck, CalendarDays, Clock, Compass, FolderOpen, ImageDown, Link2, MapPin, Printer, Save, Scale, Share2, Sparkles, TrendingUp, User } from 'lucide-react';
+import { ArrowLeft, BookOpen, Bot, Calendar, CalendarCheck, CalendarDays, Clock, Compass, FolderOpen, ImageDown, Link2, MapPin, Printer, Save, Scale, Share2, Sparkles, TrendingUp, User } from 'lucide-react';
 import BaziLanding from './bazi/BaziLanding';
 import BaziDatePicker from './bazi/BaziDatePicker';
 import BaziFlowPanel, { RelationList } from './bazi/BaziFlowPanel';
 import BaziPatternPanel from './bazi/BaziPatternPanel';
+import BaziClassicsPanel from './bazi/BaziClassicsPanel';
 import BaziPromptExport from './bazi/BaziPromptExport';
 import BaziShareCardModal from './bazi/BaziShareCardModal';
 import BaziStrengthPanel from './bazi/BaziStrengthPanel';
@@ -226,6 +227,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const zeriSectionRef = useRef(null);
     const wuxingSectionRef = useRef(null);
     const patternSectionRef = useRef(null);
+    const classicsSectionRef = useRef(null);
     const aiSectionRef = useRef(null);
     const calculateTimerRef = useRef(null);
     const stepRegionRef = useRef(null);
@@ -1180,6 +1182,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                     ['四柱', professionalSectionRef],
                                                     ['五行旺衰', wuxingSectionRef],
                                                     ['格局组合', patternSectionRef],
+                                                    ['古籍', classicsSectionRef],
                                                     ['大运流年', liuNianSectionRef],
                                                     ['流月流日', flowSectionRef],
                                                     ['择日', zeriSectionRef],
@@ -1327,9 +1330,14 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                             </section>
                                         )}
 
+                                        <section ref={classicsSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none sm:px-6 sm:py-6" aria-labelledby="classics-title">
+                                            <div id="classics-title"><SectionHeading seal="肆" title="古籍原文" note="按这张盘的格局、十神、神煞与日干月令，从源头古籍里找出相关原文，原文与白话可切换（古籍库逐篇录入中）" icon={BookOpen} /></div>
+                                            <BaziClassicsPanel chart={baziResult} strength={strength} judge={patternJudge} relations={natalRelations} />
+                                        </section>
+
                                         {baziResult.yun?.dayun?.length > 0 && (
                                             <section ref={liuNianSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none sm:px-6 sm:py-6" aria-labelledby="dayun-title">
-                                                <div id="dayun-title"><SectionHeading seal="肆" title="大运流年" note="点击大运与流年可联动上方专业细盘；交运年份可能跨两步大运" icon={TrendingUp} /></div>
+                                                <div id="dayun-title"><SectionHeading seal="伍" title="大运流年" note="点击大运与流年可联动上方专业细盘；交运年份可能跨两步大运" icon={TrendingUp} /></div>
                                                 <div className="mt-4 rounded-xl border border-[#cbbfac]/75 bg-[#e9dfcd]/45 px-3 py-2.5 text-[11px] leading-5 text-[#655d54] sm:text-xs">
                                                     <span className="font-semibold text-[#2d6b62]">{baziResult.yun.forward ? '顺排' : '逆排'}</span><span className="mx-2 text-[#a79b8a]" aria-hidden="true">·</span>
                                                     出生后 {baziResult.yun.startYear}年{baziResult.yun.startMonth}月{baziResult.yun.startDay}天{baziResult.yun.startHour ? `${baziResult.yun.startHour}小时` : ''}起运
@@ -1446,7 +1454,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
 
                                         {selectedLiuNian && selectedLiuRi && (
                                             <section ref={flowSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none print:hidden sm:px-6 sm:py-6" aria-labelledby="flow-title">
-                                                <div id="flow-title"><SectionHeading seal="伍" title="流月 · 流日 · 流时" note="在所选流年内细看某月、某天、某个时辰；点选后上方专业盘同步加列" icon={CalendarDays} /></div>
+                                                <div id="flow-title"><SectionHeading seal="陆" title="流月 · 流日 · 流时" note="在所选流年内细看某月、某天、某个时辰；点选后上方专业盘同步加列" icon={CalendarDays} /></div>
                                                 <PlaceSetting tone="paper" now={new Date()} className="mt-3" />
                                                 <BaziFlowPanel
                                                     liuNian={selectedLiuNian}
@@ -1469,7 +1477,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                         )}
 
                                         <section ref={zeriSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none print:hidden sm:px-6 sm:py-6" aria-labelledby="zeri-title">
-                                            <div id="zeri-title"><SectionHeading seal="陆" title="择日参考" note="选一类事务，按黄历宜忌与这张盘的喜忌、合冲，列出近期较宜与需避开的日子（程序初选）" icon={CalendarCheck} /></div>
+                                            <div id="zeri-title"><SectionHeading seal="柒" title="择日参考" note="选一类事务，按黄历宜忌与这张盘的喜忌、合冲，列出近期较宜与需避开的日子（程序初选）" icon={CalendarCheck} /></div>
                                             <BaziDatePicker
                                                 chart={baziResult}
                                                 strength={strength}
@@ -1488,7 +1496,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                         </section>
 
                                         <section ref={aiSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none print:hidden sm:px-6 sm:py-6" aria-labelledby="ai-export-title">
-                                            <div id="ai-export-title"><SectionHeading seal="柒" title="导出给 AI" note="把命盘和所选时段整理成提示词，复制后粘贴给 ChatGPT、Claude 等 AI 直接分析" icon={Bot} /></div>
+                                            <div id="ai-export-title"><SectionHeading seal="捌" title="导出给 AI" note="把命盘和所选时段整理成提示词，复制后粘贴给 ChatGPT、Claude 等 AI 直接分析" icon={Bot} /></div>
                                             <BaziPromptExport
                                                 chart={baziResult}
                                                 personName={personName}
