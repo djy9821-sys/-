@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 import {
   baziContextOf, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
-  patternNamesOf, searchGlossary, termsIn, ziweiContextOf, ziweiPalaceContextOf,
+  patternNamesOf, searchGlossary, termsIn, ziweiContextOf, ziweiLifePalaceHits, ziweiPalaceContextOf,
 } from '../src/data/classics/library.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
@@ -141,6 +141,28 @@ test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算�
   // 文曲化忌那条命中三个键，排最前；命宫、身宫两条各命中两个键，按 id 排。
   assert.deepEqual(matchEntries(lib, ctx).map(({ entry }) => entry.id), ['ziwei.p.003', 'ziwei.p.001', 'ziwei.p.002']);
   assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf({ ...palace, isBodyPalace: false })).map(({ entry }) => entry.id), ['ziwei.p.001']);
+});
+
+test('紫微提示词用：命宫与身宫星曜的命中去重合并（身宫同宫只算一次），按相关度排序', () => {
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.l.001', title: '紫微', original: '甲', status: 'translated', applies: [{ module: 'ziwei', star: '紫微' }] },
+      { id: 'ziwei.l.002', title: '天机', original: '乙', status: 'translated', applies: [{ module: 'ziwei', star: '天机' }] },
+      { id: 'ziwei.l.003', title: '紫微守身', original: '丙', status: 'reviewed', applies: [{ module: 'ziwei', star: '紫微', palace: '身宫' }] },
+      { id: 'ziwei.l.004', title: '左辅', original: '丁', status: 'translated', applies: [{ module: 'ziwei', star: '左辅' }] },
+    ],
+  }]);
+  const ming = { index: 9, name: '命宫', earthlyBranch: '亥', isBodyPalace: false, majorStars: [{ name: '紫微' }], minorStars: [{ name: '左辅' }] };
+  const shen = { index: 3, name: '迁移', earthlyBranch: '巳', isBodyPalace: true, majorStars: [{ name: '天机' }], minorStars: [] };
+  const other = { index: 0, name: '田宅', earthlyBranch: '寅', majorStars: [{ name: '紫微' }] };
+  // 命宫紫微、左辅 + 身宫天机；身宫紫微那条不命中（身宫里没有紫微）。
+  assert.deepEqual(ziweiLifePalaceHits(lib, [other, shen, ming]).map(({ entry }) => entry.id), ['ziwei.l.001', 'ziwei.l.002', 'ziwei.l.004']);
+  // 身宫与命宫同宫：命中带宫位条件的「紫微守身」，排最前（两键），且不重复。
+  const same = { ...ming, isBodyPalace: true };
+  assert.deepEqual(ziweiLifePalaceHits(lib, [other, same]).map(({ entry }) => entry.id), ['ziwei.l.003', 'ziwei.l.001', 'ziwei.l.004']);
+  assert.deepEqual(ziweiLifePalaceHits(lib, []), []);
+  assert.deepEqual(ziweiLifePalaceHits(null, [ming]), []);
 });
 
 test('排序与筛选：条件更具体的在前，同样具体时已审 > 待审 > 仅原文；可按状态过滤与限制条数', () => {
