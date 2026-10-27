@@ -77,7 +77,7 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster }
                     <Check ok={strength.deLing} label="得令" detail={strength.monthMain ? `月令本气 ${strength.monthMain.gan}（${strength.monthMain.role}）${strength.deLing ? '帮扶日主' : '不帮日主'}` : '—'} />
                     <Check ok={strength.deDi.length > 0} label="得地" detail={strength.deDi.length ? strength.deDi.map((item) => `${item.name}${item.zhi}${item.tongGen ? '（通根）' : '（有印）'}`).join('、') : '地支中没有比劫或印的根气'} />
                     <Check ok={strength.deShi.length > 0} label="得势" detail={strength.deShi.length ? strength.deShi.map((item) => `${item.name}${item.gan}（${item.role}）`).join('、') : '天干没有比劫或印相帮'} />
-                    {strength.tiaoHou && <Check mark={strength.tiaoHou.element} label="调候" detail={`${strength.tiaoHou.season}，宜见${strength.tiaoHou.element}`} />}
+                    {strength.tiaoHou && <Check mark={strength.tiaoHou.element} label="调候" detail={`${strength.tiaoHou.text}${strength.tiaoHou.season ? `；${strength.tiaoHou.season}` : ''}。出处${strength.tiaoHou.source}`} />}
                 </ul>
                 {strength.hint && <p className="mt-2 rounded-lg bg-[#b06a1f]/[0.08] px-2.5 py-1.5 text-xs text-[#7f4b12]">{strength.hint}</p>}
             </div>
