@@ -111,6 +111,8 @@ const zhiPairKinds = (a, b) => {
 
 /** 两个地支之间的关系种类（合、半合、冲、刑、自刑、害、破），供太岁标注等复用。 */
 export const getZhiPairKinds = (a, b) => zhiPairKinds(a, b).kinds;
+/** 两个天干之间的关系种类（合、冲）。 */
+export const getGanPairKinds = (a, b) => ganPairKinds(a, b).kinds;
 /** 两柱是否天克地冲。 */
 export const isTianKeDiChong = (a, b) => GAN_CHONG.has(pairKey(a.gan, b.gan)) && ZHI_CHONG.has(pairKey(a.zhi, b.zhi));
 
