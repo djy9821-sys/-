@@ -1,0 +1,22 @@
+{
+  "classic": "sanming",
+  "volume": "卷二",
+  "section": "论天乙贵人",
+  "edition": "示例文件：天乙贵人歌诀据通行本《三命通会》卷二，与程序神煞查法（src/utils/baziShensha.js）一致；正式录入请整篇补全并说明所据版本。",
+  "contributor": "主线（Claude）",
+  "entries": [
+    {
+      "id": "sanming.shensha.tianyi.001",
+      "title": "天乙贵人歌诀",
+      "original": "甲戊庚牛羊，乙己鼠猴乡，丙丁猪鸡位，壬癸兔蛇藏，六辛逢马虎，此是贵人方。",
+      "vernacular": "日干或年干是甲、戊、庚的，在丑、未两支见天乙贵人；乙、己见子、申；丙、丁见亥、酉；壬、癸见卯、巳；辛见午、寅。这就是贵人所在的方位。",
+      "notes": "《渊海子平》作「庚辛逢马虎」，即庚也见午、寅；本程序取《三命通会》与通行排盘一致的版本，两说并存时以本条为准，异说记在 doubts 里。",
+      "doubts": ["「六辛逢马虎」与「庚辛逢马虎」两说并存，程序取前者。"],
+      "applies": [
+        { "module": "bazi", "shensha": "天乙贵人" }
+      ],
+      "tags": ["神煞", "口诀"],
+      "status": "reviewed"
+    }
+  ]
+}
