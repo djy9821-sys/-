@@ -26,6 +26,10 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   await expect(classics).toContainText('格局·正官格');
   await classics.getByRole('button', { name: '原文' }).click();
   await expect(classics).toContainText('官逢财印，又无刑冲破害');
+  // 导出给 AI 的提示词附上同一批古籍原文。
+  const promptText = result.locator('textarea[aria-label="提示词全文"]');
+  await expect(promptText).toHaveValue(/【古籍原文（与本命相关）】\n- 《子平真诠》[^\n]*正官格/);
+  await expect(result).toContainText(/已附上与本命相关的古籍原文 \d+ 条/);
 });
 
 test('手动录入排盘、存档，再从档案打开', async ({ page }) => {
