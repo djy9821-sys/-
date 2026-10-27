@@ -77,6 +77,12 @@ const birthLines = (chart, personName) => {
   if (input.hourOption?.index === 12) {
     lines.push(`- 晚子时流派：${input.daySect === 1 ? '晚子时换次日' : '晚子时不换日'}`);
   }
+  const yearBoundary = chart.yearBoundary;
+  if (yearBoundary?.differs) {
+    lines.push(yearBoundary.mode === 'chunjie'
+      ? `- 年柱分界：出生在立春与正月初一之间，本盘按农历正月初一换年，年柱取${yearBoundary.chunjie}；若按子平法以立春换年则为${yearBoundary.lichun}`
+      : `- 年柱分界：出生在立春与正月初一之间，本盘按子平法以立春换年，年柱取${yearBoundary.lichun}；若按农历正月初一换年则为${yearBoundary.chunjie}`);
+  }
   const boundary = timeInfo?.boundary;
   if (boundary) {
     lines.push(`- 注意：出生时间离时辰交界只有 ${boundary.minutesToBoundary} 分钟。钟表 ${boundary.boundaryClockTime} ${boundary.isBeforeBoundary ? '及之后' : '之前'}出生则为${boundary.alternative.hourName}，时柱${boundary.alternative.timeGanZhi}。出生时间若记得不准，请两种时柱都考虑。`);
