@@ -51,6 +51,11 @@
         "deLing": true,
         "favorable": [
           {
+            "element": "火",
+            "role": "官杀",
+            "tiaoHou": true
+          },
+          {
             "element": "土",
             "role": "印",
             "tiaoHou": false
@@ -62,11 +67,6 @@
           }
         ],
         "unfavorable": [
-          {
-            "element": "火",
-            "role": "官杀",
-            "tiaoHou": false
-          },
           {
             "element": "水",
             "role": "食伤",
@@ -118,6 +118,14 @@
             "note": "配偶宫见正官：伴侣端正有分寸，看重名分与规矩。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "羊刃格",
+        "verdict": "待详辨",
+        "success": [],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -173,8 +181,8 @@
         "deLing": false,
         "favorable": [
           {
-            "element": "火",
-            "role": "官杀",
+            "element": "水",
+            "role": "食伤",
             "tiaoHou": true
           },
           {
@@ -195,8 +203,8 @@
             "tiaoHou": false
           },
           {
-            "element": "水",
-            "role": "食伤",
+            "element": "火",
+            "role": "官杀",
             "tiaoHou": false
           }
         ]
@@ -249,6 +257,17 @@
             "note": "配偶宫见偏财：伴侣大方活络，人缘与财路都广。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "伤官格",
+        "verdict": "成",
+        "success": [
+          "伤官佩印",
+          "伤官非金水而见官（金水伤官例外）"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -304,13 +323,13 @@
         "deLing": false,
         "favorable": [
           {
-            "element": "火",
-            "role": "比劫",
+            "element": "木",
+            "role": "印",
             "tiaoHou": true
           },
           {
-            "element": "木",
-            "role": "印",
+            "element": "火",
+            "role": "比劫",
             "tiaoHou": false
           }
         ],
@@ -359,6 +378,16 @@
             "note": "配偶宫见偏财：伴侣大方活络，人缘与财路都广。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "七杀格",
+        "verdict": "成",
+        "success": [
+          "煞用印化（论偏官）"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -417,13 +446,18 @@
         "deLing": false,
         "favorable": [
           {
-            "element": "火",
-            "role": "比劫",
+            "element": "水",
+            "role": "官杀",
             "tiaoHou": true
           },
           {
             "element": "木",
             "role": "印",
+            "tiaoHou": false
+          },
+          {
+            "element": "火",
+            "role": "比劫",
             "tiaoHou": false
           }
         ],
@@ -431,11 +465,6 @@
           {
             "element": "土",
             "role": "食伤",
-            "tiaoHou": false
-          },
-          {
-            "element": "水",
-            "role": "官杀",
             "tiaoHou": false
           },
           {
@@ -479,6 +508,16 @@
             "note": "配偶宫见食神：伴侣随和爱生活，家庭气氛多轻松。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "伤官格",
+        "verdict": "成",
+        "success": [
+          "伤官佩印"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -537,6 +576,11 @@
         "deLing": true,
         "favorable": [
           {
+            "element": "水",
+            "role": "官杀",
+            "tiaoHou": true
+          },
+          {
             "element": "木",
             "role": "印",
             "tiaoHou": false
@@ -556,11 +600,6 @@
           {
             "element": "金",
             "role": "财",
-            "tiaoHou": false
-          },
-          {
-            "element": "水",
-            "role": "官杀",
             "tiaoHou": false
           }
         ]
@@ -585,6 +624,16 @@
             "note": "配偶宫见食神：伴侣随和爱生活，家庭气氛多轻松。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "食神格",
+        "verdict": "成",
+        "success": [
+          "食神生财"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -646,6 +695,11 @@
         "deLing": false,
         "favorable": [
           {
+            "element": "土",
+            "role": "官杀",
+            "tiaoHou": true
+          },
+          {
             "element": "金",
             "role": "印",
             "tiaoHou": false
@@ -665,11 +719,6 @@
           {
             "element": "木",
             "role": "食伤",
-            "tiaoHou": false
-          },
-          {
-            "element": "土",
-            "role": "官杀",
             "tiaoHou": false
           }
         ]
@@ -701,6 +750,19 @@
             "note": "配偶宫见正财：伴侣务实稳重，重视家庭与积蓄。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "伤官格",
+        "verdict": "成中有败",
+        "success": [
+          "伤官生财",
+          "伤官佩印"
+        ],
+        "failure": [],
+        "flaw": [
+          "伤官生财，而财又逢合"
+        ],
+        "rescue": []
       }
     }
   },
@@ -831,6 +893,18 @@
             "note": "配偶宫见七杀：伴侣有魄力、脾气直，彼此需要留出空间。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "正官格",
+        "verdict": "败",
+        "success": [
+          "官逢财印，又无刑冲破害，官格成也"
+        ],
+        "failure": [
+          "杂煞"
+        ],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -933,6 +1007,16 @@
             "note": "配偶宫见食神：伴侣随和爱生活，家庭气氛多轻松。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "建禄月劫",
+        "verdict": "成",
+        "success": [
+          "透财而逢食伤"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -988,6 +1072,11 @@
         "deLing": true,
         "favorable": [
           {
+            "element": "木",
+            "role": "官杀",
+            "tiaoHou": true
+          },
+          {
             "element": "金",
             "role": "食伤",
             "tiaoHou": false
@@ -995,11 +1084,6 @@
           {
             "element": "水",
             "role": "财",
-            "tiaoHou": false
-          },
-          {
-            "element": "木",
-            "role": "官杀",
             "tiaoHou": false
           }
         ],
@@ -1043,6 +1127,16 @@
             "note": "配偶宫见比肩：伴侣性格与自己相近，相处像朋友，也容易各执己见。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "财格",
+        "verdict": "败",
+        "success": [],
+        "failure": [
+          "财轻比重"
+        ],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -1097,7 +1191,13 @@
         "band": "中和",
         "ratio": 0.5588,
         "deLing": true,
-        "favorable": [],
+        "favorable": [
+          {
+            "element": "金",
+            "role": "印",
+            "tiaoHou": true
+          }
+        ],
         "unfavorable": []
       },
       "pattern": {
@@ -1120,6 +1220,14 @@
             "note": "配偶宫见偏印：伴侣想法独特、有点距离感，适合各有天地。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "印格",
+        "verdict": "待详辨",
+        "success": [],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -1209,6 +1317,14 @@
             "note": "配偶宫见偏印：伴侣想法独特、有点距离感，适合各有天地。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "印格",
+        "verdict": "待详辨",
+        "success": [],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -1264,6 +1380,11 @@
         "deLing": false,
         "favorable": [
           {
+            "element": "水",
+            "role": "官杀",
+            "tiaoHou": true
+          },
+          {
             "element": "木",
             "role": "印",
             "tiaoHou": false
@@ -1283,11 +1404,6 @@
           {
             "element": "土",
             "role": "食伤",
-            "tiaoHou": false
-          },
-          {
-            "element": "水",
-            "role": "官杀",
             "tiaoHou": false
           }
         ]
@@ -1319,6 +1435,14 @@
             "note": "配偶宫见劫财：伴侣有主见、重义气，钱财上宜分清界限。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "财格",
+        "verdict": "待详辨",
+        "success": [],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   }
