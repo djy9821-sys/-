@@ -189,12 +189,13 @@ export const baziContextOf = ({ chart, strength = null, judge = null, relations 
 
 /**
  * 紫微上下文：传入当前关心的星曜与宫位即可（匹配引擎本身不依赖 iztro）。
- * @param {{ stars?: string[], palace?: string, branches?: string[], brightness?: string[], mutagens?: string[], patterns?: string[], limit?: string, gender?: string }} input
+ * @param {{ stars?: string[], palace?: string|string[], branches?: string[], brightness?: string[], mutagens?: string[], patterns?: string[], limit?: string, gender?: string }} input
+ *   palace 可以给多个（身宫与命宫同宫时给 ['命宫', '身宫']）。
  */
 export const ziweiContextOf = ({ stars = [], palace = null, branches = [], brightness = [], mutagens = [], patterns = [], limit = null, gender = null } = {}) => ({
   module: 'ziwei',
   star: unique(stars),
-  palace: palace ? (ZIWEI_PALACE_ALIASES[palace] ?? palace) : null,
+  palace: unique(toArray(palace).map((name) => ZIWEI_PALACE_ALIASES[name] ?? name)),
   branches: unique(branches),
   brightness: unique(brightness),
   mutagen: unique(mutagens),
@@ -202,6 +203,30 @@ export const ziweiContextOf = ({ stars = [], palace = null, branches = [], brigh
   limit,
   gender,
 });
+
+/** 四化标记转成登记名：iztro 给「禄权科忌」，也兼容「化禄」写法。 */
+const mutagenNameOf = (mutagen) => (mutagen ? String(mutagen).replace(/^化/, '') : null);
+
+/**
+ * 从排盘结果里的一个宫（iztro 的 palace：name、earthlyBranch、isBodyPalace、majorStars、minorStars、adjectiveStars）生成上下文。
+ * 宫里所有星曜（主星、辅星、杂曜）都算，庙旺与四化取自各星自带的 brightness / mutagen。
+ * @param {object} palace iztro 宫对象
+ * @param {{ gender?: 'male'|'female'|'男'|'女'|null, limit?: string }} [options] 性别与运限层（默认本命）
+ */
+export const ziweiPalaceContextOf = (palace, { gender = null, limit = '本命' } = {}) => {
+  if (!palace) return null;
+  const starList = [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])].filter((star) => star?.name);
+  const palaceNames = [palace.name, palace.isBodyPalace ? '身宫' : null];
+  return ziweiContextOf({
+    stars: starList.map((star) => star.name),
+    palace: palaceNames.filter(Boolean),
+    branches: [palace.earthlyBranch],
+    brightness: starList.map((star) => star.brightness).filter(Boolean),
+    mutagens: starList.map((star) => mutagenNameOf(star.mutagen)).filter(Boolean),
+    limit,
+    gender: gender === 'female' || gender === '女' ? '女' : gender === 'male' || gender === '男' ? '男' : null,
+  });
+};
 
 /**
  * 六爻上下文。
