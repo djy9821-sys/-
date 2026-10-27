@@ -36,6 +36,7 @@ import {
     formatZiweiPatternReport,
 } from '../utils/ziweiPatterns';
 import { buildBaziChart } from '../utils/baziChart';
+import ZiweiClassicsPanel from './ziwei/ZiweiClassicsPanel.jsx';
 import { Sparkles, Coffee, Save, Archive, Calendar, Printer } from "lucide-react";
 import wechatPayImg from '../assets/wechat_pay.jpg';
 import alipayImg from '../assets/alipay.jpg';
@@ -198,6 +199,9 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     const [promptPreview, setPromptPreview] = React.useState(null);
     const [showPatternAnalysis, setShowPatternAnalysis] = React.useState(false);
     const [selectedPatternId, setSelectedPatternId] = React.useState(null);
+    // 古籍原文：按当前高亮的宫查古籍库（可在弹层里换宫）
+    const [showClassics, setShowClassics] = React.useState(false);
+    const classicsDialogRef = React.useRef(null);
     const [mobileChartMode, setMobileChartMode] = React.useState('professional');
     const patternDialogRef = React.useRef(null);
     // State for Partner Modal (Conception Planner)
@@ -273,6 +277,28 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [showPatternAnalysis]);
+
+    React.useEffect(() => {
+        if (!showClassics) return undefined;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        const focusFrame = window.requestAnimationFrame(() => {
+            classicsDialogRef.current?.querySelector('[data-classics-focus]')?.focus();
+        });
+        const handleKeyDown = (event) => {
+            if (event.key !== 'Escape') return;
+            setShowClassics(false);
+            window.requestAnimationFrame(() => commonMenuButtonRef.current?.focus());
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.cancelAnimationFrame(focusFrame);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [showClassics]);
 
     const palaceRelationship = useMemo(() => {
         if (!focusedPalace) return null;
@@ -1613,6 +1639,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
             setShowChartSettings(false);
             setShowAiMenu(false);
             setShowPatternAnalysis(false);
+            setShowClassics(false);
         }
         setShowCommonMenu((visible) => !visible);
     };
@@ -1634,6 +1661,19 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
 
     const closePatternAnalysis = () => {
         setShowPatternAnalysis(false);
+        window.requestAnimationFrame(() => commonMenuButtonRef.current?.focus());
+    };
+
+    const openClassics = () => {
+        setSelectedMutationInfo(null);
+        setShowCommonMenu(false);
+        setPromptPreview(null);
+        setShowPatternAnalysis(false);
+        setShowClassics(true);
+    };
+
+    const closeClassics = () => {
+        setShowClassics(false);
         window.requestAnimationFrame(() => commonMenuButtonRef.current?.focus());
     };
 
@@ -2649,6 +2689,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                         >
                             <button type="button" onClick={openAiFromCommonMenu}>AI 分析</button>
                             <button type="button" onClick={openPatternAnalysis}>格局分析</button>
+                            <button type="button" onClick={openClassics}>古籍原文</button>
                             <button
                                 type="button"
                                 aria-pressed={compactStarView}
@@ -3030,6 +3071,38 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                             <button type="button" onClick={() => copyPatternAnalysis(true)}>反馈问题建议</button>
                             <button type="button" aria-label="分享格局分析" onClick={sharePatternAnalysis}>⇧</button>
                             <button type="button" onClick={closePatternAnalysis}>关闭</button>
+                        </footer>
+                    </section>
+                </div>
+            )}
+
+            {showClassics && (
+                <div
+                    className="wenmo-pattern-modal chart-modal"
+                    data-testid="ziwei-classics-modal"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) closeClassics();
+                    }}
+                >
+                    <section
+                        ref={classicsDialogRef}
+                        className="wenmo-pattern-sheet"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="wenmo-classics-title"
+                    >
+                        <div className="wenmo-pattern-paper">
+                            <header>
+                                <h2 id="wenmo-classics-title" tabIndex="-1" data-classics-focus>
+                                    古籍原文 <small>beta</small>
+                                </h2>
+                                <p>选一个宫，看古籍里怎么说宫中的星曜；原文逐字照录公版古籍，白话另译并标注审核状态</p>
+                            </header>
+                            <ZiweiClassicsPanel palaces={palaces} focusedIndex={focusedIndex} gender={basicInfo.gender} />
+                        </div>
+
+                        <footer className="wenmo-pattern-actions wenmo-pattern-actions--single">
+                            <button type="button" onClick={closeClassics}>关闭</button>
                         </footer>
                     </section>
                 </div>
