@@ -123,3 +123,16 @@
 - **出处（正本清源的第一步）**：`src/data/classics.js` 登记十本源头古籍（《三命通会》《渊海子平》《滴天髓》《子平真诠》《协纪辨方书》《紫微斗数全书》《京氏易传》《卜筮正宗》《增删卜易》《梅花易数》），`cite(key, section)` 组出处。`baziShensha.js` 新增 `SHENSHA_SOURCES`：29 种神煞各有古籍篇章、查法复述、有把握的原文口诀与流派差异；八字专业细盘「术语说明」下新增「神煞查法与出处」（本命所见的先列），`buildBaziPrompt` 新增【神煞查法出处】段，让 AI 按原书法则解释。`src/data/liuyaoSources.js`：六爻装卦、起卦、断法 13 条规则各自的古籍出处，结果页断卦卡新增「口诀出处」折叠，提示词新增【依据】段。紫微完整排盘资料加一行安星与四化的依据说明（格局早已带 `source`）。后续把原文接进来时按 `CLASSICS` 的 key 对应。
 - **流派口径备忘**（都已在界面或代码注明）：八字年柱、月柱以节气为界，晚子时默认不换日；紫微年干支以立春为界（排盘库 `yearDivide: 'exact'`，与《全书》时代按正月初一的做法不同，之后可做成开关）、闰月十五以后按下月、晚子时默认换次日；六爻月建按节气、年柱按立春、晚子时日柱不换日、时柱用次日之子；四化取《全书》歌诀（庚：阳武阴同，壬：梁紫左武）。
 - **测试**：新增 `bazi-accuracy`、`bazi-shensha-classic`、`liuyao-classic`、`ziwei-classic`、`classics`、`golden`；`liuyao`、`ziwei-link` 随改动更新。本地 `npm test` 现在 233 项全部通过（iztro 已从 GitHub 源码编译进 vendor），lint / build / e2e 以 GitHub CI 为准。
+
+---
+
+## 2026-10-27 第八轮「分工」（分支 `claude/round8-collab`，基于 `claude/round7-accuracy`，PR #11，尚未上线）
+
+老板决定让 Codex、Antigravity 等其他 AI 以「支线」身份参与，Claude 作为总工程师守主线。这一轮先把分工的地基打好：手册、数据模板、校验、任务卡。
+
+- **协作手册** `docs/AI协作手册.md`：项目原则（准确第一、按源头古籍、不自创规则、不上线）、目录与命令、主线 / 支线分工、工作流程（领卡 → `side/<卡号>-<slug>` 分支 → 校验 → PR → CI → 主线审核合并）、硬规则与禁区（`src/utils/**`、`App.jsx`、金样、CI、依赖等支线不得改）、内容规范（原文公版善本、白话自写、不抄现代校注本、存疑标 `doubts`）、验收标准。`README.md` 改成中文入口，指向手册、任务卡与交接日志。`.github/pull_request_template.md` 统一 PR 描述。
+- **古籍库数据模板** `src/data/classics/`：一篇一 JSON（`classic` 登记表 key、`section`、`edition` 来源说明、`entries`），条目字段 `id / title / original / vernacular / notes / doubts / applies / tags / status`；`applies` 是机器可读的适用条件（紫微 star / palace / branches / brightness / mutagen / limit，八字 dayGan / monthZhi / tenGod / pattern / shensha / strength / season，六爻 hexagram / line / relation / sixRelative / sixGod / topic / movingLines，通用 note / gender），将来匹配引擎按它自动把原文挑给命盘和提示词。`status` 三档 draft → translated → reviewed，支线最多到 translated。格式说明在 `src/data/classics/README.md`。另有术语词典 `src/data/glossary/*.json`（term / brief / explain / example / source / related）与经典命例 `src/data/cases/*.json`（八字紫微用 `birth` + `pillars`，六爻用 `cast`）。各放了一条示例。
+- **校验** `src/data/classics/schema.js`（纯函数：`validateClassicsDoc` / `validateGlossaryDoc` / `validateCasesDoc`，星名、宫位、地支、十神、六十四卦名等都对照固定表，宫位接受交友 / 事业别名）、`scripts/lib/dataFiles.mjs`（读文件、汇总错误与统计）、`scripts/validate-data.mjs`（命令行）、`test/data-files.test.js`（CI 里跑同一套检查，并对校验函数本身做了错误用例测试）。
+- **支线任务卡** `docs/tasks/`：side-01《紫微斗数全书》诸星问答 / 太微赋 / 骨髓赋等；side-02《子平真诠》用神与八格各论、《渊海子平》十神格局论；side-03《增删卜易》总论与分类占法；side-04 三模块术语白话词典；side-05 经典命例与占例收集。每张卡有范围与批次、来源、拆条办法、白话要求、步骤、验收、禁止。
+- **集成分支说明**：PR #9（round6 → dev）、#10（round7 → round6）、#11（round8 → round7）需要老板在 GitHub 上依次点合并（合并后删分支，GitHub 会自动把下一个 PR 的 base 改到 dev）；在此之前支线以 `claude/round8-collab` 为基准分支，手册第 4 节注明了这一点，并入 dev 后改回 dev。
+- **主线下一步**：《穷通宝鉴》调候用神表、格局成败判断（《子平真诠》）、紫微运限层核对与流曜金样、年柱分界开关、古籍库匹配引擎与界面「原文 / 白话」展示、支线 PR 审核。
