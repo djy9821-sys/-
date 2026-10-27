@@ -5,7 +5,11 @@
  * 月令地支的藏干再乘 2。同党 = 比劫 + 印，异党 = 食伤 + 财 + 官杀。
  * 另外给出得令、得地、得势与调候，喜用按“扶弱抑强 + 调候”给出参考方向，
  * 不处理从格、化格等特殊格局（极端比例时只做提示）。
+ *
+ * 调候按《穷通宝鉴》调候用神表（src/data/tiaohou.js）查日干与月令：主用神的五行列为喜用之首，
+ * 并从忌神里剔除；次用神只随附说明，不改排序。
  */
+import { tiaoHouOf } from '../data/tiaohou.js';
 
 const GAN_WUXING = { 甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水' };
 const WUXING = ['木', '火', '土', '金', '水'];
@@ -46,12 +50,6 @@ const bandOf = (ratio) => {
   return { band: '极强', hint: '同党极多，可能需要考虑专旺格，请人工判断' };
 };
 
-const tiaoHouOf = (monthZhi) => {
-  if ('亥子丑'.includes(monthZhi)) return { season: '冬月寒冷', element: '火' };
-  if ('巳午未'.includes(monthZhi)) return { season: '夏月炎热', element: '水' };
-  return null;
-};
-
 export const analyzeStrength = (chart) => {
   const dayWuxing = chart.dayMaster.wuxing;
   const roles = getElementRoles(dayWuxing);
@@ -86,7 +84,7 @@ export const analyzeStrength = (chart) => {
     .filter((pillar) => pillar.key !== 'day' && support.has(pillar.ganWuxing))
     .map((pillar) => ({ name: pillar.name, gan: pillar.gan, role: roles[pillar.ganWuxing] }));
 
-  const tiaoHou = tiaoHouOf(byKey.month?.zhi ?? '');
+  const tiaoHou = tiaoHouOf(chart.dayMaster.gan, byKey.month?.zhi ?? '');
   const weakSide = [GENERATED_BY[dayWuxing], dayWuxing];
   const strongSide = [GENERATES[dayWuxing], CONTROLS[dayWuxing], CONTROLLED_BY[dayWuxing]];
   let favorable;
