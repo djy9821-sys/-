@@ -7,6 +7,8 @@ import React, { useMemo, useRef, useState } from 'react';
 import { Bot, Copy, RotateCcw, Save, Share2 } from 'lucide-react';
 import { buildLiuYaoPrompt } from '../utils/liuyao';
 import { judgeLiuYao, LIUYAO_TOPICS } from '../utils/liuyaoJudge';
+import { LIUYAO_RULE_SOURCES } from '../data/liuyaoSources';
+import { cite } from '../data/classics';
 import { buildLiuYaoRecord, LIUYAO_METHODS, LIUYAO_TOPIC_LABELS } from '../utils/liuyaoRecord';
 import { track } from '../utils/analytics';
 import { ARCHIVE_GROUP_OPTIONS } from '../utils/baziRecord';
@@ -170,7 +172,7 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
                         <div className="min-w-0">
                             <p className="text-[11px] font-bold tracking-widest text-[#81776b]">本卦</p>
                             <p className="font-serif text-xl font-bold text-[#3b342e]">{hexagram.name}</p>
-                            <p className="text-[11px] leading-5 text-[#6f665d]">{hexagramCaption(hexagram)} · {hexagram.palace}宫{hexagram.palaceLabel}（属{hexagram.palaceElement}）</p>
+                            <p className="text-[11px] leading-5 text-[#6f665d]">{hexagramCaption(hexagram)} · {hexagram.palace}宫{hexagram.palaceLabel}（属{hexagram.palaceElement}）{hexagram.relation ? ` · ${hexagram.relation}卦` : ''}</p>
                             <p className="text-[11px] leading-5 text-[#6f665d]">世在{lines[hexagram.shi - 1].positionName} · 应在{lines[hexagram.ying - 1].positionName}{reading.movingPositions.length ? ` · ${reading.movingPositions.length} 个动爻` : ' · 六爻安静'}</p>
                         </div>
                     </div>
@@ -180,7 +182,7 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
                             <div className="min-w-0">
                                 <p className="text-[11px] font-bold tracking-widest text-[#8f3027]/80">变卦</p>
                                 <p className="font-serif text-xl font-bold text-[#3b342e]">{changed.name}</p>
-                                <p className="text-[11px] leading-5 text-[#6f665d]">{hexagramCaption(changed)}</p>
+                                <p className="text-[11px] leading-5 text-[#6f665d]">{hexagramCaption(changed)}{changed.relation ? ` · ${changed.relation}卦` : ''}</p>
                                 <p className="text-[11px] leading-5 text-[#6f665d]">互卦 {mutual.name}</p>
                             </div>
                         </div>
@@ -302,6 +304,19 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
                         </div>
                     )}
                     <p className="mt-2.5 text-[11px] leading-5 text-[#81776b]">按《增删卜易》等通行口诀的简化规则计分估算，只抓大势；复制给 AI 时会一并附上，便于核对与展开。</p>
+                    <details className="mt-2 rounded-xl border border-[#cbbfac]/80 bg-[#fffaf0]/55">
+                        <summary className="flex min-h-10 cursor-pointer items-center justify-between px-3 text-xs font-bold text-[#514941] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2d6b62]">
+                            口诀出处 <span className="text-[11px] font-normal text-[#81776b]">装卦与断法各依据哪本古籍</span>
+                        </summary>
+                        <dl className="grid gap-x-5 gap-y-2.5 border-t border-[#cbbfac]/70 px-3 py-3 sm:grid-cols-2">
+                            {LIUYAO_RULE_SOURCES.map((item) => (
+                                <div key={item.topic}>
+                                    <dt className="text-xs font-bold text-[#2d6b62]">{item.topic} <span className="font-normal text-[#81776b]">{cite(item.classic, item.section)}</span></dt>
+                                    <dd className="mt-0.5 text-[11px] leading-5 text-[#6f665d]">{item.rule}</dd>
+                                </div>
+                            ))}
+                        </dl>
+                    </details>
                 </PaperCard>
             )}
 
