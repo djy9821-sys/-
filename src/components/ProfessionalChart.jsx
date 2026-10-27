@@ -141,7 +141,7 @@ const getFlyPalaceShortName = (name = '') => FLY_PALACE_SHORT_NAMES[name] || Str
 // Helper: Get Year Stem (0-9 index)
 const getYearStemIndex = (year) => (year - 4) % 10;
 
-function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, onQuickChart }) {
+function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, onQuickChart, onShareLink = null }) {
     const palaces = useMemo(() => {
         if (!horoscope) return [];
         return horoscope.palaces;
@@ -2681,6 +2681,15 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                     window.print();
                                 }}
                             >打印分享</button>
+                            {onShareLink && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowCommonMenu(false);
+                                        onShareLink();
+                                    }}
+                                >分享链接</button>
+                            )}
                         </nav>
                     )}
                 </div>
