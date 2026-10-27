@@ -77,6 +77,14 @@ test('常用功能里的古籍原文：默认看命宫，列出宫中星曜与�
 
   await modal.getByRole('button', { name: '关闭' }).click();
   await expect(modal).toBeHidden();
+
+  // AI 话术末尾附上命宫、身宫星曜的古籍原文（库已加载过，直接复制）。
+  await page.getByRole('button', { name: '常用功能' }).click();
+  await page.getByTestId('ziwei-common-menu').getByRole('button', { name: 'AI 分析' }).click();
+  await page.getByRole('button', { name: /一键鉴渣话术/ }).click();
+  const prompt = await lastCopiedText(page);
+  expect(prompt).toContain('【古籍原文（命宫、身宫星曜）】');
+  expect(prompt).toMatch(/- 《紫微斗数全书》[^\n]*（匹配：星曜·紫微）：问紫微所主若何/);
 });
 
 test('精确到分钟的紫微链接按真太阳时换算时辰', async ({ page }) => {
