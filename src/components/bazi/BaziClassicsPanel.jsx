@@ -80,7 +80,8 @@ export default function BaziClassicsPanel({ chart, strength, judge, relations })
     const [data, setData] = useState(null);
     const [error, setError] = useState(null);
     const [mode, setMode] = useState('vernacular');
-    const [shown, setShown] = useState(PAGE);
+    // 「再看几条」的计数跟着上下文走：换了一张盘就回到第一页，不用 effect 重置。
+    const [paging, setPaging] = useState({ ctx: null, count: PAGE });
 
     useEffect(() => {
         let alive = true;
@@ -95,7 +96,7 @@ export default function BaziClassicsPanel({ chart, strength, judge, relations })
 
     const ctx = useMemo(() => (chart ? baziContextOf({ chart, strength, judge, relations }) : null), [chart, strength, judge, relations]);
     const hits = useMemo(() => (data?.library && ctx ? matchEntries(data.library, ctx) : []), [data, ctx]);
-    useEffect(() => { setShown(PAGE); }, [ctx]);
+    const shown = paging.ctx === ctx ? paging.count : PAGE;
 
     const books = data?.library?.books ? Object.values(data.library.books) : [];
     const total = data?.library?.total ?? 0;
@@ -128,7 +129,7 @@ export default function BaziClassicsPanel({ chart, strength, judge, relations })
             {hits.slice(0, shown).map((hit) => <EntryCard key={hit.entry.id} hit={hit} mode={mode} />)}
 
             {hits.length > shown && (
-                <button type="button" onClick={() => setShown((count) => count + PAGE)} className="inline-flex min-h-9 items-center rounded-full border border-[#b9ad98] bg-[#fffaf0]/70 px-4 text-xs font-bold text-[#5f574f] hover:border-[#2d6b62] hover:text-[#2d6b62] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62]">
+                <button type="button" onClick={() => setPaging({ ctx, count: shown + PAGE })} className="inline-flex min-h-9 items-center rounded-full border border-[#b9ad98] bg-[#fffaf0]/70 px-4 text-xs font-bold text-[#5f574f] hover:border-[#2d6b62] hover:text-[#2d6b62] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62]">
                     再看 {Math.min(PAGE, hits.length - shown)} 条（共 {hits.length} 条）
                 </button>
             )}
