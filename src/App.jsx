@@ -51,6 +51,8 @@ const loadZiweiLib = () => {
     getLunarMonthDays: fortuneContext.getLunarMonthDays,
     getLunarMonthOptions: fortuneContext.getLunarMonthOptions,
     createZiweiHoroscope: ziweiBirth.createZiweiHoroscope,
+    ZIWEI_LATE_ZI_MODES: ziweiBirth.ZIWEI_LATE_ZI_MODES,
+    normalizeLateZiMode: ziweiBirth.normalizeLateZiMode,
   })).catch((error) => {
     ziweiLibPromise = null;
     throw error;
@@ -254,6 +256,12 @@ const copyPlainText = async (text) => {
   if (!copied) throw new Error('copy unavailable');
 };
 
+// 晚子时流派（与 utils/ziweiBirth.js 的 ZIWEI_LATE_ZI_MODES 一致；写在这里是因为紫微库按需加载）。
+const ZIWEI_LATE_ZI_OPTIONS = [
+  { value: 'next', label: '晚子换次日', note: '23 时起算次日，命盘按次日子时排' },
+  { value: 'same', label: '晚子不换日', note: '23 时仍属当日，时柱用次日子时' },
+];
+
 const getTimeDescription = (time) => {
   const timeMap = {
     0: "早子时 (00:00-01:00)",
@@ -337,6 +345,8 @@ export default function App() {
   const [ziweiClock, setZiweiClock] = useState('');
   const [ziweiPlace, setZiweiPlace] = useState(EMPTY_ZIWEI_PLACE);
   const [ziweiDst, setZiweiDst] = useState(null);
+  // 晚子时流派：换次日（默认）或不换日；只在时辰落在晚子时时显示。
+  const [ziweiLateZi, setZiweiLateZi] = useState('next');
   // 换算结果带着它对应的输入（key），输入一变旧结果自动失效，不必在 effect 里同步清空。
   const [ziweiExactState, setZiweiExactState] = useState(null);
   const [horoscope, setHoroscope] = useState(null);
@@ -469,6 +479,7 @@ export default function App() {
     return () => { cancelled = true; };
   }, [ziweiExactKey]);
   const ziweiExact = ziweiExactKey && ziweiExactState?.key === ziweiExactKey ? ziweiExactState.result : null;
+  const isZiweiLateZi = ziweiTimeMode === 'exact' ? ziweiExact?.hourIndex === 12 : Number(birthTime) === 12;
   const ziweiExactError = ziweiExactKey && ziweiExactState?.key === ziweiExactKey ? ziweiExactState.error : '';
 
   const changeZiweiProvince = (province) => {
@@ -726,12 +737,14 @@ export default function App() {
         timeIndex: ziweiExact.hourIndex,
         gender,
         isLeapMonth: false,
+        lateZiMode: ziweiLateZi,
       } : {
         calendarType,
         birthDate: birthday,
         timeIndex: birthTime,
         gender,
         isLeapMonth: effectiveIsLeapMonth,
+        lateZiMode: ziweiLateZi,
       });
       if (ziweiExact) setBirthTime(ziweiExact.hourIndex);
       setHoroscope(newHoroscope);
@@ -797,21 +810,25 @@ export default function App() {
           const form = ziweiRecordToExactForm({ ...record, calendarType: recordCalendarType, birthDate: recordBirthDate, isLeapMonth: recordIsLeapMonth });
           exact = form ? resolveZiweiExact(form) : null;
         }
+        const recordLateZi = lib.normalizeLateZiMode(record.data?.lateZi);
         const newHoroscope = lib.createZiweiHoroscope(exact ? {
           calendarType: 'solar',
           birthDate: exact.solarDate,
           timeIndex: exact.hourIndex,
           gender: recordGender,
           isLeapMonth: false,
+          lateZiMode: recordLateZi,
         } : {
           calendarType: recordCalendarType,
           birthDate: recordBirthDate,
           timeIndex: recordBirthTime,
           gender: recordGender,
           isLeapMonth: recordIsLeapMonth,
+          lateZiMode: recordLateZi,
         });
 
         setName(record.name || '');
+        setZiweiLateZi(recordLateZi);
         setGender(recordGender);
         setBirthday(recordBirthDate);
         setBirthTime(exact ? exact.hourIndex : recordBirthTime);
@@ -867,6 +884,7 @@ export default function App() {
       longitude: ziweiPlace.longitude,
       timezone: ziweiPlace.timezone,
       applyDst: ziweiDst,
+      lateZiMode: ziweiLateZi,
     }, { name });
     if (!url) {
       setArchiveNotice({ type: 'error', message: '生成链接失败：出生日期不完整。' });
@@ -910,16 +928,19 @@ export default function App() {
       group: saveGroup,
       note: saveNote,
       // 精确时间设置一并保存：八字「从档案带入」也能直接用，下次打开按真太阳时重新换算。
-      data: ziweiExact ? {
-        timeMode: 'exact',
-        clockTime: ziweiClock,
-        placeProvince: ziweiPlace.province,
-        placeCity: ziweiPlace.city,
-        longitude: ziweiPlace.longitude === '' ? null : Number(ziweiPlace.longitude),
-        timezone: Number(ziweiPlace.timezone ?? 8),
-        applyTrueSolar: ziweiPlace.longitude !== '',
-        applyDst: ziweiExact.applyDst,
-      } : {}
+      data: {
+        lateZi: ziweiLateZi,
+        ...(ziweiExact ? {
+          timeMode: 'exact',
+          clockTime: ziweiClock,
+          placeProvince: ziweiPlace.province,
+          placeCity: ziweiPlace.city,
+          longitude: ziweiPlace.longitude === '' ? null : Number(ziweiPlace.longitude),
+          timezone: Number(ziweiPlace.timezone ?? 8),
+          applyTrueSolar: ziweiPlace.longitude !== '',
+          applyDst: ziweiExact.applyDst,
+        } : {}),
+      },
     };
 
     const savedRecord = archiveManager.addRecord(newRecord);
@@ -1721,6 +1742,16 @@ export default function App() {
                         </p>
                       )}
                     </>
+                  )}
+                  {isZiweiLateZi && (
+                    <div className="late-zi-choice" role="group" aria-label="晚子时流派">
+                      <div className="segmented-control">
+                        {ZIWEI_LATE_ZI_OPTIONS.map((option) => (
+                          <button key={option.value} type="button" aria-pressed={ziweiLateZi === option.value} onClick={() => setZiweiLateZi(option.value)} className="segment-button">{option.label}</button>
+                        ))}
+                      </div>
+                      <p className="field-hint">{ZIWEI_LATE_ZI_OPTIONS.find((option) => option.value === ziweiLateZi)?.note}。两派都有依据，默认按通行做法换次日；八字模块默认不换日。</p>
+                    </div>
                   )}
                 </fieldset>
 
