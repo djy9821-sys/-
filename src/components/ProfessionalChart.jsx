@@ -37,6 +37,9 @@ import {
 } from '../utils/ziweiPatterns';
 import { buildBaziChart } from '../utils/baziChart';
 import ZiweiClassicsPanel from './ziwei/ZiweiClassicsPanel.jsx';
+import { useClassicsLibrary } from './common/useClassicsLibrary.js';
+import { ziweiLifePalaceHits } from '../data/classics/index.js';
+import { classicsPromptSection } from '../utils/classicsPrompt.js';
 import { Sparkles, Coffee, Save, Archive, Calendar, Printer } from "lucide-react";
 import wechatPayImg from '../assets/wechat_pay.jpg';
 import alipayImg from '../assets/alipay.jpg';
@@ -225,6 +228,15 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         if (focusedIndex === null) return null;
         return palaces.find((palace) => palace.index === focusedIndex) || palaces[focusedIndex] || null;
     }, [focusedIndex, palaces]);
+
+    // 古籍库里与命宫、身宫星曜相关的条目：附进各类 AI 话术（古籍库按需加载，没加载完就先不附）。
+    const { data: classicsData } = useClassicsLibrary(palaces.length > 0);
+    const classicsPromptText = useMemo(() => {
+        if (!classicsData?.library || palaces.length === 0) return null;
+        const hits = ziweiLifePalaceHits(classicsData.library, palaces, { gender: basicInfo.gender });
+        return classicsPromptSection(hits, { title: '【古籍原文（命宫、身宫星曜）】', subject: '命宫身宫星曜', limit: 4 });
+    }, [classicsData, palaces, basicInfo.gender]);
+    const withClassics = (text) => (text && classicsPromptText ? `${text}\n\n${classicsPromptText}` : text);
 
     React.useEffect(() => {
         if (focusedIndex !== null || palaces.length === 0) return;
@@ -1816,11 +1828,11 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
 
             if (type === 'scumbag') {
                 const template = basicInfo.gender === 'female' ? FEMALE_PROMPT_TEMPLATE : AI_PROMPT_TEMPLATE;
-                prompt = `${template}\n${basicInfoData}\n${scumbagData}`;
+                prompt = withClassics(`${template}\n${basicInfoData}\n${scumbagData}`);
             } else if (type === 'marriage') {
-                prompt = `${MARRIAGE_PROMPT_TEMPLATE}\n${basicInfoData}\n${scumbagData}`;
+                prompt = withClassics(`${MARRIAGE_PROMPT_TEMPLATE}\n${basicInfoData}\n${scumbagData}`);
             } else if (type === 'wealth') {
-                prompt = `${WEALTH_PROMPT_TEMPLATE}\n${basicInfoData}\n${scumbagData}`;
+                prompt = withClassics(`${WEALTH_PROMPT_TEMPLATE}\n${basicInfoData}\n${scumbagData}`);
             } else if (['yearly', 'monthly', 'daily', 'hourly'].includes(type)) {
                 const fortuneContext = buildCurrentFortuneContext({
                     horoscope,
@@ -1843,7 +1855,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     hourly: targetIndex >= 3,
                 });
 
-                prompt = generateFortunePromptText(
+                prompt = withClassics(generateFortunePromptText(
                     type,
                     fortuneContext.selection,
                     fortuneContext.activeStems,
@@ -1852,7 +1864,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     palaces,
                     getAllMutagenStarMaps(),
                     fortuneContext,
-                );
+                ));
 
                 if (!prompt) throw new Error(`无法生成${FORTUNE_LAYER_LABELS[type] || '运势'}话术`);
 
