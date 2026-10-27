@@ -243,6 +243,29 @@ export const liuyaoContextOf = ({ hexagram = null, changed = null, movingLines =
   movingLines: movingLines.length === 0 ? '无' : movingLines.length === 1 ? '一' : '多',
 });
 
+/**
+ * 紫微提示词用：命宫与身宫（同宫时只算一次）星曜命中的条目，去重后按相关度排序。
+ * @param {object} library buildLibrary 的结果
+ * @param {object[]} palaces iztro 的十二宫
+ * @param {{ gender?: string }} [options]
+ */
+export const ziweiLifePalaceHits = (library, palaces, { gender = null } = {}) => {
+  if (!library || !Array.isArray(palaces)) return [];
+  const ming = palaces.find((palace) => palace?.name === '命宫') ?? null;
+  const shen = palaces.find((palace) => palace?.isBodyPalace) ?? null;
+  const targets = ming && shen && ming !== shen ? [ming, shen] : [ming ?? shen].filter(Boolean);
+  const seen = new Set();
+  const hits = [];
+  targets.forEach((palace) => {
+    matchEntries(library, ziweiPalaceContextOf(palace, { gender })).forEach((hit) => {
+      if (seen.has(hit.entry.id)) return;
+      seen.add(hit.entry.id);
+      hits.push(hit);
+    });
+  });
+  return hits.sort((a, b) => b.score - a.score || a.entry.id.localeCompare(b.entry.id));
+};
+
 /* ---------- 术语词典 ---------- */
 
 /** 合并术语词典文件。 */
