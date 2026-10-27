@@ -18,8 +18,20 @@ test('时辰模式：编码、解码得到可直接排盘的紫微记录', () =>
   assert.equal(record.timeHour, 6);
   assert.equal(record.isLeapMonth, false);
   assert.equal(record.fromLink, true);
-  assert.deepEqual(record.data, {});
+  assert.deepEqual(record.data, { lateZi: 'next' });
   assert.equal(ziweiRecordToExactForm(record), null);
+});
+
+test('晚子时流派：不换日写入 zi=s，换次日（默认）不占参数', () => {
+  const same = encodeZiweiLink({ ...shichenForm, hourIndex: 12, lateZiMode: 'same' });
+  assert.equal(same, 'cal=s&d=1990-05-20&g=m&h=12&zi=s&n=%E6%B5%8B%E8%AF%95');
+  assert.equal(decodeZiweiLink(same).data.lateZi, 'same');
+  const next = encodeZiweiLink({ ...shichenForm, hourIndex: 12, lateZiMode: 'next' });
+  assert.ok(!next.includes('zi='));
+  assert.equal(decodeZiweiLink(next).data.lateZi, 'next');
+  const exact = decodeZiweiLink(encodeZiweiLink({ ...shichenForm, timeMode: 'exact', clockTime: '23:30', longitude: 116.4, lateZiMode: 'same' }));
+  assert.equal(exact.data.lateZi, 'same');
+  assert.equal(exact.data.timeMode, 'exact');
 });
 
 test('农历闰月与精确时间：出生地、时区、夏令时都在链接里', () => {
