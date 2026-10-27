@@ -53,7 +53,10 @@ function AnimatedCoin({ index, isThrown, onResult, delay = 0, audioContext, targ
     const [started, setStarted] = useState(false);
     const [finalRotation, setFinalRotation] = useState(0);
     const [hasReported, setHasReported] = useState(false);
-    const [yangMap, yinMap] = useTexture([coinYangTexture, coinYinTexture]);
+    // 两面贴图：coin_yang_perfect 是有字的一面（乾隆通宝），coin_yin_circular 是无字的背面（满文）。
+    // 《增删卜易·以钱代蓍法》以背为阳：一背为单、二背为拆、三背为重（老阳）、三字为交（老阴）。
+    // targetIsHeads 为阳面朝上，落地时朝向镜头的是 -z 面，所以 -z 面贴背面、+z 面贴字面。
+    const [charFaceMap, backFaceMap] = useTexture([coinYangTexture, coinYinTexture]);
 
     useEffect(() => {
         if (isThrown && targetIsHeads !== undefined) {
@@ -107,11 +110,11 @@ function AnimatedCoin({ index, isThrown, onResult, delay = 0, audioContext, targ
 
             <mesh position={[0, 0, COIN_THICKNESS / 2 + 0.002]} castShadow>
                 <circleGeometry args={[COIN_RADIUS, 64]} />
-                <meshStandardMaterial map={yinMap} transparent={true} alphaTest={0.5} metalness={0.5} roughness={0.5} />
+                <meshStandardMaterial map={charFaceMap} transparent={true} alphaTest={0.5} metalness={0.5} roughness={0.5} />
             </mesh>
             <mesh position={[0, 0, -COIN_THICKNESS / 2 - 0.002]} rotation={[0, Math.PI, 0]} castShadow>
                 <circleGeometry args={[COIN_RADIUS, 64]} />
-                <meshStandardMaterial map={yangMap} transparent={true} alphaTest={0.5} metalness={0.5} roughness={0.5} />
+                <meshStandardMaterial map={backFaceMap} transparent={true} alphaTest={0.5} metalness={0.5} roughness={0.5} />
             </mesh>
 
             {/* Square hole overlays with background color - positioned AFTER textures to render on top */}
@@ -274,6 +277,7 @@ export default function MoneyDivination({ onBack, onComplete = null, question = 
 
     const generateYao = (results) => {
         if (yaos.length >= 6) return;
+        // heads 为阳面（背面）朝上：三背老阳、两背少阴、一背少阳、三字老阴。
         const headsCount = Object.values(results).filter(r => r === 'heads').length;
         let yaoType, isMoving, binaryVal;
 
