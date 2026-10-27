@@ -29,7 +29,7 @@ import {
     getAllMutagenStarMaps,
     groupSelfMutationsByBranch,
 } from '../utils/ziweiMutations';
-import { createZiweiHoroscope, getYinYangGenderLabel } from '../utils/ziweiBirth';
+import { createZiweiHoroscope, getYinYangGenderLabel, getZiweiFortune } from '../utils/ziweiBirth';
 import {
     analyzeZiweiPatterns,
     analyzeZiweiStructures,
@@ -424,7 +424,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     const currentYear = new Date().getFullYear();
     const currentHoroscope = useMemo(() => {
         try {
-            return horoscope.horoscope(new Date());
+            return getZiweiFortune(horoscope, new Date());
         } catch (error) {
             console.error('Unable to read current horoscope:', error);
             return null;
