@@ -18,7 +18,11 @@ test('己土生子月、时柱戊辰：偏弱，冬月调候喜火', () => {
   assert.deepEqual(result.monthMain, { gan: '癸', role: '财' });
   assert.deepEqual(result.deDi.map(({ zhi }) => zhi), ['丑', '辰']);
   assert.deepEqual(result.deShi.map(({ gan }) => gan), ['丁', '戊']);
-  assert.deepEqual(result.tiaoHou, { season: '冬月寒冷', element: '火' });
+  assert.equal(result.tiaoHou.season, '冬月寒冷');
+  assert.equal(result.tiaoHou.primary, '丙');
+  assert.equal(result.tiaoHou.element, '火');
+  assert.deepEqual(result.tiaoHou.stems, ['丙', '甲', '戊']);
+  assert.equal(result.tiaoHou.source, '《穷通宝鉴》·调候用神表');
   assert.deepEqual(result.favorable.map(({ element }) => element), ['火', '土']);
   assert.deepEqual(result.unfavorable.map(({ element }) => element), ['水', '金', '木']);
   assert.equal(result.roles['水'], '财');
@@ -37,6 +41,7 @@ test('身强时喜泄耗，从夏月取水调候', () => {
   assert.equal(result.band, '偏强');
   assert.equal(result.deLing, true);
   assert.equal(result.tiaoHou.element, '水');
+  assert.deepEqual(result.tiaoHou.stems, ['壬', '庚', '癸']);
   assert.equal(result.favorable[0].element, '水');
   assert.ok(result.unfavorable.every(({ element }) => element !== '水'));
 });
