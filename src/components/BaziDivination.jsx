@@ -25,10 +25,12 @@ import {
 } from './bazi/baziTheme';
 import {
     BAZI_HOUR_OPTIONS,
+    YEAR_BOUNDARY_OPTIONS,
     buildBaziChart,
     getBaziDayCount,
     getBaziMonthOptions,
     getClockSolarDate,
+    getYearBoundaryInfo,
 } from '../utils/baziChart';
 import { archiveManager } from '../utils/archiveManager';
 import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from '../utils/birthPlaces';
@@ -187,6 +189,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const [birthDay, setBirthDay] = useState(prefill?.day ?? 1);
     const [birthHour, setBirthHour] = useState(prefill?.hourIndex ?? 6);
     const [daySect, setDaySect] = useState(prefill?.daySect ?? 2);
+    const [yearBoundary, setYearBoundary] = useState(prefill?.yearBoundary ?? 'lichun');
     const [gender, setGender] = useState(prefill?.gender ?? 'male');
     const [personName, setPersonName] = useState(prefill?.personName ?? '');
     const [timeMode, setTimeMode] = useState(prefill?.timeMode ?? 'exact');
@@ -239,6 +242,8 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const dayCount = getBaziDayCount(calendarType, birthYear, activeMonth);
     const activeDay = Math.min(birthDay, dayCount || 1);
     const days = Array.from({ length: dayCount }, (_, index) => index + 1);
+    // 只有出生在立春与正月初一之间，两种年柱分界才有差别，才显示开关。
+    const yearBoundaryInfo = useMemo(() => getYearBoundaryInfo(calendarType, birthYear, activeMonth, activeDay), [calendarType, birthYear, activeMonth, activeDay]);
     const clock = useMemo(() => parseClockTime(clockTime), [clockTime]);
     const exactMode = timeMode === 'exact';
     const unknownMode = timeMode === 'unknown';
@@ -258,6 +263,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         day: activeDay,
         gender,
         daySect,
+        yearBoundary,
         ...(exactMode
             ? {
                 timeMode: 'exact',
@@ -272,7 +278,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
             : unknownMode
                 ? { timeMode: 'unknown' }
                 : { hourIndex: birthHour }),
-    }), [calendarType, birthYear, activeMonth, activeDay, gender, daySect, exactMode, unknownMode, clock, longitudeInvalid, longitudeValue, timezone, placeName, applyTrueSolar, dstChoice, birthHour]);
+    }), [calendarType, birthYear, activeMonth, activeDay, gender, daySect, yearBoundary, exactMode, unknownMode, clock, longitudeInvalid, longitudeValue, timezone, placeName, applyTrueSolar, dstChoice, birthHour]);
 
     // 只对按北京时间记录的大陆出生时间自动判断 1986–1991 年夏令时。
     const dstSuggested = useMemo(() => {
@@ -579,6 +585,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         setBirthHour(form.hourIndex ?? 6);
         setGender(form.gender);
         setDaySect(form.daySect);
+        setYearBoundary(form.yearBoundary ?? 'lichun');
         setTimeMode(form.timeMode);
         setClockTime(form.clockTime);
         setPlaceProvince(form.placeProvince);
@@ -605,6 +612,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         hourIndex: birthHour,
         gender,
         daySect,
+        yearBoundary,
         timeMode,
         clockTime,
         placeProvince,
@@ -1077,6 +1085,20 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                 </fieldset>
                             )}
 
+                            {yearBoundaryInfo?.differs && (
+                                <fieldset className="space-y-2 rounded-xl border border-[#dcb471]/15 bg-[#dcb471]/[0.05] p-3">
+                                    <legend className="px-1 text-xs font-bold tracking-wider text-[#dcb471]">年柱分界</legend>
+                                    <p className="text-[11px] leading-5 text-[#fbf7ed]/60">这个生日在立春与农历正月初一之间，两派年柱不同：按立春为 <b className="font-serif text-[#f0ce91]">{yearBoundaryInfo.lichun}</b>，按正月初一为 <b className="font-serif text-[#f0ce91]">{yearBoundaryInfo.chunjie}</b>。子平法通行以立春换年。</p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {YEAR_BOUNDARY_OPTIONS.map((option) => (
+                                            <button key={option.value} type="button" onClick={() => setYearBoundary(option.value)} aria-pressed={yearBoundary === option.value} className={`min-h-12 rounded-lg border px-2 py-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8] ${yearBoundary === option.value ? 'border-[#dcb471]/55 bg-[#dcb471]/15 text-[#f0ce91]' : 'border-white/10 bg-black/25 text-[#fbf7ed]/60'}`}>
+                                                <span className="block text-xs font-bold">{option.label}</span><span className="mt-0.5 block text-[11px] opacity-75">{option.note}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </fieldset>
+                            )}
+
                             <fieldset className="space-y-2">
                                 <legend className={INPUT_LABEL_CLASS}><User className="size-3.5" aria-hidden="true" /> 性别</legend>
                                 <div className="grid grid-cols-2 gap-3">
@@ -1171,6 +1193,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                         ? ` · 钟表 ${timeInfo.clockTime}${timeInfo.dstApplied ? '（已扣夏令时）' : ''}${timeInfo.trueSolarApplied ? ` · 已按${timeInfo.placeName || '出生地'}（东经 ${Number(timeInfo.longitude).toFixed(2)}°）校正真太阳时` : ' · 未校正真太阳时'}`
                                                         : ' · 按时辰排盘，未校正真太阳时'}
                                                 {isLateZiHour ? ` · ${daySect === 1 ? '晚子换次日' : '晚子不换日'}` : ''}
+                                                {baziResult.yearBoundary?.differs ? ` · 年柱按${baziResult.yearBoundary.mode === 'chunjie' ? '正月初一' : '立春'}换年（按${baziResult.yearBoundary.mode === 'chunjie' ? '立春' : '正月初一'}则为${baziResult.yearBoundary.mode === 'chunjie' ? baziResult.yearBoundary.lichun : baziResult.yearBoundary.chunjie}）` : ''}
                                             </p>
                                             {timeInfo?.boundary && (
                                                 <div className="mt-2.5">
