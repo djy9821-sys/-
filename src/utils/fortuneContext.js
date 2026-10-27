@@ -1,5 +1,6 @@
 import { astro } from 'iztro';
 import { LunarYear } from 'lunar-javascript';
+import { getZiweiFortune } from './ziweiBirth.js';
 
 export const FORTUNE_LAYER_ORDER = ['decadal', 'yearly', 'monthly', 'daily', 'hourly'];
 
@@ -105,17 +106,18 @@ export const buildCurrentFortuneContext = ({ horoscope, basicInfo, type, now = n
     throw new Error('不支持的运势类型');
   }
 
+  // 晚子时按命盘的流派换算（默认换到次日：流日、流时的宫位与干支都按次日），日期用换算后的，时辰仍显示晚子时。
   const timeIndex = getCurrentTimeIndex(now);
-  const solarDate = formatLocalDate(now);
+  const fortune = getZiweiFortune(horoscope, now, timeIndex);
+  const solarDate = formatLocalDate(fortune.targetDate);
   const gender = basicInfo?.gender === 'female' ? '女' : '男';
-  const currentAstrolabe = astro.bySolar(solarDate, timeIndex, gender, true, 'zh-CN');
+  const currentAstrolabe = astro.bySolar(solarDate, fortune.timeIndex, gender, true, 'zh-CN');
   const lunar = currentAstrolabe?.rawDates?.lunarDate;
 
   if (!lunar?.lunarYear || !lunar?.lunarMonth || !lunar?.lunarDay) {
     throw new Error('无法读取当前农历日期');
   }
 
-  const fortune = horoscope.horoscope(now, timeIndex);
   const decadalIndex = fortune?.decadal?.index;
   if (
     !Number.isInteger(decadalIndex)
@@ -129,7 +131,7 @@ export const buildCurrentFortuneContext = ({ horoscope, basicInfo, type, now = n
 
   const selection = {
     daxianIndex: decadalIndex,
-    year: now.getFullYear(),
+    year: fortune.targetDate.getFullYear(),
     lunarYear: lunar.lunarYear,
     month: includes('monthly') ? Math.abs(lunar.lunarMonth) : null,
     day: includes('daily') ? lunar.lunarDay : null,
@@ -162,6 +164,6 @@ export const buildCurrentFortuneContext = ({ horoscope, basicInfo, type, now = n
     fortune,
     activeStems,
     scopeKeys,
-    dayBoundaryNote: timeIndex === 12 ? '晚子时：流日按次日换日' : '',
+    dayBoundaryNote: fortune.lateZi?.text ?? '',
   };
 };
