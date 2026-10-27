@@ -10,7 +10,7 @@ import BaziFlowPanel, { RelationList } from './bazi/BaziFlowPanel';
 import BaziPatternPanel from './bazi/BaziPatternPanel';
 import BaziClassicsPanel from './bazi/BaziClassicsPanel';
 import BaziPromptExport from './bazi/BaziPromptExport';
-import { useClassicsLibrary } from './common/ClassicsPanel.jsx';
+import { useClassicsLibrary } from './common/useClassicsLibrary.js';
 import { baziContextOf, matchEntries } from '../data/classics/index.js';
 import BaziShareCardModal from './bazi/BaziShareCardModal';
 import BaziStrengthPanel from './bazi/BaziStrengthPanel';
