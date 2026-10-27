@@ -9,10 +9,11 @@ test.beforeEach(async ({ page }) => {
 const fillBirthForm = async (page) => {
   const form = page.locator('form.birth-form');
   await expect(form).toBeVisible();
-  await form.getByLabel('出生年份').selectOption('1990');
-  await form.getByLabel('出生月份').selectOption('05');
-  await form.getByLabel('出生日期').selectOption('20');
-  await form.getByLabel('出生时辰').selectOption('6');
+  // 年月日三个下拉的可见标签是 sr-only 文字加「年 / 月 / 日」，按 autocomplete 定位最稳。
+  await form.locator('select[autocomplete="bday-year"]').selectOption('1990');
+  await form.locator('select[autocomplete="bday-month"]').selectOption('05');
+  await form.locator('select[autocomplete="bday-day"]').selectOption('20');
+  await form.locator('#birth-time').selectOption('6');
   await form.locator('#birth-name').fill('紫微端到端');
   await form.getByRole('button', { name: '生成紫微命盘' }).click();
 };
