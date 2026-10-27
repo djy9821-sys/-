@@ -29,7 +29,7 @@ import {
     getAllMutagenStarMaps,
     groupSelfMutationsByBranch,
 } from '../utils/ziweiMutations';
-import { getYinYangGenderLabel } from '../utils/ziweiBirth';
+import { createZiweiHoroscope, getYinYangGenderLabel } from '../utils/ziweiBirth';
 import {
     analyzeZiweiPatterns,
     analyzeZiweiStructures,
@@ -1855,13 +1855,13 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         setTimeout(async () => {
             try {
                 // Calculate Partner Horoscope
-                const partnerHoroscope = astro.bySolar(
-                    partnerInfo.birthday,
-                    TIME_RANGES.indexOf(partnerInfo.birthTime),
-                    partnerInfo.gender === 'male' ? '男' : '女',
-                    true,
-                    'zh-CN'
-                );
+                // 走同一套排盘入口，晚子时的处理与本人命盘一致。
+                const partnerHoroscope = createZiweiHoroscope({
+                    calendarType: 'solar',
+                    birthDate: partnerInfo.birthday,
+                    timeIndex: TIME_RANGES.indexOf(partnerInfo.birthTime),
+                    gender: partnerInfo.gender === 'male' ? 'male' : 'female',
+                });
 
                 // Calculate Best Dates (The Heavy Lifting)
                 const bestDates = await findBestConceptionDates(selectedBabyType);
@@ -2155,6 +2155,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 <div><dt>出生公历</dt><dd>{hideBirthDetails ? '已隐藏' : birthSolarLabel}</dd></div>
                                 <div><dt>出生钟表时</dt><dd>{hideBirthDetails ? '已隐藏' : basicInfo.birthTime || horoscope.time || '-'}</dd></div>
                                 <div><dt>出生农历</dt><dd>{hideBirthDetails ? '已隐藏' : horoscope.lunarDate || basicInfo.lunarDate || '-'}</dd></div>
+                                {horoscope.lateZi && <div><dt>晚子时</dt><dd>{hideBirthDetails ? '已隐藏' : horoscope.lateZi.text}</dd></div>}
                                 <div className={basicInfo.trueSolar?.applied ? '' : 'is-warning'}><dt>真太阳时</dt><dd>{hideBirthDetails ? '已隐藏' : trueSolarLabel}</dd></div>
                                 <div><dt>制盘时间</dt><dd>{currentTimeLabel}</dd></div>
                             </dl>
@@ -2170,6 +2171,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 <div><dt>身宫地支</dt><dd>{horoscope.earthlyBranchOfBodyPalace || '-'}宫</dd></div>
                                 <div className="is-pending"><dt>子斗</dt><dd>尚未接入经过校验的算法</dd></div>
                             </dl>
+                            <p className="wenmo-center-detail-note">安星依据《紫微斗数全书》安星诀：安命身、定五行局、起紫微天府、十四主星与辅佐煞曜、长生博士将前岁前十二神、大限小限；十干四化取《全书》「甲廉破武阳」歌诀（庚：阳武阴同，壬：梁紫左武）。年柱以立春为界，闰月十五以后按下月安命，晚子时见上方说明。</p>
                         </section>
 
                         <section>
