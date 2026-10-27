@@ -9,6 +9,7 @@ import { Lunar, LunarUtil, Solar } from 'lunar-javascript';
 import { HEXAGRAM_MAP } from './hexagramLogic.js';
 import { getYaoCi, YAO_CI } from '../data/yaoci.js';
 import { LIUYAO_METHODS, LIUYAO_TOPIC_LABELS } from './liuyaoRecord.js';
+import { describeLiuYaoSources } from '../data/liuyaoSources.js';
 
 export const LINE_VALUES = Object.freeze({
   6: { value: 6, name: '老阴', isYang: false, isMoving: true },
@@ -17,8 +18,11 @@ export const LINE_VALUES = Object.freeze({
   9: { value: 9, name: '老阳', isYang: true, isMoving: true },
 });
 
-/** 三枚铜钱的字面（阳面）数量 → 爻值：三字老阳、两字少阴、一字少阳、无字老阴。 */
-export const coinsToLineValue = (headsCount) => [6, 7, 8, 9][headsCount] ?? 8;
+/**
+ * 三枚铜钱的阳面数量 → 爻值。
+ * 《增删卜易·以钱代蓍法》以背（无字的一面）为阳：一背为单（少阳）、二背为拆（少阴）、三背为重（老阳）、三字为交（老阴）。
+ */
+export const coinsToLineValue = (yangFaces) => [6, 7, 8, 9][yangFaces] ?? 8;
 
 const TRIGRAMS = Object.freeze({
   乾: { symbol: '天', bits: [1, 1, 1], element: '金', stems: ['甲', '壬'], branches: ['子', '寅', '辰', '午', '申', '戌'] },
@@ -57,6 +61,30 @@ export const relativeOf = (palaceElement, element) => {
 const bitsToKey = (bits) => [...bits].reverse().join(''); // HEXAGRAM_MAP 的键自上爻至初爻
 const trigramOf = (bits) => TRIGRAM_BY_BITS[bits.join('')];
 
+/** 纳甲：下卦取本卦三爻的前三位，上卦取其后三位。 */
+const najiaOf = (bits) => {
+  const lower = TRIGRAMS[trigramOf(bits.slice(0, 3))];
+  const upper = TRIGRAMS[trigramOf(bits.slice(3, 6))];
+  return Array.from({ length: 6 }, (_, i) => {
+    const trigram = i < 3 ? lower : upper;
+    const gan = trigram.stems[i < 3 ? 0 : 1];
+    const zhi = trigram.branches[i];
+    return { gan, zhi, ganZhi: `${gan}${zhi}`, element: ZHI_ELEMENT[zhi] };
+  });
+};
+
+/**
+ * 六冲卦与六合卦：初与四、二与五、三与上三对爻的地支两两相冲为六冲（八纯卦、天雷无妄、雷天大壮），
+ * 两两相合为六合（否、泰、困、节、旅、贲、豫、复）。按纳甲算，不靠卦名表。
+ */
+export const hexagramRelationOf = (bits) => {
+  const najia = najiaOf(bits);
+  const pairs = [[0, 3], [1, 4], [2, 5]].map(([a, b]) => [najia[a].zhi, najia[b].zhi]);
+  if (pairs.every(([a, b]) => ZHI_CLASH[a] === b)) return '六冲';
+  if (pairs.every(([a, b]) => ZHI_HARMONY[a] === b)) return '六合';
+  return '';
+};
+
 const describeHexagram = (bits) => {
   const lower = trigramOf(bits.slice(0, 3));
   const upper = trigramOf(bits.slice(3, 6));
@@ -70,6 +98,7 @@ const describeHexagram = (bits) => {
     lower,
     upperSymbol: TRIGRAMS[upper].symbol,
     lowerSymbol: TRIGRAMS[lower].symbol,
+    relation: hexagramRelationOf(bits),
     extra: YAO_CI[info?.name]?.extra ?? null,
   };
 };
@@ -107,18 +136,6 @@ const buildPalaceIndex = () => {
 const PALACE_INDEX = buildPalaceIndex();
 
 export const getPalaceInfo = (bits) => PALACE_INDEX[bits.join('')] ?? null;
-
-/** 纳甲：下卦取本卦三爻的前三位，上卦取其后三位。 */
-const najiaOf = (bits) => {
-  const lower = TRIGRAMS[trigramOf(bits.slice(0, 3))];
-  const upper = TRIGRAMS[trigramOf(bits.slice(3, 6))];
-  return Array.from({ length: 6 }, (_, i) => {
-    const trigram = i < 3 ? lower : upper;
-    const gan = trigram.stems[i < 3 ? 0 : 1];
-    const zhi = trigram.branches[i];
-    return { gan, zhi, ganZhi: `${gan}${zhi}`, element: ZHI_ELEMENT[zhi] };
-  });
-};
 
 const toSolar = (date) => Solar.fromYmdHms(
   date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds(),
@@ -258,9 +275,9 @@ export const buildLiuYaoPrompt = (reading, judge = null) => {
     `【起卦】${time.solarText}（${time.lunarText}）· ${LIUYAO_METHODS[reading.method] ?? LIUYAO_METHODS.coins}${reading.castNote ? `（${reading.castNote}）` : ''}`,
     `- 四柱：${time.year}年 ${time.month}月 ${time.day}日 ${time.hour}时；旬空 ${time.xunKong.join('')}；月建 ${time.monthZhi}，日辰 ${time.dayZhi}`,
     '',
-    `【本卦】${hexagram.name}（${hexagram.upper}${hexagram.upperSymbol}上 ${hexagram.lower}${hexagram.lowerSymbol}下）· ${hexagram.palace}宫${hexagram.palaceLabel}（${hexagram.palaceElement}）· 世${hexagram.shi}爻 应${hexagram.ying}爻`,
+    `【本卦】${hexagram.name}（${hexagram.upper}${hexagram.upperSymbol}上 ${hexagram.lower}${hexagram.lowerSymbol}下）· ${hexagram.palace}宫${hexagram.palaceLabel}（${hexagram.palaceElement}）· 世${hexagram.shi}爻 应${hexagram.ying}爻${hexagram.relation ? ` · ${hexagram.relation}卦` : ''}`,
     `- 卦辞：${hexagram.desc}`,
-    changed ? `【变卦】${changed.name}（${changed.upper}${changed.upperSymbol}上 ${changed.lower}${changed.lowerSymbol}下）` : '【变卦】无动爻，静卦',
+    changed ? `【变卦】${changed.name}（${changed.upper}${changed.upperSymbol}上 ${changed.lower}${changed.lowerSymbol}下）${changed.relation ? ` · ${changed.relation}卦` : ''}` : '【变卦】无动爻，静卦',
     changed ? `- 卦辞：${changed.desc}` : '',
     `【互卦】${mutual.name}`,
     '',
@@ -273,6 +290,8 @@ export const buildLiuYaoPrompt = (reading, judge = null) => {
     reading.useExtra ? `- ${reading.useExtra}` : '',
     '',
     ...(judge ? ['【程序初判】（按通行口诀的简化规则估算，请核对后再展开，不必照搬）', ...judge.points.map((point) => `- ${point}`), ''] : []),
+    `【依据】${describeLiuYaoSources()}请按这些古籍的法则分析，不要自创规则。`,
+    '',
     '【请回答】',
     '1. 先定用神：根据所问之事取用神，说明用神在本卦是否出现、旺衰如何（看月建、日辰、动爻生克、空破）。',
     '2. 看世应与动变：世爻、应爻的状态，动爻变化对用神的影响，有无回头生克、反吟伏吟。',
