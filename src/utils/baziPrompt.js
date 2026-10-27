@@ -135,7 +135,7 @@ const strengthLines = (chart, strength) => {
     `- 得地：${strength.deDi.length ? strength.deDi.map((item) => `${item.name}${item.zhi}${item.tongGen ? '通根' : '有印'}`).join('、') : '否'}`,
     `- 得势：${strength.deShi.length ? strength.deShi.map((item) => `${item.name}${item.gan}（${item.role}）`).join('、') : '否'}`,
   ];
-  if (strength.tiaoHou) lines.push(`- 调候：${strength.tiaoHou.season}，宜见${strength.tiaoHou.element}`);
+  if (strength.tiaoHou) lines.push(`- 调候（${strength.tiaoHou.source}）：${strength.tiaoHou.text}${strength.tiaoHou.season ? `，${strength.tiaoHou.season}` : ''}`);
   if (strength.favorable.length) lines.push(`- 喜用参考：${elementList(strength.favorable)}`);
   if (strength.unfavorable.length) lines.push(`- 忌神参考：${elementList(strength.unfavorable)}`);
   if (strength.hint) lines.push(`- 提示：${strength.hint}`);
