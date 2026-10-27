@@ -49,6 +49,15 @@ import { getShensha, SHENSHA_ORDER, SHENSHA_SOURCES } from '../utils/baziShensha
 import { cite } from '../data/classics';
 import { analyzeStrength } from '../utils/baziStrength';
 import { judgeBaziPattern } from '../utils/baziPattern';
+
+// 摘要卡上的格局成败小标签（《子平真诠》口径）。
+const CHENG_BAI_CHIP = {
+    成: 'border-[#2d6b62]/35 bg-[#2d6b62]/[0.07] text-[#245a52]',
+    败: 'border-[#a33b30]/40 bg-[#a33b30]/[0.06] text-[#96372e]',
+    成中有败: 'border-[#b06a1f]/40 bg-[#b06a1f]/[0.08] text-[#7f4b12]',
+    败中有成: 'border-[#315f7d]/40 bg-[#315f7d]/[0.08] text-[#2b4f68]',
+    default: 'border-[#cbbfac] text-[#5f574f]',
+};
 import { describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks } from '../utils/baziYearMarks';
 import { buildBaziShareUrl } from '../utils/baziLink';
 import { buildShareCardModel, renderBaziShareCard } from '../utils/baziShareCard';
@@ -1133,6 +1142,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                             {patternJudge?.pattern && (
                                                 <p className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#514941]">
                                                     <span className="inline-flex items-center rounded-full border border-[#a33b30]/40 bg-[#a33b30]/[0.06] px-2.5 py-0.5 font-serif text-sm font-bold text-[#96372e]">{patternJudge.pattern.name}</span>
+                                                    {patternJudge.chengBai && patternJudge.chengBai.verdict !== '待详辨' && <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-bold ${CHENG_BAI_CHIP[patternJudge.chengBai.verdict] ?? CHENG_BAI_CHIP.default}`} title={`《子平真诠》成败：${patternJudge.chengBai.summary}`}>格{patternJudge.chengBai.verdict}</span>}
                                                     {patternJudge.special && <span className="inline-flex items-center rounded-full border border-[#b06a1f]/40 bg-[#b06a1f]/[0.08] px-2 py-0.5 text-[11px] font-bold text-[#7f4b12]">{patternJudge.special.name}</span>}
                                                     {patternJudge.traits.filter((item) => item.key !== 'rizuo').slice(0, 3).map((item) => (
                                                         <span key={item.key} className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-bold ${item.tone === 'good' ? 'border-[#2d6b62]/35 bg-[#2d6b62]/[0.07] text-[#245a52]' : item.tone === 'caution' ? 'border-[#b06a1f]/40 bg-[#b06a1f]/[0.08] text-[#7f4b12]' : 'border-[#cbbfac] text-[#5f574f]'}`}>{item.name}</span>
