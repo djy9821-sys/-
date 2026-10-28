@@ -30,6 +30,18 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   const promptText = result.locator('textarea[aria-label="提示词全文"]');
   await expect(promptText).toHaveValue(/【古籍原文（与本命相关）】\n- 《子平真诠》[^\n]*正官格/);
   await expect(result).toContainText(/已附上与本命相关的古籍原文 \d+ 条/);
+  // 术语词典：先列这张盘里出现的术语（日主、十神……），搜索能找到并展开。
+  await expect(result.getByRole('heading', { name: /术语词典/ })).toBeVisible();
+  const glossary = result.getByTestId('bazi-glossary');
+  await expect(glossary.getByTestId('bazi-glossary-summary')).toContainText(/词典共 \d+ 条/);
+  await expect(glossary.locator('[data-term="日主"]').first()).toContainText('出生日的天干');
+  await glossary.getByRole('searchbox', { name: '搜索术语' }).fill('十神');
+  const hit = glossary.locator('[data-term="十神"]').first();
+  await expect(hit).toContainText('十种关系');
+  if (!(await hit.evaluate((element) => element.open))) await hit.locator('summary').click();
+  await expect(hit).toContainText('例：');
+  await glossary.getByRole('searchbox', { name: '搜索术语' }).fill('不存在的词');
+  await expect(glossary).toContainText('没有找到包含「不存在的词」的术语');
 });
 
 test('手动录入排盘、存档，再从档案打开', async ({ page }) => {
