@@ -41,6 +41,8 @@ export const APPLIES_KEYS = Object.freeze({
   ziwei: Object.freeze({
     star: ZIWEI_STARS,
     stars: ZIWEI_STARS,
+    // 几颗星都要在同一宫（「同宫」「同守」「同垣」）；star / stars 是任一颗在宫就算。
+    allStars: ZIWEI_STARS,
     palace: ZIWEI_PALACES,
     branches: ZHI,
     brightness: ZIWEI_BRIGHTNESS,
@@ -146,6 +148,9 @@ const checkApplies = (applies, where, errors, dirModule = null) => {
       const range = allowed[key];
       const values = Array.isArray(value) ? value : [value];
       if (values.length === 0) errors.push(`${at}.${key}: 不能为空数组`);
+      if (key === 'allStars' && (!Array.isArray(value) || new Set(value).size < 2)) {
+        errors.push(`${at}.allStars: 要写两颗以上不同的星（几颗都要在同一宫）；只要一颗星用 star`);
+      }
       values.forEach((item) => {
         if (range === null) {
           if (!isNonEmptyString(item)) errors.push(`${at}.${key}: 必须是非空字符串`);
