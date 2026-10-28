@@ -2458,6 +2458,7 @@ select.field-control { cursor: pointer; }
   touch-action: manipulation;
 }
 .wenmo-pattern-actions button:focus-visible { outline: 3px solid #2587dc; outline-offset: 2px; }
+.wenmo-pattern-actions--single { grid-template-columns: 1fr; }
 @keyframes wenmo-pattern-in {
   from { opacity: 0; transform: translateY(12px) scale(0.985); }
   to { opacity: 1; transform: translateY(0) scale(1); }

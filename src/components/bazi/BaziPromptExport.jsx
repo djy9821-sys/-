@@ -3,7 +3,7 @@
  */
 import React, { useMemo, useRef, useState } from 'react';
 import { Copy, LocateFixed, Share2, Sun } from 'lucide-react';
-import { buildBaziPrompt, PROMPT_SCOPES } from '../../utils/baziPrompt';
+import { buildBaziPrompt, PROMPT_CLASSICS_LIMIT, PROMPT_SCOPES } from '../../utils/baziPrompt';
 import { track } from '../../utils/analytics';
 
 const describeTarget = (scope, { daYun, liuNian, liuYue, liuRi, liuShi }) => {
@@ -14,7 +14,7 @@ const describeTarget = (scope, { daYun, liuNian, liuYue, liuRi, liuShi }) => {
     return liuRi && liuShi ? `${liuRi.date} ${liuShi.hourName}（${liuShi.range}）· ${liuShi.ganZhi}时` : '尚未选择流时';
 };
 
-export default function BaziPromptExport({ chart, personName, selections, defaultScope, now, onLocateNow, onPickTime }) {
+export default function BaziPromptExport({ chart, personName, selections, defaultScope, now, classics = null, onLocateNow, onPickTime }) {
     const [scopeChoice, setScopeChoice] = useState(null);
     const [status, setStatus] = useState(null);
     const textareaRef = useRef(null);
@@ -24,8 +24,8 @@ export default function BaziPromptExport({ chart, personName, selections, defaul
     const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
     const prompt = useMemo(
-        () => buildBaziPrompt({ chart, scope, personName, selections, now }),
-        [chart, scope, personName, selections, now],
+        () => buildBaziPrompt({ chart, scope, personName, selections, now, classics }),
+        [chart, scope, personName, selections, now, classics],
     );
 
     const chooseScope = (value) => {
@@ -115,7 +115,11 @@ export default function BaziPromptExport({ chart, personName, selections, defaul
                 </summary>
                 <textarea ref={textareaRef} readOnly value={prompt} rows={14} aria-label="提示词全文" className="block w-full resize-y border-t border-[#cbbfac]/70 bg-[#fffdf8] px-3 py-2 font-mono text-xs leading-5 text-[#3b342e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2d6b62]" />
             </details>
-            <p className="text-[11px] leading-5 text-[#81776b]">提示词末尾留有「我的问题」，粘贴后可以接着写你想问的具体事情。排盘数据只在你的设备上生成，不会上传。</p>
+            <p className="text-[11px] leading-5 text-[#81776b]">
+                提示词末尾留有「我的问题」，粘贴后可以接着写你想问的具体事情。
+                {classics?.length ? `已附上与本命相关的古籍原文 ${Math.min(classics.length, PROMPT_CLASSICS_LIMIT)} 条，让 AI 按原书本义分析。` : ''}
+                排盘数据只在你的设备上生成，不会上传。
+            </p>
         </div>
     );
 }

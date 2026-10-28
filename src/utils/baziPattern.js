@@ -1,14 +1,22 @@
 /**
  * 八字格局与命局特点（程序初判，仅供参考）
  *
- * - 取格：按子平常法以月令取格。月支为日干之禄为建禄格，为阳干之刃为羊刃格，
+ * - 取格：按《子平真诠》以月令取格。月支为日干之禄为建禄格，为阳干之刃为羊刃格，
  *   阴干月令本气为劫财为月劫格；其余看月支藏干何者透出天干，本气优先，
- *   再看中气、余气，都不透则以本气为格。辰戌丑未月不透本气时取透出的中余气（杂气）。
+ *   再看中气、余气，都不透则以本气为格。细则（论用神变化、论杂气如何取用及书中命例）：
+ *   · 子午卯酉旺支只论本气，余气透出不取（「除子午卯酉外，余皆有藏」）；
+ *   · 寅申巳亥中余气透出为用神变化，但化神又被他干所克则不失本格（「乙生申月透壬化印而又透戊……格成正官」）；
+ *     「土随火」，申中不论戊（马参政命壬生申月透戊，书仍作印格）；
+ *   · 辰戌丑未为水火金木之库，库中之气以同类天干透出论（「甲透未库」「辰中暗煞，壬以透之」），
+ *     兼透时取透而又会支者（「透干会支，取其清者用之」）。
+ *   用 test/bazi-ziping-examples.test.js 的《子平真诠》八格各论命例逐一核对。
  * - 特殊格局（从格、专旺、化气）只在五行比例极端时给出"疑似"提示，需要人工确认。
  * - 命局特点：按天干透出的十神与五行力量识别常见组合（伤官见官、官杀混杂、
  *   食神制杀、财多身弱……），每条附依据与一句简短说明，措辞避免绝对化。
  * - 五行缺失：区分"八个字里没有"与"藏干里也没有"，并提醒缺的不一定是喜用。
+ * - 成败：取格之后按《子平真诠·论用神成败救应》判成、败、成中有败、败中有成（baziPatternSuccess.js）。
  */
+import { judgePatternSuccess } from './baziPatternSuccess.js';
 
 const GAN_WUXING = { 甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水' };
 const ZHI_WUXING = { 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' };
@@ -20,6 +28,22 @@ const REN = { 甲: '卯', 丙: '午', 戊: '午', 庚: '酉', 壬: '子' };
 const GAN_HE = { 甲: '己', 己: '甲', 乙: '庚', 庚: '乙', 丙: '辛', 辛: '丙', 丁: '壬', 壬: '丁', 戊: '癸', 癸: '戊' };
 const GAN_HE_ELEMENT = { 甲己: '土', 乙庚: '金', 丙辛: '水', 丁壬: '木', 戊癸: '火' };
 const ZA_QI_MONTHS = new Set(['辰', '戌', '丑', '未']);
+const SHENG_MONTHS = new Set(['寅', '申', '巳', '亥']);
+const WANG_MONTHS = new Set(['子', '午', '卯', '酉']);
+const KE = { 木: '土', 土: '水', 水: '火', 火: '金', 金: '木' };
+/** 三合局，按生、旺、墓排。 */
+const SAN_HE = [
+  { zhis: ['亥', '卯', '未'], wuxing: '木' }, { zhis: ['寅', '午', '戌'], wuxing: '火' },
+  { zhis: ['巳', '酉', '丑'], wuxing: '金' }, { zhis: ['申', '子', '辰'], wuxing: '水' },
+];
+/** 月支与其他地支会成的局：三合齐全，或与旺支（子午卯酉）半合；返回局的五行，没有为 null。 */
+const huiJuOf = (monthZhi, otherZhis) => {
+  const ju = SAN_HE.find((item) => item.zhis.includes(monthZhi));
+  if (!ju) return null;
+  const present = new Set([monthZhi, ...otherZhis]);
+  const count = ju.zhis.filter((zhi) => present.has(zhi)).length;
+  return count === 3 || (count === 2 && present.has(ju.zhis[1])) ? ju.wuxing : null;
+};
 
 export const ROLE_OF = Object.freeze({
   比肩: '比劫', 劫财: '比劫', 正印: '印', 偏印: '印', 食神: '食伤', 伤官: '食伤', 正财: '财', 偏财: '财', 正官: '官杀', 七杀: '官杀',
@@ -94,21 +118,63 @@ export const determinePattern = (chart, summary = null) => {
     return { name: '月劫格', kind: 'jie', tenGod: '劫财', monthZhi: month.zhi, basis: `月支${month.zhi}本气${main.gan}为劫财，阴干不取刃，作月劫看。` };
   }
 
-  const transparentOf = (gan) => stems.filter((stem) => stem.gan === gan);
-  const candidates = month.hiddenGanDetails
-    .map((detail, index) => ({ ...detail, rank: index, rankName: hiddenNames[index] ?? '余气', through: transparentOf(detail.gan) }))
-    .filter((detail) => detail.shiShen in PATTERN_NAME);
+  // 《子平真诠·论用神变化》：「除子午卯酉外，余皆有藏」——旺支只论本气；寅申巳亥、辰戌丑未才有透干变化。
+  // 「土随火」：戊长生在寅、临官在巳，申中不论戊（马参政命壬生申月透戊，书仍作印格）。
+  const isWang = WANG_MONTHS.has(month.zhi);
+  const isZaQi = ZA_QI_MONTHS.has(month.zhi);
+  const all = month.hiddenGanDetails.map((detail, index) => ({ ...detail, rank: index, rankName: hiddenNames[index] ?? '余气' }));
+  const excluded = (detail) => (isWang && detail.rank > 0) || (month.zhi === '申' && detail.gan === '戊');
+  const ignoredThrough = all.filter((detail) => excluded(detail) && stems.some((stem) => stem.gan === detail.gan));
+  const ignoreNote = ignoredThrough.length
+    ? `（${isWang ? `${month.zhi}为旺支只论本气` : '申中不论戊'}，${ignoredThrough.map((detail) => detail.gan).join('、')}透出不作月令之神）`
+    : '';
+  const otherZhis = Object.values(byKey).filter((pillar) => pillar.key !== 'month').map((pillar) => pillar.zhi);
+  const huiJu = isZaQi ? huiJuOf(month.zhi, otherZhis) : null;
+  // 透：本干透出。辰戌丑未是水火金木之库，库中之气（墓气）以同类天干透出论——
+  // 汪学士命「甲透未库」、脱脱丞相命「辰中暗煞，壬以透之」；格以透出之干的十神论。
+  const candidates = all.filter((detail) => !excluded(detail)).map((detail) => {
+    const exact = stems.filter((stem) => stem.gan === detail.gan);
+    const kin = isZaQi && detail.rank === 2 && !exact.length
+      ? stems.filter((stem) => GAN_WUXING[stem.gan] === GAN_WUXING[detail.gan] && stem.shiShen in PATTERN_NAME)
+      : [];
+    const viaKin = !exact.length && kin.length > 0;
+    return { ...detail, through: viaKin ? kin : exact, viaKin, shiShen: viaKin ? kin[0].shiShen : detail.shiShen };
+  }).filter((detail) => detail.shiShen in PATTERN_NAME);
   if (!candidates.length) {
     // 月令本气为比劫又不是禄刃（如戊土生辰戌月）：按杂气看透出的中余气。
     return { name: '比肩格', kind: 'regular', tenGod: main?.shiShen ?? '比肩', monthZhi: month.zhi, basis: `月支${month.zhi}本气为比劫，中余气无可取者，暂以比肩格看，宜人工复核。` };
   }
-  const through = candidates.find((detail) => detail.through.length);
-  const chosen = through ?? candidates[0];
-  const zaQi = ZA_QI_MONTHS.has(month.zhi) && chosen.rank > 0;
+  const throughAll = candidates.filter((detail) => detail.through.length);
+  const huiWith = (detail) => Boolean(huiJu) && GAN_WUXING[detail.gan] === huiJu;
+  // 兼透时：本气优先；再取透而又会支者（论杂气如何取用：「透干会支，取其清者用之」）；本干透出先于库中同类透出。
+  let through = throughAll.find((detail) => detail.rank === 0 && !detail.viaKin)
+    ?? throughAll.find((detail) => !detail.viaKin && huiWith(detail))
+    ?? throughAll.find((detail) => !detail.viaKin)
+    ?? throughAll.find((detail) => huiWith(detail))
+    ?? throughAll[0]
+    ?? null;
+  const base = candidates.find((detail) => detail.rank === 0) ?? null;
+  let kept = null;
+  // 生月中余气透出为变化；化神又被他干所克，则不失本格（论用神变化·其五：「乙生申月透壬化印而又透戊……格成正官」）。
+  if (through && through.rank > 0 && SHENG_MONTHS.has(month.zhi) && base) {
+    const element = GAN_WUXING[through.gan];
+    const restrainer = stems.find((stem) => KE[GAN_WUXING[stem.gan]] === element && !through.through.includes(stem));
+    if (restrainer) {
+      kept = { changed: through, restrainer };
+      through = null;
+    }
+  }
+  const chosen = through ?? base ?? candidates[0];
+  const zaQi = isZaQi && chosen.rank > 0;
   const mainNote = main && !(main.shiShen in PATTERN_NAME) ? `本气${main.gan}为${main.shiShen}不取，` : '';
-  const basis = through
-    ? `月支${month.zhi}${mainNote}${chosen.rankName}${chosen.gan}（${chosen.shiShen}）透于${describeStems(chosen.through)}，以透出者为格。`
-    : `月支${month.zhi}${mainNote}藏干均未透出，以${chosen.rankName}${chosen.gan}（${chosen.shiShen}）为格。`;
+  const huiNote = huiWith(chosen) && chosen.rank > 0 ? '（透而又会支）' : '';
+  const basis = kept
+    ? `月支${month.zhi}${kept.changed.rankName}${kept.changed.gan}（${kept.changed.shiShen}）透于${describeStems(kept.changed.through)}本可变化，但${kept.restrainer.name}${kept.restrainer.gan}克之，化神退位，仍以本气${chosen.gan}（${chosen.shiShen}）为格。`
+    : through && chosen.viaKin
+      ? `月支${month.zhi}${mainNote}为${GAN_WUXING[chosen.gan]}库，库中${chosen.gan}以同类透出论：${describeStems(chosen.through)}（${chosen.shiShen}）透出，以透出者为格${huiNote}。`
+      : through
+        ? `月支${month.zhi}${mainNote}${chosen.rankName}${chosen.gan}（${chosen.shiShen}）透于${describeStems(chosen.through)}，以透出者为格${huiNote}${ignoreNote}。`
+        : `月支${month.zhi}${mainNote}藏干均未透出，以${chosen.rankName}${chosen.gan}（${chosen.shiShen}）为格${ignoreNote}。`;
   return {
     name: `${zaQi ? '杂气' : ''}${PATTERN_NAME[chosen.shiShen]}`,
     kind: 'regular',
@@ -294,6 +360,7 @@ export const analyzeWuxingGap = (chart, strength) => {
 export const judgeBaziPattern = (chart, strength) => {
   const summary = summarize(chart, strength);
   const pattern = determinePattern(chart, summary);
+  const chengBai = judgePatternSuccess(chart, strength, pattern, summary);
   const special = detectSpecialPattern(chart, strength, summary);
   const traits = detectTraits(chart, strength, summary);
   const absent = detectAbsentRoles(summary);
@@ -303,11 +370,12 @@ export const judgeBaziPattern = (chart, strength) => {
 
   const points = [];
   if (pattern) points.push(`格局：${pattern.name}。${pattern.basis}`);
+  if (chengBai) points.push(`成败（${chengBai.source}）：${pattern.name}${chengBai.verdict}。${chengBai.summary}`);
   if (special) points.push(`${special.name}：${special.basis}${special.note}`);
   points.push(`十神力量：${ROLES.map((role) => `${role}${Math.round(roleShare[role])}%`).join(' ')}${absent.length ? `；${absent.map((item) => item.text).join('、')}` : ''}`);
   traits.forEach((item) => points.push(`${item.name}：${item.basis}${item.note}`));
   points.push(`${wuxingGap.text}。${wuxingGap.hint}`);
   if (timeUnknown) points.push('出生时辰不详，以上按年月日三柱判断，时柱相关的格局与十神未计。');
 
-  return { pattern, special, traits, absent, wuxingGap, roleShare, timeUnknown, points };
+  return { pattern, chengBai, special, traits, absent, wuxingGap, roleShare, timeUnknown, points };
 };

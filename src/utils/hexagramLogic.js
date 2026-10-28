@@ -141,18 +141,3 @@ export const getHexagram = (yaos) => {
 
     return HEXAGRAM_MAP[binaryKey] || { name: '未知卦', desc: '无法解析' };
 };
-
-// Self-Correction / Verification
-const testKui = [1, 1, 0, 1, 0, 1]; // Bottom -> Top: Lake (110->011), Fire (101->101)
-// Lake (011) is Bottom. Fire (101) is Top.
-// Array: [1, 1, 0, 1, 0, 1]
-// Reverse: [1, 0, 1, 0, 1, 1] -> "101011"
-// Map["101011"] should be "火泽睽".
-
-const result = getHexagram(testKui);
-if (result.name !== '火泽睽') {
-    console.error('CRITICAL ERROR: Self-correction failed for 火泽睽');
-    console.error('Expected: 火泽睽, Got:', result.name);
-} else {
-    console.log('Self-correction passed: 火泽睽 verified.');
-}

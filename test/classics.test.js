@@ -17,7 +17,7 @@ test('古籍登记表：每本书有书名、作者、所属模块，cite 组出
   assert.equal(cite('zengshan'), '《增删卜易》');
   assert.equal(cite('unknown', '某篇'), '某篇');
   assert.deepEqual(classicsOf('liuyao').map((item) => item.title), ['京氏易传', '卜筮正宗', '增删卜易', '梅花易数']);
-  assert.deepEqual(classicsOf('bazi').map((item) => item.title), ['三命通会', '渊海子平', '滴天髓', '子平真诠', '协纪辨方书']);
+  assert.deepEqual(classicsOf('bazi').map((item) => item.title), ['三命通会', '渊海子平', '滴天髓', '子平真诠', '穷通宝鉴', '协纪辨方书']);
 });
 
 test('二十九种神煞都有出处与查法，引用的书都在登记表里', () => {
