@@ -5,7 +5,8 @@
  * 月令地支的藏干再乘 2。同党 = 比劫 + 印，异党 = 食伤 + 财 + 官杀。
  *
  * 旺衰按得令、得地、得势三项打分（STRENGTH_SCORE）：
- * - 得令：月令本气是比劫 1 分，是印 0.5 分；
+ * - 得令：月令本气是比劫 1 分，是印 0.5 分；辰戌丑未月本气不帮身、所藏余气或墓库却是比劫的（丙丁生未、戌月，
+ *   任注「火气有余」）0.3 分；
  * - 得地：年、日、时三支藏干里的比劫按本气 1、中气 0.5、余气 0.3 计，印减半；日支乘 1.5，年支、时支乘 0.5
  *   （月支已算在得令里），合计最多 3 分；
  * - 得势：年、月、时干每见一个比劫或印 0.5 分；
@@ -37,6 +38,8 @@ const CONTROLS = { 木: '土', 火: '金', 土: '水', 金: '木', 水: '火' };
 const HIDDEN_WEIGHTS = [1, 0.5, 0.3];
 const HIDDEN_POSITIONS = ['本气', '中气', '余气'];
 const MONTH_FACTOR = 2;
+/** 四库月：所藏除本气外是上一季的余气与墓库。 */
+const KU_MONTHS = new Set(['辰', '戌', '丑', '未']);
 /** 身弱时找病，透干的字每个另加的分（见文件头）。 */
 const TOU_WEIGHT = 0.5;
 
@@ -44,6 +47,7 @@ const TOU_WEIGHT = 0.5;
 export const STRENGTH_SCORE = Object.freeze({
   lingSame: 1,
   lingYin: 0.5,
+  lingYuqi: 0.3,
   branchWeight: Object.freeze({ year: 0.5, day: 1.5, time: 0.5 }),
   yinRoot: 0.5,
   diCap: 3,
@@ -89,7 +93,7 @@ const bandOf = (total) => {
 
 /**
  * 得令、得地、得势三项打分。
- * @returns {{ total: number, ling: number, di: number, shi: number, hourEstimate: number,
+ * @returns {{ total: number, ling: number, lingYuqi: { zhi: string, gan: string }|null, di: number, shi: number, hourEstimate: number,
  *   roots: { key: string, name: string, zhi: string, gan: string, role: string, position: string, points: number }[],
  *   stems: { key: string, name: string, gan: string, role: string, points: number }[] }}
  */
@@ -99,7 +103,12 @@ const scoreOf = (chart, dayWuxing) => {
   const month = chart.pillars.find((pillar) => pillar.key === 'month');
   const monthMain = month?.hiddenGanDetails?.[0];
   const monthRole = monthMain ? supportRole(GAN_WUXING[monthMain.gan]) : null;
-  const ling = monthRole === '比劫' ? STRENGTH_SCORE.lingSame : monthRole === '印' ? STRENGTH_SCORE.lingYin : 0;
+  let ling = monthRole === '比劫' ? STRENGTH_SCORE.lingSame : monthRole === '印' ? STRENGTH_SCORE.lingYin : 0;
+  // 辰戌丑未月：本气不帮身，所藏上一季的余气或墓库却是比劫，记一点得令。
+  const yuqi = !ling && KU_MONTHS.has(month?.zhi)
+    ? (month.hiddenGanDetails ?? []).slice(1).find((detail) => GAN_WUXING[detail.gan] === dayWuxing) ?? null
+    : null;
+  if (yuqi) ling = STRENGTH_SCORE.lingYuqi;
 
   const roots = [];
   chart.pillars.forEach((pillar) => {
@@ -123,6 +132,7 @@ const scoreOf = (chart, dayWuxing) => {
   return {
     total: round2(ling + di + shi + hourEstimate),
     ling,
+    lingYuqi: yuqi ? { zhi: month.zhi, gan: yuqi.gan } : null,
     di: round2(di),
     shi: round2(shi),
     hourEstimate,
