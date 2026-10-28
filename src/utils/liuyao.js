@@ -10,6 +10,7 @@ import { HEXAGRAM_MAP } from './hexagramLogic.js';
 import { getYaoCi, YAO_CI } from '../data/yaoci.js';
 import { LIUYAO_METHODS, LIUYAO_TOPIC_LABELS } from './liuyaoRecord.js';
 import { describeLiuYaoSources } from '../data/liuyaoSources.js';
+import { classicsPromptSection } from './classicsPrompt.js';
 
 export const LINE_VALUES = Object.freeze({
   6: { value: 6, name: '老阴', isYang: false, isMoving: true },
@@ -262,8 +263,9 @@ const lineText = (line) => {
  * 整理成可以直接粘贴给 AI 的提示词。
  * @param reading buildLiuYaoReading 的结果
  * @param judge liuyaoJudge.js 的 judgeLiuYao 结果（可选）：附上程序初判，让 AI 在此基础上核对与展开
+ * @param {{ classics?: object[]|null }} [options] classics：古籍库里与本卦相关的条目（matchEntries 的结果），附原文
  */
-export const buildLiuYaoPrompt = (reading, judge = null) => {
+export const buildLiuYaoPrompt = (reading, judge = null, { classics = null } = {}) => {
   const { hexagram, changed, mutual, time, lines, hidden } = reading;
   const topicLabel = LIUYAO_TOPIC_LABELS[reading.topic] ?? LIUYAO_TOPIC_LABELS.general;
   const genderText = reading.topic === 'love' && reading.gender ? `（问卦人为${reading.gender === 'female' ? '女' : '男'}）` : '';
@@ -291,6 +293,8 @@ export const buildLiuYaoPrompt = (reading, judge = null) => {
     '',
     ...(judge ? ['【程序初判】（按通行口诀的简化规则估算，请核对后再展开，不必照搬）', ...judge.points.map((point) => `- ${point}`), ''] : []),
     `【依据】${describeLiuYaoSources()}请按这些古籍的法则分析，不要自创规则。`,
+    '',
+    classicsPromptSection(classics, { title: '【古籍原文（与本卦相关）】', subject: '本卦' }) ?? '',
     '',
     '【请回答】',
     '1. 先定用神：根据所问之事取用神，说明用神在本卦是否出现、旺衰如何（看月建、日辰、动爻生克、空破）。',
