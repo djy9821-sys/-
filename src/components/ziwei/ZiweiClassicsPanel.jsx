@@ -14,30 +14,68 @@ const starLabel = (star) => `${star.name}${star.brightness || ''}${star.mutagen 
 
 const EMPTY = Object.freeze([]);
 
+/** 看哪一层：本命盘的各宫，或此刻所行大限、流年的命宫（古籍里写「大限逢……」「流年……」的条目只在这两层出现）。 */
+const LAYERS = Object.freeze([
+    { value: '本命', label: '本命盘' },
+    { value: '大限', label: '当前大限' },
+    { value: '流年', label: '今年流年' },
+]);
+const LAYER_KEYS = Object.freeze({ 大限: 'decadal', 流年: 'yearly' });
+
 /**
- * @param {{ palaces?: object[], focusedIndex?: number|null, gender?: string|null, patterns?: string[] }} props
- *   patterns：程序认出的格局名（按命宫三方四正判的），只在看命宫时算进匹配条件。
+ * @param {{ palaces?: object[], focusedIndex?: number|null, gender?: string|null, patterns?: string[], limits?: { decadal?: { index: number, label: string }|null, yearly?: { index: number, label: string }|null } }} props
+ *   patterns：程序认出的格局名（按命宫三方四正判的），只在看本命盘的命宫时算进匹配条件。
+ *   limits：此刻所行大限、流年的命宫在哪一宫（宫的 index）与说明；不传则只看本命盘。
  */
-export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, gender = null, patterns = EMPTY }) {
+export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, gender = null, patterns = EMPTY, limits = null }) {
     // 默认看盘上高亮的宫（没有就命宫）。面板里另选的宫记在 picked 里，并记下当时的高亮；
     // 盘上换了高亮就回到新高亮的宫，不用 effect 重置。
     const [picked, setPicked] = useState({ focusedIndex: null, index: null });
+    const [layer, setLayer] = useState('本命');
     const ordered = useMemo(
         () => PALACE_ORDER.map((name) => palaces.find((palace) => palace.name === name)).filter(Boolean),
         [palaces],
     );
+    const layers = LAYERS.filter((item) => item.value === '本命' || Number.isInteger(limits?.[LAYER_KEYS[item.value]]?.index));
+    const activeLayer = layers.some((item) => item.value === layer) ? layer : '本命';
+    const limitInfo = activeLayer === '本命' ? null : limits[LAYER_KEYS[activeLayer]];
     const defaultIndex = focusedIndex ?? ordered[0]?.index ?? null;
-    const selectedIndex = picked.focusedIndex === focusedIndex && picked.index !== null ? picked.index : defaultIndex;
+    const selectedIndex = limitInfo
+        ? limitInfo.index
+        : picked.focusedIndex === focusedIndex && picked.index !== null ? picked.index : defaultIndex;
     const palace = palaces.find((item) => item.index === selectedIndex) ?? null;
-    const isMing = palace?.name === '命宫';
+    const isMing = !limitInfo && palace?.name === '命宫';
     const ctx = useMemo(
-        () => ziweiPalaceContextOf(palace, { gender, patterns: isMing ? patterns : EMPTY }),
-        [palace, gender, isMing, patterns],
+        () => ziweiPalaceContextOf(palace, { gender, limit: activeLayer, patterns: isMing ? patterns : EMPTY }),
+        [palace, gender, activeLayer, isMing, patterns],
     );
     const stars = palace ? [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])] : [];
 
     return (
         <div data-testid="ziwei-classics">
+            {layers.length > 1 && (
+                <div className="mb-2 flex flex-wrap gap-1.5" role="group" aria-label="看哪一层">
+                    {layers.map((item) => {
+                        const active = item.value === activeLayer;
+                        return (
+                            <button
+                                key={item.value}
+                                type="button"
+                                aria-pressed={active}
+                                onClick={() => setLayer(item.value)}
+                                className={`inline-flex min-h-9 items-center rounded-lg border px-3 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${active ? 'border-[#315f7d] bg-[#315f7d] text-white' : 'border-[#b9ad98] bg-[#fffaf0]/80 text-[#5f574f] hover:border-[#315f7d] hover:text-[#315f7d]'}`}
+                            >
+                                {item.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+            {limitInfo ? (
+                <p className="text-xs leading-5 text-[#655d54]" data-testid="ziwei-classics-limit">
+                    {limitInfo.label}：命宫在本命盘的{palaceLabel(palace?.name)}（{palace?.earthlyBranch}宫），按宫中星曜找，另加古籍里专讲「{activeLayer}」的条目。
+                </p>
+            ) : (
             <div className="flex flex-wrap gap-1.5" role="group" aria-label="选择宫位">
                 {ordered.map((item) => {
                     const active = item.index === selectedIndex;
@@ -55,6 +93,7 @@ export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, 
                     );
                 })}
             </div>
+            )}
 
             {palace && (
                 <p className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-[#655d54]" data-testid="ziwei-classics-stars">
@@ -77,7 +116,7 @@ export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, 
                 </p>
             )}
 
-            <ClassicsPanel ctx={ctx} subject="这个宫的星曜" testId="ziwei-classics-panel" entryTestId="ziwei-classic-entry" className="mt-3 space-y-3" />
+            <ClassicsPanel ctx={ctx} subject={limitInfo ? `${activeLayer}命宫的星曜` : '这个宫的星曜'} testId="ziwei-classics-panel" entryTestId="ziwei-classic-entry" className="mt-3 space-y-3" />
         </div>
     );
 }
