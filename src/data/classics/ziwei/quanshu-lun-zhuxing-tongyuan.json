@@ -2707,6 +2707,987 @@
         "威名赫奕"
       ],
       "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.091",
+      "title": "诸星同垣·二曲贪狼午丑限",
+      "original": "二曲贪狼午丑限，防溺水之忧。",
+      "vernacular": "文曲或武曲与贪狼同度，大限行至午宫或丑宫，须加意防范溺水倾覆之灾厄。",
+      "notes": "贪狼水逢二曲水金，午丑为失陷伤损之地，限逢防水厄。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "branches": [
+            "午",
+            "丑"
+          ],
+          "stars": [
+            "文曲",
+            "贪狼"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "branches": [
+            "午",
+            "丑"
+          ],
+          "stars": [
+            "武曲",
+            "贪狼"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文曲",
+        "武曲",
+        "贪狼",
+        "大限",
+        "午丑"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.092",
+      "title": "诸星同垣·昌曲夹命最为奇",
+      "original": "昌曲夹命最为奇。（假若命在丑宫，文昌在寅，文曲在子是也。不贵即富，吉多方论，此为贵。）",
+      "vernacular": "文昌与文曲在左右邻宫相夹命宫最为神妙。（比如命宫在丑宫，文昌在寅宫、文曲在子宫相夹即是此类。非贵即富，须命宫及三方吉星多方以此作大贵论断。）",
+      "notes": "昌曲夹命格：文昌文曲在左右邻宫相夹命宫，不坐本宫，故不补入坐宫星曜条件。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "丑",
+            "未"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "文曲",
+        "昌曲夹命"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.093",
+      "title": "诸星同垣·昌曲临丑未时逢卯酉",
+      "original": "昌曲临于丑未，时逢卯酉近天颜。（贾谊、卜商，昌曲未宫命丑宫。在命兼化吉者方论。）",
+      "vernacular": "文昌、文曲在丑宫或未宫坐命，若生在卯时或酉时，能亲近君王侍奉天子身旁。（贾谊、子夏皆是昌曲在未宫照命、安命在丑宫。命宫兼有吉星化吉者方以此论。）",
+      "notes": "丑未昌曲同宫，卯酉时生人昌曲更入妙位。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "丑",
+            "未"
+          ],
+          "stars": [
+            "文昌",
+            "文曲"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "文曲",
+        "丑未",
+        "近天颜"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.094",
+      "title": "诸星同垣·昌曲巳亥临",
+      "original": "昌曲巳亥临，不贵即当大富。",
+      "vernacular": "文昌与文曲在巳宫或亥宫坐守命宫，主人不是位列高官显贵，便当成为巨富之翁。",
+      "notes": "巳亥昌曲入庙，相激生辉，主科名财禄并盛。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "巳",
+            "亥"
+          ],
+          "stars": [
+            "文昌",
+            "文曲"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "文曲",
+        "巳亥",
+        "大富大贵"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.095",
+      "title": "诸星同垣·昌曲吉星居福德",
+      "original": "昌曲吉星居福德，谓之玉袖天香。（更得紫微居午宫妙。）",
+      "vernacular": "文昌、文曲吉星坐守福德宫，称作玉袖天香格，极具清贵优雅之气。（若命宫更得紫微星在午宫坐守尤为神妙。）",
+      "notes": "福德宫见昌曲，主情操高雅、享清福，得帝星照临更尊。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "福德",
+          "stars": [
+            "文昌",
+            "文曲"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "文曲",
+        "福德",
+        "玉袖天香"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.096",
+      "title": "诸星同垣·昌曲陷宫凶杀破",
+      "original": "昌曲陷宫凶杀破，虚誉之隆。（凶杀即羊陀空劫。）",
+      "vernacular": "文昌、文曲落在失陷宫位又遭凶煞冲破，主人徒具表面隆重虚名声誉。（凶煞即擎羊、陀罗、地劫、地空。）",
+      "notes": "昌曲落陷逢煞，才华华而不实，徒有虚名。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "文昌",
+            "擎羊"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "文曲",
+            "陀罗"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "文曲",
+        "落陷",
+        "虚誉"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.097",
+      "title": "诸星同垣·昌曲陷于天伤",
+      "original": "昌曲陷于天伤，颜回夭折。（命有劫空、羊陀，限至七杀，羊陀迭并方论。）",
+      "vernacular": "文昌文曲失陷又逢天伤凶曜，命主易如颜回一般早年夭折。（命宫原有空劫、羊陀，行限行至七杀守照，且逢羊陀迭并之时方可如此论断。）",
+      "notes": "昌曲遇伤使羊陀并临，才高命蹇而早夭。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "文昌",
+            "天伤"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "文曲",
+            "天伤"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "文曲",
+        "天伤",
+        "夭折"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.098",
+      "title": "诸星同垣·昌曲己辛壬生人限逢辰戌",
+      "original": "昌曲己辛壬生人，限逢辰戌虑投河。（如入庙吉，大小二限俱到。）",
+      "vernacular": "己年、辛年、壬年生人若命有昌曲，运限行至辰宫或戌宫天罗地网，须防范投河或落水之患。（若昌曲入庙则获吉利；须大小二限俱行至辰戌宫方作此论。）",
+      "notes": "辰戌为罗网之地，辛壬己人逢运限冲克防溺水意外。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "branches": [
+            "辰",
+            "戌"
+          ],
+          "stars": [
+            "文昌",
+            "文曲"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "文曲",
+        "大限",
+        "辰戌"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.099",
+      "title": "诸星同垣·昌曲廉贞于巳亥遭刑",
+      "original": "昌曲廉贞于巳亥，遭刑不善且虚夸。（贪多作事颠倒，子申二宫贵吉多美。）",
+      "vernacular": "文昌、文曲与廉贞在巳宫或亥宫同守，容易遭受刑戮责罚、心性不善而且行事虚夸夸诞。（为人贪求过多导致行事颠倒错乱；但在子宫与申宫逢此则多显贵吉利。）",
+      "notes": "廉贞在巳亥逢昌曲反成政事颠倒之象，最忌煞冲。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "巳",
+            "亥"
+          ],
+          "stars": [
+            "文昌",
+            "廉贞"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "巳",
+            "亥"
+          ],
+          "stars": [
+            "文曲",
+            "廉贞"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "文曲",
+        "廉贞",
+        "巳亥"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.100",
+      "title": "诸星同垣·昌曲禄存犹为奇特",
+      "original": "昌曲禄存，犹为奇特。",
+      "vernacular": "文昌、文曲与禄存星同宫坐命或三合拱聚，尤为奇妙出众、名利双全。",
+      "notes": "阳梁昌禄或禄存昌曲会，文名既显、资财又丰。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "文昌",
+            "禄存"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "文曲",
+            "禄存"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "文曲",
+        "禄存",
+        "奇特"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.101",
+      "title": "诸星同垣·昌曲破军临虎兔",
+      "original": "昌曲破军临虎兔，杀羊冲破奔波。（虎兔，即寅卯宫是也。）",
+      "vernacular": "文昌、文曲与破军同临寅宫或卯宫坐命，若再被七杀、擎羊冲破，主人一生到海角天涯奔波辛劳。（虎兔即寅宫与卯宫。）",
+      "notes": "破军寅卯得昌曲本有破旧立新之能，最忌七杀擎羊冲破成飘荡。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "寅",
+            "卯"
+          ],
+          "stars": [
+            "破军",
+            "文昌"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "寅",
+            "卯"
+          ],
+          "stars": [
+            "破军",
+            "文曲"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "文曲",
+        "破军",
+        "寅卯",
+        "奔波"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.102",
+      "title": "诸星同垣·昌曲左右会羊陀",
+      "original": "昌曲左右会羊陀，当生异痣。",
+      "vernacular": "文昌、文曲、左辅、右弼在身命坐守若逢擎羊或陀罗交会，命主身上必定生有奇异特殊的斑痣痕迹。",
+      "notes": "辅弼昌曲为清秀之宿，逢羊陀金煞破相，化为身上的痣斑。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "文昌",
+            "擎羊"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "文曲",
+            "陀罗"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "文曲",
+        "左辅",
+        "右弼",
+        "羊陀",
+        "异痣"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.103",
+      "title": "诸星同垣·女人昌曲聪明富贵多淫",
+      "original": "女人昌曲，聪明富贵只多淫。",
+      "vernacular": "女子命宫逢文昌或文曲坐守，为人聪明绝顶且享富贵，只是性情多情容易沉湎淫欲。",
+      "notes": "昌曲金水桃花主风情才华，女命过旺则多情善感。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "文昌",
+          "gender": "女"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "文曲",
+          "gender": "女"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "文曲",
+        "女命",
+        "多淫"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.104",
+      "title": "诸星同垣·武曲庙垣威名赫奕",
+      "original": "武曲庙垣，威名赫奕。（辰戌丑未生人，安命在辰戌宫为四墓，若但在丑未次之。）",
+      "vernacular": "武曲星坐守庙旺之宫垣，威严声名极其显赫。（辰年、戌年、丑年、未年生人，安命在辰戌二宫入库为上格，若在丑未二宫坐命则次一等。）",
+      "notes": "武曲在四墓地入庙，尤利辰戌丑未年生人，大发威名。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "star": "武曲"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "武曲",
+        "四墓",
+        "威名赫奕"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.105",
+      "title": "诸星同垣·武曲相遇昌曲逢",
+      "original": "武曲相遇昌曲逢，聪明巧艺定无穷。（武曲或与天相同垣，逢昌曲。）",
+      "vernacular": "武曲星逢文昌、文曲同度或会照，主人天资聪颖且具备无穷的精巧手艺与才华。（武曲或与天相星同宫坐守且会逢昌曲者尤验。）",
+      "notes": "武相逢昌曲，柔刚互济，主文才巧技出众。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "武曲",
+            "文昌"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "武曲",
+            "文曲"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "武曲",
+        "天相",
+        "文昌",
+        "文曲",
+        "巧艺"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.106",
+      "title": "诸星同垣·武曲禄马交驰",
+      "original": "武曲禄马交驰，发财远郡。",
+      "vernacular": "武曲星与禄存、天马同度或交驰相会，主人多出外奔波并在远方异郡大发横财。",
+      "notes": "武曲正财逢禄马交驰，动中生财，远邦致富。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "武曲",
+            "天马"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "武曲",
+            "禄存"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "武曲",
+        "天马",
+        "禄存",
+        "禄马交驰"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.107",
+      "title": "诸星同垣·武曲迁移巨商高贾",
+      "original": "武曲迁移，巨商高贾。（吉多方论。）",
+      "vernacular": "武曲星坐守迁移宫，主人多外出经商并成为腰缠万贯的大巨商。（须三方四正吉星众多方作此推论。）",
+      "notes": "武曲居迁移主外地经营，吉曜扶持发大财。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "迁移",
+          "star": "武曲"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "武曲",
+        "迁移",
+        "巨商"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.108",
+      "title": "诸星同垣·武曲廉贞贪杀作经商",
+      "original": "武曲廉贞贪杀，便作经商。",
+      "vernacular": "武曲、廉贞与贪狼、七杀交会坐命，多适宜从事商业贸易买卖谋生。",
+      "notes": "杀破狼逢武贞，金火相炼，多涉商贾流通。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "武曲",
+            "贪狼"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "廉贞",
+            "七杀"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "武曲",
+        "廉贞",
+        "贪狼",
+        "七杀",
+        "经商"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.109",
+      "title": "诸星同垣·武曲破军破祖破家",
+      "original": "武曲破军，破祖破家劳碌。",
+      "vernacular": "武曲与破军在命宫同度坐守，容易破荡祖传基业、败散家资而且一生身心劳碌。",
+      "notes": "武曲金受破军水泄耗，二星在巳亥冲荡，多背祖离家。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "巳",
+            "亥"
+          ],
+          "stars": [
+            "武曲",
+            "破军"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "武曲",
+        "破军",
+        "巳亥",
+        "破祖"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.110",
+      "title": "诸星同垣·武曲劫杀会擎羊",
+      "original": "武曲劫杀会擎羊，因财持刀。",
+      "vernacular": "武曲星与地劫、七杀或劫煞同聚又逢擎羊煞星，容易因为钱财纠纷持刀动武甚至惹来杀身之祸。",
+      "notes": "武曲主财，擎羊为刀白刃，劫杀相侵，因财争斗。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "武曲",
+            "擎羊"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "武曲",
+        "擎羊",
+        "七杀",
+        "持刀"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.111",
+      "title": "诸星同垣·武曲魁钺居庙旺",
+      "original": "武曲魁钺居庙旺，财赋之官。",
+      "vernacular": "武曲星与天魁、天钺二贵人同处于庙旺宫位坐守命身，多能担任掌管国家钱粮财政赋税的高官。",
+      "notes": "武曲正财逢魁钺提携，主执掌国库财印。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "武曲",
+            "天魁"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "武曲",
+            "天钺"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "武曲",
+        "天魁",
+        "天钺",
+        "财赋之官"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.112",
+      "title": "诸星同垣·武曲贪狼财宅位",
+      "original": "武曲贪狼财宅位，横发资财。",
+      "vernacular": "武曲星与贪狼星同居财帛宫或田宅宫，主人必定暴发横财、坐拥巨万资产。",
+      "notes": "武贪同居财田，若逢火铃同度，横发横立。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "财帛",
+          "stars": [
+            "武曲",
+            "贪狼"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "田宅",
+          "stars": [
+            "武曲",
+            "贪狼"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "武曲",
+        "贪狼",
+        "财帛",
+        "田宅",
+        "横发"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.113",
+      "title": "诸星同垣·武曲贪狼加杀忌",
+      "original": "武曲贪狼加杀忌，技艺之人。",
+      "vernacular": "武曲与贪狼坐命若加上四煞及化忌星冲破，多难显大富，多流于凭手艺工巧谋生之人。",
+      "notes": "武贪遇煞忌破格，专精手艺一技防身。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "武曲",
+            "贪狼"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "武曲",
+        "贪狼",
+        "煞忌",
+        "技艺"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.114",
+      "title": "诸星同垣·武曲破贞于卯地",
+      "original": "武曲破贞于卯地，木压雷惊。",
+      "vernacular": "武曲、破军或廉贞在卯宫坐命失陷，须防范树木倒塌压伤或雷电霹雳惊恐等横意外之灾。",
+      "notes": "卯宫属震雷木地，金火凶星相逢受克，易遭雷击木压。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯"
+          ],
+          "stars": [
+            "武曲",
+            "破军"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯"
+          ],
+          "stars": [
+            "武曲",
+            "廉贞"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "武曲",
+        "破军",
+        "廉贞",
+        "卯地",
+        "雷惊"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.115",
+      "title": "诸星同垣·武曲羊陀兼火宿",
+      "original": "武曲羊陀兼火宿，丧命因财。",
+      "vernacular": "武曲星与擎羊、陀罗兼火星同度坐命，往往容易因为贪求钱财招致祸端而丧失性命。",
+      "notes": "武曲财星被羊陀火星合炼逼迫，多因钱财图谋招杀身之祸。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "武曲",
+            "擎羊"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "武曲",
+            "火星"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "武曲",
+        "羊陀",
+        "火星",
+        "因财丧命"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.116",
+      "title": "诸星同垣·武曲之星为寡宿",
+      "original": "武曲之星为寡宿。（火星柔弱，妇夺夫权方免刑克。若两刚相敌，必主刑克生离。）",
+      "vernacular": "武曲星化气为孤寡之宿。（若是命带火星而性格稍显柔弱，女命掌夺夫权方可免除刑克；如果夫妻双方皆刚烈互不相让，必定导致刑克生离。）",
+      "notes": "武曲金刚主孤寡，女命尤忌，性烈伤夫。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "武曲"
+        },
+        {
+          "module": "ziwei",
+          "palace": "夫妻",
+          "star": "武曲"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "武曲",
+        "寡宿",
+        "夫妻"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.117",
+      "title": "诸星同垣·贪狼遇铃火四墓宫",
+      "original": "贪狼遇铃火四墓宫，豪富家资侯伯贵。（辰戌宫佳，丑未宫次之，若守照俱可论吉。）",
+      "vernacular": "贪狼星在辰、戌、丑、未四墓之地坐守命宫且遇火星或铃星，主人家产极其豪富且官位至侯伯公卿之贵。（以在辰戌宫坐命为佳，丑未宫次一等；若在对宫对照亦皆可作吉论。）",
+      "notes": "火贪格、铃贪格，四墓之地横发暴富，贵显名邦。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "stars": [
+            "贪狼",
+            "火星"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "stars": [
+            "贪狼",
+            "铃星"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "贪狼",
+        "火星",
+        "铃星",
+        "四墓",
+        "火贪格"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.118",
+      "title": "诸星同垣·贪狼入庙寿元长",
+      "original": "贪狼入庙，寿元长。",
+      "vernacular": "贪狼星处于庙旺宫位（辰戌丑未）坐守命宫，主人福厚享高寿、寿元悠长。",
+      "notes": "贪狼入庙主寿星，化气为桃花，庙地寿高。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "star": "贪狼"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "贪狼",
+        "入庙",
+        "长寿"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.119",
+      "title": "诸星同垣·贪狼会杀无吉曜",
+      "original": "贪狼会杀无吉曜，屠宰之人。",
+      "vernacular": "贪狼星坐命若会合四煞凶曜且毫无吉星相救，多沦为操刀屠宰生灵的屠户宰割之辈。",
+      "notes": "贪狼主口腹欲望，逢煞无制，主从事杀生屠宰之业。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "贪狼",
+            "擎羊"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "贪狼",
+            "陀罗"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "贪狼",
+        "四煞",
+        "屠宰"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.120",
+      "title": "诸星同垣·贪狼子午卯酉",
+      "original": "贪狼子午卯酉，鼠窃狗偷之辈，终身不能有为。（申子辰人命坐子宫，寅午戌人命坐午宫，亥卯未人命坐卯宫，巳酉丑人命坐酉宫是也。）",
+      "vernacular": "贪狼在子、午、卯、酉四败桃花之地坐命，容易沦为偷鸡摸狗的宵小之徒，终身难有大作为。（如申子辰年生人命坐子宫，寅午戌年生人命坐午宫，亥卯未年生人命坐卯宫，巳酉丑年生人命坐酉宫即是此类。）",
+      "notes": "贪狼在四败地泛水桃花，更逢生年桃花咸池煞，难成正果。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "子",
+            "午",
+            "卯",
+            "酉"
+          ],
+          "star": "贪狼"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "贪狼",
+        "四败",
+        "桃花",
+        "鼠窃"
+      ],
+      "status": "translated"
     }
   ]
 }
