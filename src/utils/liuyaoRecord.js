@@ -22,12 +22,17 @@ export const LIUYAO_TOPIC_LABELS = Object.freeze({
   study: '考试学业',
   lawsuit: '官司是非',
   children: '子女孕育',
+  home: '房屋田产',
+  lost: '失物寻找',
+  weather: '天时晴雨',
   parents: '父母长辈',
   friends: '兄弟朋友',
-  home: '房屋田产',
-  life: '终身运势',
   maternity: '产妇平安',
-  weather: '天时晴雨',
+  year: '流年运势',
+  life: '终身运势',
+  refuge: '避乱避祸',
+  gravesite: '寻地择穴',
+  ancestral: '祖坟风水',
 });
 
 const CAST_PATTERN = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})(?::(\d{2}))?$/;
