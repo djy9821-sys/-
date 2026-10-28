@@ -8,7 +8,8 @@
  * 2. 一次没命中的条件再定向造盘重试：八字按条件的日干、月令挑日子排盘；六爻按条件的卦名、动爻、问事直接装卦。
  * 最后分三类列出：程序暂不支持的（紫微流月 / 流日条件、鬼神等程序还没有的问事）、定向重试才命中的（罕见，不用管）、
  * 重试仍没命中的——多半是组合写错了（如紫微在卯写「庙」、天府写「化忌」、甲日子月写正官格），逐条看原文改条件。
- * 另列紫微「命中太宽」的条目：原文点了星名，applies 却只写宫位、地支，命宫在该支的每张盘都会出现，应补 star。
+ * 另列紫微「命中太宽」的条目：原文点了星名，applies 却只写宫位、地支，命宫在该支的每张盘都会出现，应补 star；
+ * 以及「任一颗」写法：stars 列的几颗星能同在一宫，原文若要几颗同在才成立，该写 allStars。
  *
  * 只是检查工具，不进 CI；随机数固定种子，结果可复现。
  */
@@ -192,10 +193,19 @@ for (const [module, { generate, retry, retries, more }] of Object.entries(MODULE
     .map((cond, index) => ({ entry, cond, index }))
     .filter(({ cond }) => cond.module === module && isMachine(cond)));
   const hits = new Array(conditions.length).fill(0);
+  // 紫微 stars 列了几颗星（任一颗在就算）：同时试「几颗都在」，看这几颗星能不能同在一宫。
+  const orStars = module === 'ziwei' ? conditions
+    .map(({ cond }, i) => {
+      const { stars, ...rest } = cond;
+      return toArray(stars).length >= 2 ? { i, allCond: { ...rest, allStars: toArray(stars) } } : null;
+    })
+    .filter(Boolean) : [];
+  const together = new Set();
   let contexts = 0;
   for (const ctx of generate()) {
     contexts += 1;
     conditions.forEach(({ cond }, i) => { if (conditionMatches(cond, ctx)) hits[i] += 1; });
+    orStars.forEach(({ i, allCond }) => { if (!together.has(i) && conditionMatches(allCond, ctx)) together.add(i); });
   }
   const unsupported = [];
   const rare = [];
@@ -224,6 +234,12 @@ for (const [module, { generate, retry, retries, more }] of Object.entries(MODULE
     never = pending.filter((_, i) => !found.has(i));
   }
   report[module] = { contexts, conditions: conditions.length, unsupported, rare, never };
+  if (module === 'ziwei') {
+    report[module].anyOf = orStars.filter(({ i }) => together.has(i)).map(({ i }) => {
+      const { entry, cond, index } = conditions[i];
+      return { id: entry.id, title: entry.title, index, stars: toArray(cond.stars) };
+    });
+  }
 }
 
 // 命中太宽：紫微条目原文点了星名，applies 却只按宫位、地支等命中——命宫在某支的每张盘都会出现这条，不管宫里坐什么星。
@@ -263,5 +279,12 @@ if (AS_JSON) {
     console.log(`\n【ziwei】命中太宽 ${broadZiwei.length} 条：原文点了星名，applies 只按宫位、地支等命中（命宫在该支的盘都会出现）。`
       + '坐在本宫的星请补进 star；「拱」「朝」「夹」「照」来的星不坐本宫，不补，在 notes 说明。');
     broadZiwei.forEach(({ id, title, named }) => console.log(`  - ${id}（${title}）原文提到：${named.join('、')}`));
+  }
+  const anyOf = report.ziwei?.anyOf ?? [];
+  if (anyOf.length) {
+    console.log(`\n【ziwei】「任一颗」写法 ${anyOf.length} 个条件：stars 列的几颗星任一颗在宫就命中，而这几颗星能同在一宫。`
+      + '原文要几颗同在才成立的（「武曲贪狼」「廉贞七杀」「武曲会擎羊」「火铃相遇」），改写 allStars，不然只坐一颗星的盘也会出这条断语；'
+      + '原文本意就是任一颗的（「四煞守身命」），把同组的星写进同一个 stars，这里会自动不再列出（四煞不能同在一宫）。');
+    anyOf.forEach(({ id, title, index, stars }) => console.log(`  - ${id}（${title}）条件 ${index + 1}：stars ${stars.join('、')}`));
   }
 }
