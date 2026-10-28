@@ -98,7 +98,8 @@ test('常用功能里的古籍原文：默认看命宫，列出宫中星曜与�
   await page.getByRole('button', { name: /一键鉴渣话术/ }).click();
   const prompt = await lastCopiedText(page);
   expect(prompt).toContain('【古籍原文（命宫、身宫星曜）】');
-  expect(prompt).toMatch(/- 《紫微斗数全书》[^\n]*（匹配：星曜·紫微）：问紫微所主若何/);
+  // 条目随支线录入增加：只断言附上了按紫微命中的条目（可能同时按宫位命中）。
+  expect(prompt).toMatch(/- 《紫微斗数全书》[^\n]*（匹配：[^\n]*星曜·紫微[^\n]*）：/);
 });
 
 test('精确到分钟的紫微链接按真太阳时换算时辰', async ({ page }) => {
