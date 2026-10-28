@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 import {
-  baziContextOf, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
-  patternNamesOf, searchGlossary, termsIn, ziweiContextOf, ziweiLifePalaceHits, ziweiPalaceContextOf,
+  baziContextOf, baziGlossarySeeds, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
+  patternNamesOf, searchGlossary, termsIn, ziweiContextOf, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiPalaceContextOf,
 } from '../src/data/classics/library.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
@@ -215,4 +215,20 @@ test('术语词典：按术语或别名精确查，优先本模块，再通用�
   assert.deepEqual(searchGlossary(mixed, '天干').map((item) => item.term), ['天干']);
   assert.deepEqual(searchGlossary(mixed, '').length, 0);
   assert.deepEqual(termsIn(mixed, '取十天干里的用神为主', { module: 'bazi' }).map(({ term, entry }) => `${term}=${entry.brief}`), ['十天干=甲乙丙丁戊己庚辛壬癸', '用神=八字的用神']);
+});
+
+test('词典面板的种子术语：八字盘给十神、格局、神煞、旺衰；紫微给宫名、星曜、四化', () => {
+  const { chart, strength, judge } = chartOf(1998, 1, 2, 4);
+  const seeds = baziGlossarySeeds({ chart, judge, strength });
+  assert.deepEqual(seeds.slice(0, 2), ['日主', '十神']);
+  assert.ok(seeds.includes('正财') && seeds.includes('偏财'), '透出与藏干的十神');
+  assert.ok(seeds.includes(judge.pattern.name), '格局名');
+  assert.ok(seeds.includes(strength.band), '旺衰档');
+  assert.ok(seeds.includes('大运') && seeds.includes('流年'));
+  assert.equal(new Set(seeds).size, seeds.length, '不重复');
+  assert.deepEqual(baziGlossarySeeds({}), ['日主', '十神', '格局', '用神', '旺衰', '神煞', '藏干', '纳音', '空亡', '大运', '流年']);
+
+  const palace = { name: '命宫', isBodyPalace: true, majorStars: [{ name: '紫微', mutagen: '' }, { name: '七杀', mutagen: '化权' }], minorStars: [{ name: '文曲', mutagen: '忌' }], adjectiveStars: [{ name: '天巫' }] };
+  assert.deepEqual(ziweiGlossarySeeds(palace), ['命宫', '身宫', '紫微', '七杀', '文曲', '天巫', '化权', '化忌', '三方四正', '庙旺利陷', '四化', '大限', '流年']);
+  assert.deepEqual(ziweiGlossarySeeds(null), ['命宫', '身宫', '十二宫', '四化', '大限', '流年']);
 });
