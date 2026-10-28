@@ -1803,6 +1803,910 @@
         "日照雷门"
       ],
       "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.061",
+      "title": "诸星同垣·太阳文昌在官禄",
+      "original": "太阳文昌在官禄，皇殿朝班。（文昌同亦然。）",
+      "vernacular": "太阳星与文昌星坐守官禄宫，主人名列朝班、立于金銮皇殿之上。（若在命宫文昌同度也是如此。）",
+      "notes": "阳昌同守官禄或命宫，主文章冠世、仕途通达。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "官禄",
+          "stars": [
+            "太阳",
+            "文昌"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阳",
+            "文昌"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "太阳",
+        "文昌",
+        "官禄"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.062",
+      "title": "诸星同垣·日落未申在命位",
+      "original": "日落未申在命位，为人先勤后懒。",
+      "vernacular": "太阳星落在未宫或申宫坐守命位，主人性情往往起初勤勉奋发而日后渐生懒惰。",
+      "notes": "太阳在未申为偏西偏斜之地，光芒渐弱，主虎头蛇尾。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "未",
+            "申"
+          ],
+          "star": "太阳"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "太阳",
+        "未申",
+        "先勤后懒"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.063",
+      "title": "诸星同垣·太阳居午富贵双全",
+      "original": "太阳居午，庚辛丁己人富贵双全。",
+      "vernacular": "太阳星在午宫坐守命宫，庚年、辛年、丁年、己年生人富贵双全。",
+      "notes": "金灿光辉格，亦名日丽中天格，午宫太阳入庙。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "午"
+          ],
+          "star": "太阳"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "太阳",
+        "午宫",
+        "日丽中天"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.064",
+      "title": "诸星同垣·太阳化忌是非日有",
+      "original": "太阳化忌，是非日有目还伤。",
+      "vernacular": "太阳星逢化忌坐命，平日口舌是非不断发生，而且眼目多有疾患伤损。",
+      "notes": "太阳主双目与名誉，逢忌破耗，主招怨及眼疾。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "太阳",
+          "mutagen": "忌"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "太阳",
+        "化忌",
+        "目伤"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.065",
+      "title": "诸星同垣·女命端正太阳星",
+      "original": "女命端正太阳星，早配贤夫信可凭。（太阳守命，陷平常。居卯辰巳午无杀，旺夫益子。）",
+      "vernacular": "女子命逢太阳星端正入庙坐命，早年嫁配贤良之夫确有凭据。（太阳守命若落陷地则平常；若在卯、辰、巳、午庙旺宫位且无凶煞，主旺夫益子。）",
+      "notes": "太阳为夫星、父星，女命入庙坐命多具巾帼之气，旺夫相子。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯",
+            "辰",
+            "巳",
+            "午"
+          ],
+          "star": "太阳",
+          "gender": "女"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "太阳",
+        "女命",
+        "旺夫益子"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.066",
+      "title": "诸星同垣·太阴居子富贵忠良",
+      "original": "太阴居子，丙丁人富贵忠良。（夜生人合局。）",
+      "vernacular": "太阴星在子宫坐命，丙年、丁年生人富贵兼备且为人忠厚良善。（夜晚出生之人最为合合格局。）",
+      "notes": "水澄桂萼格，太阴居子入庙，主清贵。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "子"
+          ],
+          "star": "太阴"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "太阴",
+        "子宫",
+        "水澄桂萼"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.067",
+      "title": "诸星同垣·太阴武曲禄存同",
+      "original": "太阴武曲禄存同，左右相逢富贵翁。",
+      "vernacular": "太阴星与武曲星、禄存星同会，若再逢左辅、右弼相会，必定是名重天下的大富贵之翁。",
+      "notes": "武曲正财，太阴正财，逢禄存左右拱照，富甲一方。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阴",
+            "武曲"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阴",
+            "禄存"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "太阴",
+        "武曲",
+        "禄存",
+        "富贵"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.068",
+      "title": "诸星同垣·太阴同文曲于妻宫",
+      "original": "太阴同文曲于妻宫，蟾宫折桂。（文昌同亦然，在身命巧艺之人。）",
+      "vernacular": "太阴与文曲同在夫妻宫，主人因妻得贵、蟾宫折桂登科及第。（若与文昌同度亦然；如果在身命宫，则主人多有巧夺天工之技艺。）",
+      "notes": "太阴主妻，文曲主科名，居妻宫主娶贵妻或因妻得誉。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "夫妻",
+          "stars": [
+            "太阴",
+            "文曲"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阴",
+            "文曲"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "太阴",
+        "文曲",
+        "夫妻",
+        "折桂"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.069",
+      "title": "诸星同垣·太阴羊陀人离财散",
+      "original": "太阴羊陀，必主人离财散。",
+      "vernacular": "太阴星与擎羊、陀罗煞星同宫守命，必定导致骨肉离散、财帛耗空。",
+      "notes": "太阴水柔，忌羊陀金煞重克刑害，主人财两亏。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阴",
+            "擎羊"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阴",
+            "陀罗"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "太阴",
+        "擎羊",
+        "陀罗"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.070",
+      "title": "诸星同垣·月朗天门于亥地",
+      "original": "月朗天门于亥地，登云职掌大权。（子生人夜时生合局，不贵则大富。）",
+      "vernacular": "太阴星在亥宫坐命称为月朗天门，主人平步青云并职掌天下大权。（子年出生且夜晚生人最为合格，非贵即大富。）",
+      "notes": "程序内置月朗天门格。太阴在亥入庙玉兔照天门，大贵。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "月朗天门格"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "亥"
+          ],
+          "star": "太阴"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "月朗天门格",
+        "太阴",
+        "亥地"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.071",
+      "title": "诸星同垣·月曜天梁女淫贫",
+      "original": "月曜天梁女淫贫。（太阴寅申巳，多主淫贫，或偏房侍婢。若贪狼、文昌、文曲同于夫宫，必招配贤明之夫。）",
+      "vernacular": "女命太阴与天梁星同度或对照，多主淫荡贫苦。（太阴在寅、申、巳宫失陷，多主贫困好色，或作妾室偏房、侍女婢妾；若夫宫有贪狼、文昌、文曲同守，必定配得贤明有为之丈夫。）",
+      "notes": "太阴在寅申巳失辉，与天梁天机相缠，女命多浮荡。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "寅",
+            "申",
+            "巳"
+          ],
+          "stars": [
+            "太阴",
+            "天梁"
+          ],
+          "gender": "女"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "太阴",
+        "天梁",
+        "女命",
+        "寅申巳"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.072",
+      "title": "诸星同垣·日巳月酉丑宫命",
+      "original": "日巳月酉，丑宫命步蟾宫。",
+      "vernacular": "太阳在巳宫官禄，太阴在酉宫财帛，命宫在丑宫得日月并明交辉朝照，主人科举及第、平步蟾宫。",
+      "notes": "日月并明格，安命在丑，日巳月酉三方吉拱。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "丑"
+          ],
+          "stars": [
+            "太阳",
+            "太阴"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "日月拱照",
+        "丑宫",
+        "太阳",
+        "太阴"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.073",
+      "title": "诸星同垣·日卯月亥安命未宫",
+      "original": "日卯月亥，安命未宫多折桂。",
+      "vernacular": "太阳在卯宫，太阴在亥宫，安命在未宫三方四正拱照，主人文章锦绣、科场折桂。",
+      "notes": "程序内置明珠出海格。日卯月亥朝未命。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "明珠出海格"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "未"
+          ],
+          "stars": [
+            "太阳",
+            "太阴"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "明珠出海格",
+        "日月拱照",
+        "未宫"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.074",
+      "title": "诸星同垣·日月同未命安丑",
+      "original": "日月同未，命安丑，侯伯之材。",
+      "vernacular": "太阳与太阴同在未宫，命宫安在丑宫对宫照临，主人乃是封侯拜相的宰辅公卿之才具。",
+      "notes": "日月同临对照丑命，主位列公侯。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "丑"
+          ],
+          "stars": [
+            "太阳",
+            "太阴"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "日月拱照",
+        "丑宫",
+        "未宫",
+        "侯伯之材"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.075",
+      "title": "诸星同垣·日月命身居丑未",
+      "original": "日月命身居丑未，三方无吉反为凶。（子午辰戌，身命更佳。）",
+      "vernacular": "太阳太阴同守身命在丑宫或未宫，若三方四正毫无吉星相扶助，反而主多凶灾。（如果在子、午、辰、戌宫位立身命，格局更为大佳。）",
+      "notes": "程序内置日月同临格。无吉煞凑则失辉反招凶。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "日月同临格"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "丑",
+            "未"
+          ],
+          "stars": [
+            "太阳",
+            "太阴"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "日月同临格",
+        "日月拱照",
+        "丑未"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.076",
+      "title": "诸星同垣·日月守命不如照合并明",
+      "original": "日月守命，不如照合并明。（守命吉多主吉，凶多主凶。若吉少，亦不为美之论。）",
+      "vernacular": "太阳太阴同在命宫坐守，不如二星在三方对照合并明照耀来得神妙。（日月守命若吉星多主吉，凶煞多主凶；若吉星少，亦难称美善之命。）",
+      "notes": "日月照合主双辉并映，守命同宫则阴阳互掩。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阳",
+            "太阴"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "日月拱照",
+        "并明"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.077",
+      "title": "诸星同垣·日辰月戌并争耀",
+      "original": "日辰月戌并争耀，权禄非浅。",
+      "vernacular": "太阳在辰宫坐命（日出龙门），太阴在戌宫对照拱合并放光彩，主人一生权柄与官禄非凡深厚。",
+      "notes": "辰戌对照，日辰月戌皆处于旺宫，权禄兼备。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "辰",
+            "戌"
+          ],
+          "stars": [
+            "太阳",
+            "太阴"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "日月拱照",
+        "日辰月戌",
+        "权禄非浅"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.078",
+      "title": "诸星同垣·日月夹命夹财",
+      "original": "日月夹命夹财，加吉曜不权则富。（加羊陀冲守，宜僧。）",
+      "vernacular": "太阳与太阴在左右邻宫相夹命宫或相夹财帛宫，若再加上吉星辅佐，主人若不执掌大权便必定是大富大贵。（若加会羊陀冲破或同守，只宜出家为僧。）",
+      "notes": "日月夹命或夹财，贵气两邻拱卫，最忌空亡羊陀破格。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫"
+        },
+        {
+          "module": "ziwei",
+          "palace": "财帛"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "日月拱照",
+        "日月夹命",
+        "日月夹财"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.079",
+      "title": "诸星同垣·日月最嫌反背",
+      "original": "日月最嫌反背。（如日月同宫，看人之生时。日喜太阳，夜宜太阴。若反背日戌月辰，子月午。若出外离宗成家也吉。勿概以反背论。）",
+      "vernacular": "太阳与太阴最忌落入失陷反背之宫。（如果日月同宫，要审看出生时辰是白天还是夜晚：昼生喜太阳，夜生喜太阴。若是日居戌月居辰、日居子月居午等失辉反背，若外出背井离宗开创成家亦能吉利，不可一概执定为凶论。）",
+      "notes": "日月反背多劳碌，离乡背井出外发迹者亦能有成。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阳",
+            "太阴"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "日月拱照",
+        "日月反背"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.080",
+      "title": "诸星同垣·阴阳左右合为佳",
+      "original": "阴阳左右，合为佳。",
+      "vernacular": "太阳太阴与左辅右弼四星相互合会拱照身命，极为吉庆美妙。",
+      "notes": "日月得辅弼相佐，阴阳调和、臣辅相襄。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阳",
+            "左辅"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阴",
+            "右弼"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "日月拱照",
+        "太阳",
+        "太阴",
+        "左辅",
+        "右弼"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.081",
+      "title": "诸星同垣·日月陷宫逢恶杀",
+      "original": "日月陷宫逢恶杀，劳碌奔波。",
+      "vernacular": "太阳与太阴落在失陷宫位坐命且逢恶煞凶曜冲破，主人一生身心劳碌、到处东奔西走。",
+      "notes": "日月失辉更遭煞克，主奔波浮荡、谋生艰难。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阳",
+            "擎羊"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阴",
+            "陀罗"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "日月拱照",
+        "太阳",
+        "太阴",
+        "落陷",
+        "劳碌"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.082",
+      "title": "诸星同垣·日月羊陀多克亲",
+      "original": "日月羊陀，多克亲。",
+      "vernacular": "太阳、太阴坐命与擎羊、陀罗煞星同度或冲会，多容易刑克父母长辈或至亲。",
+      "notes": "日为父星，月为母星，逢羊陀冲刑克伤父母。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阳",
+            "擎羊"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阴",
+            "陀罗"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "日月拱照",
+        "太阳",
+        "太阴",
+        "克亲"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.083",
+      "title": "诸星同垣·日月更须贪杀会",
+      "original": "日月更须贪杀会，男多奸盗女多淫。",
+      "vernacular": "太阳太阴守命若与贪狼、七杀凶曜交会冲破，男子多生奸险盗窃之心，女子多生放荡淫佚之行。",
+      "notes": "日月失正逢贪杀冲扰，失其光明，流入邪私。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阳",
+            "贪狼"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阴",
+            "七杀"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "日月拱照",
+        "太阳",
+        "太阴",
+        "贪狼",
+        "七杀"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.084",
+      "title": "诸星同垣·日月疾厄命宫空腰驼目瞽",
+      "original": "日月疾厄命宫空，腰驼目瞽。（如日月在疾厄宫，逢空亡必主腰驼、目瞽，命宫亦然。）",
+      "vernacular": "太阳与太阴在疾厄宫或命宫坐守且落入空亡之位，容易患上驼背腰曲之疾或眼目失明双目失明。（比如日月落在疾厄宫逢空亡煞星，必主腰驼目盲，在命宫逢此亦是如此。）",
+      "notes": "日月主目，空亡煞聚刑伤，主眼目与脊椎之残。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "疾厄",
+          "stars": [
+            "太阳",
+            "太阴"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "太阳",
+            "太阴"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "日月拱照",
+        "太阳",
+        "太阴",
+        "疾厄",
+        "目疾"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.085",
+      "title": "诸星同垣·文昌武曲多学多能",
+      "original": "文昌武曲为人多学多能。（四墓、卯酉巳亥身命，论三方科权禄。）",
+      "vernacular": "文昌星与武曲星坐守身命或在三合会照，为人博学多识且多才多艺。（身命在四墓地或卯酉巳亥宫位，三方逢化科、化权、化禄者尤准。）",
+      "notes": "文武兼备之格，武曲文昌同守，多才多艺。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "文昌",
+            "武曲"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "身宫",
+          "stars": [
+            "文昌",
+            "武曲"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "武曲",
+        "多才多艺"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.086",
+      "title": "诸星同垣·文科拱照贾谊登科",
+      "original": "文科拱照，贾谊年少登科。（论三方。）",
+      "vernacular": "命宫三方四正有文昌、文曲与化科星拱照，主人如同汉代贾谊一般少年时期即能及第登科。（此论三方四正吉会。）",
+      "notes": "文星吉化拱命，少年早发科第。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "文昌",
+          "mutagen": "科"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "文曲",
+          "mutagen": "科"
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "文曲",
+        "化科",
+        "登科"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.087",
+      "title": "诸星同垣·左辅文昌位至三台",
+      "original": "左辅文昌，位至三台。",
+      "vernacular": "左辅星与文昌星在命宫同守或三方拱合，文采韬略出众，官阶可位列三台宰相之尊。",
+      "notes": "左辅为宰辅佐宿，文昌主科甲显名，合德主入相。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "左辅",
+            "文昌"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "左辅",
+        "文昌",
+        "三台"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.088",
+      "title": "诸星同垣·文昌武曲文武兼备",
+      "original": "文昌武曲于身命，文武兼备。（孙膑之命是也。）",
+      "vernacular": "文昌星与武曲星在身命二宫同度或会照，主人兼备文韬与武略。（古代军事家孙膑的命盘即合此格。）",
+      "notes": "武曲刚勇主武，文昌文雅主文，相会相成，文武兼济。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "文昌",
+            "武曲"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "身宫",
+          "stars": [
+            "文昌",
+            "武曲"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文昌",
+        "武曲",
+        "文武兼备"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.089",
+      "title": "诸星同垣·二曲庙垣逢左右",
+      "original": "二曲庙垣逢左右，将相之材。（文曲宜子午酉，武曲宜四墓。）",
+      "vernacular": "武曲与文曲在庙旺宫位坐命若逢左辅、右弼同会，主人具备出将入相的宰辅才具。（文曲最适宜在子、午、酉宫，武曲最适宜在辰、戌、丑、未四墓之地。）",
+      "notes": "二曲即武曲与文曲。得左右相扶，兼具文武将相之资。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "武曲",
+            "文曲"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文曲",
+        "武曲",
+        "左辅",
+        "右弼",
+        "将相"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.tongyuan.090",
+      "title": "诸星同垣·二曲旺宫威名赫奕",
+      "original": "二曲旺宫，威名赫奕。（文曲子宫第一，卯酉宫次之；武曲辰宫第一，丑未宫次之。）",
+      "vernacular": "武曲与文曲在各自庙旺之宫位坐命，威严声名极其显赫。（文曲以在子宫坐守为第一，卯酉宫次之；武曲以在辰宫坐守为第一，丑未宫次之。）",
+      "notes": "二曲各得其庙旺之位，扬威立名。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "子",
+            "卯",
+            "酉",
+            "辰",
+            "丑",
+            "未"
+          ],
+          "stars": [
+            "文曲",
+            "武曲"
+          ]
+        }
+      ],
+      "tags": [
+        "诸星同垣",
+        "文曲",
+        "武曲",
+        "旺宫",
+        "威名赫奕"
+      ],
+      "status": "translated"
     }
   ]
 }
