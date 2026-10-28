@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
 import { analyzeWuxingGap, determinePattern, judgeBaziPattern } from '../src/utils/baziPattern.js';
+import { findSolarDateByPillars } from '../scripts/lib/baziCases.mjs';
 
 const NOW = new Date('2026-10-26T10:00:00');
 const judgeFor = (year, month, day, hourIndex, gender = 'male') => {
@@ -12,6 +13,14 @@ const judgeFor = (year, month, day, hourIndex, gender = 'male') => {
   return { chart, strength, judge: judgeBaziPattern(chart, strength) };
 };
 const ganZhiOf = (chart) => chart.pillars.map(({ ganZhi }) => ganZhi).join(' ');
+/** 古籍命例只有四柱：找一个四柱相同的日子排盘。 */
+const judgeByPillars = (text) => {
+  const date = findSolarDateByPillars(text.split(' '));
+  const result = judgeFor(date.year, date.month, date.day, date.hourIndex);
+  assert.equal(ganZhiOf(result.chart), text);
+  return result;
+};
+const godsOf = (items) => items.map(({ element, label }) => `${element}${label}`);
 const traitNames = (judge) => judge.traits.map(({ name }) => name);
 
 test('月令本气未透：以本气为格；财多身弱与日坐十神', () => {
@@ -120,6 +129,49 @@ test('特殊格局只在比例极端时提示', () => {
   assert.equal(hua.judge.special.name, '疑似乙庚化金格');
 
   assert.equal(judgeFor(2000, 4, 10, 10).judge.special, null);
+});
+
+test('特殊格局附「按此格论」的喜忌，并写进要点', () => {
+  const cong = judgeFor(1975, 2, 26, 6);
+  assert.deepEqual(godsOf(cong.judge.special.favorable), ['木食伤', '火财']);
+  assert.deepEqual(godsOf(cong.judge.special.unfavorable), ['金印', '土官杀']);
+  assert.ok(cong.judge.points.some((line) => line.startsWith('若按从儿格论：喜木（食伤）、火（财）；忌金（印）、土（官杀）（')));
+
+  // 辛酉 庚子 癸酉 壬子：印占一半，印不轻，食伤与印相战，列在忌神末尾。
+  const runXia = judgeFor(1981, 12, 21, 0);
+  assert.deepEqual(godsOf(runXia.judge.special.favorable), ['水比劫', '金印']);
+  assert.deepEqual(godsOf(runXia.judge.special.unfavorable), ['土官杀', '火财', '木食伤']);
+  assert.match(runXia.judge.special.godsBasis, /印不轻/);
+
+  // 化气以化神为主；乙木本气帮起日主就化不成。
+  const hua = judgeFor(1978, 8, 11, 6);
+  assert.equal(hua.judge.special.godsText, '喜金（化神）、土（生化神）；忌火（克化神）、木（日主本气）');
+});
+
+test('从格、专旺按《滴天髓阐微·衰旺》任注的「旺极」「衰极」命造判断', () => {
+  // 旺极：顺其旺势，喜印比，忌财官；食伤看印的轻重。
+  const congQiang = judgeByPillars('丙寅 甲午 丙午 癸巳'); // 「只得从其强势」，「运逢木火土，财喜频增」
+  assert.equal(congQiang.judge.special.name, '疑似从强格');
+  assert.deepEqual(congQiang.judge.special.favorable.map(({ element }) => element), ['火', '木', '土']);
+  const yanShang = judgeByPillars('戊寅 丁巳 丙寅 甲午'); // 「火旺极者，似土也」，书取火
+  assert.equal(yanShang.judge.special.name, '疑似炎上格（专旺）');
+  assert.equal(yanShang.judge.special.favorable[0].element, '火');
+  const tuWang = judgeByPillars('戊戌 丙辰 己巳 己巳'); // 「土旺极者，似金也」，「一交庚申……家业渐消」
+  assert.equal(tuWang.judge.special.kind, 'congqiang');
+  assert.ok(tuWang.judge.special.unfavorable.some(({ element }) => element === '金'));
+
+  // 衰极：天干只有无根比劫，或一个无根之印而财星坏印，作从论。
+  const congSha = judgeByPillars('庚戌 甲申 甲戌 乙丑'); // 「天干三透甲乙，而地支不载……格成从杀」，用土
+  assert.equal(congSha.judge.special.kind, 'cong');
+  assert.equal(congSha.judge.special.favorable[0].element, '土');
+  assert.equal(congSha.judge.special.basis, '日主甲木地支无比劫之根，只有丑中癸一点印气，月干甲、时干乙虚浮无根，官杀、财并旺，无一独占四成。');
+  const jinShuai = judgeByPillars('己亥 丁卯 庚寅 丙子'); // 「金衰极者，似木也」
+  assert.equal(jinShuai.judge.special.kind, 'cong');
+  assert.match(jinShuai.judge.special.basis, /只有寅中戊一点印气/);
+
+  // 太旺而食伤有本气之根，任注取食伤泄秀；天干比劫三透、或有印有根，任注仍取印比：都不作特殊格局。
+  ['壬寅 辛亥 壬子 辛丑', '戊辰 戊午 戊申 己未', '丙子 丙申 丙子 丙申', '癸巳 壬戌 壬午 壬寅', '壬午 癸卯 壬寅 庚戌']
+    .forEach((text) => assert.equal(judgeByPillars(text).judge.special, null, text));
 });
 
 test('五行俱全时报最弱的一行；缺的是喜用时提示留意', () => {
