@@ -16,6 +16,9 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   await expect(result).toContainText('测试 · 乾造');
   await expect(result).toContainText('乙木');
   await expect(result).toContainText('1990.5.20');
+  // 旺衰按得令、得地、得势打分：此造不得令、地支无根，只有时干壬水（印）帮身，0.5 分极弱；食伤（火）最重，取印。
+  await expect(result.getByTestId('bazi-strength-score')).toContainText('0.5 分');
+  await expect(result.getByTestId('bazi-strength-basis')).toContainText('身弱食伤重，取印制伤生身');
   // 格局与择日两节都在。
   await expect(result.getByRole('heading', { name: /格局与命局组合/ })).toBeVisible();
   await expect(result.getByRole('heading', { name: /择日参考/ })).toBeVisible();
