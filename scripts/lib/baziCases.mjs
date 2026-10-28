@@ -125,7 +125,7 @@ export const evaluateBaziCase = (entry) => {
     chartPillars,
     pillarsMatch: pillars.every((gz, index) => gz === chartPillars[index]),
     expected,
-    program: { band: strength.band, ratio: Math.round(strength.ratio * 100) / 100, class: programClass, special, favorable, unfavorable, deLing: strength.deLing, pattern: judge.pattern?.name ?? null },
+    program: { band: strength.band, score: strength.score.total, ratio: Math.round(strength.ratio * 100) / 100, class: programClass, special, favorable, unfavorable, basis: strength.basis, deLing: strength.deLing, pattern: judge.pattern?.name ?? null },
     checks,
   };
 };
