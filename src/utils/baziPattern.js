@@ -284,8 +284,8 @@ export const determinePattern = (chart, summary = null) => {
  * 条件按《滴天髓阐微》任铁樵注的命造校准（衰旺篇「旺极」「衰极」，六亲论从象、化象、假从、顺局诸篇；test/bazi-cases.test.js）：
  * - 化气先看：日干与月干或时干相合，日主地支没有本气之根，而化神得令（月令正是化神，日主又无根），
  *   或化神之气占到二成五（「土旺乘权，克去壬水，又无比劫，合神更真」「丙火透而通根，化火斯真」）。
- *   日主有本气之根，但化神当令、气占三成五以上的，作假化（任注假化诸造「虽是假化，却有情而不悖」
- *   「化神当令……日干不得不从合而化」）；化神与日主同一五行的（如庚日合乙化金）不作化论。
+ *   日主有本气之根（不在日支），但化神当令、气占三成五以上的，作假化（任注假化诸造「虽是假化，却有情而不悖」
+ *   「化神当令……日干不得不从合而化」）；日主坐下本气之根、化神与日主同一五行的（如庚日合乙化金）不作化论。
  * - 从格（「衰极者似X」）：地支无比劫之根，印气至多一点中气、余气（不见本气，得令加得地不过 0.25 分）；天干帮身的只有无根比劫、
  *   至多两个（「天干三透甲乙，而地支不载……格成从杀」），或只有一个无根之印而财星占到三成、足以坏印。
  *   天干比劫三透、印比各一的，任注仍取印比，不作从论。旧的比例条件（同党不到两成、无根、无印透）也算。
@@ -317,7 +317,9 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     const huaShare = strength.percents?.[element] ?? 0;
     const deLing = monthElement === element && !hasRoot;
     const zhenHua = element && !benqiRootZhis.length && (deLing || huaShare >= 25);
-    const jiaHua = element && benqiRootZhis.length > 0 && element !== dayWuxing && monthElement === element && huaShare >= 35;
+    // 日主坐下就是本气之根（坐禄、坐刃）的不作假化（「喜其日元得地……壬水可用」「日主虽临旺地……日主不能从合矣」）。
+    const sitsOnRoot = GAN_WUXING[byKey.day?.hiddenGanDetails?.[0]?.gan] === dayWuxing;
+    const jiaHua = element && benqiRootZhis.length > 0 && !sitsOnRoot && element !== dayWuxing && monthElement === element && huaShare >= 35;
     if (zhenHua || jiaHua) {
       const gods = huaGodsOf(element, dayWuxing, huaShare);
       const he = `日主${dayGan}与${partner.name}${partner.gan}相合`;
