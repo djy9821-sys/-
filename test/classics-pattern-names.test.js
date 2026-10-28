@@ -105,3 +105,26 @@ test('一个文件录几篇：section 用「、」列篇名，条目按 title �
   // 单篇文件：出处就是文件的篇名，条目不用写 section。
   assert.equal(sectionOfEntry({ title: '论用神·其一' }, { section: '论用神' }), '论用神');
 });
+
+test('校验：白话超过原文 3.5 倍报错（多半加了原文没有的内容）；原文太短不查', () => {
+  const entry = (original, vernacular) => ({
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [{ id: 'ziwei.t.001', title: '甲', original, vernacular, status: 'translated' }],
+  });
+  const original = '廉贞清白能相守，更有天同理亦然。天府尊星，也作纯和之体。';
+  assert.deepEqual(validateClassicsDoc(entry(original, '女命廉贞清白，能与丈夫相守；天同坐命，道理也一样。天府是尊贵的星，坐命者体貌纯和。')), []);
+  const padded = '廉贞星坐守女命若落入未宫、申宫等庙旺之地且无恶煞冲破，其人品德坚贞、清白自守，能与丈夫相守到老恪尽妇德；更有天同福星坐守女命入庙，也是这般安享福禄、和美美满的道理。天府南斗令星尊宿，则呈现出温纯安和、雍容大度的体态气质，福泽深厚。';
+  assert.match(validateClassicsDoc(entry(original, padded)).join('\n'), /白话是原文的 \d+\.\d 倍，超过 3\.5 倍上限/);
+  assert.deepEqual(validateClassicsDoc(entry('府相之星女命躔。', padded)), [], '原文不足 12 字不查长短');
+});
+
+test('校验：古籍文件必须在 bazi / ziwei / liuyao 目录里，条件只能写本目录的模块（网页按目录分块加载）', () => {
+  const doc = (module) => ({
+    classic: 'ziping', section: '测试', edition: '测试',
+    entries: [{ id: 'ziping.t.001', title: '甲', original: '甲。', status: 'draft', applies: [{ module, ...(module === 'bazi' ? { pattern: '正官格' } : { star: '紫微' }) }] }],
+  });
+  assert.deepEqual(validateClassicsDoc(doc('bazi'), { file: 'src/data/classics/bazi/t.json' }), []);
+  assert.match(validateClassicsDoc(doc('ziwei'), { file: 'src/data/classics/bazi/t.json' }).join('\n'), /文件放在 bazi 目录（只在八字页加载），条件却写 module: ziwei/);
+  assert.match(validateClassicsDoc(doc('bazi'), { file: 'src/data/classics/t.json' }).join('\n'), /古籍文件要放在 src\/data\/classics\/ 下的 bazi \/ ziwei \/ liuyao 子目录里/);
+  assert.deepEqual(validateClassicsDoc(doc('ziwei')), [], '不给文件路径时不查目录');
+});
