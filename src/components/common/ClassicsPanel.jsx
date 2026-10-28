@@ -90,7 +90,8 @@ export const ClassicsEntryCard = ({ hit, mode, testId = 'classic-entry' }) => {
  *   ctx：匹配上下文（为 null 时只显示库的说明）；subject：提示语里的主语，如「这张盘」「这个宫」。
  */
 export default function ClassicsPanel({ ctx, subject = '这张盘', testId = 'classics-panel', entryTestId = 'classic-entry', className = 'mt-4 space-y-3' }) {
-    const { data, error } = useClassicsLibrary();
+    // 只下这个模块（八字 / 紫微 / 六爻）的古籍块；还没有上下文时先不加载。
+    const { data, error } = useClassicsLibrary(ctx?.module ?? null, { enabled: Boolean(ctx?.module) });
     const [mode, setMode] = useState('vernacular');
     // 「再看几条」的计数跟着上下文走：换了一张盘 / 一个宫就回到第一页，不用 effect 重置。
     const [paging, setPaging] = useState({ ctx: null, count: PAGE });

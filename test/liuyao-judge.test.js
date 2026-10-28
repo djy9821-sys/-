@@ -66,17 +66,22 @@ test('按类别取用神：单现、两现取动爻、不上卦取伏神', () =>
   assert.match(two.yongShen.text, /两现，取发动之爻/);
   assert.match(two.points.join('\n'), /化庚寅退神/);
 
-  // 风泽中孚：妻财不上卦，伏于五爻父母之下
-  const hiddenJudge = judgeLiuYao(buildLiuYaoReading([7, 7, 8, 8, 9, 7], castAt), { topic: 'wealth' });
+  // 风泽中孚（静）：妻财不上卦，伏于五爻父母之下；飞神旬空，空下伏神易出
+  const hiddenJudge = judgeLiuYao(buildLiuYaoReading([7, 7, 8, 8, 7, 7], castAt), { topic: 'wealth' });
   assert.equal(hiddenJudge.yongShen.hidden, true);
   assert.equal(hiddenJudge.yongShen.ganZhi, '丙子');
   assert.match(hiddenJudge.yongShen.text, /伏于五爻父母辛巳之下/);
   assert.match(hiddenJudge.points.join('\n'), /游魂卦/);
-  // 水火既济（初爻动）：妻财戊午伏于三爻兄弟己亥之下，飞神克伏神
+  // 同一卦五爻发动、化出妻财：用神取化出之爻，只论日月
+  const fromChange = judgeLiuYao(buildLiuYaoReading([7, 7, 8, 8, 9, 7], castAt), { topic: 'wealth' });
+  assert.equal(fromChange.yongShen.hidden, false);
+  assert.match(fromChange.yongShen.text, /由五爻父母辛巳动而化出：妻财丙子（变爻/);
+  assert.match(fromChange.dynamics.join('\n'), /动爻不克变爻，只论日月生克/);
+  // 水火既济（初爻动）：妻财戊午伏于三爻兄弟己亥之下；飞神亥水旬空又被戌月克，伏神易出
   const jiji = judgeLiuYao(buildLiuYaoReading([9, 8, 7, 8, 7, 8], castAt), { topic: 'wealth' });
   assert.equal(jiji.yongShen.hidden, true);
-  assert.match(jiji.points[2], /飞神克伏神/);
-  assert.match(jiji.points.join('\n'), /子孙己卯（初爻）发动生用神/);
+  assert.match(jiji.points[2], /伏神易出（飞神空破衰墓、日月动爻冲克飞神）/);
+  assert.match(jiji.points.join('\n'), /子孙己卯（初爻）发动为元神，但无力（化破/);
 });
 
 test('感情按性别取用神，没选性别时提示', () => {

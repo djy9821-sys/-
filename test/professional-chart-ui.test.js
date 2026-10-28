@@ -300,3 +300,13 @@ test('四化盘视觉规则隔离并采用四色箭头、六层方章与手机�
   assert.match(styles, /\.wenmo-center-info--sihua\s*\{/);
   assert.match(styles, /\.wenmo-luck-table--sihua \.wenmo-luck-row/);
 });
+
+test('专业盘时间轴：年份按出生农历年排，手动选的各层干支与「今」运势同一口径', async () => {
+  const source = await readProjectFile('src/components/ProfessionalChart.jsx');
+
+  assert.match(source, /birthLunarYearOf\(horoscope\)/);
+  assert.match(source, /getTimelineFortune\(horoscope, selection\)/);
+  assert.match(source, /year === currentFlowYear \? 'is-current'/);
+  assert.doesNotMatch(source, /new Date\(basicInfo\.birthday\)\.getFullYear\(\)/);
+  assert.doesNotMatch(source, /astro\.byLunar/);
+});

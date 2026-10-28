@@ -19,8 +19,10 @@ export const classicsPromptLines = (classics, { subject = '本命', limit = PROM
   const shown = hits.slice(0, limit);
   const lines = shown.map(({ entry, reason }) => {
     const where = `《${entry.book}》${entry.volume ? `·${entry.volume}` : ''}·${entry.section}`;
+    // 标题以篇名开头（「论用神配气候得失·其八」）时只留小题，免得出处里篇名写两遍。
+    const title = entry.section && String(entry.title).startsWith(`${entry.section}·`) ? String(entry.title).slice(entry.section.length + 1) : entry.title;
     const original = String(entry.original).replace(/\s*\n\s*/g, ' ').trim();
-    return `- ${where}「${entry.title}」${reason ? `（匹配：${reason}）` : ''}：${original}`;
+    return `- ${where}「${title}」${reason ? `（匹配：${reason}）` : ''}：${original}`;
   });
   const tail = hits.length > shown.length
     ? `古籍库里与${subject}相关的原文共 ${hits.length} 条，这里只附最相关的 ${shown.length} 条。`

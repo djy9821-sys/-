@@ -28,3 +28,11 @@ test('古籍原文一节：标题、主语、条数上限可配，没有命中�
   assert.equal(lines.length, 2);
   assert.ok(lines[1].startsWith('以上原文取自公版古籍逐字录入（条目状态：待审）'));
 });
+
+test('标题以篇名开头时只留小题，出处里不写两遍篇名', () => {
+  const lines = classicsPromptLines([{
+    entry: { id: 'x', title: '论用神配气候得失·其八', book: '子平真诠', section: '论用神配气候得失', status: 'translated', original: '春木逢火。' },
+    reason: '日干·乙',
+  }]);
+  assert.equal(lines[0], '- 《子平真诠》·论用神配气候得失「其八」（匹配：日干·乙）：春木逢火。');
+});

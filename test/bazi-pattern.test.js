@@ -55,11 +55,37 @@ test('透出者为格；杂气月本气为比劫时取中气', () => {
   assert.match(through.judge.pattern.basis, /透于年柱乙/);
   assert.ok(traitNames(through.judge).includes('伤官见官'));
 
-  const zaQi = judgeFor(2000, 4, 10, 10);
-  assert.equal(ganZhiOf(zaQi.chart), '庚辰 庚辰 戊戌 壬戌');
+  const zaQi = judgeFor(1960, 4, 20, 7);
+  assert.equal(ganZhiOf(zaQi.chart), '庚子 庚辰 戊寅 己未');
   assert.equal(zaQi.judge.pattern.name, '杂气正官格');
   assert.match(zaQi.judge.pattern.basis, /本气戊为比肩不取/);
   assert.match(zaQi.judge.pattern.basis, /中气乙（正官）/);
+});
+
+test('《子平真诠》取格细则：库中同类透出、生月化神被克仍本格、旺支只论本气、申中不论戊', () => {
+  // 辰为水库，库中癸以同类透出论：戊生辰月透壬，取财（脱脱丞相命「辰中暗煞，壬以透之」同理）。
+  const ku = judgeFor(2000, 4, 10, 10);
+  assert.equal(ganZhiOf(ku.chart), '庚辰 庚辰 戊戌 壬戌');
+  assert.equal(ku.judge.pattern.name, '杂气偏财格');
+  assert.match(ku.judge.pattern.basis, /为水库，库中癸以同类透出论：时柱壬（偏财）透出/);
+
+  // 生月中余气透出为变化，化神又被他干所克则不失本格：癸生寅月透戊（官），年干乙克之，仍以本气甲（伤官）为格。
+  const kept = judgeFor(1975, 2, 26, 6);
+  assert.equal(ganZhiOf(kept.chart), '乙卯 戊寅 癸卯 戊午');
+  assert.equal(kept.judge.pattern.name, '伤官格');
+  assert.match(kept.judge.pattern.basis, /余气戊（正官）透于月柱戊、时柱戊本可变化，但年柱乙克之，化神退位，仍以本气甲（伤官）为格/);
+
+  // 「除子午卯酉外，余皆有藏」：午月只论本气丁，余气己透出不取。
+  const wang = judgeFor(1979, 6, 6, 10);
+  assert.equal(ganZhiOf(wang.chart), '己未 庚午 甲辰 甲戌');
+  assert.equal(wang.judge.pattern.name, '伤官格');
+  assert.match(wang.judge.pattern.basis, /以本气丁（伤官）为格（午为旺支只论本气，己透出不作月令之神）/);
+
+  // 土随火，申中不论戊：甲生申月透戊，仍以本气庚（七杀）为格。
+  const shen = judgeFor(1971, 9, 6, 4);
+  assert.equal(ganZhiOf(shen.chart), '辛亥 丙申 甲午 戊辰');
+  assert.equal(shen.judge.pattern.name, '七杀格');
+  assert.match(shen.judge.pattern.basis, /以本气庚（七杀）为格（申中不论戊，戊透出不作月令之神）/);
 });
 
 test('常见组合：官杀混杂、食神制杀、羊刃驾杀、伤官配印、官印相生、财官相生、枭神夺食', () => {
