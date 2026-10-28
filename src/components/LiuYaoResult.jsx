@@ -14,6 +14,10 @@ import { track } from '../utils/analytics';
 import { ARCHIVE_GROUP_OPTIONS } from '../utils/baziRecord';
 import { archiveManager } from '../utils/archiveManager';
 import { INPUT_FIELD_CLASS, wuxingText } from './bazi/baziTheme';
+import ClassicsPanel from './common/ClassicsPanel.jsx';
+import GlossaryPanel from './common/GlossaryPanel.jsx';
+import { useClassicsLibrary } from './common/useClassicsLibrary.js';
+import { liuyaoGlossarySeeds, liuyaoReadingContextOf, matchEntries } from '../data/classics/index.js';
 
 const MARK_SHORT = { 旬空: '空', 月破: '破', 日冲: '冲' };
 const RELATIVE_TONE = {
@@ -98,7 +102,15 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
             return null;
         }
     }, [reading]);
-    const prompt = useMemo(() => buildLiuYaoPrompt(reading, judge), [reading, judge]);
+    // 古籍库（按需加载）：与本卦相关的原文条目进「古籍原文」卡并附进提示词；术语词典先列这一卦里出现的词。
+    const { data: classicsData } = useClassicsLibrary();
+    const classicsCtx = useMemo(() => liuyaoReadingContextOf(reading, judge), [reading, judge]);
+    const classicsHits = useMemo(
+        () => (classicsData?.library && classicsCtx ? matchEntries(classicsData.library, classicsCtx) : null),
+        [classicsData, classicsCtx],
+    );
+    const glossarySeeds = useMemo(() => liuyaoGlossarySeeds(reading, judge), [reading, judge]);
+    const prompt = useMemo(() => buildLiuYaoPrompt(reading, judge, { classics: classicsHits }), [reading, judge, classicsHits]);
     const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
     const hasChange = Boolean(changed);
     const descending = [...lines].reverse();
@@ -353,6 +365,16 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
                     )}
                     {!reading.movingPositions.length && <p className="text-xs leading-6 text-[#81776b]">没有动爻，一般以本卦卦辞与世爻、用神的旺衰断事。</p>}
                 </div>
+            </PaperCard>
+
+            {classicsHits?.length > 0 && (
+                <PaperCard title="古籍原文" note="与本卦相关的古籍条目 · 白话与原文可切换">
+                    <ClassicsPanel ctx={classicsCtx} subject="这一卦" testId="liuyao-classics" entryTestId="liuyao-classic-entry" className="space-y-3" />
+                </PaperCard>
+            )}
+
+            <PaperCard title="术语词典" note="看不懂的词，点开查白话">
+                <GlossaryPanel module="liuyao" seedTerms={glossarySeeds} subject="这一卦" testId="liuyao-glossary" className="space-y-3" />
             </PaperCard>
 
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
