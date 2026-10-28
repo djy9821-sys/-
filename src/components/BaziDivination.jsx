@@ -459,7 +459,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     // 原局四柱之间的合冲刑害（不含运限）。
     const natalRelations = useMemo(() => findRelations(natalItems), [natalItems]);
     // 古籍库里与本命相关的条目：附进「导出给 AI」的提示词（古籍库按需加载，未加载完就先不附）。
-    const { data: classicsData } = useClassicsLibrary(Boolean(baziResult));
+    const { data: classicsData } = useClassicsLibrary('bazi', { enabled: Boolean(baziResult) });
     const classicsHits = useMemo(() => {
         if (!classicsData?.library || !baziResult) return null;
         return matchEntries(classicsData.library, baziContextOf({ chart: baziResult, strength, judge: patternJudge, relations: natalRelations }));
