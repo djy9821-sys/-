@@ -32,7 +32,9 @@ test('仓库数据能合成索引：每条带书名、篇名、出处，按书�
   assert.equal(entry.section, '论用神成败救应');
   assert.equal(entry.source, '《子平真诠》·论用神成败救应');
   assert.ok(entry.file.endsWith('ziping-chengbai.json'));
-  assert.deepEqual(entriesOfClassic(library, 'sanming').map((item) => item.id), ['sanming.shensha.tianyi.001']);
+  const sanming = entriesOfClassic(library, 'sanming');
+  assert.ok(sanming.some((item) => item.id === 'sanming.shensha.tianyi.001'));
+  assert.ok(sanming.every((item) => item.classic === 'sanming'));
   assert.equal(entryById(library, 'nope'), null);
 });
 
@@ -63,7 +65,7 @@ test('格名同义展开', () => {
   assert.deepEqual(patternNamesOf('杂气正印格'), ['杂气正印格', '正印格', '印格', '印绶格']);
   assert.deepEqual(patternNamesOf('羊刃格'), ['羊刃格', '阳刃格', '刃格']);
   assert.deepEqual(patternNamesOf('建禄格'), ['建禄格', '建禄月劫', '禄劫格']);
-  assert.deepEqual(patternNamesOf('疑似从杀格'), ['疑似从杀格', '从杀格']);
+  assert.deepEqual(patternNamesOf('疑似从杀格'), ['疑似从杀格', '从杀格', '从格', '从煞格', '从官杀格']);
   assert.deepEqual(patternNamesOf(null), []);
 });
 
@@ -85,8 +87,12 @@ test('真实命盘能从仓库数据里匹配到条目：正官格命中《子�
   assert.ok(qianlongIds.includes('sanming.shensha.tianyi.001'));
   assert.ok(qianlongIds.includes('ziping.chengbai.001'), '羊刃格也在成败两段的适用范围里');
 
-  assert.deepEqual(matchEntries(library, ziweiContextOf({ stars: ['紫微'] })).map(({ entry }) => entry.id), ['ziwei.quanshu.zhuxing.001']);
-  assert.deepEqual(matchEntries(library, ziweiContextOf({ stars: ['天机'] })), []);
+  // 支线还在陆续录入，这里只断言「该命中的在、不该命中的不在」，不锁死条目总数。
+  const ziweiIds = matchEntries(library, ziweiContextOf({ stars: ['紫微'] })).map(({ entry }) => entry.id);
+  assert.ok(ziweiIds.includes('ziwei.quanshu.zhuxing.001'), ziweiIds.join());
+  const tianjiIds = matchEntries(library, ziweiContextOf({ stars: ['天机'] })).map(({ entry }) => entry.id);
+  assert.ok(!tianjiIds.includes('ziwei.quanshu.zhuxing.001'), '紫微星的条目不会因为天机命中');
+  assert.deepEqual(matchEntries(library, ziweiContextOf({ stars: ['不存在的星'] })), []);
 });
 
 test('匹配规则：任一条件命中、键内任一取值、复数键、只写 note 不命中、模块不符不命中、宫位别名、上下文缺键不猜', () => {
