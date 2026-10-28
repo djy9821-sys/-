@@ -19,6 +19,13 @@ const VERDICT_STYLE = {
 };
 
 const ROLE_ORDER = ['比劫', '印', '食伤', '财', '官杀'];
+
+const GodChip = ({ item, tone }) => (
+    <span className={`inline-flex items-baseline gap-1 rounded-md border px-1.5 py-0.5 ${tone === 'good' ? 'border-[#2d6b62]/35 bg-[#2d6b62]/[0.07]' : 'border-[#a33b30]/30 bg-[#a33b30]/[0.06]'}`}>
+        <b className={`font-serif text-sm ${WUXING_STYLES[item.element]?.text ?? ''}`}>{item.element}</b>
+        <span className="text-[11px] text-[#6f665d]">{item.label}</span>
+    </span>
+);
 const ROLE_CLASS = { 比劫: 'bg-[#a33b30]/70', 印: 'bg-[#2d6b62]/70', 食伤: 'bg-[#b06a1f]/70', 财: 'bg-[#9a7119]/70', 官杀: 'bg-[#315f7d]/70' };
 
 export default function BaziPatternPanel({ judge }) {
@@ -50,10 +57,22 @@ export default function BaziPatternPanel({ judge }) {
                     </div>
                 )}
                 {special && (
-                    <div className="mt-3 rounded-lg border border-[#b06a1f]/35 bg-[#b06a1f]/[0.07] px-3 py-2">
+                    <div className="mt-3 rounded-lg border border-[#b06a1f]/35 bg-[#b06a1f]/[0.07] px-3 py-2" data-testid="bazi-special-pattern">
                         <p className="text-sm font-bold text-[#7f4b12]">{special.name}</p>
                         <p className="mt-1 text-xs leading-5 text-[#5c4a2c]">{special.basis}</p>
                         <p className="mt-1 text-xs leading-5 text-[#7f4b12]">{special.note}</p>
+                        {special.favorable?.length > 0 && (
+                            <div className="mt-2 border-t border-[#b06a1f]/20 pt-2" data-testid="bazi-special-gods">
+                                <p className="text-xs font-bold text-[#5c4a2c]">若按此格论</p>
+                                <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs">
+                                    <span className="font-bold text-[#245a52]">喜</span>
+                                    {special.favorable.map((item) => <GodChip key={`good-${item.element}`} item={item} tone="good" />)}
+                                    <span className="ml-1 font-bold text-[#8f3027]">忌</span>
+                                    {special.unfavorable.map((item) => <GodChip key={`bad-${item.element}`} item={item} tone="bad" />)}
+                                </div>
+                                <p className="mt-1.5 text-[11px] leading-5 text-[#6f665d]">{special.godsBasis}。这与「五行与旺衰」一节按扶抑取的喜忌不同，真从、真化才用这一套，请人工确认。</p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
