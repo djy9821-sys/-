@@ -9,6 +9,8 @@ src/data/classics/
   liuyao/  《增删卜易》《卜筮正宗》《京氏易传》《梅花易数》
 ```
 
+**目录就是模块**：网页按 `bazi` / `ziwei` / `liuyao` 三个目录分块按需加载（看八字盘只下八字的古籍），所以文件只能放在这三个目录里，`applies` 的 `module` 也必须和所在目录一致，否则校验报错。
+
 文件名用小写拼音加短横，格式：`<书名简称>-<篇名拼音>.json`。书的 key 必须是 `src/data/classics.js` 登记表里的（`ziwei`、`sanming`、`yuanhai`、`ditian`、`ziping`、`xieji`、`jingfang`、`bushi`、`zengshan`、`meihua`）；要录登记表里没有的书，先在 PR 里说明，由主线加登记。
 
 提交前运行 `node scripts/validate-data.mjs`，CI 上也会跑同样的检查（`test/data-files.test.js`）。
@@ -57,7 +59,7 @@ src/data/classics/
 | `title` | 是 | 条目标题（星名、格局名、章节小题）；多篇文件里写「篇名·其N」 |
 | `section` | 否 | 本条所属的篇。只在多篇文件里、且 `title` 不以篇名开头时才写，必须是文件 `section` 列出的篇名之一 |
 | `original` | 是 | 原文。简体、全角标点，句读按通行本；段内换行用 `\n`；不改字、不删句、不加字 |
-| `vernacular` | status 非 draft 时必填 | 白话。逐句对应，忠实原意，不夸张、不做现代化附会、不加原文没有的判断 |
+| `vernacular` | status 非 draft 时必填 | 白话。逐句对应，忠实原意，不夸张、不做现代化附会、不加原文没有的判断。长度一般是原文的 1.5～2.5 倍，超过 3.5 倍校验直接报错（原文不足 12 字不查） |
 | `notes` | 否 | 注释：生僻词、典故、与程序口径的关系 |
 | `doubts` | 否 | 存疑之处：异文、拿不准的句子，一条一句 |
 | `applies` | 否 | 机器可读的适用条件，见下 |
