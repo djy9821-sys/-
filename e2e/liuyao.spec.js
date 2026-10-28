@@ -46,10 +46,13 @@ test('替家人问病：选替谁问与病程，用神取父母，结果页可�
   await setup.getByRole('button', { name: /时间起卦/ }).click();
   await setup.getByRole('button', { name: '按此刻时间起卦' }).click();
 
-  await expect(page.getByText('健康疾病（替父母长辈问）（新病）')).toBeVisible();
-  await expect(page.getByText(/健康疾病（替父母长辈问）取父母为用神/)).toBeVisible();
-  await page.getByRole('combobox', { name: '替谁问' }).selectOption('self');
-  await expect(page.getByText(/健康疾病以世爻为用神/)).toBeVisible();
+  // 提示词全文里也有同样的字，所以类别标签按全文匹配、断卦要点只在卡片里找
+  await expect(page.getByText('健康疾病（替父母长辈问）（新病）', { exact: true })).toBeVisible();
+  const judgeCard = page.locator('section', { has: page.getByRole('heading', { name: '断卦要点' }) });
+  await expect(judgeCard.getByText(/健康疾病（替父母长辈问）取父母为用神/)).toBeVisible();
+  await judgeCard.getByRole('combobox', { name: '替谁问' }).selectOption('self');
+  await expect(judgeCard.getByText(/健康疾病以世爻为用神/)).toBeVisible();
+  await expect(page.getByText('健康疾病（新病）', { exact: true })).toBeVisible();
 });
 
 test('报数起卦：两个数决定上下卦', async ({ page }) => {
