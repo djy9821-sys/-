@@ -9,23 +9,31 @@
 import { CONTROLS, GENERATES, relativeOf, ZHI_CLASH, ZHI_ELEMENT, ZHI_HARMONY } from './liuyao.js';
 import { LIUYAO_TOPIC_LABELS } from './liuyaoRecord.js';
 
-/** 问事类别：值、名称、说明，以及用神怎么取（relative 为 null 表示自占以世爻为用神）。 */
+/**
+ * 问事类别：值、名称、说明，以及用神怎么取。common 的在起卦页直接列出，其余收在「更多类别」里。
+ * relative 为 null 的自占以世爻为用神；aux 是要一并看的六亲；mode: 'weather' 走天时的专门断法。
+ */
 export const LIUYAO_TOPICS = Object.freeze([
-  { value: 'general', label: LIUYAO_TOPIC_LABELS.general, hint: '不便归类的事，以世爻为用神看走势', relative: null },
-  { value: 'wealth', label: LIUYAO_TOPIC_LABELS.wealth, hint: '买卖、投资、收款、财运', relative: '妻财', aux: [['兄弟', '劫财竞争']] },
-  { value: 'career', label: LIUYAO_TOPIC_LABELS.career, hint: '职位、求职、公司、上司', relative: '官鬼', aux: [['妻财', '薪酬待遇'], ['父母', '文书合同']] },
-  { value: 'love', label: LIUYAO_TOPIC_LABELS.love, hint: '恋爱、婚姻、对方心意', relative: null, byGender: { male: '妻财', female: '官鬼' } },
-  { value: 'health', label: LIUYAO_TOPIC_LABELS.health, hint: '自己的身体与病情', relative: null, aux: [['官鬼', '病症'], ['子孙', '医药']] },
-  { value: 'travel', label: LIUYAO_TOPIC_LABELS.travel, hint: '出差、旅行、搬迁', relative: null, aux: [['官鬼', '阻碍'], ['父母', '车船行李']] },
-  { value: 'study', label: LIUYAO_TOPIC_LABELS.study, hint: '考试、升学、证书', relative: '父母', aux: [['官鬼', '名次录取']] },
-  { value: 'lawsuit', label: LIUYAO_TOPIC_LABELS.lawsuit, hint: '诉讼、纠纷、口舌', relative: '官鬼', aux: [['父母', '文书证据']] },
-  { value: 'children', label: LIUYAO_TOPIC_LABELS.children, hint: '子女、怀孕、胎儿男女、产期、晚辈；问产妇平安另选「产妇平安」', relative: '子孙' },
+  { value: 'general', label: LIUYAO_TOPIC_LABELS.general, hint: '不便归类的事，以世爻为用神看走势', relative: null, common: true },
+  { value: 'wealth', label: LIUYAO_TOPIC_LABELS.wealth, hint: '买卖、投资、收款、财运', relative: '妻财', aux: [['兄弟', '劫财竞争']], common: true },
+  { value: 'career', label: LIUYAO_TOPIC_LABELS.career, hint: '职位、求职、公司、上司', relative: '官鬼', aux: [['妻财', '薪酬待遇'], ['父母', '文书合同']], common: true },
+  { value: 'love', label: LIUYAO_TOPIC_LABELS.love, hint: '恋爱、婚姻、对方心意', relative: null, byGender: { male: '妻财', female: '官鬼' }, common: true },
+  { value: 'health', label: LIUYAO_TOPIC_LABELS.health, hint: '自己的身体与病情', relative: null, aux: [['官鬼', '病症'], ['子孙', '医药']], common: true },
+  { value: 'travel', label: LIUYAO_TOPIC_LABELS.travel, hint: '出差、旅行、搬迁', relative: null, aux: [['官鬼', '阻碍'], ['父母', '车船行李']], common: true },
+  { value: 'study', label: LIUYAO_TOPIC_LABELS.study, hint: '考试、升学、证书', relative: '父母', aux: [['官鬼', '名次录取']], common: true },
+  { value: 'lawsuit', label: LIUYAO_TOPIC_LABELS.lawsuit, hint: '诉讼、纠纷、口舌', relative: '官鬼', aux: [['父母', '文书证据']], common: true },
+  { value: 'children', label: LIUYAO_TOPIC_LABELS.children, hint: '子女、怀孕、胎儿男女、产期、晚辈；问产妇平安另选「产妇平安」', relative: '子孙', common: true },
+  { value: 'home', label: LIUYAO_TOPIC_LABELS.home, hint: '买房租房、房屋、车辆', relative: '父母', aux: [['妻财', '价钱']], common: true },
+  { value: 'lost', label: LIUYAO_TOPIC_LABELS.lost, hint: '东西丢了能否找回、往哪里找：以妻财为用神，兄弟劫财，官鬼为盗', relative: '妻财', aux: [['兄弟', '劫财'], ['官鬼', '盗贼']], common: true },
+  { value: 'weather', label: LIUYAO_TOPIC_LABELS.weather, hint: '晴雨风云：父母主雨，子孙、妻财主晴，官鬼浓云雷电，兄弟风云', relative: null, mode: 'weather', common: true },
   { value: 'parents', label: LIUYAO_TOPIC_LABELS.parents, hint: '父母、长辈、师长', relative: '父母' },
   { value: 'friends', label: LIUYAO_TOPIC_LABELS.friends, hint: '兄弟姐妹、朋友、同事', relative: '兄弟' },
-  { value: 'home', label: LIUYAO_TOPIC_LABELS.home, hint: '买房租房、房屋、车辆', relative: '父母', aux: [['妻财', '价钱']] },
-  { value: 'life', label: LIUYAO_TOPIC_LABELS.life, hint: '一生大势以世爻为用神；古法主张财福、功名、婚姻、子嗣寿元各占一卦', relative: null },
   { value: 'maternity', label: LIUYAO_TOPIC_LABELS.maternity, hint: '问产妇生产是否平安，夫占、代占都取妻财；问胎儿、产期选「子女孕育」', relative: '妻财', aux: [['兄弟', '胎前产后忌兄动'], ['官鬼', '临盆忌鬼动']] },
-  { value: 'weather', label: LIUYAO_TOPIC_LABELS.weather, hint: '晴雨风云：父母主雨，子孙、妻财主晴，官鬼浓云雷电，兄弟风云', relative: null, mode: 'weather' },
+  { value: 'year', label: LIUYAO_TOPIC_LABELS.year, hint: '今年、本月整体吉凶：以世爻为主，官鬼为灾；具体的事另占', relative: null, aux: [['官鬼', '灾祸'], ['子孙', '福神']] },
+  { value: 'life', label: LIUYAO_TOPIC_LABELS.life, hint: '一生大势以世爻为用神；古法主张财福、功名、婚姻、子嗣寿元各占一卦', relative: null },
+  { value: 'refuge', label: LIUYAO_TOPIC_LABELS.refuge, hint: '避险、躲灾、养病、避是非：以世爻为主，子孙为福神，并看往哪个方向', relative: null, aux: [['子孙', '福神'], ['官鬼', '祸患']] },
+  { value: 'gravesite', label: LIUYAO_TOPIC_LABELS.gravesite, hint: '寻新坟地、点穴：世爻为穴，子孙为儿孙；已葬的选「祖坟风水」', relative: null, aux: [['子孙', '儿孙后代']] },
+  { value: 'ancestral', label: LIUYAO_TOPIC_LABELS.ancestral, hint: '已葬的祖坟好坏、有无损伤：以父母为用神，冲克父母者为所伤之由', relative: '父母', aux: [['子孙', '儿孙兴衰']] },
 ]);
 
 const TOPIC_BY_VALUE = Object.fromEntries(LIUYAO_TOPICS.map((topic) => [topic.value, topic]));
@@ -292,6 +300,210 @@ const verdictOf = (total, yongHidden) => {
   if (total <= -3) return { level: 'bad', title: '偏弱', text: `用神${yongHidden ? '伏藏又' : ''}受制，所问之事阻力较大，宜缓宜守。` };
   return { level: 'mixed', title: '平', text: '用神平平、吉凶参半，成败看后续变化与应期。' };
 };
+
+/* ---------- 各类别的专门断法 ---------- */
+
+const DIRECTION = Object.freeze({ 木: '东方', 火: '南方', 土: '四隅（辰戌丑未方）', 金: '西方', 水: '北方' });
+const generatorOf = (element) => Object.keys(GENERATES).find((key) => GENERATES[key] === element);
+const movingOf = (lines, relative) => lines.filter((line) => line.isMoving && line.relative === relative);
+const controls = (attacker, target) => CONTROLS[attacker.element] === target.element;
+
+/** 祖坟所伤之由：克（冲）父母之爻的五行、六神（《增删卜易·因何事所伤章》其二至其四）。 */
+const injuryOf = (line, clash) => {
+  if (clash) return '恐地风吹歪棺椁、水浸';
+  const { element, god } = line;
+  if (god === '螣蛇') return '恐蛇蚁为巢';
+  if (element === '火' || god === '朱雀') return '恐近处开窑作灶、火烛相伤';
+  if (god === '玄武') return element === '水' ? '恐穴中黑水相侵' : '恐有偷葬';
+  if (element === '土') return god === '勾陈' ? '恐挖掘动土、筑墙盖屋' : '恐盖造墙垣、动土相伤';
+  if (element === '金') return god === '白虎' ? '恐地震山摇之惊' : '恐石块山岗相伤';
+  if (element === '木') return god === '青龙' ? '恐穴下竹木根伤' : god === '白虎' ? '恐砍伐树木' : '恐树木相伤';
+  return '恐低洼泉涌、水浸';
+};
+
+/**
+ * 各类别在用神旺衰、动变、世应之外的专门断法，返回 { score, points, notices }。
+ * 依据《增删卜易》各章原文；失物用通行的《黄金策》「失脱」之法与千金赋「失脱遇用神化墓」。
+ */
+const TOPIC_RULES = Object.freeze({
+  // 千金赋：占流年，以官为鬼，不宜官鬼持世；泽水困占例：世空而忌神动，出空遭伤
+  year: ({ lines, shiLine }) => {
+    let score = 0;
+    const notes = [];
+    if (shiLine.relative === '官鬼') {
+      score -= 2;
+      notes.push('官鬼持世，流年多灾忧（占流年以官为鬼）');
+    }
+    movingOf(lines, '官鬼').filter((line) => controls(line, shiLine)).forEach((line) => {
+      score -= 2;
+      notes.push(`${lineLabel(line)}发动克世，防灾病、官非`);
+    });
+    if (shiLine.relative === '子孙' || movingOf(lines, '子孙').length) {
+      score += 1;
+      notes.push('子孙为福神，持世或发动，一年少灾');
+    }
+    if (shiLine.marks.includes('旬空') && lines.some((line) => line.isMoving && controls(line, shiLine))) {
+      score -= 1;
+      notes.push('世爻旬空而克世之爻发动，出空之日防伤');
+    }
+    return {
+      score,
+      points: notes.length ? [`流年：${notes.join('；')}`] : [],
+      notices: ['占流年、月令以世爻为主，官鬼为灾祸；功名、财运等具体的事要另占，不能拿流年卦兼断（《增删卜易·千金赋》）。'],
+    };
+  },
+  // 趋避章：避患于生世之方，趋吉于福神之地；子孙发动，不拘克世、生世、持世，俱以为吉
+  refuge: ({ lines, shiLine, hexagram }) => {
+    let score = 0;
+    const notes = [];
+    if (movingOf(lines, '子孙').length) {
+      score += 3;
+      notes.push('子孙发动，不拘克世、生世、持世，俱以为吉');
+    }
+    movingOf(lines, '官鬼').filter((line) => controls(line, shiLine)).forEach((line) => {
+      score -= 2;
+      notes.push(`${lineLabel(line)}发动克世，祸患近身`);
+    });
+    if (shiLine.relative === '官鬼') {
+      score -= 1;
+      notes.push('官鬼持世，身在患中');
+    }
+    const helper = generatorOf(shiLine.element);
+    const fortune = GENERATES[hexagram.palaceElement];
+    notes.push(`避患于生世之方：世爻属${shiLine.element}，${helper}来生，宜往${DIRECTION[helper]}；趋吉于福神之地：子孙属${fortune}，在${DIRECTION[fortune]}`);
+    return {
+      score,
+      points: [`趋避：${notes.join('；')}`],
+      notices: ['避兵、避盗、避瘟、养病、避是非，都以世爻为主，宜避于生世之方及子孙之方（《增删卜易·趋避章》）。'],
+    };
+  },
+  // 寻地章：世为穴，儿孙乃祭祀之裔；三合六合聚气藏风，世冲六冲飞砂走石
+  gravesite: ({ lines, shiLine, yingLine, hexagram, changed, time }) => {
+    let score = 0;
+    const notes = [];
+    if (hexagram.relation === '六合') {
+      score += 1;
+      notes.push('卦逢六合，聚气藏风');
+    } else if (hexagram.relation === '六冲') {
+      score -= 1;
+      notes.push('卦逢六冲，飞砂走石，必无气脉');
+    }
+    if (hexagram.relation === '六冲' && changed?.relation === '六合') {
+      score += 1;
+      notes.push('六冲变合，地已去而复来，再得世与子孙旺相，急宜用之');
+    } else if (hexagram.relation === '六合' && changed?.relation === '六冲') {
+      score -= 1;
+      notes.push('六合变冲，形已成而复失，不宜用之');
+    }
+    if (ZHI_CLASH[shiLine.zhi] === yingLine.zhi) notes.push('世应相冲，亦非吉地');
+    if (shiLine.isMoving && shiLine.changed) {
+      if (PROGRESS[shiLine.zhi] === shiLine.changed.zhi) notes.push('世化进神，千秋绵远');
+      else if (PROGRESS[shiLine.changed.zhi] === shiLine.zhi) notes.push('世化退神，终须迁改');
+    }
+    const sons = lines.filter((line) => line.relative === '子孙');
+    if (shiLine.relative === '子孙') {
+      score += 1;
+      notes.push('子孙持世，儿孙祭祀有托');
+    }
+    if (!sons.length) {
+      score -= 1;
+      notes.push('子孙不上卦，儿孙祭祀无托');
+    } else if (sons.every((line) => assessStrength(line, time).level === '休囚')) {
+      score -= 1;
+      notes.push('子孙休囚，后代不旺');
+    }
+    sons.filter((line) => line.isMoving && line.changed).forEach((line) => {
+      if (PROGRESS[line.zhi] === line.changed.zhi) {
+        score += 1;
+        notes.push('福德化进，百代蒸尝');
+      } else if (PROGRESS[line.changed.zhi] === line.zhi) {
+        score -= 1;
+        notes.push('子孙化退，代代不如');
+      } else if (line.changed.relative === '子孙') {
+        score += 1;
+        notes.push('子化子，子女成行');
+      }
+    });
+    movingOf(lines, '父母').filter((line) => line.changed?.relative === '父母').forEach(() => {
+      score -= 1;
+      notes.push('父化父，儿孙夭折（卦中不宜父动）');
+    });
+    if (shiLine.god === '白虎' && shiLine.relative === '官鬼') notes.push('世临白虎鬼爻，地有伏尸');
+    return {
+      score,
+      points: notes.length ? [`寻地：${notes.join('；')}`] : [],
+      notices: ['寻地、点穴以世爻为穴（野鹤：「所验者，世为穴也」），子孙为儿孙；已葬的坟请改选「祖坟风水」，以父母为用神（《增删卜易·寻地章》）。'],
+    };
+  },
+  // 祖茔应家章：已葬之地以父母为用神；因何事所伤章：冲克父母之爻为忌神
+  ancestral: ({ lines, yong, hexagram, changed, time }) => {
+    let score = 0;
+    const notes = [];
+    if (hexagram.relation === '六冲' && changed?.relation === '六冲') {
+      score -= 1;
+      notes.push('正卦六冲，变卦六冲，全无脉气');
+    } else if (hexagram.relation === '六冲' && changed?.relation === '六合') {
+      score += 1;
+      notes.push('冲中变合，运将来，后代有兴隆之象');
+    } else if (hexagram.relation === '六冲') {
+      score -= 1;
+      notes.push('卦遇六冲，全无地脉');
+    } else if (changed?.relation === '六冲') {
+      score -= 1;
+      notes.push('卦变六冲，龙已去，子孙有凌替之危');
+    }
+    if (lines.filter((line) => line.changed && line.changed.zhi === line.zhi).length >= 2) notes.push('爻遇伏吟，欲迁不遂');
+    if (lines.filter((line) => line.changed && ZHI_CLASH[line.zhi] === line.changed.zhi).length >= 2) notes.push('反吟卦现，不迁亦迁');
+    lines.filter((line) => line.isMoving && line.changed).forEach((line) => {
+      if (line.relative === '子孙' && line.changed.relative === '官鬼') {
+        score -= 1;
+        notes.push('子孙动而化鬼，不利于子孙');
+      } else if (line.relative === '父母' && line.changed.relative === '子孙') {
+        score -= 1;
+        notes.push('父动而化子孙，不利于子孙');
+      }
+    });
+    const causes = yong.hidden ? [] : lines
+      .filter((line) => line.isMoving && line.position !== yong.position && (controls(line, yong) || ZHI_CLASH[line.zhi] === yong.zhi))
+      .map((line) => `${lineLabel(line)}${controls(line, yong) ? '克' : '冲'}父母，${injuryOf(line, !controls(line, yong))}`);
+    if (causes.length) notes.push(`所伤之由：${causes.join('；')}`);
+    else if (!lines.some((line) => line.isMoving) && assessStrength(yong, time).level !== '休囚') notes.push('六爻安静，父母有气，久后自安，不必修补');
+    return {
+      score,
+      points: notes.length ? [`祖坟：${notes.join('；')}`] : [],
+      notices: ['已葬之坟以父母为用神：父母旺相、得生扶，亡者安而生者乐；冲克父母之爻为忌神，看它的五行、六神断所伤之由（《增删卜易·祖茔应家章》《因何事所伤章》）。为自己问的自己占，为子孙问的叫子孙来占。'],
+    };
+  },
+  // 失物：以妻财为用神；千金赋「失脱遇用神化墓，若藏不见」
+  lost: ({ lines, yong, time }) => {
+    let score = 0;
+    const notes = [];
+    if (yong.hidden) {
+      notes.push(`财爻伏藏，物被遮掩，待冲开飞神${yong.flyer.ganZhi}之${ZHI_CLASH[yong.flyer.zhi]}日再寻`);
+    } else {
+      const tomb = TOMB[yong.element];
+      if (yong.isMoving && yong.changed?.zhi === tomb) {
+        score -= 1;
+        notes.push('财爻化墓，若藏不见');
+      } else if (time.dayZhi === tomb) {
+        score -= 1;
+        notes.push('财爻入日墓，物被收藏，一时难见');
+      }
+      notes.push(yong.position <= 3 ? '财在内卦，多在家中、近处' : '财在外卦，多在外面、远处');
+      notes.push(`财爻属${yong.element}，可往${DIRECTION[yong.element]}找`);
+    }
+    if (movingOf(lines, '兄弟').length) {
+      score -= 1;
+      notes.push('兄弟发动，财物被劫，难以寻回');
+    }
+    if (movingOf(lines, '官鬼').length) notes.push('官鬼发动，恐被人窃取');
+    return {
+      score,
+      points: [`失物：${notes.join('；')}`],
+      notices: ['失物以妻财为用神：财爻旺相、持世或生合世爻易寻；化墓入墓、空破、被兄弟劫克难寻（《黄金策》失脱，《增删卜易·千金赋》）。'],
+    };
+  },
+});
 
 /* ---------- 天时（晴雨） ---------- */
 
@@ -824,6 +1036,14 @@ export const judgeLiuYao = (reading, options = {}) => {
       }
     });
     if (notes.length) points.push(`产妇安否（问产妇安否章）：${notes.join('；')}`);
+  }
+
+  // 失物、流年、趋避、寻地、祖坟各有专门断法
+  const special = TOPIC_RULES[meta.value]?.({ lines, hidden, time, shiLine, yingLine, yong, hexagram, changed });
+  if (special) {
+    total += special.score;
+    points.push(...special.points);
+    notices.push(...special.notices);
   }
 
   // 五、卦象
