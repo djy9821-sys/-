@@ -16,9 +16,10 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   await expect(result).toContainText('测试 · 乾造');
   await expect(result).toContainText('乙木');
   await expect(result).toContainText('1990.5.20');
-  // 旺衰按得令、得地、得势打分：此造不得令、地支无根，只有时干壬水（印）帮身，0.5 分极弱；食伤（火）最重，取印。
+  // 旺衰按得令、得地、得势打分：此造不得令、地支无根，只有时干壬水（印）帮身，0.5 分极弱；
+  // 火（食伤）与金（官杀）地支气数相当，庚辛并透的金为病，取印化杀。
   await expect(result.getByTestId('bazi-strength-score')).toContainText('0.5 分');
-  await expect(result.getByTestId('bazi-strength-basis')).toContainText('身弱食伤重，取印制伤生身');
+  await expect(result.getByTestId('bazi-strength-basis')).toContainText('身弱官杀重，取印化杀生身');
   // 格局与择日两节都在。
   await expect(result.getByRole('heading', { name: /格局与命局组合/ })).toBeVisible();
   await expect(result.getByRole('heading', { name: /择日参考/ })).toBeVisible();
@@ -61,8 +62,8 @@ test('疑似从格：格局一节给出按此格论的喜忌，旺衰一节提�
   await expect(special).toContainText('疑似从儿格');
   const gods = special.getByTestId('bazi-special-gods');
   await expect(gods).toContainText('若按此格论');
-  await expect(gods).toContainText('从儿以食伤为用');
-  await expect(result.getByTestId('bazi-strength-special')).toContainText('格局一节疑似从儿格：若成格，喜木（食伤）、火（财）；忌金（印）、土（官杀）');
+  await expect(gods).toContainText('从儿以财为用');
+  await expect(result.getByTestId('bazi-strength-special')).toContainText('格局一节疑似从儿格：若成格，喜火（财）、木（食伤）；忌金（印）、土（官杀）');
 });
 
 test('手动录入排盘、存档，再从档案打开', async ({ page }) => {

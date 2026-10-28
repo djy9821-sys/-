@@ -69,6 +69,17 @@ const strengthClassOf = (band) => (band === '偏强' || band === '极强' ? '旺
 /** 从格、专旺格在旺衰上算哪一边（命例按「从强为旺、从弱为弱」填）。 */
 const STRONG_SPECIALS = /从强|专旺|曲直|炎上|稼穑|从革|润下/;
 
+/**
+ * 程序认出的特殊格局与命例写的格局是否同一类：同名算；命例写「化气格」，程序的「某某化某格」都算；
+ * 从强与专旺（曲直、炎上……）任注常互称（同一造「癸卯 乙卯 甲寅 乙亥」衰旺篇说旺极、从象篇说从强），算同一类。
+ */
+export const samePatternFamily = (special, expected) => {
+  if (!special || !expected) return false;
+  if (special === expected || special.includes(expected)) return true;
+  if (expected === '化气格') return /化.格/.test(special);
+  return STRONG_SPECIALS.test(expected) && STRONG_SPECIALS.test(special);
+};
+
 /** 十神或十神类别 → 相对日主的五行。 */
 export const useGodElement = (god, dayWuxing) => {
   if (Object.values(GENERATES).includes(god)) return god;
@@ -103,11 +114,12 @@ export const evaluateBaziCase = (entry) => {
   const programClass = special ? (STRONG_SPECIALS.test(special) ? '旺' : '弱') : strengthClassOf(strength.band);
   const expected = entry.expected ?? {};
   const checks = {};
-  if (expected.strength) {
+  // 化气格的旺衰说的是化神，不比日主旺衰。
+  if (expected.strength && expected.pattern !== '化气格') {
     checks.strength = expected.strength === programClass ? 'same'
       : (expected.strength === '中和' || programClass === '中和') ? 'near' : 'reversed';
   }
-  if (expected.pattern) checks.pattern = special && (special === expected.pattern || special.includes(expected.pattern)) ? 'same' : 'miss';
+  if (expected.pattern) checks.pattern = samePatternFamily(special, expected.pattern) ? 'same' : 'miss';
   else if (special) checks.pattern = 'extra';
   const dayWuxing = strength.dayWuxing;
   const favorable = strength.favorable.map((item) => item.element);

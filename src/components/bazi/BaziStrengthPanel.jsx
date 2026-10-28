@@ -95,7 +95,7 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster, 
                     <p className="mt-1 text-[11px] leading-5 text-[#9b9185]">刻度：2 分及以下偏弱，2.5 分及以上偏强，其间中和；0.5 分及以下极弱，4 分及以上极强</p>
                 </div>
                 <ul className="mt-3 space-y-1.5">
-                    <Check ok={score.ling > 0} label="得令" detail={strength.monthMain ? `月令本气 ${strength.monthMain.gan}（${strength.monthMain.role}）${score.ling > 0 ? `帮扶日主，${points(score.ling)}` : '不帮日主，0 分'}` : '—'} />
+                    <Check ok={score.ling > 0} label="得令" detail={strength.monthMain ? `月令本气 ${strength.monthMain.gan}（${strength.monthMain.role}）${score.lingYuqi ? `不帮日主，但${score.lingYuqi.zhi}中藏${score.lingYuqi.gan}（比劫余气），${points(score.ling)}` : score.ling > 0 ? `帮扶日主，${points(score.ling)}` : '不帮日主，0 分'}` : '—'} />
                     <Check ok={score.di > 0} label="得地" detail={rootGroups.length ? `${rootGroups.map((group) => `${group.label}（${group.roles.join('、')}）`).join('、')}，共 ${points(score.di)}` : '年、日、时支没有比劫或印的根气（月支算在得令里）'} />
                     <Check ok={score.shi > 0} label="得势" detail={score.stems.length ? `${score.stems.map((item) => `${stemLabel(item.name)}${item.gan}（${item.role}）`).join('、')}，共 ${points(score.shi)}` : '年、月、时干没有比劫或印相帮'} />
                     {score.hourEstimate > 0 && <Check mark="≈" label="时辰不详" detail={`时柱按平均 ${points(score.hourEstimate)}估`} />}
