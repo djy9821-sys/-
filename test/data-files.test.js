@@ -80,6 +80,30 @@ test('六爻占例用 cast：卦名、动爻、干支都校验', () => {
   assert.deepEqual(validateCasesDoc(entry({ hexagram: '天水讼', changed: '泽雷随', movingLines: [6, 1, 2] })), []);
 });
 
+test('八字命例：四柱须是六十甲子，月干合年上起月、时干合日上起时；原书确实如此的写「自检」放行', () => {
+  const doc = (pillars, extra = {}) => ({ module: 'bazi', entries: [{ id: 'bazi.ditian.001', name: '某造', source: { classic: 'ditian', section: '通神论·天干' }, birth: { calendar: 'unknown', gender: 'male' }, pillars, original: '原文', status: 'draft', ...extra }] });
+  assert.deepEqual(validateCasesDoc(doc(['庚子', '庚辰', '甲寅', '戊辰'])), []);
+  assert.deepEqual(validateCasesDoc(doc(['辛卯', '丁酉', '庚午', '丙子'])), []);
+  assert.deepEqual(validateCasesDoc(doc(['戊辰', '甲寅', '戊子', '不详'])), []);
+  const messages = validateCasesDoc(doc(['甲子', '甲寅', '甲寅', '丙子'])).join('\n');
+  assert.match(messages, /甲年寅月应是丙寅（年上起月），写的是甲寅/);
+  assert.match(messages, /甲日子时应是甲子（日上起时），写的是丙子/);
+  assert.match(validateCasesDoc(doc(['庚子', '辛辰', '甲寅', '戊辰'])).join('\n'), /月柱「辛辰」不是六十甲子/);
+  assert.deepEqual(validateCasesDoc(doc(['甲子', '甲寅', '甲寅', '甲子'], { notes: '原书月柱印作甲寅，疑为丙寅之误，照录（自检已核原书扫描页）。' })), []);
+});
+
+test('八字命例的 expected：原书明说的旺衰、格局、用神与结局', () => {
+  const doc = (expected) => ({ module: 'bazi', entries: [{ id: 'bazi.ditian.002', name: '某造', source: { classic: 'ditian', section: '通神论·衰旺' }, birth: { calendar: 'unknown', gender: 'male' }, pillars: ['庚子', '庚辰', '甲寅', '戊辰'], expected, original: '原文', status: 'draft' }] });
+  assert.deepEqual(validateCasesDoc(doc({ strength: '弱', useGod: ['水', '印'], outcome: '科甲出身' })), []);
+  assert.deepEqual(validateCasesDoc(doc({ strength: '旺', pattern: '从强格', useGod: '比劫' })), []);
+  const messages = validateCasesDoc(doc({ strength: '身旺', pattern: '飞天禄马', useGod: ['火', '喜神'], outcome: '', luck: 1 })).join('\n');
+  assert.match(messages, /expected\.strength 须是 旺\/弱\/中和/);
+  assert.match(messages, /expected\.pattern「飞天禄马」不是程序认得的格局名/);
+  assert.match(messages, /expected\.useGod 须是五行/);
+  assert.match(messages, /expected\.outcome 须是非空字符串/);
+  assert.match(messages, /expected 未知字段 luck/);
+});
+
 test('六爻占例的 expected：原书用神、断语归类、应期与应验', () => {
   const doc = (expected, source = {}) => ({ module: 'liuyao', entries: [{ id: 'liuyao.zengshan.015', name: '占例', source: { classic: 'zengshan', section: '天时章', ...source }, cast: { date: '酉月乙巳日', dayGanZhi: '乙巳', hexagram: '地风升', changed: '雷风恒', movingLines: [4], topic: '天时' }, expected, original: '原文', status: 'translated', vernacular: '白话' }] });
   assert.deepEqual(validateCasesDoc(doc({ yongShen: '子孙', verdict: '晴', timing: '午时', outcome: '日午时之后，满天红日无云' }, { entry: 'zengshan.zhanfa.015' })), []);
