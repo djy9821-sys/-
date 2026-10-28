@@ -33,8 +33,27 @@ export const CONDITION_LABELS = Object.freeze({
   hexagram: '卦', line: '爻', sixRelative: '六亲', sixGod: '六神', topic: '问事', movingLines: '动爻', gender: '性别',
 });
 
-const STATUS_WEIGHT = Object.freeze({ reviewed: 3, translated: 2, draft: 1 });
+/** 同等相关时的次序：已审 > 待审 > 仅原文（只作并列时的微调）。 */
+const STATUS_BONUS = Object.freeze({ reviewed: 0.3, translated: 0.2, draft: 0.1 });
 export const STATUS_LABELS = Object.freeze({ reviewed: '已审', translated: '待审', draft: '仅原文' });
+
+/**
+ * 各类条件的分量：越能把这张盘和别的盘区分开的键越重。
+ * 格局、星曜、卦名最具体；人人都有的「命宫」、多数盘都有的十神、对半分的性别就轻。
+ */
+export const KEY_WEIGHT = Object.freeze({
+  pattern: 10, star: 10, hexagram: 10,
+  dayGan: 8, monthZhi: 8, topic: 8,
+  mutagen: 7, shensha: 7, sixRelative: 7,
+  season: 6, palace: 6, branches: 6, line: 6, relation: 6,
+  strength: 5, sixGod: 5,
+  brightness: 4, tenGod: 4,
+  gender: 3, movingLines: 3,
+  limit: 2,
+});
+
+/** 一个键列了几种取值：只写一颗星的条目比一口气列十颗星的更专门。 */
+const breadthFactor = (count) => (count <= 1 ? 1 : count <= 3 ? 0.8 : count <= 6 ? 0.6 : 0.4);
 
 const toArray = (value) => (value === undefined || value === null ? [] : Array.isArray(value) ? value : [value]);
 const unique = (list) => [...new Set(list.filter((item) => item !== undefined && item !== null && item !== ''))];
@@ -108,8 +127,21 @@ export const conditionMatches = (cond, ctx) => {
 
 const reasonOf = (matched) => matched.map(({ key, value }) => `${CONDITION_LABELS[key] ?? key}·${value}`).join('，');
 
+/** 一个命中条件的分量：命中的每个键按 KEY_WEIGHT 计，该键列的取值越多打得越轻。 */
+const conditionWeight = (cond, matched) => matched.reduce((sum, { key }) => {
+  const condKey = Object.keys(cond).find((name) => (SINGULAR[name] ?? name) === key);
+  return sum + (KEY_WEIGHT[key] ?? 5) * breadthFactor(toArray(cond[condKey]).length);
+}, 0);
+
+/** 能编成机器条件的条件数（只写 note 的不算）。 */
+const machineConditionCount = (applies) => applies
+  .filter((cond) => cond && Object.keys(cond).some((key) => key !== 'module' && key !== 'note')).length;
+
 /**
- * 按上下文找出相关条目，按相关度排序：条件越具体（命中的键越多）越靠前，其次已审 > 待审 > 仅原文。
+ * 按上下文找出相关条目，按相关度排序：
+ * - 命中的键越多、越能区分命盘（格局、星曜、卦名重，命宫、十神、性别轻）、列的取值越少，越靠前；
+ * - 一条原文挂了很多并列条件的（如「何谓成」对十几种格局都适用），算通论，往后放一点；
+ * - 再相同时已审 > 待审 > 仅原文，最后按 id。
  * @param {object} library buildLibrary 的结果
  * @param {object} ctx 上下文
  * @param {{ limit?: number, status?: string[] }} [options] 条数上限；只看某些状态
@@ -123,14 +155,17 @@ export const matchEntries = (library, ctx, options = {}) => {
     let best = null;
     entry.applies.forEach((cond) => {
       const matched = conditionMatches(cond, ctx);
-      if (matched && (!best || matched.length > best.length)) best = matched;
+      if (!matched) return;
+      const weight = conditionWeight(cond, matched);
+      if (!best || weight > best.weight) best = { matched, weight };
     });
     if (!best) return;
+    const generality = Math.min(3, (machineConditionCount(entry.applies) - 1) * 0.5);
     hits.push({
       entry,
-      matched: best,
-      reason: reasonOf(best),
-      score: best.length * 10 + (STATUS_WEIGHT[entry.status] ?? 0),
+      matched: best.matched,
+      reason: reasonOf(best.matched),
+      score: Math.round((best.weight - generality + (STATUS_BONUS[entry.status] ?? 0)) * 100) / 100,
     });
   });
   hits.sort((a, b) => b.score - a.score || a.entry.id.localeCompare(b.entry.id));
