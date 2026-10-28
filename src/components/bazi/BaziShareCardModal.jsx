@@ -4,6 +4,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Download, Share2, X } from 'lucide-react';
+import { isNativeShell } from '../../utils/nativeShell';
 
 const toBlob = (canvas) => new Promise((resolve, reject) => {
     try {
@@ -47,7 +48,7 @@ export default function BaziShareCardModal({ card, personName = '', onClose, onT
         document.body.appendChild(anchor);
         anchor.click();
         anchor.remove();
-        setNotice('已开始下载，图片在浏览器的下载列表里。');
+        setNotice(isNativeShell() ? '已打开系统分享面板：可存到相册、文件，或直接发给别人。' : '已开始下载，图片在浏览器的下载列表里。');
         onTrack('download');
     };
 
@@ -74,7 +75,7 @@ export default function BaziShareCardModal({ card, personName = '', onClose, onT
                 <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
                     <div>
                         <p id="bazi-share-card-title" className="font-serif text-base font-bold tracking-wider text-[#fbf7ed]">命盘分享图</p>
-                        <p className="text-[11px] text-[#fbf7ed]/55">手机上长按图片即可保存或发送</p>
+                        <p className="text-[11px] text-[#fbf7ed]/55">{isNativeShell() ? '点下方按钮保存或发送' : '手机上长按图片即可保存或发送'}</p>
                     </div>
                     <button ref={closeRef} type="button" onClick={onClose} className="inline-flex size-10 items-center justify-center rounded-full text-[#fbf7ed]/80 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8]" aria-label="关闭分享图">
                         <X className="size-5" aria-hidden="true" />

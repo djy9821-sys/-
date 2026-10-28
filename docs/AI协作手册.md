@@ -55,6 +55,7 @@ npm test                       # 单元测试（含金样回归与数据文件�
 npm run build                  # 构建
 node scripts/validate-data.mjs # 只校验古籍/词典/命例数据文件
 node scripts/applies-coverage.mjs # 拿随机盘试古籍 applies 条件能不能命中（约半分钟）
+node scripts/check-zhanli.mjs     # 六爻占例：applies 的卦、动爻、地支六亲与原文对不对得上
 ```
 
 ## 3. 分工：主线与支线
@@ -71,7 +72,7 @@ node scripts/applies-coverage.mjs # 拿随机盘试古籍 applies 条件能不�
 2. **开分支**：从集成基准分支开 `side/<卡号>-<slug>`，例如 `side/01-ziwei-quanshu`。
    当前集成基准分支：**`claude/round8-collab`**（它并入 `dev` 之后以 `dev` 为准；以本行为准，主线会更新）。
 3. **做**：只新增或修改任务卡列出的文件。每做一小批就跑一次 `node scripts/validate-data.mjs`。
-4. **自检**：提交前 `npm run lint && npm test && npm run build` 必须全过。古籍条目再跑 `node scripts/applies-coverage.mjs`：「重试仍未命中」必须是 0（多半是条件组合写错，如紫微在卯写「庙」、天府写「化忌」、甲日子月写正官格，对照原文改条件或改成 note）；「程序暂不支持」的（紫微大限 / 流年条件、天时等程序还没有的问事）可以保留，在 PR 里列出。
+4. **自检**：提交前 `npm run lint && npm test && npm run build` 必须全过。古籍条目再跑 `node scripts/applies-coverage.mjs`：「重试仍未命中」必须是 0（多半是条件组合写错，如紫微在卯写「庙」、天府写「化忌」、甲日子月写正官格，对照原文改条件或改成 note）；「程序暂不支持」的（紫微大限 / 流年条件、天时等程序还没有的问事）可以保留，在 PR 里列出。六爻占例再跑 `node scripts/check-zhanli.mjs`：报错（✗）必须是 0——原文「得某之某」定了本卦与动爻，「申金子动」一类说法定了地支所临六亲，applies 要与之相符；原书确有图文不合、要照图录入的，写进 `doubts` 并在那句里写上「自检」二字，脚本就只提示（·）不报错。
 5. **提 PR**：目标分支 = 集成基准分支。标题格式 `side-01：《紫微斗数全书》诸星问答论原文与白话（第 1 批）`。描述按 `.github/pull_request_template.md` 填：做了什么、来源、怎么验证、待确认问题。
 6. **CI**：GitHub Actions 自动跑 lint / 单测 / 构建 / e2e。红了自己修，不要改测试或配置来让它变绿。
 7. **审核**：主线审。格式由脚本保证，内容抽查一成逐句对照；错译超过两条整批退回。审核意见会写在 PR 评论里，改完再推同一分支。
@@ -112,7 +113,7 @@ node scripts/applies-coverage.mjs # 拿随机盘试古籍 applies 条件能不�
 
 一张卡算完成，要同时满足：
 
-1. `node scripts/validate-data.mjs` 通过，`node scripts/applies-coverage.mjs` 没有「重试仍未命中」的条件，CI 全绿。
+1. `node scripts/validate-data.mjs` 通过，`node scripts/applies-coverage.mjs` 没有「重试仍未命中」的条件，六爻占例 `node scripts/check-zhanli.mjs` 没有报错，CI 全绿。
 2. 条目数达到任务卡要求；每条都有 `original`，status 为 `translated` 的都有 `vernacular`。
 3. `edition` 写清来源；抽查原文与来源一致（不漏句、不错字）。
 4. 抽查白话逐句对照无错译；有疑问的都在 `doubts` 里。

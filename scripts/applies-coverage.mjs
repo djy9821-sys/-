@@ -6,7 +6,7 @@
  * 1. 随机排一批八字盘、紫微盘（每盘十二宫）、六爻卦（十二类问事轮流），用网页同一套上下文
  *    （baziContextOf / ziweiPalaceContextOf / liuyaoReadingContextOf）逐条试 applies 里的每个条件；
  * 2. 一次没命中的条件再定向造盘重试：八字按条件的日干、月令挑日子排盘；六爻按条件的卦名、动爻、问事直接装卦。
- * 最后分三类列出：程序暂不支持的（紫微大限 / 流年条件、天时等程序还没有的问事）、定向重试才命中的（罕见，不用管）、
+ * 最后分三类列出：程序暂不支持的（紫微流月 / 流日条件、鬼神等程序还没有的问事）、定向重试才命中的（罕见，不用管）、
  * 重试仍没命中的——多半是组合写错了（如紫微在卯写「庙」、天府写「化忌」、甲日子月写正官格），逐条看原文改条件。
  *
  * 只是检查工具，不进 CI；随机数固定种子，结果可复现。
@@ -121,6 +121,9 @@ function* ziweiContexts(count) {
     const genderLabel = gender === 'male' ? '男' : '女';
     for (const palace of horoscope.palaces) {
       yield ziweiPalaceContextOf(palace, { gender: genderLabel, patterns: palace.name === '命宫' ? patterns : [] });
+      // 古籍弹层还能切到「当前大限 / 今年流年」：任何一宫都可能是那一层的命宫
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '大限' });
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '流年' });
     }
   }
 }
@@ -131,9 +134,11 @@ const BITS_OF_HEXAGRAM = Object.freeze(Object.fromEntries(
   // HEXAGRAM_MAP 的键自上而下，爻值数组自下而上。
   Object.entries(HEXAGRAM_MAP).map(([key, hexagram]) => [hexagram.name, [...key].reverse().map(Number)]),
 ));
-const TOPIC_KEY_OF_NAME = Object.freeze(Object.fromEntries(
-  Object.entries(LIUYAO_TOPIC_NAMES).flatMap(([key, names]) => names.map((name) => [name, key])).reverse(),
-));
+/** 古籍叫法 → 程序类别（一个叫法可能归几个类别，如「产育」既算子女孕育也算产妇平安）。 */
+const TOPIC_KEYS_OF_NAME = Object.freeze(Object.entries(LIUYAO_TOPIC_NAMES).reduce((acc, [key, names]) => {
+  names.forEach((name) => { (acc[name] ??= []).push(key); });
+  return acc;
+}, {}));
 const liuyaoContextOfValues = (values, topic) => {
   const date = new Date(pickInt(2000, 2030), pickInt(0, 11), pickInt(1, 28), pickInt(0, 23), 30);
   const reading = buildLiuYaoReading(values, date, { topic, gender: random() < 0.5 ? 'male' : 'female' });
@@ -157,7 +162,7 @@ const targetedLiuyaoContext = (cond) => {
     moving = positions.slice(0, count);
   }
   const values = bits.map((bit, i) => (moving.includes(i + 1) ? (bit ? 9 : 6) : (bit ? 7 : 8)));
-  const topicKey = TOPIC_KEY_OF_NAME[pickOne(toArray(cond.topic))] ?? pickOne(LIUYAO_TOPICS).value;
+  const topicKey = pickOne(TOPIC_KEYS_OF_NAME[pickOne(toArray(cond.topic))] ?? LIUYAO_TOPICS.map((topic) => topic.value));
   return liuyaoContextOfValues(values, topicKey);
 };
 
@@ -169,7 +174,7 @@ const MODULES = {
 };
 /** 程序暂不支持、注定匹配不上的条件：说明原因。 */
 const unsupportedReason = (module, cond) => {
-  if (module === 'ziwei' && cond.limit && cond.limit !== '本命') return `程序的古籍弹层只按本命盘匹配，还没有「${cond.limit}」的上下文`;
+  if (module === 'ziwei' && cond.limit && !['本命', '大限', '流年'].includes(cond.limit)) return `程序的古籍弹层只有本命盘、当前大限、今年流年三层，还没有「${cond.limit}」的上下文`;
   if (module === 'liuyao') {
     const pending = toArray(cond.topic).filter((name) => LIUYAO_TOPIC_PENDING.includes(name));
     if (pending.length && pending.length === toArray(cond.topic).length) return `问事类别「${pending.join('、')}」程序还没有`;
