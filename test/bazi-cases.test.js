@@ -58,7 +58,8 @@ test('八字命例：十神或类别换成五行；排盘四柱与命例一致�
 // 古籍命例（src/data/cases/bazi.json）里写了旺衰、用神的，拿来卡住旺衰与喜用算法的一致率。
 // 下限按《滴天髓阐微》任铁樵命造定，留了余量。第五批（六亲论从象、化象、顺局诸篇）并入后：
 // 旺衰 87 造一致 70、相反 9（相反的多是「水多木漂」之类，书说弱、程序按印多算旺，取用一样），
-// 喜用 103 造一致 63、相反 15。
+// 喜用 103 造一致 65、相反 13；书上点名从、化、专旺的 30 造，程序认出同类 23 造
+// （认不出的是假从、顺局「从儿不论身强弱」与化神失令的假化，任注各有特别的理由）。
 // 新命例并进来跌破下限时，先用 node scripts/bazi-cases.mjs 看是哪些造、为什么，再决定改算法还是改下限。
 const caseEntries = loadDataFiles().cases
   .filter(({ doc }) => doc?.module === 'bazi')
@@ -66,7 +67,7 @@ const caseEntries = loadDataFiles().cases
   .filter((entry) => entry?.expected && Array.isArray(entry.pillars) && !/自检/.test(entry.notes ?? ''));
 const strengthCaseCount = caseEntries.filter((entry) => entry.expected.strength).length;
 
-test('古籍命例校准：旺衰与书上大体一致、极少相反；喜用之首与书上用神一致的四成以上',
+test('古籍命例校准：旺衰与书上大体一致、极少相反；喜用之首与书上用神一致的四成以上；书上点名的特殊格局认出六成以上',
   { skip: strengthCaseCount < 40 ? `写了旺衰的命例只有 ${strengthCaseCount} 条，等《滴天髓阐微》命例并入后再跑` : false },
   () => {
     const results = caseEntries.map(evaluateBaziCase);
@@ -78,9 +79,12 @@ test('古籍命例校准：旺衰与书上大体一致、极少相反；喜用�
     const total = (counts) => Object.values(counts).reduce((sum, value) => sum + value, 0);
     const strength = tally('strength');
     const useGod = tally('useGod');
-    const summary = `旺衰 ${JSON.stringify(strength)}，喜用 ${JSON.stringify(useGod)}`;
+    const pattern = tally('pattern');
+    const summary = `旺衰 ${JSON.stringify(strength)}，喜用 ${JSON.stringify(useGod)}，格局 ${JSON.stringify(pattern)}`;
     assert.ok((strength.same ?? 0) / total(strength) >= 0.7, summary);
     assert.ok((strength.reversed ?? 0) / total(strength) <= 0.12, summary);
     assert.ok((useGod.same ?? 0) / total(useGod) >= 0.4, summary);
     assert.ok((useGod.reversed ?? 0) / total(useGod) <= 0.25, summary);
+    const named = (pattern.same ?? 0) + (pattern.miss ?? 0);
+    assert.ok(named === 0 || (pattern.same ?? 0) / named >= 0.6, summary);
   });
