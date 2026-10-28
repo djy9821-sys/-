@@ -219,6 +219,8 @@ test('四支一气不拘微根、日主坐库仍能盘根、假化与化气有�
   ['辛酉 丁酉 乙未 丁丑', '丙辰 乙未 壬辰 甲辰', '甲申 丙子 庚辰 戊寅']
     .forEach((text) => assert.equal(judgeByPillars(text).judge.special, null, text));
 
+  // 日主坐下本气之根不作假化：「喜其日元得地……壬水可用」（癸亥日，时干戊土相合，午月火旺）。
+  assert.equal(judgeByPillars('壬申 丙午 癸亥 戊午').judge.special, null);
   // 假化：「虽是假化，却有情而不悖……庚午己巳生助化神，出仕琴堂」。
   const jia = judgeByPillars('己卯 甲戌 甲子 己巳').judge.special;
   assert.equal(jia.name, '疑似甲己化土格（假化）');
