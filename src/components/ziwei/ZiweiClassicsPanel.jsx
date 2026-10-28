@@ -12,7 +12,13 @@ const palaceLabel = (name = '') => (name === '仆役' ? '交友' : name);
 
 const starLabel = (star) => `${star.name}${star.brightness || ''}${star.mutagen ? `·化${String(star.mutagen).replace(/^化/, '')}` : ''}`;
 
-export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, gender = null }) {
+const EMPTY = Object.freeze([]);
+
+/**
+ * @param {{ palaces?: object[], focusedIndex?: number|null, gender?: string|null, patterns?: string[] }} props
+ *   patterns：程序认出的格局名（按命宫三方四正判的），只在看命宫时算进匹配条件。
+ */
+export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, gender = null, patterns = EMPTY }) {
     // 默认看盘上高亮的宫（没有就命宫）。面板里另选的宫记在 picked 里，并记下当时的高亮；
     // 盘上换了高亮就回到新高亮的宫，不用 effect 重置。
     const [picked, setPicked] = useState({ focusedIndex: null, index: null });
@@ -23,7 +29,11 @@ export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, 
     const defaultIndex = focusedIndex ?? ordered[0]?.index ?? null;
     const selectedIndex = picked.focusedIndex === focusedIndex && picked.index !== null ? picked.index : defaultIndex;
     const palace = palaces.find((item) => item.index === selectedIndex) ?? null;
-    const ctx = useMemo(() => ziweiPalaceContextOf(palace, { gender }), [palace, gender]);
+    const isMing = palace?.name === '命宫';
+    const ctx = useMemo(
+        () => ziweiPalaceContextOf(palace, { gender, patterns: isMing ? patterns : EMPTY }),
+        [palace, gender, isMing, patterns],
+    );
     const stars = palace ? [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])] : [];
 
     return (
@@ -56,6 +66,14 @@ export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, 
                             </span>
                         ))
                         : <span>宫内无星（空宫）</span>}
+                    {isMing && patterns.length > 0 && (
+                        <span className="inline-flex items-center gap-1" data-testid="ziwei-classics-patterns">
+                            <span className="text-[#81776b]">格局</span>
+                            {patterns.map((name) => (
+                                <span key={name} className="inline-flex items-center rounded border border-[#315f7d]/30 bg-[#315f7d]/[0.06] px-1.5 leading-5 text-[#2b4f68]">{name}</span>
+                            ))}
+                        </span>
+                    )}
                 </p>
             )}
 
