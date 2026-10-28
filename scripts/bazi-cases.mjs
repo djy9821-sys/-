@@ -9,8 +9,8 @@
  *   一致记 same；一边中和、一边旺或弱记 near；旺弱相反记 reversed。
  * - 格局：命例写了从格、化格、专旺而程序认出同名的记 same，没认出记 miss；命例没写而程序认出了记 extra。
  * - 喜用：命例的用神（五行或十神，换算成五行）是程序喜用第一位记 same，在前两位记 near，
- *   是程序的忌神记 reversed，其余 miss。
- * 只是检查工具，不进 CI。
+ *   是程序的忌神记 reversed，其余 miss。程序认出从格、化格、专旺时，拿「按此格论」的喜忌比，否则拿扶抑喜忌比。
+ * 调权重时用它看逐条差异；一致率的下限写在 test/bazi-cases.test.js 里（命例够 40 条才跑）。
  */
 import process from 'node:process';
 
@@ -53,7 +53,10 @@ if (listed.length) {
   console.log(showAll ? '\n逐条：' : '\n不一致的：');
   listed.forEach(({ id, pillars, expected, program, checks }) => {
     const exp = [expected.strength && `旺衰${expected.strength}`, expected.pattern, expected.useGod && `用${[].concat(expected.useGod).join('')}`].filter(Boolean).join(' ');
-    const got = [`${program.band}(${program.ratio})`, program.special, `喜${program.favorable.join('')}`, `忌${program.unfavorable.join('')}`].filter(Boolean).join(' ');
+    const gods = program.useGodSource === 'special'
+      ? `按此格喜${program.specialFavorable.join('')} 忌${program.specialUnfavorable.join('')}（扶抑喜${program.favorable.join('')}）`
+      : `喜${program.favorable.join('')} 忌${program.unfavorable.join('')}`;
+    const got = [`${program.band}(${program.score} 分)`, program.special, gods].filter(Boolean).join(' ');
     console.log(`  ${id} ${pillars.join(' ')}｜书：${exp}｜程序：${got}｜${Object.entries(checks).map(([key, value]) => `${key}:${value}`).join(' ')}`);
   });
 }

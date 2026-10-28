@@ -68,15 +68,17 @@ test('tiaoHouOf 给出主次用神、五行、季节与出处', () => {
   assert.equal(tiaoHouOf('X', '寅'), null);
 });
 
-test('旺衰喜用：调候主用神的五行排在喜用之首，并从忌神里剔除；次用神只作说明', () => {
-  // 丙火生子月：原书用壬（杀），不是粗略的「冬月用火」。
+test('旺衰喜用：调候主用神的五行附在喜用末尾（扶抑已取的不重复），并从忌神里剔除；次用神只作说明', () => {
+  // 丙火生子月：原书用壬（杀），不是粗略的「冬月用火」。此造身弱、官杀重，扶抑取印化杀而嫌水，两说并存。
   const winterBing = buildBaziChart({ calendarType: 'solar', year: 1996, month: 12, day: 15, gender: 'male', hourIndex: 6 });
   assert.equal(winterBing.dayMaster.gan, '丙');
   assert.equal(winterBing.pillars[1].zhi, '子');
   const strength = analyzeStrength(winterBing);
   assert.equal(strength.tiaoHou.primary, '壬');
-  assert.equal(strength.favorable[0].element, '水');
-  assert.equal(strength.favorable[0].tiaoHou, true);
+  assert.equal(strength.favorable.at(-1).element, '水');
+  assert.equal(strength.favorable.at(-1).tiaoHou, true);
+  assert.equal(strength.favorable[0].element, '木');
   assert.ok(strength.unfavorable.every((item) => item.element !== '水'));
   assert.ok(strength.favorable.filter((item) => item.tiaoHou).length === 1);
+  assert.match(strength.tiaoHouNote, /调候宜水，扶抑却嫌水/);
 });

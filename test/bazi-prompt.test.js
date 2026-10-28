@@ -76,11 +76,22 @@ test('提示词带上神煞、自坐、胎元命宫与旺衰参考', () => {
     '- 胎元 癸卯（金箔金）；命宫 癸丑（桑柘木）；身宫 乙巳（覆灯火）',
     '起运前行小运（1–9 虚岁）：1998丁卯',
     '【旺衰参考（程序估算）】',
-    '- 日主己土：偏弱',
-    '- 喜用参考：火（印，调候）、土（比劫）',
+    '- 日主己土：偏弱（旺衰打分 2：得令 0 + 得地 1 + 得势 1；',
+    '- 得地：年支丑（己比劫本气）、时支辰（戊比劫本气）',
+    '- 取用思路：身弱财重，取比劫帮身，印次之；调候宜火，与扶抑取用一致',
+    '- 喜用参考：土（比劫）、火（印，调候）',
     '- 忌神参考：水（财）',
   ].forEach((text) => assert.ok(natal.includes(text), `缺少：${text}`));
   assert.ok(!natal.includes('当日黄历'));
+});
+
+test('疑似从格时，旺衰一节指向格局一节，格局一节附按此格论的喜忌', () => {
+  // 乙卯 戊寅 癸卯 戊午：癸水无根，食伤独旺，疑似从儿格。
+  const cong = buildBaziChart({ calendarType: 'solar', year: 1975, month: 2, day: 26, gender: 'male', hourIndex: 6 }, now);
+  const text = buildBaziPrompt({ chart: cong, scope: 'natal', selections: {}, now });
+  assert.match(text, /未考虑从格、化格、专旺等特殊格局（本盘疑似从儿格，按此格论的喜忌见下一节）/);
+  assert.ok(text.includes('- 若按从儿格论：喜木（食伤）、火（财）；忌金（印）、土（官杀）（'));
+  assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now }).includes('按此格论'));
 });
 
 test('流日、流时补上神煞与黄历宜忌', () => {

@@ -112,11 +112,17 @@ export const evaluateBaziCase = (entry) => {
   const dayWuxing = strength.dayWuxing;
   const favorable = strength.favorable.map((item) => item.element);
   const unfavorable = strength.unfavorable.map((item) => item.element);
+  // 认出特殊格局时，程序给的是「按此格论」的喜忌，喜用就拿它比；否则拿扶抑喜忌比。
+  const specialFavorable = judge.special?.favorable?.map((item) => item.element) ?? null;
+  const specialUnfavorable = judge.special?.unfavorable?.map((item) => item.element) ?? null;
+  const useGodSource = specialFavorable?.length ? 'special' : 'fuyi';
   if (expected.useGod) {
     const gods = (Array.isArray(expected.useGod) ? expected.useGod : [expected.useGod]).map((god) => useGodElement(god, dayWuxing)).filter(Boolean);
-    checks.useGod = favorable[0] && gods.includes(favorable[0]) ? 'same'
-      : favorable.slice(0, 2).some((element) => gods.includes(element)) ? 'near'
-        : gods[0] && unfavorable.includes(gods[0]) ? 'reversed' : 'miss';
+    const fav = useGodSource === 'special' ? specialFavorable : favorable;
+    const unfav = useGodSource === 'special' ? specialUnfavorable : unfavorable;
+    checks.useGod = fav[0] && gods.includes(fav[0]) ? 'same'
+      : fav.slice(0, 2).some((element) => gods.includes(element)) ? 'near'
+        : gods[0] && unfav.includes(gods[0]) ? 'reversed' : 'miss';
   }
   return {
     id: entry.id,
@@ -125,7 +131,7 @@ export const evaluateBaziCase = (entry) => {
     chartPillars,
     pillarsMatch: pillars.every((gz, index) => gz === chartPillars[index]),
     expected,
-    program: { band: strength.band, ratio: Math.round(strength.ratio * 100) / 100, class: programClass, special, favorable, unfavorable, deLing: strength.deLing, pattern: judge.pattern?.name ?? null },
+    program: { band: strength.band, score: strength.score.total, ratio: Math.round(strength.ratio * 100) / 100, class: programClass, special, favorable, unfavorable, specialFavorable, specialUnfavorable, useGodSource, basis: strength.basis, deLing: strength.deLing, pattern: judge.pattern?.name ?? null },
     checks,
   };
 };

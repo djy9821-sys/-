@@ -13,8 +13,19 @@
 | 1 | 卷一·诸星问答论（紫微至破军十四主星，及文昌文曲、左辅右弼、禄存、天魁天钺、擎羊陀罗、火星铃星、地空地劫等辅佐煞曜的问答） | `src/data/classics/ziwei/quanshu-zhuxing-wenda.json`（已有示例条目，在其后续录） | `ziwei.quanshu.zhuxing.` | 30–40 |
 | 2 | 太微赋、形性赋、骨髓赋、女命骨髓赋 | `quanshu-taiwei-fu.json`、`quanshu-xingxing-fu.json`、`quanshu-gusui-fu.json`、`quanshu-nvming-gusui-fu.json` | `ziwei.quanshu.taiwei.` 等 | 每赋按句群拆 20–60 条 |
 | 3 | 星垣论、斗数准绳、斗数发微论、定富贵贫贱十等论、十二宫诸星得地合格定局、十二宫诸星失陷破格 | 一篇一文件，命名同上 | `ziwei.quanshu.<篇名拼音>.` | 60–100 |
+| 4 | 运限诸篇（论大限十年祸福、论小限、论流年太岁、论二限太岁吉凶等）与格局诸篇（定富局、定贵局、定贫贱局、定杂局），另加论诸星同垣各司所主 | 一篇一文件，命名同上；分支 `side/01-ziwei-quanshu-b4` | `ziwei.quanshu.<篇名拼音>.` | 50–100 |
 
 篇目名称与分卷以你所据版本为准，不同版本篇名略异时在 `edition` 说明。
+
+第 4 批的 `applies`：讲大限的条件写 `limit: "大限"`，讲流年、太岁的写 `limit: "流年"`（程序按此刻所行大限、流年的命宫去匹配）；讲小限的程序还没有，不写 `limit`，只写星曜等条件并在 `note` 写「小限」。格局名只能用 `src/data/classics/patternNames.js` 紫微格局表里认得的名字，表里没有的改写成星曜 + 宫位等条件，或只写 `note`。
+
+### 补星曜条件（前三批的修正）
+
+原文点了坐在本宫的星，`applies` 却只写宫位、地支的条目，会对命宫在该支的每张盘都出现，不管宫里是什么星。`node scripts/applies-coverage.mjs` 末尾的「命中太宽」会列出原文写了星曜全称的这类条目；原文用简称的（「机梁」「紫府」「日月」「杀」「阴星」）也一并检查。做法：
+
+- 坐在本宫的星补进 `star`（数组表示任一颗在宫就算）；一句里说了几种组合、吉凶不同的，拆成几个条件，`applies` 数组各写一条。
+- 「拱」「朝」「夹」「照」来的星不坐本宫，不补进 `star`，在 `notes` 说明；原文没有点星名的保持原样。
+- 改完的分支跑 `node scripts/validate-data.mjs` 与 `node scripts/applies-coverage.mjs`（「重试仍未命中」与「命中太宽」都应为 0，或在 PR 里逐条说明为什么不补）。
 
 ## 来源
 
