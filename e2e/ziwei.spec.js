@@ -72,6 +72,13 @@ test('常用功能里的古籍原文：默认看命宫，列出宫中星曜与�
   for (let page = 0; page < 10 && await more.isVisible(); page += 1) await more.click();
   await expect(entries.filter({ hasText: '星曜·紫微' }).first()).toBeVisible();
 
+  // 可切到当前大限：说明大限命宫在本命盘哪一宫，再切回本命盘。
+  const layer = modal.getByRole('group', { name: '看哪一层' });
+  await layer.getByRole('button', { name: '当前大限' }).click();
+  await expect(modal.getByTestId('ziwei-classics-limit')).toContainText(/当前大限（.+限 · 虚岁\d+-\d+/);
+  await layer.getByRole('button', { name: '本命盘' }).click();
+  await expect(palacePicker.getByRole('button', { name: /^命宫/ })).toBeVisible();
+
   // 换到迁移宫：天府得，条目随之变化（库里暂无天府条目时显示「暂时没有」提示）。
   await palacePicker.getByRole('button', { name: /^迁移/ }).click();
   await expect(stars).toContainText('迁移·巳宫');
