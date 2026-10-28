@@ -107,8 +107,7 @@ const natalLines = (chart) => {
   return lines;
 };
 
-const patternLines = (chart, strength) => {
-  const judge = judgeBaziPattern(chart, strength);
+const patternLines = (judge) => {
   const lines = [...judge.points];
   lines.push('- 以上格局与组合由程序按简化规则初判，请你复核；若判断不同，以你的分析为准并说明理由。');
   return lines.map((line) => (line.startsWith('- ') ? line : `- ${line}`));
@@ -134,7 +133,7 @@ const daYunLines = (chart, selectedDaYun) => {
 
 const ELEMENTS = ['木', '火', '土', '金', '水'];
 
-const strengthLines = (chart, strength) => {
+const strengthLines = (chart, strength, special = null) => {
   const support = Math.round(strength.ratio * 100);
   const { score } = strength;
   const elementList = (items) => items.map((item) => `${item.element}（${item.role}${item.tiaoHou ? '，调候' : ''}）`).join('、');
@@ -155,7 +154,7 @@ const strengthLines = (chart, strength) => {
   if (strength.favorable.length) lines.push(`- 喜用参考：${elementList(strength.favorable)}`);
   if (strength.unfavorable.length) lines.push(`- 忌神参考：${elementList(strength.unfavorable)}`);
   if (strength.hint) lines.push(`- 提示：${strength.hint}`);
-  lines.push('- 以上为程序估算：旺衰按得令、得地、得势三项打分（权重按《滴天髓阐微》任铁樵命例校准），喜用按扶抑取用、调候附后，未考虑从格、化格、专旺等特殊格局；若你的判断不同，请说明理由并以你的分析为准。');
+  lines.push(`- 以上为程序估算：旺衰按得令、得地、得势三项打分（权重按《滴天髓阐微》任铁樵命例校准），喜用按扶抑取用、调候附后，未考虑从格、化格、专旺等特殊格局${special ? `（本盘${special.name}，按此格论的喜忌见下一节）` : ''}；若你的判断不同，请说明理由并以你的分析为准。`);
   return lines;
 };
 
@@ -247,8 +246,9 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
   sections.push(['【出生信息】', ...birthLines(chart, personName)].join('\n'));
   sections.push([chart.timeUnknown ? '【本命三柱（时辰不详）】' : '【本命四柱】', ...natalLines(chart)].join('\n'));
   sections.push(['【大运】', ...daYunLines(chart, daYun)].join('\n'));
-  sections.push(['【旺衰参考（程序估算）】', ...strengthLines(chart, strength)].join('\n'));
-  sections.push(['【格局与组合（程序初判）】', ...patternLines(chart, strength)].join('\n'));
+  const judge = judgeBaziPattern(chart, strength);
+  sections.push(['【旺衰参考（程序估算）】', ...strengthLines(chart, strength, judge.special)].join('\n'));
+  sections.push(['【格局与组合（程序初判）】', ...patternLines(judge)].join('\n'));
   sections.push(['【神煞查法出处】', ...shenshaSourceLines(chart)].join('\n'));
   const classicsSection = classicsPromptLines(classics);
   if (classicsSection) sections.push(['【古籍原文（与本命相关）】', ...classicsSection].join('\n'));
