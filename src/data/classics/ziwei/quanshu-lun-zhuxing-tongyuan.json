@@ -66,19 +66,13 @@
           "module": "ziwei",
           "palace": "命宫",
           "branches": [
-            "亥"
+            "寅",
+            "申"
           ],
-          "star": "紫微",
-          "gender": "男"
-        },
-        {
-          "module": "ziwei",
-          "palace": "命宫",
-          "branches": [
-            "寅"
-          ],
-          "star": "紫微",
-          "gender": "女"
+          "allStars": [
+            "紫微",
+            "天府"
+          ]
         }
       ],
       "tags": [
@@ -100,10 +94,13 @@
           "module": "ziwei",
           "palace": "命宫",
           "branches": [
-            "卯",
-            "酉"
+            "寅",
+            "申"
           ],
-          "star": "紫微"
+          "allStars": [
+            "紫微",
+            "天府"
+          ]
         }
       ],
       "tags": [
@@ -156,7 +153,7 @@
             "寅",
             "申"
           ],
-          "stars": [
+          "allStars": [
             "紫微",
             "天府"
           ]
@@ -281,7 +278,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "紫微",
             "左辅"
           ]
@@ -289,7 +286,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "紫微",
             "右弼"
           ]
@@ -297,7 +294,7 @@
         {
           "module": "ziwei",
           "palace": "财帛",
-          "stars": [
+          "allStars": [
             "紫微",
             "左辅"
           ]
@@ -358,7 +355,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "紫微",
             "禄存"
           ]
@@ -1019,8 +1016,9 @@
       "applies": [
         {
           "module": "ziwei",
+          "gender": "女",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "天相",
             "右弼"
           ]
@@ -1213,14 +1211,14 @@
       "applies": [
         {
           "module": "ziwei",
-          "pattern": "阳梁昌禄格"
-        },
-        {
-          "module": "ziwei",
           "palace": "命宫",
-          "stars": [
-            "天梁",
-            "太阳"
+          "branches": [
+            "辰",
+            "戌"
+          ],
+          "allStars": [
+            "天机",
+            "天梁"
           ]
         }
       ],
@@ -1596,7 +1594,11 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "branches": [
+            "辰",
+            "戌"
+          ],
+          "allStars": [
             "天机",
             "天梁"
           ]
@@ -1659,17 +1661,12 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
-            "天机",
-            "贪狼"
-          ]
-        },
-        {
-          "module": "ziwei",
-          "palace": "命宫",
-          "stars": [
-            "天梁",
-            "太阴"
+          "branches": [
+            "卯"
+          ],
+          "allStars": [
+            "巨门",
+            "天机"
           ]
         }
       ],
@@ -1694,7 +1691,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "天机",
             "擎羊"
           ]
@@ -1702,7 +1699,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "天机",
             "陀罗"
           ]
@@ -1815,7 +1812,7 @@
         {
           "module": "ziwei",
           "palace": "官禄",
-          "stars": [
+          "allStars": [
             "太阳",
             "文昌"
           ]
@@ -1823,7 +1820,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "太阳",
             "文昌"
           ]
@@ -2010,7 +2007,7 @@
         {
           "module": "ziwei",
           "palace": "夫妻",
-          "stars": [
+          "allStars": [
             "太阴",
             "文曲"
           ]
@@ -2018,7 +2015,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "太阴",
             "文曲"
           ]
@@ -2132,7 +2129,7 @@
       "title": "诸星同垣·日巳月酉丑宫命",
       "original": "日巳月酉，丑宫命步蟾宫。",
       "vernacular": "太阳在巳宫官禄，太阴在酉宫财帛，命宫在丑宫得日月并明交辉朝照，主人科举及第、平步蟾宫。",
-      "notes": "日月并明格，安命在丑，日巳月酉三方吉拱。",
+      "notes": "日巳月酉格：太阳在巳宫、太阴在酉宫，三方拱照丑宫命宫。二星在三方拱照不坐本宫，故不补入坐宫星曜条件。",
       "doubts": [],
       "applies": [
         {
@@ -2140,10 +2137,6 @@
           "palace": "命宫",
           "branches": [
             "丑"
-          ],
-          "stars": [
-            "太阳",
-            "太阴"
           ]
         }
       ],
@@ -2161,7 +2154,7 @@
       "title": "诸星同垣·日卯月亥安命未宫",
       "original": "日卯月亥，安命未宫多折桂。",
       "vernacular": "太阳在卯宫，太阴在亥宫，安命在未宫三方四正拱照，主人文章锦绣、科场折桂。",
-      "notes": "程序内置明珠出海格。日卯月亥朝未命。",
+      "notes": "明珠出海格（日卯月亥格）：太阳在卯、太阴在亥，三方拱照未宫命宫。二曜不坐本宫，故不补入坐宫星曜条件。",
       "doubts": [],
       "applies": [
         {
@@ -2173,10 +2166,6 @@
           "palace": "命宫",
           "branches": [
             "未"
-          ],
-          "stars": [
-            "太阳",
-            "太阴"
           ]
         }
       ],
@@ -2193,7 +2182,7 @@
       "title": "诸星同垣·日月同未命安丑",
       "original": "日月同未，命安丑，侯伯之材。",
       "vernacular": "太阳与太阴同在未宫，命宫安在丑宫对宫照临，主人乃是封侯拜相的宰辅公卿之才具。",
-      "notes": "日月同临对照丑命，主位列公侯。",
+      "notes": "日月同未命安丑：太阳太阴同在未宫（迁移宫）对照丑宫命宫。二星在迁移对宫，不坐命宫，故不补入坐宫星曜条件。",
       "doubts": [],
       "applies": [
         {
@@ -2201,10 +2190,6 @@
           "palace": "命宫",
           "branches": [
             "丑"
-          ],
-          "stars": [
-            "太阳",
-            "太阴"
           ]
         }
       ],
@@ -2236,7 +2221,7 @@
             "丑",
             "未"
           ],
-          "stars": [
+          "allStars": [
             "太阳",
             "太阴"
           ]
@@ -2286,13 +2271,17 @@
           "module": "ziwei",
           "palace": "命宫",
           "branches": [
-            "辰",
+            "辰"
+          ],
+          "star": "太阳"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
             "戌"
           ],
-          "stars": [
-            "太阳",
-            "太阴"
-          ]
+          "star": "太阴"
         }
       ],
       "tags": [
@@ -2339,7 +2328,11 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "branches": [
+            "丑",
+            "未"
+          ],
+          "allStars": [
             "太阳",
             "太阴"
           ]
@@ -2502,7 +2495,11 @@
         {
           "module": "ziwei",
           "palace": "疾厄",
-          "stars": [
+          "branches": [
+            "丑",
+            "未"
+          ],
+          "allStars": [
             "太阳",
             "太阴"
           ]
@@ -2510,7 +2507,11 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "branches": [
+            "丑",
+            "未"
+          ],
+          "allStars": [
             "太阳",
             "太阴"
           ]
@@ -2600,7 +2601,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "左辅",
             "文昌"
           ]
@@ -2658,9 +2659,22 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
-            "武曲",
-            "文曲"
+          "star": "文曲",
+          "branches": [
+            "子",
+            "午",
+            "酉"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "武曲",
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
           ]
         }
       ],
@@ -2685,17 +2699,21 @@
         {
           "module": "ziwei",
           "palace": "命宫",
+          "star": "文曲",
           "branches": [
             "子",
             "卯",
-            "酉",
+            "酉"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "武曲",
+          "branches": [
             "辰",
             "丑",
             "未"
-          ],
-          "stars": [
-            "文曲",
-            "武曲"
           ]
         }
       ],
@@ -2791,7 +2809,7 @@
             "丑",
             "未"
           ],
-          "stars": [
+          "allStars": [
             "文昌",
             "文曲"
           ]
@@ -2847,7 +2865,7 @@
         {
           "module": "ziwei",
           "palace": "福德",
-          "stars": [
+          "allStars": [
             "文昌",
             "文曲"
           ]
@@ -3184,7 +3202,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "武曲",
             "文昌"
           ]
@@ -3192,7 +3210,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "武曲",
             "文曲"
           ]
@@ -3219,7 +3237,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "武曲",
             "天马"
           ]
@@ -3227,7 +3245,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "武曲",
             "禄存"
           ]
@@ -3435,9 +3453,17 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "武曲",
-            "贪狼"
+            "火星"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "allStars": [
+            "武曲",
+            "铃星"
           ]
         }
       ],
@@ -3609,14 +3635,15 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
+          "palace": "迁移",
           "branches": [
-            "辰",
-            "戌",
-            "丑",
-            "未"
+            "寅",
+            "申"
           ],
-          "star": "贪狼"
+          "allStars": [
+            "武曲",
+            "天相"
+          ]
         }
       ],
       "tags": [
@@ -3700,13 +3727,10 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "branches": [
-            "寅",
-            "申",
-            "巳",
-            "亥"
-          ],
-          "star": "贪狼"
+          "allStars": [
+            "贪狼",
+            "火星"
+          ]
         }
       ],
       "tags": [
@@ -3728,25 +3752,9 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "branches": [
-            "巳",
-            "亥"
-          ],
-          "stars": [
+          "allStars": [
             "贪狼",
-            "擎羊"
-          ]
-        },
-        {
-          "module": "ziwei",
-          "palace": "命宫",
-          "branches": [
-            "巳",
-            "亥"
-          ],
-          "stars": [
-            "贪狼",
-            "陀罗"
+            "铃星"
           ]
         }
       ],
@@ -3776,9 +3784,23 @@
             "丑",
             "未"
           ],
-          "stars": [
+          "allStars": [
             "贪狼",
-            "武曲"
+            "火星"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "allStars": [
+            "贪狼",
+            "铃星"
           ]
         }
       ],
@@ -3802,7 +3824,11 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "branches": [
+            "丑",
+            "未"
+          ],
+          "allStars": [
             "贪狼",
             "武曲"
           ]
@@ -3860,7 +3886,11 @@
         {
           "module": "ziwei",
           "palace": "身宫",
-          "stars": [
+          "branches": [
+            "丑",
+            "未"
+          ],
+          "allStars": [
             "贪狼",
             "武曲"
           ]
@@ -4094,7 +4124,7 @@
             "巳",
             "亥"
           ],
-          "stars": [
+          "allStars": [
             "贪狼",
             "廉贞"
           ]
@@ -4120,8 +4150,14 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "star": "贪狼",
-          "gender": "女"
+          "branches": [
+            "巳",
+            "亥"
+          ],
+          "allStars": [
+            "文昌",
+            "贪狼"
+          ]
         }
       ],
       "tags": [
@@ -4144,10 +4180,13 @@
           "module": "ziwei",
           "palace": "命宫",
           "branches": [
-            "申",
-            "未"
+            "卯",
+            "酉"
           ],
-          "star": "廉贞"
+          "allStars": [
+            "廉贞",
+            "破军"
+          ]
         }
       ],
       "tags": [
@@ -4173,7 +4212,22 @@
             "卯",
             "酉"
           ],
-          "star": "廉贞"
+          "allStars": [
+            "廉贞",
+            "擎羊"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯",
+            "酉"
+          ],
+          "allStars": [
+            "廉贞",
+            "火星"
+          ]
         }
       ],
       "tags": [
@@ -4195,9 +4249,13 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "branches": [
+            "辰",
+            "戌"
+          ],
+          "allStars": [
             "廉贞",
-            "巨门"
+            "天府"
           ]
         }
       ],
@@ -4958,19 +5016,13 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "stars": [
-            "巨门",
-            "火星"
-          ]
+          "palace": "迁移",
+          "star": "七杀"
         },
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "stars": [
-            "巨门",
-            "擎羊"
-          ]
+          "palace": "迁移",
+          "star": "破军"
         }
       ],
       "tags": [
@@ -5131,17 +5183,9 @@
             "丑",
             "未"
           ],
-          "stars": [
-            "七杀",
-            "廉贞"
-          ]
-        },
-        {
-          "module": "ziwei",
-          "palace": "迁移",
-          "stars": [
-            "七杀",
-            "廉贞"
+          "allStars": [
+            "廉贞",
+            "七杀"
           ]
         }
       ],
@@ -5694,7 +5738,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "擎羊",
             "火星"
           ]
@@ -5957,7 +6001,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "擎羊",
             "火星"
           ]
@@ -6028,7 +6072,7 @@
       "title": "诸星同垣·火铃相遇名振诸邦",
       "original": "火铃相遇，名振诸邦。",
       "vernacular": "火星与铃星在庙旺宫位同度坐守或相会命宫，煞化为威，主人声名威振天下各邦。",
-      "notes": "火铃入庙同垣，武略过人，名利大振。",
+      "notes": "火星与铃星在排盘安星法中永远不同宫，相遇乃指三方拱会照临或岁限相加。",
       "doubts": [],
       "applies": [
         {
@@ -6300,7 +6344,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "左辅",
             "文昌"
           ]
@@ -6308,7 +6352,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "右弼",
             "文昌"
           ]
@@ -6360,7 +6404,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "左辅",
             "右弼"
           ]
@@ -6368,7 +6412,7 @@
         {
           "module": "ziwei",
           "palace": "迁移",
-          "stars": [
+          "allStars": [
             "左辅",
             "右弼"
           ]
@@ -6393,7 +6437,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "左辅",
             "右弼"
           ]
@@ -6547,7 +6591,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "右弼",
             "天相"
           ]
@@ -6755,7 +6799,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "禄存",
             "天马"
           ]
@@ -6763,7 +6807,7 @@
         {
           "module": "ziwei",
           "palace": "迁移",
-          "stars": [
+          "allStars": [
             "禄存",
             "天马"
           ]
@@ -7809,7 +7853,11 @@
         {
           "module": "ziwei",
           "palace": "财帛",
-          "stars": [
+          "branches": [
+            "丑",
+            "未"
+          ],
+          "allStars": [
             "武曲",
             "贪狼"
           ]
@@ -7817,7 +7865,11 @@
         {
           "module": "ziwei",
           "palace": "田宅",
-          "stars": [
+          "branches": [
+            "丑",
+            "未"
+          ],
+          "allStars": [
             "武曲",
             "贪狼"
           ]
