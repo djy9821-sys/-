@@ -61,8 +61,8 @@ test('疑似从格：格局一节给出按此格论的喜忌，旺衰一节提�
   await expect(special).toContainText('疑似从儿格');
   const gods = special.getByTestId('bazi-special-gods');
   await expect(gods).toContainText('若按此格论');
-  await expect(gods).toContainText('从儿以食伤为用');
-  await expect(result.getByTestId('bazi-strength-special')).toContainText('格局一节疑似从儿格：若成格，喜木（食伤）、火（财）；忌金（印）、土（官杀）');
+  await expect(gods).toContainText('从儿以财为用');
+  await expect(result.getByTestId('bazi-strength-special')).toContainText('格局一节疑似从儿格：若成格，喜火（财）、木（食伤）；忌金（印）、土（官杀）');
 });
 
 test('手动录入排盘、存档，再从档案打开', async ({ page }) => {
