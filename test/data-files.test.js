@@ -74,4 +74,21 @@ test('六爻占例用 cast：卦名、动爻、干支都校验', () => {
   assert.match(validateCasesDoc(entry({ hexagram: '乾为天', movingLines: [], dayGanZhi: '甲甲' })).join('\n'), /dayGanZhi 须是干支/);
   const withBirth = { module: 'liuyao', entries: [{ id: 'liuyao.x.001', name: 'x', source: { classic: 'zengshan', section: 'x' }, birth: {}, cast: { hexagram: '乾为天', movingLines: [] }, original: 'x', status: 'draft' }] };
   assert.match(validateCasesDoc(withBirth).join('\n'), /用 cast 不用 birth/);
+  // 动爻须与本卦、之卦对得上
+  assert.match(validateCasesDoc(entry({ hexagram: '水雷屯', changed: '风雷益', movingLines: [2, 6] })).join('\n'), /水雷屯之风雷益动爻应为 \[6\]，写的是 \[2,6\]/);
+  assert.match(validateCasesDoc(entry({ hexagram: '天水讼', movingLines: [1, 2, 6] })).join('\n'), /有动爻须写 cast\.changed/);
+  assert.deepEqual(validateCasesDoc(entry({ hexagram: '天水讼', changed: '泽雷随', movingLines: [6, 1, 2] })), []);
+});
+
+test('六爻占例的 expected：原书用神、断语归类、应期与应验', () => {
+  const doc = (expected, source = {}) => ({ module: 'liuyao', entries: [{ id: 'liuyao.zengshan.015', name: '占例', source: { classic: 'zengshan', section: '天时章', ...source }, cast: { date: '酉月乙巳日', dayGanZhi: '乙巳', hexagram: '地风升', changed: '雷风恒', movingLines: [4], topic: '天时' }, expected, original: '原文', status: 'translated', vernacular: '白话' }] });
+  assert.deepEqual(validateCasesDoc(doc({ yongShen: '子孙', verdict: '晴', timing: '午时', outcome: '日午时之后，满天红日无云' }, { entry: 'zengshan.zhanfa.015' })), []);
+  assert.deepEqual(validateCasesDoc(doc({ yongShen: '世爻', verdict: '先雨后晴' })), []);
+  assert.deepEqual(validateCasesDoc(doc({ verdict: '晴雨各有其时' })), []);
+  const messages = validateCasesDoc(doc({ yongShen: '财爻', verdict: '大吉', timing: '', luck: 1 }, { entry: '015' })).join('\n');
+  assert.match(messages, /expected\.yongShen 须是/);
+  assert.match(messages, /expected\.verdict 须是/);
+  assert.match(messages, /expected\.timing 须是非空字符串/);
+  assert.match(messages, /expected 未知字段 luck/);
+  assert.match(messages, /source\.entry 须是古籍条目 id/);
 });

@@ -64,10 +64,13 @@ test('常用功能里的古籍原文：默认看命宫，列出宫中星曜与�
   await expect(stars).toContainText('紫微旺');
   await expect(stars).toContainText('七杀平');
 
+  // 条目随支线录入增加、按相关度排序：只断言有条目、出自《紫微斗数全书》，翻完所有页能找到按紫微命中的那条。
+  await expect(modal.getByTestId('ziwei-classics-panel-summary')).toContainText(/相关的原文 \d+ 条/, { timeout: 15_000 });
   const entries = modal.getByTestId('ziwei-classic-entry');
-  await expect(entries.first()).toContainText('紫微', { timeout: 15_000 });
-  await expect(entries.first()).toContainText('星曜·紫微');
   await expect(entries.first()).toContainText('《紫微斗数全书》');
+  const more = modal.getByRole('button', { name: /^再看/ });
+  for (let page = 0; page < 10 && await more.isVisible(); page += 1) await more.click();
+  await expect(entries.filter({ hasText: '星曜·紫微' }).first()).toBeVisible();
 
   // 换到迁移宫：天府得，条目随之变化（库里暂无天府条目时显示「暂时没有」提示）。
   await palacePicker.getByRole('button', { name: /^迁移/ }).click();

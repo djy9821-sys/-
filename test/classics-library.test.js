@@ -120,6 +120,33 @@ test('匹配规则：任一条件命中、键内任一取值、复数键、只�
   assert.deepEqual(conditionMatches({ module: 'ziwei', palace: '交友' }, ziweiContextOf({ palace: '仆役' })), [{ key: 'palace', value: '仆役' }]);
 });
 
+test('相关度排序：专讲这颗星的条目在前，只按宫位命中的、一口气列很多星的往后；挂了很多并列条件的通论排在专论后面', () => {
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.r.001', title: '命宫总论', original: '甲', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫' }] },
+      { id: 'ziwei.r.002', title: '诸星', original: '乙', status: 'translated', applies: [{ module: 'ziwei', stars: ['紫微', '天机', '太阳', '武曲', '天同', '廉贞', '天府'] }] },
+      { id: 'ziwei.r.003', title: '紫微', original: '丙', status: 'translated', applies: [{ module: 'ziwei', star: '紫微' }] },
+      { id: 'ziwei.r.004', title: '女命紫微', original: '丁', status: 'translated', applies: [{ module: 'ziwei', star: '紫微', gender: '女' }] },
+    ],
+  }]);
+  const ctxOf = (gender) => ziweiContextOf({ stars: ['紫微', '七杀'], palace: '命宫', gender });
+  assert.deepEqual(matchEntries(lib, ctxOf('男')).map(({ entry }) => entry.id), ['ziwei.r.003', 'ziwei.r.001', 'ziwei.r.002']);
+  assert.deepEqual(matchEntries(lib, ctxOf('女')).map(({ entry }) => entry.id), ['ziwei.r.004', 'ziwei.r.003', 'ziwei.r.001', 'ziwei.r.002']);
+
+  const bazi = buildLibrary([{
+    classic: 'ziping', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziping.r.001', title: '通论', original: '甲', status: 'reviewed', applies: ['正官格', '七杀格', '正财格', '偏财格', '正印格', '偏印格', '食神格', '伤官格'].map((pattern) => ({ module: 'bazi', pattern })) },
+      { id: 'ziping.r.002', title: '论正官', original: '乙', status: 'draft', applies: [{ module: 'bazi', pattern: '正官格' }] },
+      { id: 'ziping.r.003', title: '十神', original: '丙', status: 'reviewed', applies: [{ module: 'bazi', tenGods: ['正官', '七杀', '正财', '偏财', '正印', '偏印'] }] },
+    ],
+  }]);
+  const ranked = matchEntries(bazi, { module: 'bazi', pattern: ['正官格'], tenGod: ['正官', '正财'] });
+  assert.deepEqual(ranked.map(({ entry }) => entry.id), ['ziping.r.002', 'ziping.r.001', 'ziping.r.003']);
+  assert.ok(ranked.every((hit, index) => index === 0 || ranked[index - 1].score >= hit.score));
+});
+
 test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算，身宫同宫时命宫身宫都给，四化去掉「化」字）', () => {
   const palace = {
     name: '命宫', earthlyBranch: '亥', isBodyPalace: true,

@@ -1,11 +1,11 @@
 /**
  * 术语白话词典（八字、紫微、六爻通用）：先看与这张盘相关的术语，也可按关键字搜；
- * 每条有一句话解释、展开说明、例子、出处与相关术语。数据与古籍库同一块按需加载，不进首屏。
+ * 每条有一句话解释、展开说明、例子、出处与相关术语。词典数据单独一块按需加载，不进首屏，也不连带下载古籍原文。
  */
 import React, { useMemo, useState } from 'react';
 import { BookOpen, Search } from 'lucide-react';
 import { lookupTerm, searchGlossary } from '../../data/classics/index.js';
-import { useClassicsLibrary } from './useClassicsLibrary.js';
+import { useGlossary } from './useClassicsLibrary.js';
 
 const MODULE_LABELS = { bazi: '八字', ziwei: '紫微', liuyao: '六爻', common: '通用' };
 
@@ -55,8 +55,8 @@ const TermCard = ({ entry, module, onPick, open = false, testId = 'glossary-term
  *   seedTerms：这张盘里出现的术语（十神、格局、星曜……），没有查询时先列出来；subject：提示语里的主语。
  */
 export default function GlossaryPanel({ module, seedTerms = [], subject = '这张盘', testId = 'glossary-panel', className = 'mt-4 space-y-3' }) {
-    const { data, error } = useClassicsLibrary();
-    const glossary = data?.glossary ?? null;
+    // 词典单独一块，不连带下载古籍原文。
+    const { glossary, error } = useGlossary();
     const [query, setQuery] = useState('');
     const [picked, setPicked] = useState(null);
 
@@ -79,7 +79,7 @@ export default function GlossaryPanel({ module, seedTerms = [], subject = '这�
     };
 
     const total = glossary?.total ?? 0;
-    const status = data
+    const status = glossary
         ? `词典共 ${total} 条，${MODULE_LABELS[module] ?? module}与通用 ${browse.length} 条`
         : error ? '词典加载失败，请刷新后再试。' : '正在打开词典…';
 

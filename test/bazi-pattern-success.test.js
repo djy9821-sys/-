@@ -58,8 +58,8 @@ test('正官格：官逢财印无刑冲为成；逢伤、刑冲、杂煞为败�
 });
 
 test('财格：财生官旺、食生身强为成；财轻比重、财透七杀为败；食化、官制、食神制杀、合杀为救', () => {
-  const sheng = judge(1972, 4, 14, 1);
-  assert.equal(sheng.pillars, '壬子 甲辰 乙亥 丁丑');
+  const sheng = judge(1966, 12, 25, 4);
+  assert.equal(sheng.pillars, '丙午 庚子 戊午 丙辰');
   assert.equal(sheng.chengBai.verdict, '成');
   assert.ok(quotes(sheng.chengBai).includes('财逢食生而身强带比'));
 
@@ -78,8 +78,8 @@ test('财格：财生官旺、食生身强为成；财轻比重、财透七杀�
   assert.equal(shi.pillars, '甲辰 己巳 癸亥 癸丑');
   assert.ok(quotes(shi.chengBai).includes('财逢劫而透食以化之'));
 
-  const flaw = judge(1960, 10, 14, 7);
-  assert.equal(flaw.pillars, '庚子 丙戌 乙亥 癸未');
+  const flaw = judge(1962, 4, 2, 1);
+  assert.equal(flaw.pillars, '壬寅 癸卯 庚午 丁丑');
   assert.equal(flaw.chengBai.verdict, '成中有败');
   assert.ok(quotes(flaw.chengBai).includes('财旺生官，而又逢伤'));
 });
@@ -130,8 +130,8 @@ test('食神格：生财、带杀无财、弃食就杀为成；逢枭、生财�
   assert.equal(lusha.chengBai.verdict, '败');
   assert.ok(quotes(lusha.chengBai).includes('生财露煞'));
 
-  const jiusha = judge(1962, 4, 8, 1);
-  assert.equal(jiusha.pillars, '壬寅 甲辰 丙子 己丑');
+  const jiusha = judge(1967, 10, 2, 1);
+  assert.equal(jiusha.pillars, '丁未 己酉 己亥 乙丑');
   assert.equal(jiusha.chengBai.verdict, '败中有成');
   assert.ok(quotes(jiusha.chengBai).includes('食逢枭而就煞以成格'));
 });
@@ -181,8 +181,8 @@ test('伤官格：生财、佩印、带杀无财为成；非金水见官、生�
   assert.ok(quotes(hesha.chengBai).includes('生财生带煞'));
   assert.ok(quotes(hesha.chengBai).includes('伤官生财透煞而煞逢合'));
 
-  const light = judge(1966, 10, 26, 1);
-  assert.equal(light.pillars, '丙午 戊戌 戊午 癸丑');
+  const light = judge(1967, 1, 14, 7);
+  assert.equal(light.pillars, '丙午 辛丑 戊寅 己未');
   assert.ok(quotes(light.chengBai).includes('佩印而伤轻身旺'));
 });
 
