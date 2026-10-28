@@ -10,7 +10,7 @@
  * - 格局：命例写了从格、化格、专旺而程序认出同名的记 same，没认出记 miss；命例没写而程序认出了记 extra。
  * - 喜用：命例的用神（五行或十神，换算成五行）是程序喜用第一位记 same，在前两位记 near，
  *   是程序的忌神记 reversed，其余 miss。
- * 只是检查工具，不进 CI。
+ * 调权重时用它看逐条差异；一致率的下限写在 test/bazi-cases.test.js 里（命例够 40 条才跑）。
  */
 import process from 'node:process';
 
@@ -53,7 +53,7 @@ if (listed.length) {
   console.log(showAll ? '\n逐条：' : '\n不一致的：');
   listed.forEach(({ id, pillars, expected, program, checks }) => {
     const exp = [expected.strength && `旺衰${expected.strength}`, expected.pattern, expected.useGod && `用${[].concat(expected.useGod).join('')}`].filter(Boolean).join(' ');
-    const got = [`${program.band}(${program.ratio})`, program.special, `喜${program.favorable.join('')}`, `忌${program.unfavorable.join('')}`].filter(Boolean).join(' ');
+    const got = [`${program.band}(${program.score} 分)`, program.special, `喜${program.favorable.join('')}`, `忌${program.unfavorable.join('')}`].filter(Boolean).join(' ');
     console.log(`  ${id} ${pillars.join(' ')}｜书：${exp}｜程序：${got}｜${Object.entries(checks).map(([key, value]) => `${key}:${value}`).join(' ')}`);
   });
 }
