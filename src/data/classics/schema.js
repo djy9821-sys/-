@@ -78,6 +78,22 @@ const HALF_WIDTH_PUNCT = /[,;:!?()"']/;
 
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
 
+/**
+ * 白话最长是原文的几倍。逐句直译文言一般是原文的 1.5～2.5 倍；超过 3.5 倍基本是加了原文没有的内容。
+ * 原文太短（不足 12 字，如七言一句）时不检查。
+ */
+export const VERNACULAR_MAX_RATIO = 3.5;
+const RATIO_MIN_ORIGINAL = 12;
+/** 去掉标点、空白、字母数字后的字数（比较长短用）。 */
+const hanziLength = (text) => String(text ?? '').replace(/[\s\p{P}\p{S}A-Za-z0-9]/gu, '').length;
+/** 白话与原文的字数比；没有白话或原文太短时为 null。 */
+export const vernacularRatio = (entry) => {
+  if (!isNonEmptyString(entry?.vernacular) || !isNonEmptyString(entry?.original)) return null;
+  const original = hanziLength(entry.original);
+  if (original < RATIO_MIN_ORIGINAL) return null;
+  return hanziLength(entry.vernacular) / original;
+};
+
 /** 程序认得的名字（格局、神煞）：写错了条件永远匹配不上，报错时说清楚。 */
 const NAME_KEYS = Object.freeze({ pattern: '格局名', shensha: '神煞名', topic: '问事类别' });
 
@@ -95,7 +111,12 @@ export const sectionOfEntry = (entry, doc, chapters = chaptersOf(doc)) => {
   return chapters.includes(head) ? head : null;
 };
 
-const checkApplies = (applies, where, errors) => {
+const MODULE_LABELS = Object.freeze({ bazi: '八字', ziwei: '紫微', liuyao: '六爻' });
+
+/** 古籍文件所在的模块目录（src/data/classics/<模块>/xxx.json）；网页按目录分块加载。不在这种路径下时为 null。 */
+export const moduleDirOf = (file) => String(file ?? '').replace(/\\/g, '/').match(/(?:^|\/)classics\/([^/]+)\/[^/]+\.json$/)?.[1] ?? null;
+
+const checkApplies = (applies, where, errors, dirModule = null) => {
   if (applies === undefined) return;
   if (!Array.isArray(applies)) {
     errors.push(`${where}: applies 必须是数组`);
@@ -110,6 +131,10 @@ const checkApplies = (applies, where, errors) => {
     const module = cond.module;
     if (!MODULES.includes(module)) {
       errors.push(`${at}: module 必须是 ${MODULES.join('/')}`);
+      return;
+    }
+    if (dirModule && module !== dirModule) {
+      errors.push(`${at}: 文件放在 ${dirModule} 目录（只在${MODULE_LABELS[dirModule]}页加载），条件却写 module: ${module}，永远显示不出来；${MODULE_LABELS[module]}的条目放到 src/data/classics/${module}/ 下`);
       return;
     }
     const allowed = { ...APPLIES_KEYS.common, ...APPLIES_KEYS[module] };
@@ -159,6 +184,11 @@ export const validateClassicsDoc = (doc, ctx = {}) => {
     return errors;
   }
   const chapters = chaptersOf(doc);
+  // 网页按 bazi / ziwei / liuyao 目录分块加载古籍：文件必须在这三个目录之一，条件也只能写本目录的模块。
+  const dirModule = moduleDirOf(ctx.file);
+  if (ctx.file && /(^|[\\/])classics[\\/]/.test(ctx.file) && !MODULES.includes(dirModule)) {
+    errors.push(`${file}: 古籍文件要放在 src/data/classics/ 下的 ${MODULES.join(' / ')} 子目录里（网页按模块分块加载）`);
+  }
 
   doc.entries.forEach((entry, index) => {
     const where = `${file} entries[${index}]${entry?.id ? ` (${entry.id})` : ''}`;
@@ -187,10 +217,14 @@ export const validateClassicsDoc = (doc, ctx = {}) => {
     if (!ENTRY_STATUS.includes(entry.status)) errors.push(`${where}: status 须是 ${ENTRY_STATUS.join('/')}`);
     if (entry.status !== 'draft' && !isNonEmptyString(entry.vernacular)) errors.push(`${where}: status 为 ${entry.status} 时必须有 vernacular（白话）`);
     if (entry.vernacular !== undefined && typeof entry.vernacular !== 'string') errors.push(`${where}: vernacular 必须是字符串`);
+    const ratio = vernacularRatio(entry);
+    if (ratio !== null && ratio > VERNACULAR_MAX_RATIO) {
+      errors.push(`${where}: 白话是原文的 ${ratio.toFixed(1)} 倍，超过 ${VERNACULAR_MAX_RATIO} 倍上限——白话只逐句翻原文有的意思，不加原文没有的条件、判断和渲染；典故、术语解释放进 notes`);
+    }
     if (entry.notes !== undefined && typeof entry.notes !== 'string') errors.push(`${where}: notes 必须是字符串`);
     if (entry.doubts !== undefined && (!Array.isArray(entry.doubts) || entry.doubts.some((item) => !isNonEmptyString(item)))) errors.push(`${where}: doubts 必须是字符串数组`);
     if (entry.tags !== undefined && (!Array.isArray(entry.tags) || entry.tags.some((item) => !isNonEmptyString(item)))) errors.push(`${where}: tags 必须是字符串数组`);
-    checkApplies(entry.applies, where, errors);
+    checkApplies(entry.applies, where, errors, dirModule);
 
     const known = new Set(['id', 'title', 'section', 'original', 'vernacular', 'notes', 'doubts', 'applies', 'tags', 'status']);
     Object.keys(entry).forEach((key) => {
