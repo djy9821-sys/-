@@ -30,6 +30,17 @@ test('八字命例：十神或类别换成五行；排盘四柱与命例一致�
   assert.equal(result.program.class, '弱');
   assert.equal(result.checks.strength, 'same');
   assert.equal(result.checks.useGod, 'same');
+  // 程序认出从格时，喜用拿「按此格论」的喜忌比（任注此造「用土以从之」）。
+  const cong = evaluateBaziCase({
+    id: 'bazi.test.003',
+    pillars: ['庚戌', '甲申', '甲戌', '乙丑'],
+    birth: { calendar: 'unknown', gender: 'male' },
+    expected: { strength: '弱', useGod: '土' },
+  });
+  assert.equal(cong.program.useGodSource, 'special');
+  assert.equal(cong.program.class, '弱');
+  assert.equal(cong.checks.useGod, 'same');
+  assert.equal(cong.program.favorable[0], '木', '扶抑喜忌仍照常给出');
   const unknown = evaluateBaziCase({ id: 'bazi.test.002', pillars: ['甲子', '甲子', '甲子', '甲子'], expected: { strength: '旺' } });
   assert.match(unknown.error, /找不到/);
 });
