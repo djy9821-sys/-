@@ -8,7 +8,7 @@
 import { Lunar, LunarUtil, Solar } from 'lunar-javascript';
 import { HEXAGRAM_MAP } from './hexagramLogic.js';
 import { getYaoCi, YAO_CI } from '../data/yaoci.js';
-import { LIUYAO_METHODS, LIUYAO_TOPIC_LABELS } from './liuyaoRecord.js';
+import { LIUYAO_ILLNESS_LABELS, LIUYAO_METHODS, LIUYAO_TOPIC_LABELS, normalizeLiuYaoIllness, normalizeLiuYaoSubject } from './liuyaoRecord.js';
 import { describeLiuYaoSources } from '../data/liuyaoSources.js';
 import { classicsPromptSection } from './classicsPrompt.js';
 
@@ -167,8 +167,10 @@ const isValidValues = (values) => Array.isArray(values) && values.length === 6 &
 /**
  * @param {number[]} values 六个爻值（初爻在前）
  * @param {Date} date 起卦时间（已按所在地换算为真太阳时的墙上时间）
- * @param {{ question?: string, method?: string, topic?: string, gender?: string, castNote?: string }} [meta]
- *   topic 所问类别（见 liuyaoJudge.js 的 LIUYAO_TOPICS），gender 问感情时问卦人的性别，castNote 起卦参数说明（如报的数）
+ * @param {{ question?: string, method?: string, topic?: string, gender?: string, subject?: string, illness?: string, castNote?: string }} [meta]
+ *   topic 所问类别（见 liuyaoJudge.js 的 LIUYAO_TOPICS），gender 问卦人的性别（问感情、替配偶问时用），
+ *   subject 替谁问（liuyaoRecord.js 的 LIUYAO_SUBJECT_LABELS，空为按类别默认），illness 问病的病程（新病 / 久病），
+ *   castNote 起卦参数说明（如报的数）
  */
 export const buildLiuYaoReading = (values, date = new Date(), meta = {}) => {
   if (!isValidValues(values)) throw new Error('爻值必须是六个 6、7、8、9');
@@ -240,6 +242,8 @@ export const buildLiuYaoReading = (values, date = new Date(), meta = {}) => {
     method: meta.method ?? 'coins',
     topic: meta.topic ?? 'general',
     gender: meta.gender === 'female' ? 'female' : meta.gender === 'male' ? 'male' : '',
+    subject: normalizeLiuYaoSubject(meta.subject),
+    illness: normalizeLiuYaoIllness(meta.illness),
     castNote: (meta.castNote ?? '').trim(),
     values: [...values],
     time,
@@ -268,12 +272,15 @@ const lineText = (line) => {
 export const buildLiuYaoPrompt = (reading, judge = null, { classics = null } = {}) => {
   const { hexagram, changed, mutual, time, lines, hidden } = reading;
   const topicLabel = LIUYAO_TOPIC_LABELS[reading.topic] ?? LIUYAO_TOPIC_LABELS.general;
-  const genderText = reading.topic === 'love' && reading.gender ? `（问卦人为${reading.gender === 'female' ? '女' : '男'}）` : '';
+  const genderText = (reading.topic === 'love' || judge?.subject?.value === 'spouse') && reading.gender ? `（问卦人为${reading.gender === 'female' ? '女' : '男'}）` : '';
+  // 替谁问只在程序采用了的时候写出来（judge.subject），病程只在问病时写
+  const subjectText = judge?.subject && judge.subject.value !== 'self' ? `（替${judge.subject.label}问）` : '';
+  const illnessText = reading.topic === 'health' && LIUYAO_ILLNESS_LABELS[reading.illness] ? `（${LIUYAO_ILLNESS_LABELS[reading.illness]}）` : '';
   const parts = [
     '你是一位精通六爻（纳甲筮法）的占卜师。下面是用「古书派」起的一卦，请直接基于这些数据分析，不要自行重新装卦。',
     '',
     `【所问】${reading.question || '（未写明，请按一般吉凶与近期走势分析）'}`,
-    `【类别】${topicLabel}${genderText}${judge?.yongShen?.relative ? ` · 用神取${judge.yongShen.relative}` : ''}`,
+    `【类别】${topicLabel}${subjectText}${illnessText}${genderText}${judge?.yongShen?.relative ? ` · 用神取${judge.yongShen.relative}` : ''}`,
     `【起卦】${time.solarText}（${time.lunarText}）· ${LIUYAO_METHODS[reading.method] ?? LIUYAO_METHODS.coins}${reading.castNote ? `（${reading.castNote}）` : ''}`,
     `- 四柱：${time.year}年 ${time.month}月 ${time.day}日 ${time.hour}时；旬空 ${time.xunKong.join('')}；月建 ${time.monthZhi}，日辰 ${time.dayZhi}`,
     '',

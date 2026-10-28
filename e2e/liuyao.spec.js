@@ -35,6 +35,41 @@ test('时间起卦得到装卦结果，并能存入档案', async ({ page }) => 
   await expect(page.getByRole('button', { name: '查看卦例「端到端卦例」' })).toBeVisible();
 });
 
+test('替家人问病：选替谁问与病程，用神取父母，结果页可改回自己', async ({ page }) => {
+  await page.goto('/#/liuyao');
+  const setup = page.getByRole('region', { name: '六爻起卦设置' });
+  await setup.getByRole('button', { name: '健康疾病' }).click();
+  const who = setup.getByRole('group', { name: '替谁问' });
+  await who.getByRole('button', { name: '父母长辈' }).click();
+  await expect(who.getByRole('button', { name: '父母长辈' })).toHaveAttribute('aria-pressed', 'true');
+  await setup.getByRole('group', { name: '病程' }).getByRole('button', { name: '新病' }).click();
+  await setup.getByRole('button', { name: /时间起卦/ }).click();
+  await setup.getByRole('button', { name: '按此刻时间起卦' }).click();
+
+  // 提示词全文里也有同样的字，所以类别标签按全文匹配、断卦要点只在卡片里找
+  await expect(page.getByText('健康疾病（替父母长辈问）（新病）', { exact: true })).toBeVisible();
+  const judgeCard = page.locator('section', { has: page.getByRole('heading', { name: '断卦要点' }) });
+  await expect(judgeCard.getByText(/健康疾病（替父母长辈问）取父母为用神/)).toBeVisible();
+  await judgeCard.getByRole('combobox', { name: '替谁问' }).selectOption('self');
+  await expect(judgeCard.getByText(/健康疾病以世爻为用神/)).toBeVisible();
+  await expect(page.getByText('健康疾病（新病）', { exact: true })).toBeVisible();
+});
+
+test('手势起卦：进去再返回，页面仍能滚动', async ({ page }) => {
+  await page.goto('/#/liuyao');
+  const setup = page.getByRole('region', { name: '六爻起卦设置' });
+  await setup.getByRole('button', { name: /手势起卦/ }).click();
+  await page.getByRole('button', { name: '进入手势起卦' }).click();
+  await expect(page.getByRole('button', { name: /点击生一爻/ })).toBeVisible();
+  // 手势页的样式曾写在 html、body 上（overflow: hidden），按需加载后不会卸下，进过一次整个网站就滚不动。
+  await page.getByRole('button', { name: /^返回/ }).click();
+  await expect(setup).toBeVisible();
+  const overflow = await page.evaluate(() => [getComputedStyle(document.documentElement).overflowY, getComputedStyle(document.body).overflowY]);
+  expect(overflow).not.toContain('hidden');
+  await page.evaluate(() => window.scrollTo(0, 400));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+});
+
 test('报数起卦：两个数决定上下卦', async ({ page }) => {
   await page.goto('/#/liuyao');
   const setup = page.getByRole('region', { name: '六爻起卦设置' });
