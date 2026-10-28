@@ -46,7 +46,7 @@ const rootGroupsOf = (roots = []) => {
     return [...groups.values()];
 };
 
-export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster }) {
+export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster, special = null }) {
     const supportPercent = Math.round(strength.ratio * 100);
     const roleOf = (element) => strength.roles[element];
     const { score } = strength;
@@ -123,6 +123,11 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster }
                     </div>
                 </div>
             </div>
+            {special?.godsText && (
+                <p className="rounded-lg border border-[#b06a1f]/35 bg-[#b06a1f]/[0.07] px-3 py-2 text-xs leading-5 text-[#7f4b12]" data-testid="bazi-strength-special">
+                    格局一节{special.name}：若成格，{special.godsText}，与上面按扶抑取的喜忌不同，以人工确认为准。
+                </p>
+            )}
             <p className="rounded-lg bg-[#e9dfcd]/55 px-3 py-2 text-[11px] leading-5 text-[#6f665d] sm:text-xs">
                 以上为程序估算的参考：五行力量按天干每字 1 分（日干不计）、藏干本气 1 / 中气 0.5 / 余气 0.3、月令加倍计；旺衰按得令、得地、得势三项打分，权重按《滴天髓阐微》任铁樵明说旺衰的命造校准；喜用按扶抑取用（有力的排前），调候附在后面。从格、化格、专旺等特殊格局需要人工判断。
             </p>
