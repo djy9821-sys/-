@@ -233,7 +233,7 @@ const ZIWEI_NAMED_STARS = ['紫微', '天机', '太阳', '武曲', '天同', '�
 const broadZiwei = (!ONLY || ONLY === 'ziwei') ? library.entries
   .map((entry) => {
     const conds = entry.applies.filter((cond) => cond.module === 'ziwei' && isMachine(cond));
-    if (!conds.length || conds.some((cond) => cond.star || cond.stars || cond.pattern)) return null;
+    if (!conds.length || conds.some((cond) => cond.star || cond.stars || cond.allStars || cond.pattern)) return null;
     const named = ZIWEI_NAMED_STARS.filter((star) => (entry.original ?? '').includes(star));
     return named.length ? { id: entry.id, title: entry.title, named } : null;
   })

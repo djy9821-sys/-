@@ -1022,6 +1022,12 @@
         "deLing": true,
         "favorable": [
           {
+            "element": "水",
+            "role": "官杀",
+            "tiaoHou": true,
+            "usable": true
+          },
+          {
             "element": "火",
             "role": "比劫",
             "tiaoHou": false,
@@ -1032,12 +1038,6 @@
             "role": "印",
             "tiaoHou": false,
             "usable": false
-          },
-          {
-            "element": "水",
-            "role": "官杀",
-            "tiaoHou": true,
-            "usable": true
           }
         ],
         "unfavorable": [

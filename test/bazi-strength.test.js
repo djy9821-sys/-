@@ -3,10 +3,18 @@ import assert from 'node:assert/strict';
 
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { STRENGTH_BOUNDS, STRENGTH_SCORE, analyzeStrength } from '../src/utils/baziStrength.js';
+import { findSolarDateByPillars } from '../scripts/lib/baziCases.mjs';
 
 const chartOf = (year, month, day, hourIndex, extra = {}) => buildBaziChart({ calendarType: 'solar', year, month, day, gender: 'male', hourIndex, ...extra });
 const ganZhiOf = (chart) => chart.pillars.map(({ ganZhi }) => ganZhi).join(' ');
 const elements = (items) => items.map(({ element }) => element);
+/** 古籍命例只有四柱：找一个四柱相同的日子排盘。 */
+const chartByPillars = (text) => {
+  const date = findSolarDateByPillars(text.split(' '));
+  const chart = chartOf(date.year, date.month, date.day, date.hourIndex);
+  assert.equal(ganZhiOf(chart), text);
+  return chart;
+};
 
 test('三项打分：己土生子月不得令；年支丑、时支辰各有比劫本气，丁、戊透出帮身，合计 2 分偏弱', () => {
   const chart = chartOf(1998, 1, 2, 4);
@@ -89,10 +97,12 @@ test('身旺：印多取财破印；比劫多取官杀，官杀无力取食伤�
   assert.equal(yinDuo.favorable[0].element, '火');
   assert.deepEqual(elements(yinDuo.unfavorable), ['金', '水']);
 
+  // 甲寅 丁丑 戊寅 戊午：扶抑取官杀（木）；丑月寒，火透出又有寅午之根，调候为急，火排在官杀前面。
   const bijie = analyzeStrength(chartOf(1975, 2, 1, 6));
   assert.equal(bijie.band, '偏强');
   assert.equal(bijie.basis, '身旺比劫多，取官杀制劫，食伤、财次之');
-  assert.equal(bijie.favorable[0].element, '木');
+  assert.deepEqual(elements(bijie.favorable).slice(0, 2), ['火', '木']);
+  assert.equal(bijie.tiaoHouNote, '冬月寒冷，调候为急：火有力有根，扶抑虽嫌火，仍取火为先');
 
   const wuli = chartOf(1985, 1, 4, 0);
   assert.equal(ganZhiOf(wuli), '甲子 丙子 癸卯 壬子');
@@ -119,6 +129,23 @@ test('旺极宜泄：丙午 甲午 丁巳 丙午 5 分极强，先取食伤，�
   assert.deepEqual(result.tiaoHou.stems, ['壬', '庚', '癸']);
   assert.ok(result.favorable.some(({ element, tiaoHou }) => element === '水' && tiaoHou));
   assert.ok(result.unfavorable.every(({ element }) => element !== '水'));
+});
+
+test('寒暖调候为急：冬月、正月宜火，夏月宜水，这一火、水有力有根时取为第一（任注《寒暖》）', () => {
+  // 「寒虽甚，要暖有气也」：丙火以寅为根，任注用火。
+  const nuan = analyzeStrength(chartByPillars('甲申 丙子 庚辰 戊寅'));
+  assert.equal(nuan.favorable[0].element, '火');
+  assert.match(nuan.tiaoHouNote, /^冬月寒冷，调候为急：火有力有根/);
+  // 「寒甚而暖无气，反以无暖为美」：丙火虽透，地支无根，不算调候为急（此造中和，火只按常法附在喜用末尾）。
+  const wuQi = analyzeStrength(chartByPillars('己酉 丙子 庚辰 甲申'));
+  assert.equal(wuQi.tiaoHouNote, '调候宜火，附在喜用末尾');
+  // 午月炎燥，「幸赖年干壬水临申」：壬水透出、申中有根，水排第一。
+  const run = analyzeStrength(chartByPillars('壬申 丙午 庚午 丙戌'));
+  assert.equal(run.favorable[0].element, '水');
+  assert.match(run.tiaoHouNote, /^夏月炎燥，调候为急：水有力有根/);
+  // 调候之神不是火、水（丙火生子月，原书调候用壬）的，不按寒暖提前。
+  const bing = analyzeStrength(chartOf(1996, 12, 15, 6));
+  assert.equal(bing.favorable[0].element, '木');
 });
 
 test('中和不硬分喜忌，只附调候', () => {

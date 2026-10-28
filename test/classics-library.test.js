@@ -10,6 +10,7 @@ import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
 import { judgeBaziPattern } from '../src/utils/baziPattern.js';
 import { findRelations } from '../src/utils/baziRelations.js';
+import { validateClassicsDoc } from '../src/data/classics/schema.js';
 
 const files = loadDataFiles();
 const library = buildLibrary(files.classics);
@@ -118,6 +119,27 @@ test('匹配规则：任一条件命中、键内任一取值、复数键、只�
   assert.equal(conditionMatches({ module: 'ziwei', note: 'x' }, ziweiContextOf({ stars: ['紫微'] })), null);
   assert.equal(conditionMatches({ module: 'ziwei', star: '紫微' }, { module: 'bazi', star: ['紫微'] }), null);
   assert.deepEqual(conditionMatches({ module: 'ziwei', palace: '交友' }, ziweiContextOf({ palace: '仆役' })), [{ key: 'palace', value: '仆役' }]);
+});
+
+test('紫微 allStars：几颗星都要在同一宫才算（同宫、同守），星越多越专门', () => {
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.t.101', title: '紫府同宫', original: '甲', status: 'draft', applies: [{ module: 'ziwei', palace: '命宫', allStars: ['紫微', '天府'] }] },
+      { id: 'ziwei.t.102', title: '紫微或天府', original: '乙', status: 'draft', applies: [{ module: 'ziwei', palace: '命宫', stars: ['紫微', '天府'] }] },
+    ],
+  }]);
+  const ids = (stars) => matchEntries(lib, ziweiContextOf({ stars, palace: '命宫' })).map(({ entry }) => entry.id);
+  assert.deepEqual(ids(['紫微']), ['ziwei.t.102'], '只有紫微：allStars 不算，任一颗的算');
+  assert.deepEqual(ids(['紫微', '天府', '左辅']), ['ziwei.t.101', 'ziwei.t.102'], '两颗都在：同宫的条目更专门，排在前面');
+  assert.deepEqual(conditionMatches({ module: 'ziwei', allStars: ['紫微', '天府'] }, ziweiContextOf({ stars: ['天府', '紫微'] })), [{ key: 'star', value: '紫微、天府' }]);
+  assert.equal(conditionMatches({ module: 'ziwei', allStars: ['紫微', '天府'] }, ziweiContextOf({ stars: ['天府'] })), null);
+  // 校验：allStars 要两颗以上不同的星。
+  const doc = (cond) => ({ classic: 'ziwei', section: '测试', edition: '测试', entries: [{ id: 'ziwei.t.201', title: '测试', original: '甲', status: 'draft', applies: [{ module: 'ziwei', ...cond }] }] });
+  assert.deepEqual(validateClassicsDoc(doc({ allStars: ['武曲', '贪狼'] })), []);
+  assert.match(validateClassicsDoc(doc({ allStars: ['武曲'] })).join('\n'), /allStars: 要写两颗以上不同的星/);
+  assert.match(validateClassicsDoc(doc({ allStars: '武曲' })).join('\n'), /allStars: 要写两颗以上不同的星/);
+  assert.match(validateClassicsDoc(doc({ allStars: ['武曲', '武曲'] })).join('\n'), /allStars: 要写两颗以上不同的星/);
 });
 
 test('相关度排序：专讲这颗星的条目在前，只按宫位命中的、一口气列很多星的往后；挂了很多并列条件的通论排在专论后面', () => {

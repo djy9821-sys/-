@@ -11,6 +11,7 @@
  * 匹配规则（与 README 里 applies 的约定一致）：
  * - 条目的 applies 数组里任一条件满足即命中；一个条件里的每个键都要满足（module 必须相同）。
  * - 键值为数组的表示「任一」；复数键（stars、tenGods、dayGans、monthZhis、hexagrams）与单数键同义。
+ * - 例外是紫微的 allStars：列的几颗星都要在（同宫、同守）。
  * - 只写 note 的条件编不出机器条件，默认不命中（给人读的）。
  * - 上下文里没有的键一律算不满足，不猜。
  *
@@ -23,8 +24,10 @@ import { ENTRY_STATUS, ZIWEI_PALACE_ALIASES, chaptersOf, sectionOfEntry } from '
 
 export { patternNamesOf, ziweiPatternNamesOf };
 
-/** 复数键 → 单数键。 */
-const SINGULAR = Object.freeze({ stars: 'star', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram' });
+/** 复数键 → 单数键（allStars 也查上下文的 star，只是要几颗都在）。 */
+const SINGULAR = Object.freeze({ stars: 'star', allStars: 'star', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram' });
+/** 要「全都在」的键。 */
+const ALL_OF = new Set(['allStars']);
 
 /** 条件键的中文名，给界面写「为什么匹配到这条」。 */
 export const CONDITION_LABELS = Object.freeze({
@@ -118,6 +121,11 @@ export const conditionMatches = (cond, ctx) => {
     const ctxValues = toArray(ctx[ctxKey]).map((value) => normalizeValue(ctxKey, String(value)));
     if (ctxValues.length === 0) return null;
     const wanted = toArray(cond[key]).map((value) => normalizeValue(ctxKey, String(value)));
+    if (ALL_OF.has(key)) {
+      if (!wanted.every((value) => ctxValues.includes(value))) return null;
+      matched.push({ key: ctxKey, value: wanted.join('、') });
+      continue;
+    }
     const hit = wanted.find((value) => ctxValues.includes(value));
     if (hit === undefined) return null;
     matched.push({ key: ctxKey, value: hit });
@@ -127,10 +135,14 @@ export const conditionMatches = (cond, ctx) => {
 
 const reasonOf = (matched) => matched.map(({ key, value }) => `${CONDITION_LABELS[key] ?? key}·${value}`).join('，');
 
-/** 一个命中条件的分量：命中的每个键按 KEY_WEIGHT 计，该键列的取值越多打得越轻。 */
+/**
+ * 一个命中条件的分量：命中的每个键按 KEY_WEIGHT 计，该键列的取值越多打得越轻（「任一」列得越多越泛）；
+ * allStars 是几颗都要在，星越多越专门，不打折。
+ */
 const conditionWeight = (cond, matched) => matched.reduce((sum, { key }) => {
-  const condKey = Object.keys(cond).find((name) => (SINGULAR[name] ?? name) === key);
-  return sum + (KEY_WEIGHT[key] ?? 5) * breadthFactor(toArray(cond[condKey]).length);
+  const name = Object.keys(cond).find((item) => (SINGULAR[item] ?? item) === key);
+  const factor = ALL_OF.has(name) ? 1 : breadthFactor(toArray(cond[name]).length);
+  return sum + (KEY_WEIGHT[key] ?? 5) * factor;
 }, 0);
 
 /** 能编成机器条件的条件数（只写 note 的不算）。 */
