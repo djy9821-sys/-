@@ -235,7 +235,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
 
     // 古籍库里与命宫、身宫星曜（及程序认出的格局）相关的条目：附进各类 AI 话术（古籍库按需加载，没加载完就先不附；
     // 话术文本在下面认出格局之后再算）。
-    const { data: classicsData } = useClassicsLibrary(palaces.length > 0);
+    const { data: classicsData } = useClassicsLibrary('ziwei', { enabled: palaces.length > 0 });
 
     React.useEffect(() => {
         if (focusedIndex !== null || palaces.length === 0) return;
