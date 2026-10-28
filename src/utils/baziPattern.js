@@ -69,6 +69,8 @@ const PATTERN_NAME = {
 const ZHUAN_WANG = { 木: '曲直格', 火: '炎上格', 土: '稼穑格', 金: '从革格', 水: '润下格' };
 /** 生我者：木 ← 水。 */
 const GENERATED_BY = { 木: '水', 火: '木', 土: '火', 金: '土', 水: '金' };
+/** 我生者：水 → 木。 */
+const GENERATES = Object.fromEntries(Object.entries(GENERATED_BY).map(([child, mother]) => [mother, child]));
 /** 克我者：土 ← 木。 */
 const KE_BY = Object.fromEntries(Object.entries(KE).map(([from, to]) => [to, from]));
 
@@ -76,7 +78,7 @@ const KE_BY = Object.fromEntries(Object.entries(KE).map(([from, to]) => [to, fro
  * 特殊格局「按此格论」的喜忌（十神类别，按先后排），按《滴天髓阐微·从象》《顺局》任铁樵注的命造：
  * 从格顺从旺神，扶身的印比反成破格之物。第一用神任注一律取与从神相生的那一行：从财取食伤生财，
  * 从杀取财生杀，从儿取财（「儿又生儿」）；从势三者并旺，以财星居中通关为先，官杀次之、食伤又次之。
- * 专旺、从强另见 wangGodsOf。化气格以化神为主，喜化神与生化神之物，忌克化神。
+ * 专旺、从强另见 wangGodsOf，化气格另见 huaGodsOf。
  */
 const CONG_GODS = {
   从财格: { favorable: ['食伤', '财', '官杀'], unfavorable: ['比劫', '印'], basis: '从财以食伤生财为用（任注从财诸造「火乃木之秀气，土乃火之秀气」），财星次之，官杀泄财亦可；比劫夺财、印星生身，都会破格' },
@@ -102,6 +104,31 @@ const wangGodsOf = (kind, roleShare) => {
   return yinLight
     ? { favorable: [...favorable, '食伤'], unfavorable, basis: `${head}；印轻，食伤泄秀亦可` }
     : { favorable, unfavorable: [...unfavorable, '食伤'], basis: `${head}；印不轻，食伤与印相战，不宜` };
+};
+
+/** 化神之气占到四成五算「化气有余」。 */
+const HUA_SURPLUS = 45;
+/**
+ * 化气格以化神为主，按《滴天髓阐微·化象》任注的命造：化气有余宜泄，喜化神所生之物吐秀
+ * （「化气有余，余则宜泄，斯化神吐秀」「暗会金局，泄化神而吐秀」）；化神不足宜生，喜生化神之物
+ * （「秋金当令，化神泄气不足，至午运助化神」「南方火地，生助化神」）。克化神为忌；日主原来的五行帮起日主、
+ * 化神还原，也忌（「中运水旺之地，未能显秩」「癸劫争财」「金水破局」）。这一行若正好是泄神或生神，两说相抵，不列。
+ */
+const huaGodsOf = (element, dayWuxing, share) => {
+  const surplus = share >= HUA_SURPLUS;
+  const helper = surplus ? GENERATES[element] : GENERATED_BY[element];
+  const own = [element, KE_BY[element], helper].includes(dayWuxing) ? null : dayWuxing;
+  const favorable = [{ element, label: '化神' }];
+  if (helper !== dayWuxing) favorable.push({ element: helper, label: surplus ? '泄化神' : '生化神' });
+  const unfavorable = [{ element: KE_BY[element], label: '克化神' }];
+  if (own) unfavorable.push({ element: own, label: '日主本气' });
+  const helperText = surplus ? `化气有余（${share}%）宜泄，${helper}吐秀` : `化神不足（${share}%）宜生，${helper}生助`;
+  return {
+    favorable,
+    unfavorable,
+    basis: `化气以化神${element}为主；${helperText}${helper === dayWuxing ? '，但它也是日主本来的五行，帮身则化神还原，喜忌两说' : '为喜'}；`
+      + `${KE_BY[element]}克化神${own ? `、${own}帮起日主化神还原` : ''}，为忌`,
+  };
 };
 
 /** 把十神类别换成五行：{ element, label }，label 是十神类别。 */
@@ -257,12 +284,15 @@ export const determinePattern = (chart, summary = null) => {
  * 条件按《滴天髓阐微》任铁樵注的命造校准（衰旺篇「旺极」「衰极」，六亲论从象、化象、假从、顺局诸篇；test/bazi-cases.test.js）：
  * - 化气先看：日干与月干或时干相合，日主地支没有本气之根，而化神得令（月令正是化神，日主又无根），
  *   或化神之气占到二成五（「土旺乘权，克去壬水，又无比劫，合神更真」「丙火透而通根，化火斯真」）。
+ *   日主有本气之根，但化神当令、气占三成五以上的，作假化（任注假化诸造「虽是假化，却有情而不悖」
+ *   「化神当令……日干不得不从合而化」）；化神与日主同一五行的（如庚日合乙化金）不作化论。
  * - 从格（「衰极者似X」）：地支无比劫之根，印气至多一点中气、余气（不见本气，得令加得地不过 0.25 分）；天干帮身的只有无根比劫、
  *   至多两个（「天干三透甲乙，而地支不载……格成从杀」），或只有一个无根之印而财星占到三成、足以坏印。
  *   天干比劫三透、印比各一的，任注仍取印比，不作从论。旧的比例条件（同党不到两成、无根、无印透）也算。
  *   另一条看地支：四支本气（三合、三会齐全的按局论，「支全火局」「支全寅卯辰，东方一气」「未土又会木局」）
- *   都是食伤财官，日主在局外的地支没有本气、中气之根，余气之根至多一处，天干帮身至多两个
- *   （有印则只能是这一个，还要财星透出克印或财占三成），也作从论（「四柱皆财，其势必从」）。
+ *   都是食伤财官，日主在局外没有得力之根（本气、禄、寅申巳亥中的长生），微根（辰戌丑未所藏的余气、墓库，
+ *   寅申巳亥的余气）至多一处且不在日支（「天干木火，全赖未中一点微根」，日主坐库仍能盘根），四支一气的不拘微根；
+ *   天干帮身至多两个（有印则只能是这一个，还要财星透出克印或财占三成），也作从论（「四柱皆财，其势必从」）。
  *   从哪一神：食伤、财、官杀里占得最多的一方到三成五为从儿、从财、从杀，否则为从势。
  * - 专旺、从强（「旺极者似X」）：打分到极强（或同党占八成以上），而且四支本气都是印比，不见食伤、财、官杀之根。
  *   打分的两条（从格与极强）要时辰已知。
@@ -277,28 +307,33 @@ export const detectSpecialPattern = (chart, strength, summary) => {
   const yinThrough = summary.transparentRole('印').length > 0;
   const guanThrough = summary.transparentRole('官杀').length > 0;
 
-  // 化气：日干与月干或时干相合，日主地支没有本气之根，化神得令或得势。
-  const benqiRoot = pillars.some((pillar) => GAN_WUXING[pillar.hiddenGanDetails?.[0]?.gan] === dayWuxing);
+  // 化气：日干与月干或时干相合，日主地支没有本气之根，化神得令或得势；有本气之根而化神当令、气旺的作假化。
+  const benqiRootZhis = pillars.filter((pillar) => GAN_WUXING[pillar.hiddenGanDetails?.[0]?.gan] === dayWuxing).map((pillar) => pillar.zhi);
   const partner = stems.find((stem) => (stem.key === 'month' || stem.key === 'time') && GAN_HE[dayGan] === stem.gan);
-  if (partner && !benqiRoot) {
+  if (partner) {
     const pairKey = [dayGan, partner.gan].sort((a, b) => Object.keys(GAN_WUXING).indexOf(a) - Object.keys(GAN_WUXING).indexOf(b)).join('');
     const element = GAN_HE_ELEMENT[pairKey];
     const monthElement = ZHI_WUXING[byKey.month?.zhi];
     const huaShare = strength.percents?.[element] ?? 0;
     const deLing = monthElement === element && !hasRoot;
-    if (element && (deLing || huaShare >= 25)) {
-      // 日主本气（比劫）帮起日主就化不成；日主本气若正是化神、生化神或克化神，就不另列。
-      const own = [element, GENERATED_BY[element], KE_BY[element]].includes(dayWuxing) ? [] : [{ element: dayWuxing, label: '日主本气' }];
-      return withGods({
+    const zhenHua = element && !benqiRootZhis.length && (deLing || huaShare >= 25);
+    const jiaHua = element && benqiRootZhis.length > 0 && element !== dayWuxing && monthElement === element && huaShare >= 35;
+    if (zhenHua || jiaHua) {
+      const gods = huaGodsOf(element, dayWuxing, huaShare);
+      const he = `日主${dayGan}与${partner.name}${partner.gan}相合`;
+      return withGods(zhenHua ? {
         name: `疑似${dayGan}${partner.gan}化${element}格`,
         kind: 'hua',
         element,
-        basis: `日主${dayGan}与${partner.name}${partner.gan}相合，${deLing ? `月令${byKey.month.zhi}正是${element}当令，日主又无根` : `${element}气占 ${huaShare}%，日主地支没有本气之根`}。`,
-        note: '化气格喜化神与生化神之物，忌妒合、争合与化神被克。能否真化条件苛刻，请人工确认。',
-      },
-      [{ element, label: '化神' }, { element: GENERATED_BY[element], label: '生化神' }],
-      [{ element: KE_BY[element], label: '克化神' }, ...own],
-      `化气以化神${element}为主，化神不足喜生、有余喜泄；${KE_BY[element]}克化神${own.length ? `，${dayWuxing}帮起日主则化不成` : ''}，为忌`);
+        basis: `${he}，${deLing ? `月令${byKey.month.zhi}正是${element}当令，日主又无根` : `${element}气占 ${huaShare}%，日主地支没有本气之根`}。`,
+        note: '化气格以化神为主，化气有余喜泄、不足喜生，忌妒合、争合与化神被克。能否真化条件苛刻，请人工确认。',
+      } : {
+        name: `疑似${dayGan}${partner.gan}化${element}格（假化）`,
+        kind: 'jiahua',
+        element,
+        basis: `${he}，月令${byKey.month.zhi}正是${element}当令，${element}气占 ${huaShare}%；但日主在${[...new Set(benqiRootZhis)].join('、')}有本气之根，化而不真。`,
+        note: '假化格合神有情、不争不妒的，仍以化神为用：岁运生助化神则发，帮起日主或克化神则败。能否作化论请人工确认。',
+      }, gods.favorable, gods.unfavorable, gods.basis);
     }
   }
 
@@ -314,15 +349,29 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     || (supportStems.length === 1 && yinStems.length === 1 && roleShare['财'] >= 30)
   );
   const congByRatio = strength.ratio < 0.2 && !hasRoot && !yinThrough;
-  // 看地支：会局后的四支本气都是异党，日主在局外没有本气、中气之根，余气之根至多一处。
+  // 看地支：会局后的四支本气都是异党，日主在局外没有得力之根（本气、禄，寅申巳亥中的长生），
+  // 微根（辰戌丑未所藏上一季的余气与墓库，寅申巳亥的余气）至多一处、而且不在日支（「日主坐下库根」仍能盘根）；
+  // 四支一气的不拘微根（「蟠根在未，余气在辰……但四柱皆财，其势必从」「满局皆土，格成火土从儿」）。
   const ju = juElementsOf(pillars.map((pillar) => pillar.zhi));
   const branchElements = pillars.map((pillar) => ju[pillar.zhi] ?? GAN_WUXING[pillar.hiddenGanDetails?.[0]?.gan]);
-  const outsideRoots = pillars.filter((pillar) => !ju[pillar.zhi])
-    .flatMap((pillar) => (pillar.hiddenGanDetails ?? []).map((detail, index) => (GAN_WUXING[detail.gan] === dayWuxing ? index : null)))
-    .filter((index) => index !== null);
+  const outsideRoots = pillars.filter((pillar) => !ju[pillar.zhi]).flatMap((pillar) => (pillar.hiddenGanDetails ?? [])
+    .map((detail, index) => (GAN_WUXING[detail.gan] !== dayWuxing ? null : {
+      key: pillar.key,
+      zhi: pillar.zhi,
+      faint: index > 0 && LU[dayGan] !== pillar.zhi && (index === 2 || ZA_QI_MONTHS.has(pillar.zhi)),
+    }))
+    .filter(Boolean));
+  const faintRoots = outsideRoots.filter((root) => root.faint);
+  const rootedGan = (gan) => pillars.some((pillar) => (pillar.hiddenGanDetails ?? []).some((detail) => GAN_WUXING[detail.gan] === GAN_WUXING[gan]));
+  // 一气而天干有克它的字通根，势被制住，不作一气论（「三逢辰支，通根身库……甲乙并透，通根制土」）。
+  const yiQiElement = new Set(branchElements).size === 1 ? branchElements[0] : null;
+  const yiQi = Boolean(yiQiElement)
+    && !stems.some((stem) => stem.key !== 'day' && GAN_WUXING[stem.gan] === KE_BY[yiQiElement] && rootedGan(stem.gan));
   const congByBranches = scored && pillars.length === 4
     && branchElements.every((element) => ['食伤', '财', '官杀'].includes(strength.roles[element]))
-    && !outsideRoots.some((index) => index <= 1) && outsideRoots.length <= 1 && supportStems.length <= 2
+    && faintRoots.length === outsideRoots.length
+    && (yiQi || (faintRoots.length <= 1 && !faintRoots.some((root) => root.key === 'day')))
+    && supportStems.length <= 2
     // 天干有印的，只能是这一个帮身之干，还要有财星透出克印（「时干丁火，被年上癸水克去」）或财星占到三成、足以坏印；
     // 印比各一的，任注仍取印比（同上面打分的条件）。
     && (!yinStems.length || (supportStems.length === 1 && (roleShare['财'] >= 30 || summary.transparentRole('财').length > 0)));
@@ -336,9 +385,14 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     const rootText = (score?.roots ?? []).map((root) => `${root.zhi}中${root.gan}`).join('、');
     const byBranches = congByBranches && !congByRatio && !congByScore;
     const rootPart = rootText ? `地支无比劫之根，只有${rootText}一点印气` : '地支无根';
+    const stemsText =(list) => list.map((stem) => `${stem.name.replace('柱', '干')}${stem.gan}`).join('、');
+    const looseStems = supportStems.filter((stem) => !rootedGan(stem.gan));
+    const shallowStems = supportStems.filter((stem) => rootedGan(stem.gan));
     const stemPart = supportStems.length
-      ? `${supportStems.map((stem) => `${stem.name.replace('柱', '干')}${stem.gan}`).join('、')}虚浮无根`
+      ? [looseStems.length ? `${stemsText(looseStems)}虚浮无根` : '', shallowStems.length ? `${stemsText(shallowStems)}根浅` : ''].filter(Boolean).join('，')
       : '天干无印比相帮';
+    const branchPart = yiQi ? `四支都是${branchElements[0]}（${strength.roles[branchElements[0]]}）` : '四支本气都是食伤财官';
+    const faintPart = faintRoots.length ? `只有${[...new Set(faintRoots.map((root) => root.zhi))].join('、')}中一点微根` : '没有得力之根';
     const together = outer.filter((role) => roleShare[role] >= 20);
     const shiPart = dominantShare >= 35 ? `${dominant}占 ${Math.round(dominantShare)}% 独旺`
       : together.length >= 2 ? `${together.join('、')}并旺，无一独占三成五` : '食伤财官合成一势';
@@ -346,7 +400,7 @@ export const detectSpecialPattern = (chart, strength, summary) => {
       name: `疑似${name}`,
       kind: 'cong',
       basis: byBranches
-        ? `${juText ? `${juText}，` : ''}四支本气都是食伤财官，日主${dayGan}${dayWuxing}没有得力之根，${stemPart}，${shiPart}。`
+        ? `${juText ? `${juText}，` : ''}${branchPart}，日主${dayGan}${dayWuxing}${faintPart}，${stemPart}，${shiPart}。`
         : `日主${dayGan}${dayWuxing}${rootPart}，${stemPart}，${shiPart}。`,
       note: '从格以顺从旺势为用，喜忌与常法相反：扶身反而不利。是否真从还要看是否有微根、印星是否被制，请人工确认。',
     }, strength.roles, CONG_GODS[name]);
