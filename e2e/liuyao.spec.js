@@ -55,6 +55,21 @@ test('替家人问病：选替谁问与病程，用神取父母，结果页可�
   await expect(page.getByText('健康疾病（新病）', { exact: true })).toBeVisible();
 });
 
+test('手势起卦：进去再返回，页面仍能滚动', async ({ page }) => {
+  await page.goto('/#/liuyao');
+  const setup = page.getByRole('region', { name: '六爻起卦设置' });
+  await setup.getByRole('button', { name: /手势起卦/ }).click();
+  await page.getByRole('button', { name: '进入手势起卦' }).click();
+  await expect(page.getByRole('button', { name: /点击生一爻/ })).toBeVisible();
+  // 手势页的样式曾写在 html、body 上（overflow: hidden），按需加载后不会卸下，进过一次整个网站就滚不动。
+  await page.getByRole('button', { name: /^返回/ }).click();
+  await expect(setup).toBeVisible();
+  const overflow = await page.evaluate(() => [getComputedStyle(document.documentElement).overflowY, getComputedStyle(document.body).overflowY]);
+  expect(overflow).not.toContain('hidden');
+  await page.evaluate(() => window.scrollTo(0, 400));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+});
+
 test('报数起卦：两个数决定上下卦', async ({ page }) => {
   await page.goto('/#/liuyao');
   const setup = page.getByRole('region', { name: '六爻起卦设置' });

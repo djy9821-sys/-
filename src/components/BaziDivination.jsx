@@ -1356,7 +1356,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
 
                                         <section ref={wuxingSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none sm:px-6 sm:py-6" aria-labelledby="wuxing-title">
                                             <div id="wuxing-title"><SectionHeading seal="贰" title="五行与旺衰" note="计入藏干的五行力量、日主强弱与喜用参考（程序估算）" icon={Scale} /></div>
-                                            {strength && <BaziStrengthPanel strength={strength} surfaceCounts={baziResult.surfaceWuxingCount} dayMaster={baziResult.dayMaster} />}
+                                            {strength && <BaziStrengthPanel strength={strength} surfaceCounts={baziResult.surfaceWuxingCount} dayMaster={baziResult.dayMaster} special={patternJudge?.special ?? null} />}
                                         </section>
 
                                         {patternJudge && (

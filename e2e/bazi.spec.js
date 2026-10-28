@@ -16,16 +16,18 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   await expect(result).toContainText('测试 · 乾造');
   await expect(result).toContainText('乙木');
   await expect(result).toContainText('1990.5.20');
+  // 旺衰按得令、得地、得势打分：此造不得令、地支无根，只有时干壬水（印）帮身，0.5 分极弱；食伤（火）最重，取印。
+  await expect(result.getByTestId('bazi-strength-score')).toContainText('0.5 分');
+  await expect(result.getByTestId('bazi-strength-basis')).toContainText('身弱食伤重，取印制伤生身');
   // 格局与择日两节都在。
   await expect(result.getByRole('heading', { name: /格局与命局组合/ })).toBeVisible();
   await expect(result.getByRole('heading', { name: /择日参考/ })).toBeVisible();
-  // 古籍原文：正官格命中《子平真诠》成败两段，白话默认，切到原文能看到原句。
-  // 支线还在录入，条目排序会变：只断言结构与「正官格那条在列表里」，翻完所有页再找原句。
+  // 古籍原文：正官格命中《子平真诠》成败两段等条目，白话默认，切到原文能看到原句。
+  // 支线还在录入，条目排序会变（各书各篇轮流排）：只断言第一页有按正官格命中的，翻完所有页再找原句。
   await expect(result.getByRole('heading', { name: /古籍原文/ })).toBeVisible();
   const classics = result.getByTestId('bazi-classics');
   const firstEntry = classics.getByTestId('bazi-classic-entry').first();
-  await expect(firstEntry).toContainText('《子平真诠》');
-  await expect(classics).toContainText('格局·正官格');
+  await expect(classics.getByTestId('bazi-classic-entry').filter({ hasText: '格局·正官格' }).first()).toBeVisible();
   await classics.getByRole('button', { name: '原文' }).click();
   await expect(firstEntry.locator('p.font-serif').first()).toBeVisible();
   const more = classics.getByRole('button', { name: /^再看/ });
@@ -33,8 +35,8 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   await expect(classics).toContainText('官逢财印，又无刑冲破害');
   // 导出给 AI 的提示词附上同一批古籍原文（排序随支线录入的条目变化，只断言有正官格那条）。
   const promptText = result.locator('textarea[aria-label="提示词全文"]');
-  await expect(promptText).toHaveValue(/【古籍原文（与本命相关）】\n- 《子平真诠》/);
-  await expect(promptText).toHaveValue(/\n- 《子平真诠》[^\n]*（匹配：[^\n]*格局·正官格[^\n]*）/);
+  await expect(promptText).toHaveValue(/【古籍原文（与本命相关）】\n- 《[^》\n]+》/);
+  await expect(promptText).toHaveValue(/\n- 《[^》\n]+》[^\n]*（匹配：[^\n]*格局·正官格[^\n]*）/);
   await expect(result).toContainText(/已附上与本命相关的古籍原文 \d+ 条/);
   // 术语词典：先列这张盘里出现的术语（日主、十神……），搜索能找到并展开。
   await expect(result.getByRole('heading', { name: /术语词典/ })).toBeVisible();
@@ -48,6 +50,19 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   await expect(hit).toContainText('例：');
   await glossary.getByRole('searchbox', { name: '搜索术语' }).fill('不存在的词');
   await expect(glossary).toContainText('没有找到包含「不存在的词」的术语');
+});
+
+test('疑似从格：格局一节给出按此格论的喜忌，旺衰一节提示另见格局', async ({ page }) => {
+  // 1975-02-26 午时：乙卯 戊寅 癸卯 戊午，癸水地支无根、天干无印比，食伤独旺。
+  await page.goto('/#/bazi?cal=s&d=1975-2-26&g=m&h=6');
+  const result = page.getByRole('region', { name: '八字排盘结果' });
+  await expect(result).toBeVisible();
+  const special = result.getByTestId('bazi-special-pattern');
+  await expect(special).toContainText('疑似从儿格');
+  const gods = special.getByTestId('bazi-special-gods');
+  await expect(gods).toContainText('若按此格论');
+  await expect(gods).toContainText('从儿以财为用');
+  await expect(result.getByTestId('bazi-strength-special')).toContainText('格局一节疑似从儿格：若成格，喜火（财）、木（食伤）；忌金（印）、土（官杀）');
 });
 
 test('手动录入排盘、存档，再从档案打开', async ({ page }) => {

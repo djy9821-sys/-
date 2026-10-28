@@ -6,8 +6,9 @@
  * 1. 随机排一批八字盘、紫微盘（每盘十二宫）、六爻卦（十二类问事轮流），用网页同一套上下文
  *    （baziContextOf / ziweiPalaceContextOf / liuyaoReadingContextOf）逐条试 applies 里的每个条件；
  * 2. 一次没命中的条件再定向造盘重试：八字按条件的日干、月令挑日子排盘；六爻按条件的卦名、动爻、问事直接装卦。
- * 最后分三类列出：程序暂不支持的（紫微大限 / 流年条件、天时等程序还没有的问事）、定向重试才命中的（罕见，不用管）、
+ * 最后分三类列出：程序暂不支持的（紫微流月 / 流日条件、鬼神等程序还没有的问事）、定向重试才命中的（罕见，不用管）、
  * 重试仍没命中的——多半是组合写错了（如紫微在卯写「庙」、天府写「化忌」、甲日子月写正官格），逐条看原文改条件。
+ * 另列紫微「命中太宽」的条目：原文点了星名，applies 却只写宫位、地支，命宫在该支的每张盘都会出现，应补 star。
  *
  * 只是检查工具，不进 CI；随机数固定种子，结果可复现。
  */
@@ -121,6 +122,9 @@ function* ziweiContexts(count) {
     const genderLabel = gender === 'male' ? '男' : '女';
     for (const palace of horoscope.palaces) {
       yield ziweiPalaceContextOf(palace, { gender: genderLabel, patterns: palace.name === '命宫' ? patterns : [] });
+      // 古籍弹层还能切到「当前大限 / 今年流年」：任何一宫都可能是那一层的命宫
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '大限' });
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '流年' });
     }
   }
 }
@@ -171,7 +175,7 @@ const MODULES = {
 };
 /** 程序暂不支持、注定匹配不上的条件：说明原因。 */
 const unsupportedReason = (module, cond) => {
-  if (module === 'ziwei' && cond.limit && cond.limit !== '本命') return `程序的古籍弹层只按本命盘匹配，还没有「${cond.limit}」的上下文`;
+  if (module === 'ziwei' && cond.limit && !['本命', '大限', '流年'].includes(cond.limit)) return `程序的古籍弹层只有本命盘、当前大限、今年流年三层，还没有「${cond.limit}」的上下文`;
   if (module === 'liuyao') {
     const pending = toArray(cond.topic).filter((name) => LIUYAO_TOPIC_PENDING.includes(name));
     if (pending.length && pending.length === toArray(cond.topic).length) return `问事类别「${pending.join('、')}」程序还没有`;
@@ -222,6 +226,20 @@ for (const [module, { generate, retry, retries, more }] of Object.entries(MODULE
   report[module] = { contexts, conditions: conditions.length, unsupported, rare, never };
 }
 
+// 命中太宽：紫微条目原文点了星名，applies 却只按宫位、地支等命中——命宫在某支的每张盘都会出现这条，不管宫里坐什么星。
+// 只看全称（「紫府」「机梁」「日月」这类简称不算），「拱」「朝」「夹」「照」来的星本就不坐本宫，可以不补，在 notes 说明。
+const ZIWEI_NAMED_STARS = ['紫微', '天机', '太阳', '武曲', '天同', '廉贞', '天府', '太阴', '贪狼', '巨门', '天相', '天梁', '七杀', '破军',
+  '文昌', '文曲', '左辅', '右弼', '天魁', '天钺', '禄存', '天马', '擎羊', '陀罗', '火星', '铃星', '地空', '地劫'];
+const broadZiwei = (!ONLY || ONLY === 'ziwei') ? library.entries
+  .map((entry) => {
+    const conds = entry.applies.filter((cond) => cond.module === 'ziwei' && isMachine(cond));
+    if (!conds.length || conds.some((cond) => cond.star || cond.stars || cond.allStars || cond.pattern)) return null;
+    const named = ZIWEI_NAMED_STARS.filter((star) => (entry.original ?? '').includes(star));
+    return named.length ? { id: entry.id, title: entry.title, named } : null;
+  })
+  .filter(Boolean) : [];
+if (report.ziwei) report.ziwei.broad = broadZiwei;
+
 const describe = ({ id, title, index, cond, reason }) => {
   const { module: _module, note, ...rest } = cond;
   return `  - ${id}（${title}）条件 ${index + 1}：${JSON.stringify(rest)}${note ? `  // ${note}` : ''}${reason ? `\n      → ${reason}` : ''}`;
@@ -241,4 +259,9 @@ if (AS_JSON) {
       unsupported.forEach((item) => console.log(describe(item)));
     }
   });
+  if (broadZiwei.length) {
+    console.log(`\n【ziwei】命中太宽 ${broadZiwei.length} 条：原文点了星名，applies 只按宫位、地支等命中（命宫在该支的盘都会出现）。`
+      + '坐在本宫的星请补进 star；「拱」「朝」「夹」「照」来的星不坐本宫，不补，在 notes 说明。');
+    broadZiwei.forEach(({ id, title, named }) => console.log(`  - ${id}（${title}）原文提到：${named.join('、')}`));
+  }
 }

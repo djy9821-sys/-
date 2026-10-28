@@ -11,6 +11,7 @@
  * 匹配规则（与 README 里 applies 的约定一致）：
  * - 条目的 applies 数组里任一条件满足即命中；一个条件里的每个键都要满足（module 必须相同）。
  * - 键值为数组的表示「任一」；复数键（stars、tenGods、dayGans、monthZhis、hexagrams）与单数键同义。
+ * - 例外是紫微的 allStars：列的几颗星都要在（同宫、同守）。
  * - 只写 note 的条件编不出机器条件，默认不命中（给人读的）。
  * - 上下文里没有的键一律算不满足，不猜。
  *
@@ -23,8 +24,10 @@ import { ENTRY_STATUS, ZIWEI_PALACE_ALIASES, chaptersOf, sectionOfEntry } from '
 
 export { patternNamesOf, ziweiPatternNamesOf };
 
-/** 复数键 → 单数键。 */
-const SINGULAR = Object.freeze({ stars: 'star', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram' });
+/** 复数键 → 单数键（allStars 也查上下文的 star，只是要几颗都在）。 */
+const SINGULAR = Object.freeze({ stars: 'star', allStars: 'star', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram' });
+/** 要「全都在」的键。 */
+const ALL_OF = new Set(['allStars']);
 
 /** 条件键的中文名，给界面写「为什么匹配到这条」。 */
 export const CONDITION_LABELS = Object.freeze({
@@ -118,6 +121,11 @@ export const conditionMatches = (cond, ctx) => {
     const ctxValues = toArray(ctx[ctxKey]).map((value) => normalizeValue(ctxKey, String(value)));
     if (ctxValues.length === 0) return null;
     const wanted = toArray(cond[key]).map((value) => normalizeValue(ctxKey, String(value)));
+    if (ALL_OF.has(key)) {
+      if (!wanted.every((value) => ctxValues.includes(value))) return null;
+      matched.push({ key: ctxKey, value: wanted.join('、') });
+      continue;
+    }
     const hit = wanted.find((value) => ctxValues.includes(value));
     if (hit === undefined) return null;
     matched.push({ key: ctxKey, value: hit });
@@ -127,21 +135,62 @@ export const conditionMatches = (cond, ctx) => {
 
 const reasonOf = (matched) => matched.map(({ key, value }) => `${CONDITION_LABELS[key] ?? key}·${value}`).join('，');
 
-/** 一个命中条件的分量：命中的每个键按 KEY_WEIGHT 计，该键列的取值越多打得越轻。 */
+/**
+ * 一个命中条件的分量：命中的每个键按 KEY_WEIGHT 计，该键列的取值越多打得越轻（「任一」列得越多越泛）；
+ * allStars 是几颗都要在，星越多越专门，不打折。
+ */
 const conditionWeight = (cond, matched) => matched.reduce((sum, { key }) => {
-  const condKey = Object.keys(cond).find((name) => (SINGULAR[name] ?? name) === key);
-  return sum + (KEY_WEIGHT[key] ?? 5) * breadthFactor(toArray(cond[condKey]).length);
+  const name = Object.keys(cond).find((item) => (SINGULAR[item] ?? item) === key);
+  const factor = ALL_OF.has(name) ? 1 : breadthFactor(toArray(cond[name]).length);
+  return sum + (KEY_WEIGHT[key] ?? 5) * factor;
 }, 0);
 
 /** 能编成机器条件的条件数（只写 note 的不算）。 */
 const machineConditionCount = (applies) => applies
   .filter((cond) => cond && Object.keys(cond).some((key) => key !== 'module' && key !== 'note')).length;
 
+/** 轮流排各书各篇：前面每排过一条同篇的，让 2 分；每排过一条同书的，再让 0.5 分。 */
+const SAME_SECTION_STEP = 2;
+const SAME_BOOK_STEP = 0.5;
+
+/**
+ * 相关度相近的条目轮流排各书各篇，免得一篇七首诗诀占满第一页、提示词只附到同一篇。
+ * 贪心：每次取「分数 − 已排同篇条数 × 2 − 已排同书条数 × 0.5」最高的；
+ * 同篇之内仍按原来的分数与 id 先后，分数差得多的（如格局专论与通论）次序不变。
+ * @param {object[]} hits 已按分数、id 排好的命中
+ */
+const interleaveSources = (hits) => {
+  const remaining = [...hits];
+  const ordered = [];
+  const sectionCount = new Map();
+  const bookCount = new Map();
+  while (remaining.length) {
+    let bestIndex = 0;
+    let bestValue = -Infinity;
+    remaining.forEach((hit, index) => {
+      const value = hit.score
+        - SAME_SECTION_STEP * (sectionCount.get(`${hit.entry.book}|${hit.entry.section}`) ?? 0)
+        - SAME_BOOK_STEP * (bookCount.get(hit.entry.book) ?? 0);
+      if (value > bestValue + 1e-9) {
+        bestValue = value;
+        bestIndex = index;
+      }
+    });
+    const [hit] = remaining.splice(bestIndex, 1);
+    ordered.push(hit);
+    const sectionKey = `${hit.entry.book}|${hit.entry.section}`;
+    sectionCount.set(sectionKey, (sectionCount.get(sectionKey) ?? 0) + 1);
+    bookCount.set(hit.entry.book, (bookCount.get(hit.entry.book) ?? 0) + 1);
+  }
+  return ordered;
+};
+
 /**
  * 按上下文找出相关条目，按相关度排序：
  * - 命中的键越多、越能区分命盘（格局、星曜、卦名重，命宫、十神、性别轻）、列的取值越少，越靠前；
  * - 一条原文挂了很多并列条件的（如「何谓成」对十几种格局都适用），算通论，往后放一点；
- * - 再相同时已审 > 待审 > 仅原文，最后按 id。
+ * - 再相同时已审 > 待审 > 仅原文，最后按 id；
+ * - 最后各书各篇轮流排（见 interleaveSources），第一页与提示词里能看到不同古籍的说法。
  * @param {object} library buildLibrary 的结果
  * @param {object} ctx 上下文
  * @param {{ limit?: number, status?: string[] }} [options] 条数上限；只看某些状态
@@ -169,7 +218,8 @@ export const matchEntries = (library, ctx, options = {}) => {
     });
   });
   hits.sort((a, b) => b.score - a.score || a.entry.id.localeCompare(b.entry.id));
-  return options.limit ? hits.slice(0, options.limit) : hits;
+  const ordered = interleaveSources(hits);
+  return options.limit ? ordered.slice(0, options.limit) : ordered;
 };
 
 const SEASON_OF_ZHI = Object.freeze({ 寅: '春', 卯: '春', 辰: '春', 巳: '夏', 午: '夏', 未: '夏', 申: '秋', 酉: '秋', 戌: '秋', 亥: '冬', 子: '冬', 丑: '冬' });
@@ -295,7 +345,7 @@ export const liuyaoReadingContextOf = (reading, judge = null) => {
 };
 
 /**
- * 紫微提示词用：命宫与身宫（同宫时只算一次）星曜命中的条目，去重后按相关度排序。
+ * 紫微提示词用：命宫与身宫（同宫时只算一次）星曜命中的条目，去重后按相关度排序（各书各篇轮流排，同 matchEntries）。
  * @param {object} library buildLibrary 的结果
  * @param {object[]} palaces iztro 的十二宫
  * @param {{ gender?: string, patterns?: string[] }} [options] patterns：程序认出的格局名，算进命宫的上下文
@@ -315,7 +365,7 @@ export const ziweiLifePalaceHits = (library, palaces, { gender = null, patterns 
       hits.push(hit);
     });
   });
-  return hits.sort((a, b) => b.score - a.score || a.entry.id.localeCompare(b.entry.id));
+  return interleaveSources(hits.sort((a, b) => b.score - a.score || a.entry.id.localeCompare(b.entry.id)));
 };
 
 /* ---------- 术语词典 ---------- */

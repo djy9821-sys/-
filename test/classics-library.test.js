@@ -10,6 +10,7 @@ import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
 import { judgeBaziPattern } from '../src/utils/baziPattern.js';
 import { findRelations } from '../src/utils/baziRelations.js';
+import { validateClassicsDoc } from '../src/data/classics/schema.js';
 
 const files = loadDataFiles();
 const library = buildLibrary(files.classics);
@@ -120,6 +121,27 @@ test('匹配规则：任一条件命中、键内任一取值、复数键、只�
   assert.deepEqual(conditionMatches({ module: 'ziwei', palace: '交友' }, ziweiContextOf({ palace: '仆役' })), [{ key: 'palace', value: '仆役' }]);
 });
 
+test('紫微 allStars：几颗星都要在同一宫才算（同宫、同守），星越多越专门', () => {
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.t.101', title: '紫府同宫', original: '甲', status: 'draft', applies: [{ module: 'ziwei', palace: '命宫', allStars: ['紫微', '天府'] }] },
+      { id: 'ziwei.t.102', title: '紫微或天府', original: '乙', status: 'draft', applies: [{ module: 'ziwei', palace: '命宫', stars: ['紫微', '天府'] }] },
+    ],
+  }]);
+  const ids = (stars) => matchEntries(lib, ziweiContextOf({ stars, palace: '命宫' })).map(({ entry }) => entry.id);
+  assert.deepEqual(ids(['紫微']), ['ziwei.t.102'], '只有紫微：allStars 不算，任一颗的算');
+  assert.deepEqual(ids(['紫微', '天府', '左辅']), ['ziwei.t.101', 'ziwei.t.102'], '两颗都在：同宫的条目更专门，排在前面');
+  assert.deepEqual(conditionMatches({ module: 'ziwei', allStars: ['紫微', '天府'] }, ziweiContextOf({ stars: ['天府', '紫微'] })), [{ key: 'star', value: '紫微、天府' }]);
+  assert.equal(conditionMatches({ module: 'ziwei', allStars: ['紫微', '天府'] }, ziweiContextOf({ stars: ['天府'] })), null);
+  // 校验：allStars 要两颗以上不同的星。
+  const doc = (cond) => ({ classic: 'ziwei', section: '测试', edition: '测试', entries: [{ id: 'ziwei.t.201', title: '测试', original: '甲', status: 'draft', applies: [{ module: 'ziwei', ...cond }] }] });
+  assert.deepEqual(validateClassicsDoc(doc({ allStars: ['武曲', '贪狼'] })), []);
+  assert.match(validateClassicsDoc(doc({ allStars: ['武曲'] })).join('\n'), /allStars: 要写两颗以上不同的星/);
+  assert.match(validateClassicsDoc(doc({ allStars: '武曲' })).join('\n'), /allStars: 要写两颗以上不同的星/);
+  assert.match(validateClassicsDoc(doc({ allStars: ['武曲', '武曲'] })).join('\n'), /allStars: 要写两颗以上不同的星/);
+});
+
 test('相关度排序：专讲这颗星的条目在前，只按宫位命中的、一口气列很多星的往后；挂了很多并列条件的通论排在专论后面', () => {
   const lib = buildLibrary([{
     classic: 'ziwei', section: '测试', edition: '测试',
@@ -145,6 +167,39 @@ test('相关度排序：专讲这颗星的条目在前，只按宫位命中的�
   const ranked = matchEntries(bazi, { module: 'bazi', pattern: ['正官格'], tenGod: ['正官', '正财'] });
   assert.deepEqual(ranked.map(({ entry }) => entry.id), ['ziping.r.002', 'ziping.r.001', 'ziping.r.003']);
   assert.ok(ranked.every((hit, index) => index === 0 || ranked[index - 1].score >= hit.score));
+});
+
+test('相关度相近时各书各篇轮流排：一篇几首诗诀不占满前几条，同篇之内次序不变', () => {
+  const official = (id, title, section, original) => ({ id, title, section, original, status: 'translated', applies: [{ module: 'bazi', pattern: '正官格' }] });
+  const lib = buildLibrary([
+    {
+      classic: 'yuanhai', section: '正官诗诀、正官论', edition: '测试',
+      entries: [
+        official('yuanhai.t.001', '正官诗诀·其一', '正官诗诀', '甲'),
+        official('yuanhai.t.002', '正官诗诀·其二', '正官诗诀', '乙'),
+        official('yuanhai.t.003', '正官诗诀·其三', '正官诗诀', '丙'),
+        official('yuanhai.t.004', '正官论·其一', '正官论', '丁'),
+      ],
+    },
+    {
+      classic: 'ziping', section: '论正官', edition: '测试',
+      entries: [official('ziping.t.001', '论正官·其一', '论正官', '戊'), official('ziping.t.002', '论正官·其二', '论正官', '己')],
+    },
+  ]);
+  const ctx = { module: 'bazi', pattern: ['正官格'] };
+  const ids = matchEntries(lib, ctx).map(({ entry }) => entry.id);
+  assert.deepEqual(ids, ['yuanhai.t.001', 'ziping.t.001', 'yuanhai.t.004', 'ziping.t.002', 'yuanhai.t.002', 'yuanhai.t.003']);
+  assert.deepEqual(matchEntries(lib, ctx, { limit: 3 }).map(({ entry }) => entry.id), ids.slice(0, 3));
+  // 分数差得多的照旧：专论在前，挂一串格局的通论在后
+  const withGeneral = buildLibrary([{
+    classic: 'ziping', section: '论正官、论成败', edition: '测试',
+    entries: [
+      { id: 'ziping.g.001', title: '何谓成', section: '论成败', original: '庚', status: 'translated', applies: ['正官格', '七杀格', '正财格', '偏财格', '正印格', '偏印格', '食神格', '伤官格'].map((pattern) => ({ module: 'bazi', pattern })) },
+      official('ziping.g.002', '论正官·其一', '论正官', '辛'),
+      official('ziping.g.003', '论正官·其二', '论正官', '壬'),
+    ],
+  }]);
+  assert.deepEqual(matchEntries(withGeneral, ctx).map(({ entry }) => entry.id), ['ziping.g.002', 'ziping.g.003', 'ziping.g.001']);
 });
 
 test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算，身宫同宫时命宫身宫都给，四化去掉「化」字）', () => {
