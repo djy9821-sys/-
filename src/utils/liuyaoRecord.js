@@ -22,10 +22,34 @@ export const LIUYAO_TOPIC_LABELS = Object.freeze({
   study: '考试学业',
   lawsuit: '官司是非',
   children: '子女孕育',
+  home: '房屋田产',
+  lost: '失物寻找',
+  weather: '天时晴雨',
   parents: '父母长辈',
   friends: '兄弟朋友',
-  home: '房屋田产',
+  maternity: '产妇平安',
+  year: '流年运势',
+  life: '终身运势',
+  refuge: '避乱避祸',
+  gravesite: '寻地择穴',
+  ancestral: '祖坟风水',
 });
+
+/**
+ * 替谁问（代占）：问别人的事以那人的六亲为用神（《增删卜易·用神章》）；只对健康、出行、官司等「看人」的类别有用。
+ * 没选时为空字符串，按类别的默认（多数是自己）。
+ */
+export const LIUYAO_SUBJECT_LABELS = Object.freeze({
+  self: '自己',
+  parents: '父母长辈',
+  siblings: '兄弟朋友',
+  spouse: '配偶',
+  children: '子女晚辈',
+  staff: '下属雇员',
+});
+
+/** 问病时的病程：《增删卜易·疾病章》近病、久病断法相反（六冲近病即愈、久病难治）。 */
+export const LIUYAO_ILLNESS_LABELS = Object.freeze({ recent: '新病', chronic: '久病' });
 
 const CAST_PATTERN = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})(?::(\d{2}))?$/;
 const VALID_VALUES = new Set([6, 7, 8, 9]);
@@ -34,6 +58,8 @@ const pad = (value) => String(value).padStart(2, '0');
 export const normalizeLiuYaoMethod = (method) => (LIUYAO_METHODS[method] ? method : 'coins');
 export const normalizeLiuYaoTopic = (topic) => (LIUYAO_TOPIC_LABELS[topic] ? topic : 'general');
 export const normalizeLiuYaoGender = (gender) => (gender === 'female' || gender === 'male' ? gender : '');
+export const normalizeLiuYaoSubject = (subject) => (LIUYAO_SUBJECT_LABELS[subject] ? subject : '');
+export const normalizeLiuYaoIllness = (illness) => (LIUYAO_ILLNESS_LABELS[illness] ? illness : '');
 
 /** 起卦时间按“墙上时间”保存（已换算成所在地真太阳时），不带时区，换设备打开也不会变。 */
 export const formatCastTime = (date) => (
@@ -67,6 +93,8 @@ export const buildLiuYaoRecord = (reading, castDate, { name, group = 'self', not
     method: normalizeLiuYaoMethod(reading.method),
     topic: normalizeLiuYaoTopic(reading.topic),
     gender: normalizeLiuYaoGender(reading.gender),
+    subject: normalizeLiuYaoSubject(reading.subject),
+    illness: normalizeLiuYaoIllness(reading.illness),
     castNote: typeof reading.castNote === 'string' ? reading.castNote : '',
     castAt: formatCastTime(castDate),
     values: [...reading.values],
@@ -100,6 +128,8 @@ export const liuYaoRecordToInput = (record) => {
     method: normalizeLiuYaoMethod(data.method),
     topic: normalizeLiuYaoTopic(data.topic),
     gender: normalizeLiuYaoGender(data.gender),
+    subject: normalizeLiuYaoSubject(data.subject),
+    illness: normalizeLiuYaoIllness(data.illness),
     castNote: typeof data.castNote === 'string' ? data.castNote : '',
   };
 };
@@ -119,6 +149,8 @@ export const describeLiuYaoRecord = (record) => {
     castText: castText ? `起卦 ${castText}` : '起卦时间未记录',
     dayText: typeof data.day === 'string' && data.day ? `${data.day}日` : '',
     methodText: LIUYAO_METHODS[data.method] ?? LIUYAO_METHODS.coins,
-    topicText: LIUYAO_TOPIC_LABELS[data.topic] ?? '',
+    topicText: LIUYAO_TOPIC_LABELS[data.topic]
+      ? `${LIUYAO_TOPIC_LABELS[data.topic]}${data.subject && data.subject !== 'self' && LIUYAO_SUBJECT_LABELS[data.subject] ? `（替${LIUYAO_SUBJECT_LABELS[data.subject]}问）` : ''}`
+      : '',
   };
 };

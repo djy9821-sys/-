@@ -1,6 +1,5 @@
 
 import React, { useMemo } from 'react';
-import { astro } from 'iztro';
 import {
     AI_PROMPT_TEMPLATE,
     FEMALE_PROMPT_TEMPLATE,
@@ -13,11 +12,14 @@ import {
 import { findBestConceptionDates } from '../utils/babySelector';
 import { track } from '../utils/analytics';
 import {
+    birthLunarYearOf,
     buildCurrentFortuneContext,
+    flowYearOf,
     FORTUNE_HOUR_OPTIONS,
     FORTUNE_LAYER_LABELS,
     getLunarMonthDays,
     getLunarMonthOptions,
+    getTimelineFortune,
 } from '../utils/fortuneContext';
 import {
     MUTAGEN_META,
@@ -145,6 +147,7 @@ const getFlyPalaceShortName = (name = '') => FLY_PALACE_SHORT_NAMES[name] || Str
 
 // Helper: Get Year Stem (0-9 index)
 const getYearStemIndex = (year) => (year - 4) % 10;
+const NO_STEMS = Object.freeze({});
 
 function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, onQuickChart, onShareLink = null }) {
     const palaces = useMemo(() => {
@@ -233,14 +236,9 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         return palaces.find((palace) => palace.index === focusedIndex) || palaces[focusedIndex] || null;
     }, [focusedIndex, palaces]);
 
-    // 古籍库里与命宫、身宫星曜相关的条目：附进各类 AI 话术（古籍库按需加载，没加载完就先不附）。
-    const { data: classicsData } = useClassicsLibrary(palaces.length > 0);
-    const classicsPromptText = useMemo(() => {
-        if (!classicsData?.library || palaces.length === 0) return null;
-        const hits = ziweiLifePalaceHits(classicsData.library, palaces, { gender: basicInfo.gender });
-        return classicsPromptSection(hits, { title: '【古籍原文（命宫、身宫星曜）】', subject: '命宫身宫星曜', limit: 4 });
-    }, [classicsData, palaces, basicInfo.gender]);
-    const withClassics = (text) => (text && classicsPromptText ? `${text}\n\n${classicsPromptText}` : text);
+    // 古籍库里与命宫、身宫星曜（及程序认出的格局）相关的条目：附进各类 AI 话术（古籍库按需加载，没加载完就先不附；
+    // 话术文本在下面认出格局之后再算）。
+    const { data: classicsData } = useClassicsLibrary('ziwei', { enabled: palaces.length > 0 });
 
     React.useEffect(() => {
         if (focusedIndex !== null || palaces.length === 0) return;
@@ -446,7 +444,10 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         () => [...palaces].sort((a, b) => a.decadal.range[0] - b.decadal.range[0]),
         [palaces],
     );
-    const birthYear = Number(String(horoscope.solarDate || basicInfo.birthday || '').slice(0, 4)) || new Date().getFullYear();
+    // 出生年按农历年：虚岁、大限岁数都按农历年算，元旦到春节之间出生的人按公历年排会让时间轴整体错一年。
+    const birthYear = birthLunarYearOf(horoscope)
+        || Number(String(basicInfo.birthday || '').slice(0, 4))
+        || new Date().getFullYear();
     const currentYear = new Date().getFullYear();
     const currentHoroscope = useMemo(() => {
         try {
@@ -456,6 +457,8 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
             return null;
         }
     }, [horoscope]);
+    // 「今年」的流年按立春换年（与运限一致）：元旦到立春之间仍标上一年。
+    const currentFlowYear = currentHoroscope ? flowYearOf(currentHoroscope, currentYear) : currentYear;
     const virtualAge = currentHoroscope?.age?.nominalAge ?? (currentYear - birthYear + 1);
     const currentDaxianPalace = (currentHoroscope?.decadal?.name === '大限'
         ? palaces.find((palace) => palace.index === currentHoroscope?.decadal?.index)
@@ -471,6 +474,14 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         () => [...patternResults, ...structureResults],
         [patternResults, structureResults],
     );
+    // 程序认出的格局名（三奇加会、机月同梁格……），古籍匹配时算进命宫的上下文。
+    const patternNames = useMemo(() => patternEntries.map((pattern) => pattern.name), [patternEntries]);
+    const classicsPromptText = useMemo(() => {
+        if (!classicsData?.library || palaces.length === 0) return null;
+        const hits = ziweiLifePalaceHits(classicsData.library, palaces, { gender: basicInfo.gender, patterns: patternNames });
+        return classicsPromptSection(hits, { title: '【古籍原文（命宫、身宫星曜）】', subject: '命宫身宫星曜', limit: 4 });
+    }, [classicsData, palaces, basicInfo.gender, patternNames]);
+    const withClassics = (text) => (text && classicsPromptText ? `${text}\n\n${classicsPromptText}` : text);
     const selectedPattern = patternEntries.find((pattern) => pattern.id === selectedPatternId)
         || patternEntries[0]
         || null;
@@ -588,10 +599,22 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         const endYear = birthYear + endAge - 1;
         return `${palace.decadal.heavenlyStem}${palace.decadal.earthlyBranch}限 · 虚岁${startAge}-${endAge} · ${startYear}-${endYear}`;
     };
+    // 古籍弹层可切到「当前大限 / 今年流年」：那一层的命宫在本命盘的哪一宫。
+    const classicsLimits = {
+        decadal: currentDaxianPalace ? { index: currentDaxianPalace.index, label: `当前大限（${formatDaxian(currentDaxianPalace)}）` } : null,
+        yearly: Number.isInteger(currentHoroscope?.yearly?.index) ? { index: currentHoroscope.yearly.index, label: `${currentFlowYear} 年流年` } : null,
+    };
+    // 时间轴手动选到的各层干支：选到某一天后与「当前运势」同一口径（getZiweiFortune：流年立春换年、流月农历月、晚子时按命盘流派）。
+    const timelineFortune = useMemo(
+        () => (currentFortuneContext ? null : getTimelineFortune(horoscope, selection)),
+        [horoscope, selection, currentFortuneContext],
+    );
+    const activeStems = currentFortuneContext?.activeStems ?? timelineFortune?.stems ?? NO_STEMS;
+    const timelineNotes = timelineFortune?.notes ?? [];
     const currentViewLabel = currentFortuneContext
-        ? `公历${currentFortuneContext.solarDate} · ${FORTUNE_LAYER_LABELS[currentFortuneContext.type] || '运限'}`
+        ? `公历${currentFortuneContext.solarDate} · ${FORTUNE_LAYER_LABELS[currentFortuneContext.type] || '运限'}${currentFortuneContext.dayBoundaryNote ? `（${currentFortuneContext.dayBoundaryNote}）` : ''}`
         : selection.year
-            ? `${selection.year}流年${selection.month ? ` · ${selection.isLeapMonth ? '闰' : ''}${selection.month}月` : ''}${selection.day ? ` · ${selection.day}日` : ''}${selection.hour !== null ? ` · ${FORTUNE_HOUR_OPTIONS.find((item) => item.index === selection.hour)?.name || '流时'}` : ''}`
+            ? `${selection.year}流年${selection.month ? ` · ${selection.isLeapMonth ? '闰' : ''}${selection.month}月` : ''}${selection.day ? ` · ${selection.day}日` : ''}${selection.hour !== null ? ` · ${FORTUNE_HOUR_OPTIONS.find((item) => item.index === selection.hour)?.name || '流时'}` : ''}${timelineNotes.length ? `（${timelineNotes.join('；')}）` : ''}`
             : selection.daxianIndex !== null
                 ? `大限：${formatDaxian(selectedDaxianPalace)}`
                 : '本命盘（尚未选择流年、流月、流日或流时）';
@@ -600,76 +623,6 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         setShowAiMenu(false);
         setMenuView('main');
     };
-
-    // Helper to calculate stems (extracted for reuse)
-    const calculateActiveStems = (sel, horo, info) => {
-        if (!horo) return {};
-        const stems = {};
-
-        // 1. Origin (Ben)
-        if (horo.chineseDate) {
-            if (typeof horo.chineseDate === 'string') {
-                stems.origin = horo.chineseDate.split(' ')[0][0];
-            } else if (horo.chineseDate.yearly) {
-                stems.origin = horo.chineseDate.yearly[0];
-            }
-        }
-
-        // 2. Decadal (Xian)
-        if (sel.daxianIndex !== null) {
-            const decadalPalace = horo.palaces.find((palace) => palace.index === sel.daxianIndex)
-                || horo.palaces[sel.daxianIndex];
-            if (decadalPalace) stems.decadal = decadalPalace.heavenlyStem;
-        }
-
-        // 3. Yearly (Nian)
-        let yearStemIndex = null;
-        if (sel.year) {
-            yearStemIndex = getYearStemIndex(sel.year);
-            stems.yearly = HEAVENLY_STEMS[yearStemIndex];
-        }
-
-        // 4. Monthly (Yue)
-        if (yearStemIndex !== null && sel.month) {
-            const startStem = (yearStemIndex % 5) * 2 + 2;
-            const monthStemIndex = (startStem + (sel.month - 1)) % 10;
-            stems.monthly = HEAVENLY_STEMS[monthStemIndex];
-        }
-
-        // 5. Daily & 6. Hourly
-        if (sel.year && sel.month && sel.day) {
-            try {
-                const tempHoroscope = astro.byLunar(
-                    `${sel.lunarYear || sel.year}-${sel.month}-${sel.day}`,
-                    sel.hour ?? 0,
-                    info.gender === 'male' ? '男' : '女',
-                    Boolean(sel.isLeapMonth),
-                    true
-                );
-
-                if (tempHoroscope && tempHoroscope.chineseDate) {
-                    const rawChineseDate = tempHoroscope.rawDates?.chineseDate;
-                    const parts = typeof tempHoroscope.chineseDate === 'string'
-                        ? tempHoroscope.chineseDate.trim().split(/\s+/)
-                        : [];
-
-                    stems.daily = rawChineseDate?.daily?.[0] || parts[2]?.[0];
-                    if (sel.hour !== null) {
-                        stems.hourly = rawChineseDate?.hourly?.[0] || parts[3]?.[0];
-                    }
-                }
-            } catch (e) {
-                console.error("Error calculating daily/hourly stems:", e);
-            }
-        }
-        return stems;
-    };
-
-    // Memoize active stems for UI rendering
-    const activeStems = useMemo(() => {
-        if (currentFortuneContext) return currentFortuneContext.activeStems;
-        return calculateActiveStems(selection, horoscope, basicInfo);
-    }, [horoscope, selection, basicInfo, currentFortuneContext]);
 
     // Helper to get Si Hua for a star from active stems
     const getActiveSiHua = (starName) => getActiveMutagenBadges({
@@ -773,14 +726,8 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
 
         // 2. Liu Nian (Flow Year)
         // Formula: Ages where (Age - 1 + BirthBranchIndex) % 12 === PalaceBranchIndex
-        // We need Birth Branch Index.
-        // Try to get from horoscope.chineseDate.yearly[1] or calculate from solar year.
-        let birthBranchIndex = 0;
-        if (basicInfo.birthday) {
-            const birthYear = new Date(basicInfo.birthday).getFullYear();
-            // 1984=0(Rat), 1990=6(Horse). (Year-4)%12
-            birthBranchIndex = (birthYear - 4) % 12;
-        }
+        // 虚岁 1 岁那年的流年地支：按出生农历年（与虚岁、大限、时间轴同一口径；元旦到春节出生的人不能按公历年）。
+        const birthBranchIndex = ((birthYear - 4) % 12 + 12) % 12;
         const palaceBranchIndex = BRANCH_ORDER.indexOf(palace.earthlyBranch);
 
         // Generate Liu Nian ages (e.g., 1 to 100)
@@ -2648,7 +2595,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 <button
                                     key={year}
                                     type="button"
-                                    className={`wenmo-luck-cell ${selection.year === year ? 'is-active' : ''} ${year === currentYear ? 'is-current' : ''}`}
+                                    className={`wenmo-luck-cell ${selection.year === year ? 'is-active' : ''} ${year === currentFlowYear ? 'is-current' : ''}`}
                                     aria-pressed={selection.year === year}
                                     aria-label={`选择${year}流年`}
                                     onClick={() => handleTimelineYear(year)}
@@ -3153,7 +3100,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 </h2>
                                 <p>选一个宫，看古籍里怎么说宫中的星曜；原文逐字照录公版古籍，白话另译并标注审核状态</p>
                             </header>
-                            <ZiweiClassicsPanel palaces={palaces} focusedIndex={focusedIndex} gender={basicInfo.gender} />
+                            <ZiweiClassicsPanel palaces={palaces} focusedIndex={focusedIndex} gender={basicInfo.gender} patterns={patternNames} limits={classicsLimits} />
                         </div>
 
                         <footer className="wenmo-pattern-actions wenmo-pattern-actions--single">
