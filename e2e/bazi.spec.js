@@ -19,13 +19,12 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   // 格局与择日两节都在。
   await expect(result.getByRole('heading', { name: /格局与命局组合/ })).toBeVisible();
   await expect(result.getByRole('heading', { name: /择日参考/ })).toBeVisible();
-  // 古籍原文：正官格命中《子平真诠》成败两段，白话默认，切到原文能看到原句。
-  // 支线还在录入，条目排序会变：只断言结构与「正官格那条在列表里」，翻完所有页再找原句。
+  // 古籍原文：正官格命中《子平真诠》成败两段等条目，白话默认，切到原文能看到原句。
+  // 支线还在录入，条目排序会变（各书各篇轮流排）：只断言第一页有按正官格命中的，翻完所有页再找原句。
   await expect(result.getByRole('heading', { name: /古籍原文/ })).toBeVisible();
   const classics = result.getByTestId('bazi-classics');
   const firstEntry = classics.getByTestId('bazi-classic-entry').first();
-  await expect(firstEntry).toContainText('《子平真诠》');
-  await expect(classics).toContainText('格局·正官格');
+  await expect(classics.getByTestId('bazi-classic-entry').filter({ hasText: '格局·正官格' }).first()).toBeVisible();
   await classics.getByRole('button', { name: '原文' }).click();
   await expect(firstEntry.locator('p.font-serif').first()).toBeVisible();
   const more = classics.getByRole('button', { name: /^再看/ });
@@ -33,8 +32,8 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   await expect(classics).toContainText('官逢财印，又无刑冲破害');
   // 导出给 AI 的提示词附上同一批古籍原文（排序随支线录入的条目变化，只断言有正官格那条）。
   const promptText = result.locator('textarea[aria-label="提示词全文"]');
-  await expect(promptText).toHaveValue(/【古籍原文（与本命相关）】\n- 《子平真诠》/);
-  await expect(promptText).toHaveValue(/\n- 《子平真诠》[^\n]*（匹配：[^\n]*格局·正官格[^\n]*）/);
+  await expect(promptText).toHaveValue(/【古籍原文（与本命相关）】\n- 《[^》\n]+》/);
+  await expect(promptText).toHaveValue(/\n- 《[^》\n]+》[^\n]*（匹配：[^\n]*格局·正官格[^\n]*）/);
   await expect(result).toContainText(/已附上与本命相关的古籍原文 \d+ 条/);
   // 术语词典：先列这张盘里出现的术语（日主、十神……），搜索能找到并展开。
   await expect(result.getByRole('heading', { name: /术语词典/ })).toBeVisible();
