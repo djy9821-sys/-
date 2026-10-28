@@ -287,7 +287,8 @@ export const liuyaoReadingContextOf = (reading, judge = null) => {
     changed: reading.changed?.name ?? null,
     movingLines: reading.movingPositions ?? moving.map((line) => line.position),
     relations: [reading.hexagram.relation, reading.changed?.relation].filter(Boolean),
-    sixRelatives: [judge?.yongShen?.relative].filter(Boolean),
+    // 天时等一卦看几种六亲的类别，判断结果里带 contextRelatives（发动、暗动、化出的六亲）。
+    sixRelatives: (judge?.contextRelatives ?? [judge?.yongShen?.relative]).filter(Boolean),
     sixGods: [...moving.map((line) => line.god), judge?.yongShen?.god].filter(Boolean),
     topic: judge?.topic ?? reading.topic ?? null,
   });
