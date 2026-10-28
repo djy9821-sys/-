@@ -225,6 +225,7 @@ test('四支一气不拘微根、日主坐库仍能盘根、假化与化气有�
   assert.equal(jia.kind, 'jiahua');
   assert.match(jia.basis, /月令戌正是土当令，土气占 41%；但日主在卯有本气之根，化而不真/);
   assert.deepEqual(godsOf(jia.favorable), ['土化神', '火生化神']);
+  assert.ok(judgeByPillars('己卯 甲戌 甲子 己巳').judge.points.some((line) => line.endsWith('这与旺衰一节按扶抑取的喜忌不同，假化还要看合神是否有情、岁运是否生助化神。')));
   // 化气有余宜泄：「化气有余，余则宜泄，斯化神吐秀」「中运水旺之地，未能显秩」；假化同论（「金水破局」）。
   assert.equal(judgeByPillars('己卯 丁卯 壬午 甲辰').judge.special.godsText, '喜木（化神）、火（泄化神）；忌金（克化神）、水（日主本气）');
   const muJia = judgeByPillars('甲辰 丁卯 壬辰 辛亥').judge.special;
