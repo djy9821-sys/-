@@ -17,6 +17,13 @@ test('时间起卦得到装卦结果，并能存入档案', async ({ page }) => 
   await expect(page.getByRole('table', { name: '装卦表' })).toBeVisible();
   await expect(page.getByText('端到端测试问事').first()).toBeVisible();
 
+  // 术语词典：按需加载后可搜索（词条随支线录入增加，这里只断言结构）。
+  const glossary = page.getByTestId('liuyao-glossary');
+  await expect(page.getByRole('heading', { name: '术语词典' })).toBeVisible();
+  await expect(glossary.getByTestId('liuyao-glossary-summary')).toContainText(/词典共 \d+ 条/);
+  await glossary.getByRole('searchbox', { name: '搜索术语' }).fill('不存在的词');
+  await expect(glossary).toContainText('没有找到包含「不存在的词」的术语');
+
   await page.getByRole('button', { name: '存入档案' }).click();
   const panel = page.locator('#liuyao-save-panel');
   await panel.getByPlaceholder('例如：问换工作').fill('端到端卦例');
