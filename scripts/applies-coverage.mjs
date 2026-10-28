@@ -131,9 +131,11 @@ const BITS_OF_HEXAGRAM = Object.freeze(Object.fromEntries(
   // HEXAGRAM_MAP 的键自上而下，爻值数组自下而上。
   Object.entries(HEXAGRAM_MAP).map(([key, hexagram]) => [hexagram.name, [...key].reverse().map(Number)]),
 ));
-const TOPIC_KEY_OF_NAME = Object.freeze(Object.fromEntries(
-  Object.entries(LIUYAO_TOPIC_NAMES).flatMap(([key, names]) => names.map((name) => [name, key])).reverse(),
-));
+/** 古籍叫法 → 程序类别（一个叫法可能归几个类别，如「产育」既算子女孕育也算产妇平安）。 */
+const TOPIC_KEYS_OF_NAME = Object.freeze(Object.entries(LIUYAO_TOPIC_NAMES).reduce((acc, [key, names]) => {
+  names.forEach((name) => { (acc[name] ??= []).push(key); });
+  return acc;
+}, {}));
 const liuyaoContextOfValues = (values, topic) => {
   const date = new Date(pickInt(2000, 2030), pickInt(0, 11), pickInt(1, 28), pickInt(0, 23), 30);
   const reading = buildLiuYaoReading(values, date, { topic, gender: random() < 0.5 ? 'male' : 'female' });
@@ -157,7 +159,7 @@ const targetedLiuyaoContext = (cond) => {
     moving = positions.slice(0, count);
   }
   const values = bits.map((bit, i) => (moving.includes(i + 1) ? (bit ? 9 : 6) : (bit ? 7 : 8)));
-  const topicKey = TOPIC_KEY_OF_NAME[pickOne(toArray(cond.topic))] ?? pickOne(LIUYAO_TOPICS).value;
+  const topicKey = pickOne(TOPIC_KEYS_OF_NAME[pickOne(toArray(cond.topic))] ?? LIUYAO_TOPICS.map((topic) => topic.value));
   return liuyaoContextOfValues(values, topicKey);
 };
 
