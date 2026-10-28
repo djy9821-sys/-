@@ -91,6 +91,39 @@
 
 古籍库里已录《增删卜易》占例 162 条（总论 81、分类占法前半 50、后半 31，id 见 `zengshan-zonglun.json`、`zengshan-zhanfa-1.json`、`zengshan-zhanfa-2.json`，标题都以「占例·」开头）。逐条转成 `src/data/cases/liuyao.json` 的命例：`id` 用 `liuyao.zengshan.001` 起连号，`original` 抄起卦、断语与应验的原文（太长可节录，完整原文由 `source.entry` 指向），`vernacular` 可沿用古籍条目的白话。只有月支日支、没有完整干支的照原文写 `date` 与 `dayGanZhi`。分支 `side/05-cases-liuyao`，从当前集成基准分支新开；每 30 条左右提交一次，跑 `node scripts/validate-data.mjs`。
 
+## 第三批：《滴天髓阐微》任铁樵命例（八字）
+
+任铁樵在《滴天髓阐微》各篇注后举了几百个命造，四柱齐全、旺衰与用神说得明白，是检验程序「日主旺衰、喜用」的最好材料。本批录 60–100 造，写进 `src/data/cases/bazi.json`（在示例条目之后续录），分支 `side/05-cases-bazi`，从当前集成基准分支新开。
+
+- `id`：`bazi.ditian.001` 起连号；`name` 写「《滴天髓阐微》某造（篇名）」，如「《滴天髓阐微》某造（通神论·衰旺）」。
+- `source`：`{ "classic": "ditian", "section": "通神论·衰旺" }`，篇名按所据版本；`notes` 写所据底本与页码。
+- `birth`：任注命造大多只有四柱，写 `{ "calendar": "unknown", "gender": "male" }`（女命写 female）；不要按干支去推年份。
+- `pillars`：照原书四柱。校验脚本会核对**月干合不合年上起月、时干合不合日上起时、每柱是不是六十甲子**；报错先回原书扫描页核对，抄错的改正；原书确实这样印的照录，在 `notes` 写明「自检」两字和情况，校验就放行。
+- `original`：抄四柱与任氏论这一造的原文（论到旺衰、用神、行运、结局的部分）；太长可节录，节录处用「……」。
+- `vernacular`：逐句直译，不加原文没有的话（白话不得超过原文 3.5 倍，校验会查）。
+- `expected`（主线拿来做旺衰、用神的回归，**只填原书明说的**，拿不准不填、写进 `notes`）：
+  - `strength`：原书说日主旺、强、有余写「旺」，衰、弱、不足写「弱」，明说中和、停匀写「中和」；从格照下一项写格局，旺衰按从强（旺）、从弱（弱）填。
+  - `pattern`：原书明说成从格、化格、专旺时才写，用程序认得的名字：从财格、从杀格、从儿格、从势格、从强格、曲直格、炎上格、稼穑格、从革格、润下格、化气格（见 `src/data/classics/patternNames.js`）；正格不写。
+  - `useGod`：原书明说的用神（及喜神），写五行（木火土金水）或十神（比劫、印、食伤、财、官杀，或正官、七杀、正印、偏印、食神、伤官、正财、偏财、比肩、劫财），几个的写数组，如 `["水", "印"]`。
+  - `outcome`：原书记的结局原文摘句，如「科甲出身，仕至观察」「破耗异常，刑妻克子」。
+
+```json
+{
+  "id": "bazi.ditian.001",
+  "name": "《滴天髓阐微》某造（通神论·衰旺）",
+  "source": { "classic": "ditian", "section": "通神论·衰旺" },
+  "birth": { "calendar": "unknown", "gender": "male" },
+  "pillars": ["庚子", "庚辰", "甲寅", "戊辰"],
+  "expected": { "strength": "弱", "useGod": ["水", "印"], "outcome": "原书结局摘句" },
+  "original": "四柱与任注原文……",
+  "vernacular": "白话……",
+  "notes": "底本与页码。",
+  "status": "translated"
+}
+```
+
+每 20–30 造提交一次，跑 `node scripts/validate-data.mjs`；做完开 PR。只收原书命造，不收后人附会的名人八字。
+
 ## 步骤 / 验收 / 禁止
 
 分支 `side/05-cases`；按来源分 PR。校验脚本与 CI 通过；抽查 10% 核对四柱与原书一致、来源可查。只产出 JSON，不碰代码，不改金样（金样由主线从这些命例生成）。
