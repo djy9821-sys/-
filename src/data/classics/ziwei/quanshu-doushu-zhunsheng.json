@@ -1,0 +1,295 @@
+{
+  "classic": "ziwei",
+  "volume": "卷一",
+  "section": "斗数准绳",
+  "edition": "公版古籍《紫微斗数全书》（明万历潘希尹辑刻本、四库提要存目本，参校维基文库、ctext.org 公版文本）",
+  "contributor": "antigravity",
+  "entries": [
+    {
+      "id": "ziwei.quanshu.zhunsheng.001",
+      "title": "斗数准绳·其一",
+      "original": "命居生旺定富贵，各有所宜。身坐空亡论荣枯，专求其要。",
+      "vernacular": "命宫处于长生帝旺之地以定富贵，各自有适宜的配合。身宫落入空亡之地以论断荣枯，专求其关节点。",
+      "notes": "生旺：指长生、临官、帝旺等旺地。空亡：指地空、地劫或截空、旬空。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫"
+        }
+      ],
+      "tags": [
+        "斗数准绳",
+        "生旺",
+        "空亡"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zhunsheng.002",
+      "title": "斗数准绳·其二",
+      "original": "紫微帝座在南极不能施功，天府令星在南地专能为福。",
+      "vernacular": "紫微帝座星若落于南极弱地则不能施展功用，天府南斗令星在南方诸宫则专能降下福泽。",
+      "notes": "南极：古说紫微为北极帝星，落入南方弱陷之位施力受限。南地：指巳午未等南方地支宫位。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "stars": [
+            "紫微",
+            "天府"
+          ]
+        }
+      ],
+      "tags": [
+        "斗数准绳",
+        "紫微",
+        "天府"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zhunsheng.003",
+      "title": "斗数准绳·其三",
+      "original": "天机七杀同宫也善三分，太阴火铃同位反成十恶。",
+      "vernacular": "天机与七杀同宫也会有三分向善，太阴与火星铃星同位反而变成十恶之凶。",
+      "notes": "十恶：比喻凶煞极重、性情败坏。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "stars": [
+            "天机",
+            "七杀"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "stars": [
+            "太阴",
+            "火星",
+            "铃星"
+          ]
+        }
+      ],
+      "tags": [
+        "斗数准绳",
+        "天机七杀",
+        "太阴火铃"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zhunsheng.004",
+      "title": "斗数准绳·其四",
+      "original": "贪狼为善宿入庙不凶，巨门为恶曜得垣尤美。",
+      "vernacular": "贪狼若入庙旺则为善星而不显凶，巨门虽为暗曜若能居于得垣庙地反而尤为美善。",
+      "notes": "得垣：星曜进入本属或最适宜其特质发挥的地支宫垣。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "star": "贪狼",
+          "brightness": "庙"
+        },
+        {
+          "module": "ziwei",
+          "star": "巨门",
+          "brightness": "庙"
+        }
+      ],
+      "tags": [
+        "斗数准绳",
+        "贪狼",
+        "巨门"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zhunsheng.005",
+      "title": "斗数准绳·其五",
+      "original": "诸凶在紧要之乡最宜制克，若在身命之位却受孤单。",
+      "vernacular": "各种凶星落在关键紧要的宫位最适宜受制克化解，如果落在身宫命宫之位却会受孤单之苦。",
+      "notes": "紧要之乡：指命身、三方四正或田宅财帛等要害宫位。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫"
+        },
+        {
+          "module": "ziwei",
+          "palace": "身宫"
+        }
+      ],
+      "tags": [
+        "斗数准绳",
+        "凶星",
+        "制克"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zhunsheng.006",
+      "title": "斗数准绳·其六",
+      "original": "若见杀星倒限最凶，福荫临之庶几可解。",
+      "vernacular": "如果看见煞星倒限最为凶险，若有天梁福荫星临照或许可以化解。",
+      "notes": "倒限：指运限逆行或运限遇极凶星曜而寿数受危。福荫：天梁化气为荫，天同化福，此处主指天梁天同。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "star": "天梁",
+          "limit": "大限"
+        }
+      ],
+      "tags": [
+        "斗数准绳",
+        "倒限",
+        "天梁"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zhunsheng.007",
+      "title": "斗数准绳·其七",
+      "original": "大抵在人之机变，更加作意之推详。辨生克制化以定穷通，看好恶正偏以言祸福。",
+      "vernacular": "大抵全在于推命者的机敏应变，更加用心用意地推断详审。辨析生克制化来确定穷困与亨通，观察星曜的好恶正偏来断定祸福。",
+      "notes": "作意：用心、着意。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "推命准绳总论"
+        }
+      ],
+      "tags": [
+        "斗数准绳",
+        "生克制化",
+        "总则"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zhunsheng.008",
+      "title": "斗数准绳·其八",
+      "original": "官星居于福地近贵荣财，福星居于官宫却成无用。",
+      "vernacular": "官星居于福德宫能亲近贵人且发财荣达，福星居于官禄宫反而成了无甚作为之物。",
+      "notes": "官星：如太阳、天相、紫微等主事业功名之星。福星：如天同、天梁等主清福享乐之星。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "福德"
+        },
+        {
+          "module": "ziwei",
+          "palace": "官禄"
+        }
+      ],
+      "tags": [
+        "斗数准绳",
+        "官星",
+        "福星"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zhunsheng.009",
+      "title": "斗数准绳·其九",
+      "original": "身命得星为要，限度遇吉为荣。",
+      "vernacular": "身宫命宫得到吉利主星守照是关键要务，行限行运遇到吉星是荣达之机。",
+      "notes": "限度：指大小二限行历之宫位缠度。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫"
+        }
+      ],
+      "tags": [
+        "斗数准绳",
+        "身命",
+        "限度"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zhunsheng.010",
+      "title": "斗数准绳·其十",
+      "original": "若言子息有無，专在擎羊耗杀，逢之则害，妻妾亦然。",
+      "vernacular": "若要推论子女之有无，专看擎羊与大耗七杀等凶煞，逢之就会有害克伤，论及妻妾也是如此。",
+      "notes": "耗杀：指大耗及七杀等耗散煞戮之星。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "子女",
+          "stars": [
+            "擎羊",
+            "七杀"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "夫妻",
+          "stars": [
+            "擎羊",
+            "七杀"
+          ]
+        }
+      ],
+      "tags": [
+        "斗数准绳",
+        "子女",
+        "夫妻"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zhunsheng.011",
+      "title": "斗数准绳·其十一",
+      "original": "相貌逢凶必带破相，疾厄逢忌定有尪羸。",
+      "vernacular": "相貌宫（父母宫）逢凶星定带破相伤痕，疾厄宫逢化忌必定有瘦弱疾病之患。",
+      "notes": "相貌宫：古代斗数十二宫中父母宫常称相貌宫。尪羸：病弱消瘦。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "父母"
+        },
+        {
+          "module": "ziwei",
+          "palace": "疾厄",
+          "mutagen": "忌"
+        }
+      ],
+      "tags": [
+        "斗数准绳",
+        "相貌",
+        "疾厄"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zhunsheng.012",
+      "title": "斗数准绳·其十二",
+      "original": "须言定数以求玄，更在同年之相合，总为纲领用作准绳。",
+      "vernacular": "必须依据命中定数来探求玄妙，更在于生年与行限流年的相互配和，这些总括为全书纲领用作推命的准绳。",
+      "notes": "同年：指生年干支与流年太岁、流年干支的生合冲破。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "推命准绳结语"
+        }
+      ],
+      "tags": [
+        "斗数准绳",
+        "定数",
+        "纲领"
+      ],
+      "status": "translated"
+    }
+  ]
+}
