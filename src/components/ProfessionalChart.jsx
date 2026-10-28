@@ -599,6 +599,11 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         const endYear = birthYear + endAge - 1;
         return `${palace.decadal.heavenlyStem}${palace.decadal.earthlyBranch}限 · 虚岁${startAge}-${endAge} · ${startYear}-${endYear}`;
     };
+    // 古籍弹层可切到「当前大限 / 今年流年」：那一层的命宫在本命盘的哪一宫。
+    const classicsLimits = {
+        decadal: currentDaxianPalace ? { index: currentDaxianPalace.index, label: `当前大限（${formatDaxian(currentDaxianPalace)}）` } : null,
+        yearly: Number.isInteger(currentHoroscope?.yearly?.index) ? { index: currentHoroscope.yearly.index, label: `${currentFlowYear} 年流年` } : null,
+    };
     // 时间轴手动选到的各层干支：选到某一天后与「当前运势」同一口径（getZiweiFortune：流年立春换年、流月农历月、晚子时按命盘流派）。
     const timelineFortune = useMemo(
         () => (currentFortuneContext ? null : getTimelineFortune(horoscope, selection)),
@@ -3095,7 +3100,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 </h2>
                                 <p>选一个宫，看古籍里怎么说宫中的星曜；原文逐字照录公版古籍，白话另译并标注审核状态</p>
                             </header>
-                            <ZiweiClassicsPanel palaces={palaces} focusedIndex={focusedIndex} gender={basicInfo.gender} patterns={patternNames} />
+                            <ZiweiClassicsPanel palaces={palaces} focusedIndex={focusedIndex} gender={basicInfo.gender} patterns={patternNames} limits={classicsLimits} />
                         </div>
 
                         <footer className="wenmo-pattern-actions wenmo-pattern-actions--single">
