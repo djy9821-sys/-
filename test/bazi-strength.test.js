@@ -79,6 +79,13 @@ test('身弱官杀重：取印化杀；印无力而食伤透出，取食伤制�
   assert.equal(gui.basis, '身弱官杀重，印星无力，取食伤制杀');
   assert.equal(gui.favorable[0].element, '木');
   assert.equal(gui.favorable[0].usable, true);
+
+  // 找病时透干的字另加半分：地支土气（3.6）略多于金（3.5），但庚金并透，才是病。
+  // 任注「庚金并透，通根砍伐……更妙丙火独透，制杀扶身」，用火。
+  const jia = analyzeStrength(chartByPillars('庚申 庚辰 甲戌 丙寅'));
+  assert.deepEqual([jia.scores.土, jia.scores.金], [3.6, 3.5]);
+  assert.equal(jia.basis, '身弱官杀重，印星无力，取食伤制杀');
+  assert.equal(jia.favorable[0].element, '火');
 });
 
 test('身弱食伤重：取印制伤生身', () => {
