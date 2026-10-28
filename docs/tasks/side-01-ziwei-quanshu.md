@@ -14,8 +14,12 @@
 | 2 | 太微赋、形性赋、骨髓赋、女命骨髓赋 | `quanshu-taiwei-fu.json`、`quanshu-xingxing-fu.json`、`quanshu-gusui-fu.json`、`quanshu-nvming-gusui-fu.json` | `ziwei.quanshu.taiwei.` 等 | 每赋按句群拆 20–60 条 |
 | 3 | 星垣论、斗数准绳、斗数发微论、定富贵贫贱十等论、十二宫诸星得地合格定局、十二宫诸星失陷破格 | 一篇一文件，命名同上 | `ziwei.quanshu.<篇名拼音>.` | 60–100 |
 | 4 | 运限诸篇（论大限十年祸福、论小限、论流年太岁、论二限太岁吉凶等）与格局诸篇（定富局、定贵局、定贫贱局、定杂局），另加论诸星同垣各司所主 | 一篇一文件，命名同上；分支 `side/01-ziwei-quanshu-b4` | `ziwei.quanshu.<篇名拼音>.` | 50–100 |
+| 5 | 论诸星同垣各司所宜分别富贵贫贱夭寿（重录，PR #28） | `quanshu-lun-zhuxing-tongyuan.json`；分支 `side/01-ziwei-quanshu-b5` | `ziwei.quanshu.tongyuan.` | 264 |
+| 6 | 十二宫诸篇：论命宫、兄弟、夫妻、子女、财帛、疾厄、迁移、奴仆、官禄、田宅、福德、父母（各宫诸星吉凶） | 一宫一文件 `quanshu-gong-<宫名拼音>.json`（如 `quanshu-gong-fuqi.json`）；分支 `side/01-ziwei-quanshu-b6`，从 `origin/side/01-ziwei-quanshu-b5` 开 | `ziwei.quanshu.gong<宫名拼音>.` | 每宫 15–40 |
 
 篇目名称与分卷以你所据版本为准，不同版本篇名略异时在 `edition` 说明。
+
+第 6 批的 `applies`：一句讲一宫里的星，写 `palace`（用 README 里的宫名：兄弟、夫妻、子女、财帛、疾厄、迁移、仆役、官禄、田宅、福德、父母，命宫写「命宫」）加 `star`；原文点了庙旺落陷、地支、四化的，加 `brightness`、`branches`、`mutagen`；几颗星同宫写 `allStars`，夹的写 `jia`。底本没有某一宫专篇的跳过，在 PR 里列出。篇名以所据版本为准。
 
 第 4 批的 `applies`：讲大限的条件写 `limit: "大限"`，讲流年、太岁的写 `limit: "流年"`（程序按此刻所行大限、流年的命宫去匹配）；讲小限的程序还没有，不写 `limit`，只写星曜等条件并在 `note` 写「小限」。格局名只能用 `src/data/classics/patternNames.js` 紫微格局表里认得的名字，表里没有的改写成星曜 + 宫位等条件，或只写 `note`。
 
