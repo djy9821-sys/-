@@ -14,6 +14,7 @@ export const LIUYAO_RULE_SOURCES = Object.freeze([
   Object.freeze({ topic: '六冲六合', classic: 'zengshan', section: '六冲章、六合章', rule: '八纯卦与天雷无妄、雷天大壮为六冲；天地否、地天泰、泽水困、水泽节、火山旅、山火贲、雷地豫、地雷复为六合。' }),
   Object.freeze({ topic: '进退神、回头生克、入墓', classic: 'zengshan', section: '进神退神章、墓库章及论动变诸章', rule: '亥子、寅卯、巳午、申酉、丑辰未戌，前化后为进神，后化前为退神；变爻生本爻为回头生，克本爻为回头克；木墓未、火墓戌、金墓丑、水土墓辰。' }),
   Object.freeze({ topic: '反吟伏吟', classic: 'zengshan', section: '反吟章、伏吟章', rule: '变爻与本爻相冲为反吟，变出同支为伏吟，皆主反复难进。' }),
+  Object.freeze({ topic: '天时', classic: 'zengshan', section: '天时章', rule: '父母为雨，子孙为晴，妻财亦主晴，官鬼为浓云雷电，兄弟为风云；只看发动、暗动与化出，不论旺衰。动者逢值逢合之日应，静者逢值逢冲之日应，动而逢空应冲空、填实之日。' }),
   Object.freeze({ topic: '时间起卦、报数起卦', classic: 'meihua', section: '年月日时起例、物数占', rule: '年支数加月数加日数，除八取上卦；再加时辰数，除八取下卦；总数除六取动爻。报数以首数取上卦、次数取下卦、两数之和取动爻。' }),
 ]);
 
