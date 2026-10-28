@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 import {
   baziContextOf, baziGlossarySeeds, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
-  patternNamesOf, searchGlossary, termsIn, ziweiContextOf, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiPalaceContextOf,
+  patternNamesOf, searchGlossary, termsIn, ziweiContextOf, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiNeighborsOf, ziweiPalaceContextOf,
 } from '../src/data/classics/library.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
@@ -142,6 +142,33 @@ test('紫微 allStars：几颗星都要在同一宫才算（同宫、同守）�
   assert.match(validateClassicsDoc(doc({ allStars: ['武曲', '武曲'] })).join('\n'), /allStars: 要写两颗以上不同的星/);
 });
 
+test('紫微 jia：两颗星（或四化）分坐左右两邻才算「夹」，哪边是哪颗不论', () => {
+  const palaceOf = (index, names, mutagens = {}) => ({
+    index, name: `宫${index}`, earthlyBranch: '子', minorStars: [], adjectiveStars: [],
+    majorStars: names.map((name) => ({ name, mutagen: mutagens[name] ?? null })),
+  });
+  const palaces = [
+    palaceOf(0, ['文曲']), palaceOf(1, ['天机'], { 天机: '忌' }), palaceOf(2, ['文昌', '太阴'], { 太阴: '禄' }),
+    ...Array.from({ length: 9 }, (_, i) => palaceOf(i + 3, [])),
+  ];
+  const ctx = ziweiPalaceContextOf(palaces[1], { neighbors: ziweiNeighborsOf(palaces, palaces[1]) });
+  assert.deepEqual(conditionMatches({ module: 'ziwei', jia: ['文昌', '文曲'] }, ctx), [{ key: 'jia', value: '文昌、文曲' }]);
+  assert.deepEqual(conditionMatches({ module: 'ziwei', jia: ['文曲', '文昌'] }, ctx), [{ key: 'jia', value: '文曲、文昌' }]);
+  // 四化写成「化禄」；「羊陀夹忌」这类再加本宫的四化。
+  assert.deepEqual(conditionMatches({ module: 'ziwei', jia: ['化禄', '文曲'], mutagen: '忌' }, ctx), [{ key: 'jia', value: '化禄、文曲' }, { key: 'mutagen', value: '忌' }]);
+  // 两颗都在同一边不算夹；不传两邻就不判夹。
+  assert.equal(conditionMatches({ module: 'ziwei', jia: ['文昌', '太阴'] }, ctx), null);
+  assert.equal(conditionMatches({ module: 'ziwei', jia: ['文昌', '文曲'] }, ziweiPalaceContextOf(palaces[1])), null);
+  // 十二宫首尾相接：0 宫的左邻是 11 宫。
+  assert.deepEqual(ziweiNeighborsOf(palaces, palaces[0]).map(({ index }) => index), [11, 1]);
+  // 校验：jia 写两个名字，四化写「化禄」等。
+  const doc = (cond) => ({ classic: 'ziwei', section: '测试', edition: '测试', entries: [{ id: 'ziwei.t.301', title: '测试', original: '甲', status: 'draft', applies: [{ module: 'ziwei', ...cond }] }] });
+  assert.deepEqual(validateClassicsDoc(doc({ palace: '命宫', jia: ['文昌', '文曲'] })), []);
+  assert.deepEqual(validateClassicsDoc(doc({ palace: '命宫', jia: ['化权', '化禄'] })), []);
+  assert.match(validateClassicsDoc(doc({ jia: ['文昌'] })).join('\n'), /jia: 要写左右两邻各一颗/);
+  assert.match(validateClassicsDoc(doc({ jia: ['文昌', '禄'] })).join('\n'), /jia: 「禄」不在允许范围/);
+});
+
 test('相关度排序：专讲这颗星的条目在前，只按宫位命中的、一口气列很多星的往后；挂了很多并列条件的通论排在专论后面', () => {
   const lib = buildLibrary([{
     classic: 'ziwei', section: '测试', edition: '测试',
@@ -211,7 +238,7 @@ test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算�
   };
   const ctx = ziweiPalaceContextOf(palace, { gender: 'female' });
   assert.deepEqual(ctx, {
-    module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], palace: ['命宫', '身宫'], branches: ['亥'],
+    module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], jia: [], palace: ['命宫', '身宫'], branches: ['亥'],
     brightness: ['旺', '平'], mutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女',
   });
   assert.deepEqual(ziweiPalaceContextOf({ name: '交友', earthlyBranch: '辰', majorStars: [] }, { gender: '男' }).palace, ['仆役']);
