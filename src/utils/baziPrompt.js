@@ -136,19 +136,26 @@ const ELEMENTS = ['木', '火', '土', '金', '水'];
 
 const strengthLines = (chart, strength) => {
   const support = Math.round(strength.ratio * 100);
+  const { score } = strength;
   const elementList = (items) => items.map((item) => `${item.element}（${item.role}${item.tiaoHou ? '，调候' : ''}）`).join('、');
+  const rootsByBranch = new Map();
+  score.roots.forEach((root) => {
+    const label = `${root.name.replace('柱', '支')}${root.zhi}`;
+    rootsByBranch.set(label, [...(rootsByBranch.get(label) ?? []), `${root.gan}${root.role}${root.position}`]);
+  });
   const lines = [
-    `- 五行力量（天干每字 1 分，日干不计；藏干本气 1、中气 0.5、余气 0.3；月令加倍）：${ELEMENTS.map((element) => `${element}${strength.percents[element]}%`).join(' ')}`,
-    `- 日主${chart.dayMaster.gan}${chart.dayMaster.wuxing}：${strength.band}（同党比劫与印约占 ${support}%）`,
-    `- 得令：${strength.deLing ? '是' : '否'}${strength.monthMain ? `（月令本气 ${strength.monthMain.gan}，为${strength.monthMain.role}）` : ''}`,
-    `- 得地：${strength.deDi.length ? strength.deDi.map((item) => `${item.name}${item.zhi}${item.tongGen ? '通根' : '有印'}`).join('、') : '否'}`,
-    `- 得势：${strength.deShi.length ? strength.deShi.map((item) => `${item.name}${item.gan}（${item.role}）`).join('、') : '否'}`,
+    `- 五行力量（天干每字 1 分，日干不计；藏干本气 1、中气 0.5、余气 0.3；月令加倍）：${ELEMENTS.map((element) => `${element}${strength.percents[element]}%`).join(' ')}（比劫与印合占 ${support}%）`,
+    `- 日主${chart.dayMaster.gan}${chart.dayMaster.wuxing}：${strength.band}（旺衰打分 ${score.total}：得令 ${score.ling} + 得地 ${score.di} + 得势 ${score.shi}${score.hourEstimate ? ` + 时辰不详按平均 ${score.hourEstimate}` : ''}；2 分及以下偏弱，2.5 分及以上偏强）`,
+    `- 得令：${score.ling > 0 ? '是' : '否'}${strength.monthMain ? `（月令本气 ${strength.monthMain.gan}，为${strength.monthMain.role}）` : ''}`,
+    `- 得地：${rootsByBranch.size ? [...rootsByBranch].map(([label, roots]) => `${label}（${roots.join('、')}）`).join('、') : '年、日、时支无根'}`,
+    `- 得势：${score.stems.length ? score.stems.map((item) => `${item.name.replace('柱', '干')}${item.gan}（${item.role}）`).join('、') : '否'}`,
   ];
   if (strength.tiaoHou) lines.push(`- 调候（${strength.tiaoHou.source}）：${strength.tiaoHou.text}${strength.tiaoHou.season ? `，${strength.tiaoHou.season}` : ''}`);
+  if (strength.basis) lines.push(`- 取用思路：${strength.basis}${strength.tiaoHouNote ? `；${strength.tiaoHouNote}` : ''}`);
   if (strength.favorable.length) lines.push(`- 喜用参考：${elementList(strength.favorable)}`);
   if (strength.unfavorable.length) lines.push(`- 忌神参考：${elementList(strength.unfavorable)}`);
   if (strength.hint) lines.push(`- 提示：${strength.hint}`);
-  lines.push('- 以上为程序按五行力量的粗略估算，未考虑从格、化格、专旺等特殊格局；若你的判断不同，请说明理由并以你的分析为准。');
+  lines.push('- 以上为程序估算：旺衰按得令、得地、得势三项打分（权重按《滴天髓阐微》任铁樵命例校准），喜用按扶抑取用、调候附后，未考虑从格、化格、专旺等特殊格局；若你的判断不同，请说明理由并以你的分析为准。');
   return lines;
 };
 
