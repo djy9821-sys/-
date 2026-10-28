@@ -21,6 +21,7 @@ import {
   buildLibrary,
   conditionMatches,
   liuyaoReadingContextOf,
+  ziweiNeighborsOf,
   ziweiPalaceContextOf,
 } from '../src/data/classics/library.js';
 import { LIUYAO_TOPIC_NAMES, LIUYAO_TOPIC_PENDING } from '../src/data/classics/topicNames.js';
@@ -122,10 +123,11 @@ function* ziweiContexts(count) {
     const patterns = [...analyzeZiweiPatterns(horoscope), ...analyzeZiweiStructures(horoscope)].map((item) => item.name);
     const genderLabel = gender === 'male' ? '男' : '女';
     for (const palace of horoscope.palaces) {
-      yield ziweiPalaceContextOf(palace, { gender: genderLabel, patterns: palace.name === '命宫' ? patterns : [] });
+      const neighbors = ziweiNeighborsOf(horoscope.palaces, palace);
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, patterns: palace.name === '命宫' ? patterns : [], neighbors });
       // 古籍弹层还能切到「当前大限 / 今年流年」：任何一宫都可能是那一层的命宫
-      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '大限' });
-      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '流年' });
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '大限', neighbors });
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '流年', neighbors });
     }
   }
 }
@@ -243,13 +245,13 @@ for (const [module, { generate, retry, retries, more }] of Object.entries(MODULE
 }
 
 // 命中太宽：紫微条目原文点了星名，applies 却只按宫位、地支等命中——命宫在某支的每张盘都会出现这条，不管宫里坐什么星。
-// 只看全称（「紫府」「机梁」「日月」这类简称不算），「拱」「朝」「夹」「照」来的星本就不坐本宫，可以不补，在 notes 说明。
+// 只看全称（「紫府」「机梁」「日月」这类简称不算）；「夹」来的星写 jia，「拱」「朝」「照」来的星不坐本宫，可以不补，在 notes 说明。
 const ZIWEI_NAMED_STARS = ['紫微', '天机', '太阳', '武曲', '天同', '廉贞', '天府', '太阴', '贪狼', '巨门', '天相', '天梁', '七杀', '破军',
   '文昌', '文曲', '左辅', '右弼', '天魁', '天钺', '禄存', '天马', '擎羊', '陀罗', '火星', '铃星', '地空', '地劫'];
 const broadZiwei = (!ONLY || ONLY === 'ziwei') ? library.entries
   .map((entry) => {
     const conds = entry.applies.filter((cond) => cond.module === 'ziwei' && isMachine(cond));
-    if (!conds.length || conds.some((cond) => cond.star || cond.stars || cond.allStars || cond.pattern)) return null;
+    if (!conds.length || conds.some((cond) => cond.star || cond.stars || cond.allStars || cond.jia || cond.pattern)) return null;
     const named = ZIWEI_NAMED_STARS.filter((star) => (entry.original ?? '').includes(star));
     return named.length ? { id: entry.id, title: entry.title, named } : null;
   })
@@ -277,7 +279,7 @@ if (AS_JSON) {
   });
   if (broadZiwei.length) {
     console.log(`\n【ziwei】命中太宽 ${broadZiwei.length} 条：原文点了星名，applies 只按宫位、地支等命中（命宫在该支的盘都会出现）。`
-      + '坐在本宫的星请补进 star；「拱」「朝」「夹」「照」来的星不坐本宫，不补，在 notes 说明。');
+      + '坐在本宫的星请补进 star；左右两邻「夹」来的星写 jia；「拱」「朝」「照」来的星不坐本宫，不补，在 notes 说明。');
     broadZiwei.forEach(({ id, title, named }) => console.log(`  - ${id}（${title}）原文提到：${named.join('、')}`));
   }
   const anyOf = report.ziwei?.anyOf ?? [];
