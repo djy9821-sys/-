@@ -333,6 +333,7 @@ export const detectSpecialPattern = (chart, strength, summary) => {
         element,
         basis: `${he}，月令${byKey.month.zhi}正是${element}当令，${element}气占 ${huaShare}%；但日主在${[...new Set(benqiRootZhis)].join('、')}有本气之根，化而不真。`,
         note: '假化格合神有情、不争不妒的，仍以化神为用：岁运生助化神则发，帮起日主或克化神则败。能否作化论请人工确认。',
+        caveat: '假化还要看合神是否有情、岁运是否生助化神',
       }, gods.favorable, gods.unfavorable, gods.basis);
     }
   }
@@ -561,7 +562,7 @@ export const judgeBaziPattern = (chart, strength) => {
   if (chengBai) points.push(`成败（${chengBai.source}）：${pattern.name}${chengBai.verdict}。${chengBai.summary}`);
   if (special) {
     points.push(`${special.name}：${special.basis}${special.note}`);
-    if (special.godsText) points.push(`若按${special.name.replace(/^疑似/, '')}论：${special.godsText}（${special.godsBasis}）。这与旺衰一节按扶抑取的喜忌不同，真从、真化才用这一套。`);
+    if (special.godsText) points.push(`若按${special.name.replace(/^疑似/, '')}论：${special.godsText}（${special.godsBasis}）。这与旺衰一节按扶抑取的喜忌不同，${special.caveat ?? '真从、真化才用这一套'}。`);
   }
   points.push(`十神力量：${ROLES.map((role) => `${role}${Math.round(roleShare[role])}%`).join(' ')}${absent.length ? `；${absent.map((item) => item.text).join('、')}` : ''}`);
   traits.forEach((item) => points.push(`${item.name}：${item.basis}${item.note}`));
