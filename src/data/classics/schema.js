@@ -30,6 +30,8 @@ export const ZIWEI_STARS = Object.freeze([
   '蜚廉', '破碎', '台辅', '封诰', '天巫', '天月', '三台', '八座', '恩光', '天贵', '天才', '天寿', '截空', '旬空', '空亡', '截路',
   '月德', '天伤', '天使', '天厨', '天德', '龙德', '年解', '华盖', '咸池', '天煞', '指背', '月煞', '亡神', '灾煞', '劫煞', '将星', '攀鞍', '岁驿', '息神',
 ]);
+/** 「夹」能写的名字：星名，加上四化（写成「化禄」等）。 */
+export const ZIWEI_JIA_NAMES = Object.freeze([...ZIWEI_STARS, ...ZIWEI_MUTAGENS.map((name) => `化${name}`)]);
 export const LIUYAO_SIX_RELATIVES = Object.freeze(['父母', '兄弟', '子孙', '妻财', '官鬼']);
 export const LIUYAO_SIX_GODS = Object.freeze(['青龙', '朱雀', '勾陈', '螣蛇', '白虎', '玄武']);
 export const LIUYAO_RELATIONS = Object.freeze(['六冲', '六合']);
@@ -43,6 +45,8 @@ export const APPLIES_KEYS = Object.freeze({
     stars: ZIWEI_STARS,
     // 几颗星都要在同一宫（「同宫」「同守」「同垣」）；star / stars 是任一颗在宫就算。
     allStars: ZIWEI_STARS,
+    // 两颗星（或化禄、化权、化科、化忌）分坐本宫左右两邻（「昌曲夹命」「羊陀夹忌」「科权禄夹」）。
+    jia: ZIWEI_JIA_NAMES,
     palace: ZIWEI_PALACES,
     branches: ZHI,
     brightness: ZIWEI_BRIGHTNESS,
@@ -150,6 +154,9 @@ const checkApplies = (applies, where, errors, dirModule = null) => {
       if (values.length === 0) errors.push(`${at}.${key}: 不能为空数组`);
       if (key === 'allStars' && (!Array.isArray(value) || new Set(value).size < 2)) {
         errors.push(`${at}.allStars: 要写两颗以上不同的星（几颗都要在同一宫）；只要一颗星用 star`);
+      }
+      if (key === 'jia' && (!Array.isArray(value) || value.length !== 2)) {
+        errors.push(`${at}.jia: 要写左右两邻各一颗，共两个名字，如 ["文昌", "文曲"]；四化写「化禄」「化权」`);
       }
       values.forEach((item) => {
         if (range === null) {
