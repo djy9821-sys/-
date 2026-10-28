@@ -78,6 +78,17 @@ test('常用功能里的古籍原文：默认看命宫，列出宫中星曜与�
   await modal.getByRole('button', { name: '关闭' }).click();
   await expect(modal).toBeHidden();
 
+  // 术语词典弹层：先列命宫里的术语，可搜索。
+  await page.getByRole('button', { name: '常用功能' }).click();
+  await page.getByTestId('ziwei-common-menu').getByRole('button', { name: '术语词典' }).click();
+  const glossaryModal = page.getByTestId('ziwei-glossary-modal');
+  await expect(glossaryModal).toBeVisible();
+  await expect(glossaryModal.getByTestId('ziwei-glossary-summary')).toContainText(/词典共 \d+ 条/);
+  await glossaryModal.getByRole('searchbox', { name: '搜索术语' }).fill('不存在的词');
+  await expect(glossaryModal).toContainText('没有找到包含「不存在的词」的术语');
+  await glossaryModal.getByRole('button', { name: '关闭' }).click();
+  await expect(glossaryModal).toBeHidden();
+
   // AI 话术末尾附上命宫、身宫星曜的古籍原文（库已加载过，直接复制）。
   await page.getByRole('button', { name: '常用功能' }).click();
   await page.getByTestId('ziwei-common-menu').getByRole('button', { name: 'AI 分析' }).click();
