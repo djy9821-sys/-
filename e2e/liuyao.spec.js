@@ -35,6 +35,23 @@ test('时间起卦得到装卦结果，并能存入档案', async ({ page }) => 
   await expect(page.getByRole('button', { name: '查看卦例「端到端卦例」' })).toBeVisible();
 });
 
+test('替家人问病：选替谁问与病程，用神取父母，结果页可改回自己', async ({ page }) => {
+  await page.goto('/#/liuyao');
+  const setup = page.getByRole('region', { name: '六爻起卦设置' });
+  await setup.getByRole('button', { name: '健康疾病' }).click();
+  const who = setup.getByRole('group', { name: '替谁问' });
+  await who.getByRole('button', { name: '父母长辈' }).click();
+  await expect(who.getByRole('button', { name: '父母长辈' })).toHaveAttribute('aria-pressed', 'true');
+  await setup.getByRole('group', { name: '病程' }).getByRole('button', { name: '新病' }).click();
+  await setup.getByRole('button', { name: /时间起卦/ }).click();
+  await setup.getByRole('button', { name: '按此刻时间起卦' }).click();
+
+  await expect(page.getByText('健康疾病（替父母长辈问）（新病）')).toBeVisible();
+  await expect(page.getByText(/健康疾病（替父母长辈问）取父母为用神/)).toBeVisible();
+  await page.getByRole('combobox', { name: '替谁问' }).selectOption('self');
+  await expect(page.getByText(/健康疾病以世爻为用神/)).toBeVisible();
+});
+
 test('报数起卦：两个数决定上下卦', async ({ page }) => {
   await page.goto('/#/liuyao');
   const setup = page.getByRole('region', { name: '六爻起卦设置' });
