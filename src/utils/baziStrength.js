@@ -21,7 +21,10 @@
  * - 身旺：看印、比劫哪一方多——印多取财破印；比劫多取官杀制劫（官杀无力就取食伤泄秀）；旺极（4 分及以上）先取食伤泄秀；
  * - 中和：不硬分喜忌。
  * 调候按《穷通宝鉴》调候用神表（src/data/tiaohou.js）查日干与月令：主用神的五行附在喜用末尾，并从忌神里剔除。
- * 同一批命例里，任氏明说的第一用神与程序喜用之首一致的，扶抑取用（调候附后）比调候排第一多一倍以上，见 test/bazi-cases.test.js。
+ * 寒暖调候为急的除外：冬月（亥子丑）与正月（寅）调候宜火、夏月（巳午未）调候宜水，而这一火、水在原局有力（透干或作本气）
+ * 又在地支有根时，取为第一。任注《寒暖》：「寒虽甚，要暖有气也」（甲申 丙子 庚辰 戊寅，丙火以寅为根，用火）；
+ * 「寒甚而暖无气，反以无暖为美」（己酉 丙子 庚辰 甲申，丙火无根，不用）。同一批命例里，调候一律排第一反而比扶抑取用差得多
+ * （一致 26 对 40）；只在这种寒暖、有力有根的盘上排第一，一致 40 → 46，没有一例变差，见 test/bazi-cases.test.js。
  * 不处理从格、化格等特殊格局（极端时只做提示）。
  */
 import { tiaoHouOf } from '../data/tiaohou.js';
@@ -124,6 +127,16 @@ const scoreOf = (chart, dayWuxing) => {
     stems,
   };
 };
+
+/** 寒暖调候为急的月令：冬月与正月寒，宜火；夏月燥，宜水。 */
+const URGENT_TIAOHOU = Object.freeze({
+  亥: { element: '火', label: '冬月寒冷' }, 子: { element: '火', label: '冬月寒冷' }, 丑: { element: '火', label: '冬月寒冷' },
+  寅: { element: '火', label: '正月余寒' },
+  巳: { element: '水', label: '夏月炎燥' }, 午: { element: '水', label: '夏月炎燥' }, 未: { element: '水', label: '夏月炎燥' },
+});
+
+/** 有根：在某一支的藏干里（本气、中气、余气都算）。 */
+const rootedElementsOf = (chart) => new Set(chart.pillars.flatMap((pillar) => (pillar.hiddenGanDetails ?? []).map((detail) => GAN_WUXING[detail.gan])));
 
 /** 有力：透在年、月、时干，或是某一支的本气。 */
 const usableElementsOf = (chart) => new Set(chart.pillars.flatMap((pillar) => [
@@ -231,10 +244,14 @@ export const analyzeStrength = (chart) => {
   let tiaoHouNote = '';
   if (tiaoHou) {
     const element = tiaoHou.element;
-    if (favorable.includes(element)) tiaoHouNote = `调候宜${element}，与扶抑取用一致`;
+    const urgent = URGENT_TIAOHOU[byKey.month?.zhi]?.element === element && usable.has(element) && rootedElementsOf(chart).has(element)
+      ? URGENT_TIAOHOU[byKey.month.zhi] : null;
+    if (favorable[0] === element || (!urgent && favorable.includes(element))) tiaoHouNote = `调候宜${element}，与扶抑取用一致`;
+    else if (urgent) tiaoHouNote = `${urgent.label}，调候为急：${element}有力有根，${unfavorable.includes(element) ? `扶抑虽嫌${element}，仍` : ''}取${element}为先`;
     else if (unfavorable.includes(element)) tiaoHouNote = `调候宜${element}，扶抑却嫌${element}，两说并存：${element}列在喜用末尾，不算忌神`;
     else tiaoHouNote = `调候宜${element}，附在喜用末尾`;
-    if (!favorable.includes(element)) favorable = [...favorable, element];
+    if (urgent) favorable = [element, ...favorable.filter((item) => item !== element)];
+    else if (!favorable.includes(element)) favorable = [...favorable, element];
     unfavorable = unfavorable.filter((item) => item !== element);
   }
   const describe = (element) => ({
