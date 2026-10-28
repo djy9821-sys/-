@@ -15,7 +15,7 @@
 | 3 | 星垣论、斗数准绳、斗数发微论、定富贵贫贱十等论、十二宫诸星得地合格定局、十二宫诸星失陷破格 | 一篇一文件，命名同上 | `ziwei.quanshu.<篇名拼音>.` | 60–100 |
 | 4 | 运限诸篇（论大限十年祸福、论小限、论流年太岁、论二限太岁吉凶等）与格局诸篇（定富局、定贵局、定贫贱局、定杂局），另加论诸星同垣各司所主 | 一篇一文件，命名同上；分支 `side/01-ziwei-quanshu-b4` | `ziwei.quanshu.<篇名拼音>.` | 50–100 |
 | 5 | 论诸星同垣各司所宜分别富贵贫贱夭寿（重录，PR #28） | `quanshu-lun-zhuxing-tongyuan.json`；分支 `side/01-ziwei-quanshu-b5` | `ziwei.quanshu.tongyuan.` | 264 |
-| 6 | 十二宫诸篇：论命宫、兄弟、夫妻、子女、财帛、疾厄、迁移、奴仆、官禄、田宅、福德、父母（各宫诸星吉凶） | 一宫一文件 `quanshu-gong-<宫名拼音>.json`（如 `quanshu-gong-fuqi.json`）；分支 `side/01-ziwei-quanshu-b6`，从 `origin/side/01-ziwei-quanshu-b5` 开 | `ziwei.quanshu.gong<宫名拼音>.` | 每宫 15–40 |
+| 6 | 十二宫诸篇：论命宫、兄弟、夫妻、子女、财帛、疾厄、迁移、奴仆、官禄、田宅、福德、父母（各宫诸星吉凶） | 一宫一文件 `quanshu-gong-<宫名拼音>.json`（如 `quanshu-gong-fuqi.json`）；分支 `side/01-ziwei-quanshu-b6`，从 `origin/claude/round8-collab` 开（PR 里只含本批文件） | `ziwei.quanshu.gong<宫名拼音>.` | 每宫 15–40 |
 
 篇目名称与分卷以你所据版本为准，不同版本篇名略异时在 `edition` 说明。
 
