@@ -297,6 +297,37 @@ export const LIUYAO_CASE_YONGSHEN = Object.freeze(['父母', '兄弟', '子孙',
 const WEATHER_WORDS = '晴|雨|阴|多云|风';
 export const LIUYAO_CASE_VERDICT = new RegExp(`^(吉|凶|平|${WEATHER_WORDS}|先(${WEATHER_WORDS})后(${WEATHER_WORDS})|晴雨各有其时)$`);
 
+/** 八字命例 expected 的取值：原书明说的日主旺衰、用神（五行或十神）；格局名同古籍 applies.pattern，用程序认得的名字。 */
+export const BAZI_CASE_STRENGTH = Object.freeze(['旺', '弱', '中和']);
+export const BAZI_CASE_USE_GOD = Object.freeze(['木', '火', '土', '金', '水', '比劫', '印', '食伤', '财', '官杀', ...TEN_GODS]);
+
+const GAN_INDEX = Object.fromEntries(GAN.map((gan, index) => [gan, index]));
+const ZHI_INDEX = Object.fromEntries(ZHI.map((zhi, index) => [zhi, index]));
+/** 年上起月（五虎遁）：甲己之年丙作首、乙庚之岁戊为头……返回该年某月支的月干。 */
+export const monthGanOf = (yearGan, monthZhi) => GAN[((GAN_INDEX[yearGan] % 5) * 2 + 2 + ((ZHI_INDEX[monthZhi] + 10) % 12)) % 10];
+/** 日上起时（五鼠遁）：甲己还加甲、乙庚丙作初……返回该日某时支的时干。 */
+export const hourGanOf = (dayGan, hourZhi) => GAN[((GAN_INDEX[dayGan] % 5) * 2 + ZHI_INDEX[hourZhi]) % 10];
+const PILLAR_NAMES = ['年柱', '月柱', '日柱', '时柱'];
+
+/** 四柱自检：每柱须是六十甲子之一（阳干配阳支、阴干配阴支），月干要合年干，时干要合日干。返回问题列表。 */
+export const pillarProblemsOf = (pillars) => {
+  if (!Array.isArray(pillars) || pillars.length !== 4) return [];
+  const problems = [];
+  pillars.forEach((pillar, index) => {
+    if (GANZHI.test(pillar) && GAN_INDEX[pillar[0]] % 2 !== ZHI_INDEX[pillar[1]] % 2) problems.push(`${PILLAR_NAMES[index]}「${pillar}」不是六十甲子（阳干配阳支、阴干配阴支）`);
+  });
+  const [year, month, day, hour] = pillars;
+  if (GANZHI.test(year) && GANZHI.test(month)) {
+    const gan = monthGanOf(year[0], month[1]);
+    if (gan !== month[0]) problems.push(`${year[0]}年${month[1]}月应是${gan}${month[1]}（年上起月），写的是${month}`);
+  }
+  if (GANZHI.test(day) && GANZHI.test(hour)) {
+    const gan = hourGanOf(day[0], hour[1]);
+    if (gan !== hour[0]) problems.push(`${day[0]}日${hour[1]}时应是${gan}${hour[1]}（日上起时），写的是${hour}`);
+  }
+  return problems;
+};
+
 /** 校验经典命例文件（src/data/cases/*.json）。 */
 export const validateCasesDoc = (doc, ctx = {}) => {
   const errors = [];
@@ -368,9 +399,25 @@ export const validateCasesDoc = (doc, ctx = {}) => {
     }
     if (entry.pillars !== undefined) {
       if (!Array.isArray(entry.pillars) || entry.pillars.length !== 4 || entry.pillars.some((p) => p !== '不详' && !GANZHI.test(p))) errors.push(`${where}: pillars 须是 4 个干支（时柱不详写「不详」）`);
+      // 原书印错、确实如此的四柱照录，在 notes 里写明「自检」与原因，这里就放行
+      else if (!String(entry.notes ?? '').includes('自检')) {
+        pillarProblemsOf(entry.pillars).forEach((problem) => errors.push(`${where}: ${problem}；若原书确实如此，照录并在 notes 写明「自检」与原因`));
+      }
     }
     if (entry.expected !== undefined && (!entry.expected || typeof entry.expected !== 'object')) errors.push(`${where}: expected 必须是对象`);
-    else if (entry.expected !== undefined && doc.module === 'liuyao') {
+    else if (entry.expected !== undefined && doc.module === 'bazi') {
+      const { expected } = entry;
+      if (expected.strength !== undefined && !BAZI_CASE_STRENGTH.includes(expected.strength)) errors.push(`${where}: expected.strength 须是 ${BAZI_CASE_STRENGTH.join('/')}（原书明说的日主旺衰）`);
+      if (expected.pattern !== undefined && !BAZI_PATTERN_VOCAB.includes(expected.pattern)) errors.push(`${where}: expected.pattern「${expected.pattern}」不是程序认得的格局名（见 src/data/classics/patternNames.js）`);
+      if (expected.useGod !== undefined) {
+        const gods = Array.isArray(expected.useGod) ? expected.useGod : [expected.useGod];
+        if (!gods.length || gods.some((god) => !BAZI_CASE_USE_GOD.includes(god))) errors.push(`${where}: expected.useGod 须是五行（木火土金水）或十神（比劫、印、食伤、财、官杀，或正官、七杀等），可写数组`);
+      }
+      if (expected.outcome !== undefined && !isNonEmptyString(expected.outcome)) errors.push(`${where}: expected.outcome 须是非空字符串`);
+      Object.keys(expected).forEach((key) => {
+        if (!['strength', 'pattern', 'useGod', 'outcome'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
+      });
+    } else if (entry.expected !== undefined && doc.module === 'liuyao') {
       const { expected } = entry;
       if (expected.yongShen !== undefined && !LIUYAO_CASE_YONGSHEN.includes(expected.yongShen)) errors.push(`${where}: expected.yongShen 须是 ${LIUYAO_CASE_YONGSHEN.join('/')}`);
       if (expected.verdict !== undefined && !LIUYAO_CASE_VERDICT.test(String(expected.verdict))) errors.push(`${where}: expected.verdict 须是 吉/凶/平，天时写 晴/雨/阴/多云/风、先某后某或晴雨各有其时`);
