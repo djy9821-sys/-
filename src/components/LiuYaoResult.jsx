@@ -103,7 +103,7 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
         }
     }, [reading]);
     // 古籍库（按需加载）：与本卦相关的原文条目进「古籍原文」卡并附进提示词；术语词典先列这一卦里出现的词。
-    const { data: classicsData } = useClassicsLibrary();
+    const { data: classicsData } = useClassicsLibrary('liuyao');
     const classicsCtx = useMemo(() => liuyaoReadingContextOf(reading, judge), [reading, judge]);
     const classicsHits = useMemo(
         () => (classicsData?.library && classicsCtx ? matchEntries(classicsData.library, classicsCtx) : null),
