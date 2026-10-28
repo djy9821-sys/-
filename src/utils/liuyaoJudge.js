@@ -6,7 +6,7 @@
  * 规则取自《增删卜易》《卜筮正宗》等通行口诀的简化版，用计分把它们串起来：
  * 只做“程序初判”，帮助看不懂装卦表的人抓住重点，不替代人的综合判断。
  */
-import { CONTROLS, GENERATES, ZHI_CLASH, ZHI_ELEMENT, ZHI_HARMONY } from './liuyao.js';
+import { CONTROLS, GENERATES, relativeOf, ZHI_CLASH, ZHI_ELEMENT, ZHI_HARMONY } from './liuyao.js';
 import { LIUYAO_TOPIC_LABELS } from './liuyaoRecord.js';
 
 /** 问事类别：值、名称、说明，以及用神怎么取（relative 为 null 表示自占以世爻为用神）。 */
@@ -19,10 +19,13 @@ export const LIUYAO_TOPICS = Object.freeze([
   { value: 'travel', label: LIUYAO_TOPIC_LABELS.travel, hint: '出差、旅行、搬迁', relative: null, aux: [['官鬼', '阻碍'], ['父母', '车船行李']] },
   { value: 'study', label: LIUYAO_TOPIC_LABELS.study, hint: '考试、升学、证书', relative: '父母', aux: [['官鬼', '名次录取']] },
   { value: 'lawsuit', label: LIUYAO_TOPIC_LABELS.lawsuit, hint: '诉讼、纠纷、口舌', relative: '官鬼', aux: [['父母', '文书证据']] },
-  { value: 'children', label: LIUYAO_TOPIC_LABELS.children, hint: '子女、怀孕、晚辈', relative: '子孙' },
+  { value: 'children', label: LIUYAO_TOPIC_LABELS.children, hint: '子女、怀孕、胎儿男女、产期、晚辈；问产妇平安另选「产妇平安」', relative: '子孙' },
   { value: 'parents', label: LIUYAO_TOPIC_LABELS.parents, hint: '父母、长辈、师长', relative: '父母' },
   { value: 'friends', label: LIUYAO_TOPIC_LABELS.friends, hint: '兄弟姐妹、朋友、同事', relative: '兄弟' },
   { value: 'home', label: LIUYAO_TOPIC_LABELS.home, hint: '买房租房、房屋、车辆', relative: '父母', aux: [['妻财', '价钱']] },
+  { value: 'life', label: LIUYAO_TOPIC_LABELS.life, hint: '一生大势以世爻为用神；古法主张财福、功名、婚姻、子嗣寿元各占一卦', relative: null },
+  { value: 'maternity', label: LIUYAO_TOPIC_LABELS.maternity, hint: '问产妇生产是否平安，夫占、代占都取妻财；问胎儿、产期选「子女孕育」', relative: '妻财', aux: [['兄弟', '胎前产后忌兄动'], ['官鬼', '临盆忌鬼动']] },
+  { value: 'weather', label: LIUYAO_TOPIC_LABELS.weather, hint: '晴雨风云：父母主雨，子孙、妻财主晴，官鬼浓云雷电，兄弟风云', relative: null, mode: 'weather' },
 ]);
 
 const TOPIC_BY_VALUE = Object.fromEntries(LIUYAO_TOPICS.map((topic) => [topic.value, topic]));
@@ -290,6 +293,228 @@ const verdictOf = (total, yongHidden) => {
   return { level: 'mixed', title: '平', text: '用神平平、吉凶参半，成败看后续变化与应期。' };
 };
 
+/* ---------- 天时（晴雨） ---------- */
+
+/** 五行长生之支（土随水）：「晴逢子动，望晴只待子逢生」。 */
+const CHANG_SHENG = Object.freeze({ 木: '亥', 火: '寅', 金: '巳', 水: '申', 土: '申' });
+/** 三合局（生、旺、墓）。 */
+const SAN_HE = Object.freeze([
+  Object.freeze({ zhis: ['申', '子', '辰'], element: '水' }),
+  Object.freeze({ zhis: ['亥', '卯', '未'], element: '木' }),
+  Object.freeze({ zhis: ['寅', '午', '戌'], element: '火' }),
+  Object.freeze({ zhis: ['巳', '酉', '丑'], element: '金' }),
+]);
+/** 《增删卜易·天时章》各六亲发动之象。 */
+const WEATHER_SIGNS = Object.freeze({
+  父母: { kind: 'rain', text: '主雨（父动伤子，云雾掩日）' },
+  子孙: { kind: 'clear', text: '主晴（子孙为日月星斗，万里无云）' },
+  妻财: { kind: 'clear', text: '主晴（财动克父，天气晴明）' },
+  官鬼: { kind: 'cloud', text: '主浓云黑雾，或有雷电（鬼为父之元神）' },
+  兄弟: { kind: 'wind', text: '主风云（云淡风轻，非晴非雨）' },
+});
+const WEATHER_INTRO = '天时以父母为雨、子孙为晴、妻财亦主晴、官鬼为浓云雷电、兄弟为风云；野鹤老人占天时「不论旺衰」，只看哪一爻发动、暗动、化出（《增删卜易·天时章》）。';
+
+/** 天时的用神线：先取发动的，再按两现规则；不上卦取伏神。 */
+const weatherLineOf = (relative, lines, hidden, time) => {
+  const candidates = lines.filter((line) => line.relative === relative);
+  if (candidates.length) return candidates.length === 1 ? candidates[0] : pickAmong(candidates).line;
+  const hiddenItem = hidden.find((item) => item.relative === relative);
+  if (!hiddenItem) return null;
+  const flyer = lines[hiddenItem.position - 1];
+  return { ...hiddenItem, hidden: true, flyer, isMoving: false, marks: marksOf(hiddenItem.zhi, time), isShi: false, isYing: false, god: flyer.god };
+};
+
+const weatherTimingOf = (yong, strength, extra) => {
+  const hints = [];
+  if (yong.hidden) {
+    hints.push(`${yong.relative}伏藏，待${yong.zhi}日值日，或${ZHI_CLASH[yong.flyer.zhi]}日冲开飞神`);
+  } else if (yong.isMoving) {
+    hints.push(`动者逢值逢合之日：${yong.zhi}日或${ZHI_HARMONY[yong.zhi]}日`);
+  } else {
+    hints.push(`静者逢值逢冲之日：${yong.zhi}日或${ZHI_CLASH[yong.zhi]}日`);
+  }
+  if (strength.marks.includes('旬空')) {
+    hints.push(yong.isMoving ? `动而逢空最灵：若非${ZHI_CLASH[yong.zhi]}日冲空，定应${yong.zhi}日填实` : `静而逢空，待${ZHI_CLASH[yong.zhi]}日冲空或${yong.zhi}日填实`);
+  } else if (strength.marks.includes('月破')) {
+    hints.push(yong.isMoving ? `动而月破，应在${yong.zhi}日实破之时` : '静而月破，多不应');
+  } else if (yong.isMoving && (strength.notes.includes('日辰合住') || strength.notes.includes('月建合绊'))) {
+    hints.push(`动而被合，待${ZHI_CLASH[yong.zhi]}日冲开`);
+  } else if (yong.isMoving && (yong.relative === '子孙' || yong.relative === '妻财' || yong.relative === '父母')) {
+    hints.push(`${yong.relative === '父母' ? '雨' : '晴'}待${yong.relative}逢长生：${CHANG_SHENG[yong.element]}日`);
+  }
+  return [...hints, ...extra].slice(0, 3);
+};
+
+/**
+ * 天时：不取单一用神，逐爻看发动、暗动、化出与三合局，归成雨、晴、阴（浓云）、风几种迹象再合断。
+ * 规则取《增删卜易·天时章》野鹤老人与觉子的定论（与旧注不同处从野鹤）。
+ */
+const judgeWeather = (reading, meta) => {
+  const { lines, hidden, time, hexagram } = reading;
+  const signals = [];
+  const sequences = [];
+  const extraTiming = [];
+  // phase：now 是动爻本身、暗动、三合；later 是化出之爻（「动者为先，变者为后」）。
+  const add = (kind, relative, text, phase = 'now') => signals.push({ kind, relative, text, phase });
+  const moving = lines.filter((line) => line.isMoving);
+  const movingRelatives = new Set(moving.map((line) => line.relative));
+
+  moving.forEach((line) => {
+    const label = lineLabel(line);
+    const changed = line.changed;
+    if (line.relative === '父母' && changed && PROGRESS[changed.zhi] === line.zhi) {
+      add('clear', '父母', `${label}发动化退神，雨意退去，反主晴（晴利父官而化退）`);
+    } else {
+      add(WEATHER_SIGNS[line.relative].kind, line.relative, `${label}发动，${WEATHER_SIGNS[line.relative].text}`);
+    }
+    if (changed) {
+      const from = line.relative;
+      const to = changed.relative;
+      if (from === '妻财' && to === '官鬼') sequences.push('财化鬼，晴明不久');
+      else if (from === '妻财' && to === '子孙') sequences.push('财化子孙，雨后晴明');
+      else if (from === '兄弟' && to === '子孙') sequences.push('兄化子孙，云开日出');
+      else if (from === '父母' && (to === '兄弟' || to === '官鬼')) sequences.push(`父化${to === '兄弟' ? '兄' : '鬼'}，风雨交作`);
+      else if (from === '兄弟' && to === '父母') sequences.push('兄化父，先风而后雨');
+      else if (from === '官鬼' && to === '父母') sequences.push('鬼化父，先浓云雷电而后雨');
+      if (to === '父母' && from !== '父母') add('rain', '父母', `${label}化出父母${changed.ganZhi}，不拘旺衰，主有雨`, 'later');
+      if (to === '子孙' && from !== '子孙') add('clear', '子孙', `${label}化出子孙${changed.ganZhi}，后转晴明`, 'later');
+      if (to === '官鬼' && (from === '妻财' || from === '子孙')) add('cloud', '官鬼', `${label}化出官鬼${changed.ganZhi}，晴明不久`, 'later');
+      if ((from === '子孙' || from === '妻财' || from === '父母') && relationOf(line.element, changed.element) === 'controlled') {
+        extraTiming.push(`${label}化回头克，须待${ZHI_CLASH[changed.zhi]}日冲去克神方应`);
+      }
+    }
+    // 木动生风：不拘六亲；化进神风大。
+    if (line.element === '木' && line.relative !== '兄弟') {
+      add('wind', line.relative, `${label}木爻发动，木动生风${changed && PROGRESS[line.zhi] === changed.zhi ? '，化进神风大' : ''}`);
+    }
+  });
+
+  // 暗动（雨嫌妻位以逢冲）与静空逢日冲（卦逢暗冲，虽空有望）
+  lines.filter((line) => !line.isMoving).forEach((line) => {
+    const marks = line.marks ?? marksOf(line.zhi, time);
+    const emptyClashed = marks.includes('旬空') && marks.includes('日冲');
+    const darkMoving = !emptyClashed && assessStrength(line, time).notes.includes('日辰冲起，静爻暗动');
+    if (!emptyClashed && !darkMoving) return;
+    const how = emptyClashed ? '静而逢空，日建冲之' : '静而旺相逢日冲，暗动';
+    const label = lineLabel(line);
+    if (line.relative === '父母' || (emptyClashed && line.relative === '官鬼')) {
+      if (!movingRelatives.has('子孙') && !movingRelatives.has('妻财')) add('rain', line.relative, `${label}${how}，主有雨`);
+    } else if (line.relative === '子孙' || line.relative === '妻财') {
+      if (!movingRelatives.has('父母')) add('clear', line.relative, `${label}${how}，主晴`);
+    } else if (line.relative === '兄弟' && emptyClashed) {
+      add('wind', '兄弟', `${label}${how}，轻风薄雾`);
+    }
+  });
+
+  // 三合局：动爻与变爻的地支凑齐一局
+  const movedZhis = new Set(moving.flatMap((line) => [line.zhi, line.changed?.zhi].filter(Boolean)));
+  SAN_HE.forEach(({ zhis, element }) => {
+    if (moving.length < 2 || !zhis.every((zhi) => movedZhis.has(zhi))) return;
+    const relative = relativeOf(hexagram.palaceElement, element);
+    add(WEATHER_SIGNS[relative].kind, relative, `动变爻合成${zhis.join('')}${element}局，为${relative}局，${WEATHER_SIGNS[relative].text}`);
+    if (element === '木' && relative !== '兄弟') add('wind', relative, '三合木局主风');
+  });
+
+  const structure = [];
+  const reverseCount = lines.filter((line) => line.changed && ZHI_CLASH[line.zhi] === line.changed.zhi).length;
+  const stillCount = lines.filter((line) => line.changed && line.changed.zhi === line.zhi).length;
+  if (reverseCount >= 2) structure.push('卦得反吟，晴雨终须反复');
+  if (stillCount >= 2) structure.push('伏吟卦动如不动，冲开之日方应');
+
+  const kinds = new Set(signals.map((signal) => signal.kind));
+  const nowKinds = new Set(signals.filter((signal) => signal.phase === 'now').map((signal) => signal.kind));
+  const laterKinds = new Set(signals.filter((signal) => signal.phase === 'later').map((signal) => signal.kind));
+  const sunUp = signals.some((signal) => signal.kind === 'clear' && signal.relative === '子孙');
+  const summarize = (set) => {
+    if (set.has('rain') && set.has('clear')) return { key: 'mixed', short: '晴雨不定', title: '晴雨交替', text: '主雨与主晴之爻并见，各应其时。' };
+    if (set.has('rain')) {
+      return { key: 'rain', short: '雨', title: '有雨', text: set.has('cloud') ? '父鬼竞发，阴雨连绵。' : set.has('wind') ? '雨中有风，风雨交作。' : '父母主雨，雨意明显。' };
+    }
+    if (set.has('clear')) {
+      let text = sunUp ? '子孙主晴，晴朗少云。' : '妻财主晴；子孙不动，晴而不大晴，常有浮云薄雾。';
+      if (set.has('cloud')) text += '又有官鬼发动，多烟雾，非风和日丽之天。';
+      else if (set.has('wind')) text += '兼有风。';
+      return { key: 'clear', short: '晴', title: '晴', text };
+    }
+    if (set.has('cloud')) return { key: 'cloud', short: '阴', title: '阴', text: '官鬼发动而父母不动，浓云厚雾而少雨。' };
+    if (set.has('wind')) return { key: 'wind', short: '风', title: '多云有风', text: '云淡风轻，非晴非雨。' };
+    return null;
+  };
+  const now = summarize(nowKinds);
+  const later = summarize(laterKinds);
+  let key;
+  let title;
+  let text;
+  if (!now && !later) {
+    key = 'unsettled';
+    title = '难定';
+    text = '六爻安静，没有发动或暗动之爻。野鹤老人占天时「一卦不现，再占两卦」，务求有动爻再断。';
+  } else if (now && later && now.key !== later.key && now.key !== 'mixed' && later.key !== 'mixed') {
+    key = `${now.key}-${later.key}`;
+    title = `先${now.short}后${later.short}`;
+    text = `动者为先，变者为后：先${now.title}，后${later.title}。`;
+  } else {
+    ({ key, title, text } = summarize(kinds));
+  }
+  if (sequences.length) text += `${sequences.join('；')}。`;
+
+  const leadKey = key.split('-')[0];
+  const decisiveKind = { rain: 'rain', mixed: 'rain', unsettled: 'rain', clear: 'clear', cloud: 'cloud', wind: 'wind' }[leadKey];
+  const fallback = { rain: '父母', clear: '子孙', cloud: '官鬼', wind: '兄弟' }[decisiveKind];
+  const relative = signals.find((signal) => signal.kind === decisiveKind && WEATHER_SIGNS[signal.relative]?.kind === decisiveKind)?.relative ?? fallback;
+  const yong = weatherLineOf(relative, lines, hidden, time) ?? lines[hexagram.shi - 1];
+  const strength = assessStrength(yong, time);
+  const yongText = yong.hidden
+    ? `天时看${yong.relative}：不上卦，伏于${yong.flyer.positionName}${yong.flyer.relative}${yong.flyer.ganZhi}之下（伏神${yong.relative}${yong.ganZhi}）`
+    : `天时看${yong.relative}：${lineLabel(yong)}${yong.isMoving ? '发动' : '安静'}`;
+  const dynamics = [...signals.map((signal) => signal.text), ...sequences];
+  if (!dynamics.length) dynamics.push('六爻安静，无发动、暗动之爻');
+  const timing = key === 'unsettled' ? ['六爻安静难断，再占得动爻后再看应期'] : weatherTimingOf(yong, strength, extraTiming);
+  const shiYing = '天时不论世应（觉子：「占雨用父爻，占晴用子孙爻、财爻，与世应何干？」）';
+  const verdict = { level: 'mixed', title, text, weather: key };
+  const points = [
+    WEATHER_INTRO,
+    yongText,
+    ...dynamics,
+    ...(structure.length ? [structure.join('；')] : []),
+    shiYing,
+    `倾向：${title}。${text}`,
+    `应期：${timing.join('；')}`,
+  ];
+
+  return {
+    topic: meta.value,
+    topicLabel: meta.label,
+    gender: '',
+    genderMissing: false,
+    yongShen: {
+      relative: yong.relative,
+      ganZhi: yong.ganZhi,
+      zhi: yong.zhi,
+      element: yong.element,
+      positionName: yong.hidden ? `伏于${yong.flyer.positionName}下` : yong.positionName,
+      god: yong.god,
+      state: yong.hidden ? '伏' : yong.isMoving ? '动' : '静',
+      hidden: Boolean(yong.hidden),
+      isShi: Boolean(yong.isShi),
+      isYing: Boolean(yong.isYing),
+      text: yongText,
+    },
+    strength,
+    dynamics,
+    shiYing,
+    structure,
+    auxiliary: [],
+    verdict,
+    timing,
+    score: signals.length,
+    points,
+    notices: [],
+    contextRelatives: [...new Set([...signals.map((signal) => signal.relative), yong.relative])],
+    weather: { key, kinds: [...kinds], signals, sequences },
+  };
+};
+
 /**
  * @param reading buildLiuYaoReading 的结果
  * @param {{ topic?: string, gender?: string }} [options] 不传时用 reading 里记录的类别与性别
@@ -299,6 +524,7 @@ export const judgeLiuYao = (reading, options = {}) => {
   const gender = options.gender ?? reading.gender ?? '';
   const { lines, hidden, time, hexagram, changed } = reading;
   const { meta, relative, genderMissing } = describeTopic(topic, gender);
+  if (meta.mode === 'weather') return judgeWeather(reading, meta);
   const shiLine = lines[hexagram.shi - 1];
   const yingLine = lines[hexagram.ying - 1];
   const points = [];
@@ -314,6 +540,7 @@ export const judgeLiuYao = (reading, options = {}) => {
       ? `问感情没有选择问卦人性别，暂以世爻${lineLabel(yong)}为用神（男测取妻财，女测取官鬼）`
       : `${meta.label}以世爻为用神：${lineLabel(yong)}`;
     if (genderMissing) notices.push('问感情请选择问卦人性别，用神才能取准。');
+    if (meta.value === 'life') notices.push('《增删卜易·身命章》主张终身之事分开占：财福、功名、婚姻、子嗣寿元各占一卦，不要一卦兼断。');
   } else {
     const candidates = lines.filter((line) => line.relative === relative);
     if (candidates.length === 1) {
@@ -406,6 +633,32 @@ export const judgeLiuYao = (reading, options = {}) => {
   }
   total += shiYingScore;
   points.push(`世爻${lineLabel(shiLine)}${shiStrength.level}，应爻${lineLabel(yingLine)}：${shiYingText}`);
+
+  // 产妇安否：《增删卜易·问产妇安否章》「坐草临盆嫌鬼动，胎前产后忌兄摇……鬼化妻财命不牢」
+  if (meta.value === 'maternity') {
+    const movingOf = (name) => lines.some((line) => line.isMoving && line.relative === name);
+    const notes = [];
+    if (movingOf('兄弟') && movingOf('官鬼')) {
+      total += 2;
+      notes.push('兄弟发动克财，幸有官鬼同动制服兄爻，反为有救');
+    } else if (movingOf('兄弟')) {
+      notes.push('兄弟发动克财，胎前产后最忌');
+    } else if (movingOf('官鬼')) {
+      notes.push('官鬼发动，临盆忌之');
+    }
+    lines.filter((line) => line.isMoving && line.changed).forEach((line) => {
+      const from = line.relative;
+      const to = line.changed.relative;
+      if (from === '妻财' && (to === '官鬼' || to === '兄弟')) {
+        total -= 1;
+        notes.push(`${lineLabel(line)}化${to}，财${to === '官鬼' ? '变鬼' : '化兄'}为凶兆`);
+      } else if ((from === '官鬼' || from === '兄弟') && to === '妻财') {
+        total -= 2;
+        notes.push(`${lineLabel(line)}化出妻财，${from === '官鬼' ? '鬼化妻财命不牢' : '兄化财为凶兆'}`);
+      }
+    });
+    if (notes.length) points.push(`产妇安否（问产妇安否章）：${notes.join('；')}`);
+  }
 
   // 五、卦象
   const structure = [];
