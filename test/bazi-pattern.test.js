@@ -180,7 +180,7 @@ test('从格看地支、化气看化神得势：任注从象、化象、顺局�
   // 「未土又会木局，不得不从杀矣」：亥卯未会成木局，己土的未根作木论。
   const sha = judgeByPillars('癸亥 乙卯 己未 丁卯');
   assert.equal(sha.judge.special.name, '疑似从杀格');
-  assert.match(sha.judge.special.basis, /^亥卯未会成木局，四支本气都是食伤财官，日主己土没有得力之根/);
+  assert.match(sha.judge.special.basis, /^亥卯未会成木局，四支都是木（官杀），日主己土没有得力之根/);
   assert.equal(sha.judge.special.favorable[0].element, '水');
   // 「支全寅卯辰，东方一气，格成水木从儿，以时干丙火为用」。
   const er = judgeByPillars('丁卯 壬寅 癸卯 丙辰');
@@ -201,6 +201,36 @@ test('从格看地支、化气看化神得势：任注从象、化象、顺局�
   // 不作从、化：三辰都藏癸水余气（任注用食神）；印比各一透干（孙中山造）；日主坐亥禄的合（任注「日主不能从合」）。
   ['戊辰 戊午 壬辰 甲辰', '丙寅 己亥 辛卯 庚寅', '甲寅 辛未 癸亥 戊午']
     .forEach((text) => assert.equal(judgeByPillars(text).judge.special, null, text));
+});
+
+test('四支一气不拘微根、日主坐库仍能盘根、假化与化气有余宜泄：任注从象、化象、假化、顺局、反局诸造', () => {
+  // 「蟠根在未，余气在辰，似乎财多身弱，但四柱皆财，其势必从」，丙火为用。
+  const cai = judgeByPillars('戊戌 丙辰 乙未 丙戌').judge.special;
+  assert.equal(cai.name, '疑似从财格');
+  assert.match(cai.basis, /^四支都是土（财），日主乙木只有辰、未中一点微根/);
+  assert.equal(cai.favorable[0].element, '火');
+  // 「满局皆土，格成火土从儿，丑中辛财为用」；丁火盖头通根未戌，只是根浅。
+  const er = judgeByPillars('己未 丁丑 丙戌 戊戌').judge.special;
+  assert.equal(er.name, '疑似从儿格');
+  assert.match(er.basis, /月干丁根浅/);
+  assert.equal(er.favorable[0].element, '金');
+  // 不作从：日主坐下未库、干透两丁（「足以盘根制杀」）；三辰通根身库、甲乙透干通根制土（「儿能生母」）。
+  ['辛酉 丁酉 乙未 丁丑', '丙辰 乙未 壬辰 甲辰']
+    .forEach((text) => assert.equal(judgeByPillars(text).judge.special, null, text));
+
+  // 假化：「虽是假化，却有情而不悖……庚午己巳生助化神，出仕琴堂」。
+  const jia = judgeByPillars('己卯 甲戌 甲子 己巳').judge.special;
+  assert.equal(jia.name, '疑似甲己化土格（假化）');
+  assert.equal(jia.kind, 'jiahua');
+  assert.match(jia.basis, /月令戌正是土当令，土气占 41%；但日主在卯有本气之根，化而不真/);
+  assert.deepEqual(godsOf(jia.favorable), ['土化神', '火生化神']);
+  // 化气有余宜泄：「化气有余，余则宜泄，斯化神吐秀」「中运水旺之地，未能显秩」；假化同论（「金水破局」）。
+  assert.equal(judgeByPillars('己卯 丁卯 壬午 甲辰').judge.special.godsText, '喜木（化神）、火（泄化神）；忌金（克化神）、水（日主本气）');
+  const muJia = judgeByPillars('甲辰 丁卯 壬辰 辛亥').judge.special;
+  assert.equal(muJia.name, '疑似壬丁化木格（假化）');
+  assert.equal(muJia.godsText, '喜木（化神）、火（泄化神）；忌金（克化神）、水（日主本气）');
+  // 化神不足宜生：「秋金当令，化神泄气不足，至午运助化神」。
+  assert.equal(judgeByPillars('乙丑 甲申 甲辰 己巳').judge.special.godsText, '喜土（化神）、火（生化神）；忌木（克化神）');
 });
 
 test('五行俱全时报最弱的一行；缺的是喜用时提示留意', () => {
