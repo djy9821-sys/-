@@ -3,7 +3,7 @@
  * 计算由 baziChart 统一提供；页面采用紧凑、专业的命盘信息架构。
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, BookOpen, Bot, Calendar, CalendarCheck, CalendarDays, Clock, Compass, FolderOpen, ImageDown, Link2, MapPin, Printer, Save, Scale, Share2, Sparkles, TrendingUp, User } from 'lucide-react';
+import { ArrowLeft, BookA, BookOpen, Bot, Calendar, CalendarCheck, CalendarDays, Clock, Compass, FolderOpen, ImageDown, Link2, MapPin, Printer, Save, Scale, Share2, Sparkles, TrendingUp, User } from 'lucide-react';
 import BaziLanding from './bazi/BaziLanding';
 import BaziDatePicker from './bazi/BaziDatePicker';
 import BaziFlowPanel, { RelationList } from './bazi/BaziFlowPanel';
@@ -11,7 +11,8 @@ import BaziPatternPanel from './bazi/BaziPatternPanel';
 import BaziClassicsPanel from './bazi/BaziClassicsPanel';
 import BaziPromptExport from './bazi/BaziPromptExport';
 import { useClassicsLibrary } from './common/useClassicsLibrary.js';
-import { baziContextOf, matchEntries } from '../data/classics/index.js';
+import { baziContextOf, baziGlossarySeeds, matchEntries } from '../data/classics/index.js';
+import GlossaryPanel from './common/GlossaryPanel.jsx';
 import BaziShareCardModal from './bazi/BaziShareCardModal';
 import BaziStrengthPanel from './bazi/BaziStrengthPanel';
 import { BoundaryNotice, SectionHeading } from './bazi/BaziBits';
@@ -234,6 +235,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const patternSectionRef = useRef(null);
     const classicsSectionRef = useRef(null);
     const aiSectionRef = useRef(null);
+    const glossarySectionRef = useRef(null);
     const calculateTimerRef = useRef(null);
     const stepRegionRef = useRef(null);
 
@@ -462,6 +464,8 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         if (!classicsData?.library || !baziResult) return null;
         return matchEntries(classicsData.library, baziContextOf({ chart: baziResult, strength, judge: patternJudge, relations: natalRelations }));
     }, [classicsData, baziResult, strength, patternJudge, natalRelations]);
+    // 词典面板先列这张盘里出现的术语（十神、格局、神煞、旺衰）。
+    const glossarySeeds = useMemo(() => (baziResult ? baziGlossarySeeds({ chart: baziResult, judge: patternJudge, strength }) : []), [baziResult, patternJudge, strength]);
     // 本命四柱所见的神煞（去重，按收录顺序），供「神煞查法与出处」先列。
     const natalShenshaNames = useMemo(() => {
         const seen = new Set((baziResult?.pillars ?? []).flatMap((pillar) => pillar.shensha ?? []));
@@ -1218,6 +1222,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                     ['流月流日', flowSectionRef],
                                                     ['择日', zeriSectionRef],
                                                     ['导出给 AI', aiSectionRef],
+                                                    ['词典', glossarySectionRef],
                                                 ].map(([label, ref]) => (
                                                     <button key={label} type="button" onClick={() => scrollToSection(ref)} className="inline-flex min-h-9 items-center rounded-full border border-[#b9ad98] bg-[#fffaf0]/70 px-3 text-xs font-bold text-[#5f574f] hover:border-[#2d6b62] hover:text-[#2d6b62] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62]">{label}</button>
                                                 ))}
@@ -1538,6 +1543,11 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                 onLocateNow={returnFlowToNow}
                                                 onPickTime={() => scrollToSection(flowSectionRef)}
                                             />
+                                        </section>
+
+                                        <section ref={glossarySectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none print:hidden sm:px-6 sm:py-6" aria-labelledby="glossary-title">
+                                            <div id="glossary-title"><SectionHeading seal="玖" title="术语词典" note="看不懂的名词在这里查：先列这张盘里出现的十神、格局、神煞，也能搜任何术语" icon={BookA} /></div>
+                                            <GlossaryPanel module="bazi" seedTerms={glossarySeeds} subject="这张盘" testId="bazi-glossary" />
                                         </section>
                                     </div>
                                 </article>
