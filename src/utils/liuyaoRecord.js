@@ -25,6 +25,9 @@ export const LIUYAO_TOPIC_LABELS = Object.freeze({
   parents: '父母长辈',
   friends: '兄弟朋友',
   home: '房屋田产',
+  life: '终身运势',
+  maternity: '产妇平安',
+  weather: '天时晴雨',
 });
 
 const CAST_PATTERN = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})(?::(\d{2}))?$/;
