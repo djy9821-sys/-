@@ -6,10 +6,10 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Bot, Copy, RotateCcw, Save, Share2 } from 'lucide-react';
 import { buildLiuYaoPrompt } from '../utils/liuyao';
-import { judgeLiuYao, LIUYAO_TOPICS } from '../utils/liuyaoJudge';
+import { judgeLiuYao, LIUYAO_SUBJECTS, LIUYAO_TOPICS, liuyaoNeedsGender, topicSubjectDefault } from '../utils/liuyaoJudge';
 import { LIUYAO_RULE_SOURCES } from '../data/liuyaoSources';
 import { cite } from '../data/classics';
-import { buildLiuYaoRecord, LIUYAO_METHODS, LIUYAO_TOPIC_LABELS } from '../utils/liuyaoRecord';
+import { buildLiuYaoRecord, LIUYAO_ILLNESS_LABELS, LIUYAO_METHODS, LIUYAO_TOPIC_LABELS } from '../utils/liuyaoRecord';
 import { track } from '../utils/analytics';
 import { ARCHIVE_GROUP_OPTIONS } from '../utils/baziRecord';
 import { archiveManager } from '../utils/archiveManager';
@@ -76,12 +76,15 @@ const PaperCard = ({ title, note, children, className = '' }) => (
     </section>
 );
 
+const SWITCH_SELECT_CLASS = 'min-h-9 rounded-lg border border-[#b9ad98] bg-[#fffaf0] px-2 text-xs text-[#3b342e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62]';
+const switchButtonClass = (active) => `min-h-9 rounded-lg border px-2.5 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${active ? 'border-[#2d6b62] bg-[#2d6b62] text-white' : 'border-[#b9ad98] bg-[#fffaf0] text-[#5f574f]'}`;
+
 /**
  * @param reading buildLiuYaoReading 的结果
  * @param {Date} castDate 起卦时间（真太阳时墙上时间）
  * @param archiveRecord 从档案打开时的原记录；为空表示刚起的卦
  * @param placeLabel 起卦时按哪里的真太阳时（设备时间时为空）
- * @param onChangeTopic 换个类别重看（同一卦换用神）；不传则不显示切换
+ * @param onChangeTopic 换个类别、换替谁问重看（同一卦换用神）：(topic, gender, subject, illness)；不传则不显示切换
  */
 export default function LiuYaoResult({ reading, castDate, archiveRecord = null, placeLabel = '', onRestart, onChangeTopic = null }) {
     const { hexagram, changed, mutual, lines, hidden, time } = reading;
@@ -168,7 +171,12 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
                 </h2>
                 <p className="text-sm leading-6 text-[#fbf7ed]/65">
                     {reading.question ? `问：${reading.question}` : '未写明所问之事'}
-                    <span className="ml-2 rounded-full border border-[#dcb471]/35 px-2 py-0.5 text-[11px] text-[#f0ce91]">{LIUYAO_TOPIC_LABELS[reading.topic] ?? LIUYAO_TOPIC_LABELS.general}{reading.topic === 'love' && reading.gender ? `（${reading.gender === 'female' ? '女' : '男'}测）` : ''}</span>
+                    <span className="ml-2 rounded-full border border-[#dcb471]/35 px-2 py-0.5 text-[11px] text-[#f0ce91]">
+                        {LIUYAO_TOPIC_LABELS[reading.topic] ?? LIUYAO_TOPIC_LABELS.general}
+                        {judge?.subject && judge.subject.value !== 'self' ? `（替${judge.subject.label}问）` : ''}
+                        {judge?.illness ? `（${LIUYAO_ILLNESS_LABELS[judge.illness]}）` : ''}
+                        {liuyaoNeedsGender(reading.topic, reading.subject) && reading.gender ? `（${reading.gender === 'female' ? '女' : '男'}${reading.topic === 'love' ? '测' : '问'}）` : ''}
+                    </span>
                 </p>
                 <p className="text-[11px] leading-5 text-[#fbf7ed]/45">
                     {time.solarText}（{time.lunarText}）· {LIUYAO_METHODS[reading.method] ?? LIUYAO_METHODS.coins}
@@ -302,14 +310,29 @@ export default function LiuYaoResult({ reading, castDate, archiveRecord = null, 
                         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#5f574f]">
                             <label className="inline-flex items-center gap-1.5">
                                 <span className="font-bold text-[#3b342e]">换个类别看</span>
-                                <select value={reading.topic} onChange={(event) => onChangeTopic(event.target.value, reading.gender || 'male')} className="min-h-9 rounded-lg border border-[#b9ad98] bg-[#fffaf0] px-2 text-xs text-[#3b342e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62]" aria-label="问事类别">
+                                <select value={reading.topic} onChange={(event) => onChangeTopic(event.target.value, reading.gender || 'male', '', reading.illness)} className={SWITCH_SELECT_CLASS} aria-label="问事类别">
                                     {LIUYAO_TOPICS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                                 </select>
                             </label>
-                            {reading.topic === 'love' && (
+                            {topicSubjectDefault(reading.topic) !== null && (
+                                <label className="inline-flex items-center gap-1.5">
+                                    <span className="font-bold text-[#3b342e]">替谁问</span>
+                                    <select value={reading.subject || topicSubjectDefault(reading.topic)} onChange={(event) => onChangeTopic(reading.topic, reading.gender || 'male', event.target.value, reading.illness)} className={SWITCH_SELECT_CLASS} aria-label="替谁问">
+                                        {LIUYAO_SUBJECTS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                                    </select>
+                                </label>
+                            )}
+                            {liuyaoNeedsGender(reading.topic, reading.subject) && (
                                 <span className="inline-flex items-center gap-1" role="group" aria-label="问卦人性别">
-                                    {[['male', '男测'], ['female', '女测']].map(([value, label]) => (
-                                        <button key={value} type="button" aria-pressed={reading.gender === value} onClick={() => onChangeTopic('love', value)} className={`min-h-9 rounded-lg border px-2.5 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${reading.gender === value ? 'border-[#2d6b62] bg-[#2d6b62] text-white' : 'border-[#b9ad98] bg-[#fffaf0] text-[#5f574f]'}`}>{label}</button>
+                                    {[['male', reading.topic === 'love' ? '男测' : '男问'], ['female', reading.topic === 'love' ? '女测' : '女问']].map(([value, label]) => (
+                                        <button key={value} type="button" aria-pressed={reading.gender === value} onClick={() => onChangeTopic(reading.topic, value, reading.subject, reading.illness)} className={switchButtonClass(reading.gender === value)}>{label}</button>
+                                    ))}
+                                </span>
+                            )}
+                            {reading.topic === 'health' && (
+                                <span className="inline-flex items-center gap-1" role="group" aria-label="病程">
+                                    {Object.entries(LIUYAO_ILLNESS_LABELS).map(([value, label]) => (
+                                        <button key={value} type="button" aria-pressed={reading.illness === value} onClick={() => onChangeTopic('health', reading.gender || 'male', reading.subject, reading.illness === value ? '' : value)} className={switchButtonClass(reading.illness === value)}>{label}</button>
                                     ))}
                                 </span>
                             )}
