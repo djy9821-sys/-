@@ -81,6 +81,9 @@ const parseCastNumber = (text) => {
     return value >= 1 && value <= 9999 ? value : null;
 };
 
+/** 收在「更多类别」里的类别名，用在展开按钮上。 */
+const MORE_TOPIC_LABELS = LIUYAO_TOPICS.filter((option) => !option.common).map((option) => option.label);
+
 const chipClass = (active) => `min-h-10 rounded-xl border px-2 text-xs font-bold leading-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8] ${active ? 'border-[#dcb471]/60 bg-[#dcb471]/15 text-[#f0ce91]' : 'border-white/10 bg-black/20 text-[#fbf7ed]/65 hover:border-[#dcb471]/35'}`;
 
 /**
@@ -92,6 +95,7 @@ export default function LiuYaoDivination({ onBack, initialMethod = null, initial
     const [step, setStep] = useState(initialCast ? 'result' : 'ask');
     const [question, setQuestion] = useState(initialCast?.question ?? '');
     const [topic, setTopic] = useState(initialCast?.topic ?? 'general');
+    const [showMoreTopics, setShowMoreTopics] = useState(false);
     const [gender, setGender] = useState(initialCast?.gender ?? '');
     const [method, setMethod] = useState(initialMethod === 'gesture' ? 'gesture' : 'coins');
     const [numbers, setNumbers] = useState({ first: '', second: '' });
@@ -279,12 +283,15 @@ export default function LiuYaoDivination({ onBack, initialMethod = null, initial
                             <fieldset>
                                 <legend className="text-xs font-bold tracking-widest text-[#dcb471]">问事类别 <span className="font-normal tracking-normal text-[#fbf7ed]/45">决定用神怎么取</span></legend>
                                 <div className="mt-1.5 grid grid-cols-3 gap-1.5 sm:grid-cols-4">
-                                    {LIUYAO_TOPICS.map((option) => (
+                                    {LIUYAO_TOPICS.filter((option) => option.common || showMoreTopics || option.value === topic).map((option) => (
                                         <button key={option.value} type="button" aria-pressed={topic === option.value} title={option.hint} onClick={() => { setTopic(option.value); setFormError(''); }} className={chipClass(topic === option.value)}>
                                             {option.label}
                                         </button>
                                     ))}
                                 </div>
+                                <button type="button" aria-expanded={showMoreTopics} onClick={() => setShowMoreTopics((value) => !value)} className="mt-1.5 min-h-8 rounded-lg px-1 text-xs font-bold text-[#dcb471]/80 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8]">
+                                    {showMoreTopics ? '收起更多类别' : `更多类别：${MORE_TOPIC_LABELS.slice(0, 4).join('、')}等 ${MORE_TOPIC_LABELS.length} 类`}
+                                </button>
                                 {topic === 'love' && (
                                     <div className="mt-2 flex items-center gap-2 text-xs text-[#fbf7ed]/70" role="group" aria-label="问卦人性别">
                                         <span>问卦人是</span>
