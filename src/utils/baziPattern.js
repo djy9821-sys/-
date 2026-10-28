@@ -362,6 +362,8 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     }))
     .filter(Boolean));
   const faintRoots = outsideRoots.filter((root) => root.faint);
+  const yinRootedOutside = (gan) => pillars.some((pillar) => !ju[pillar.zhi]
+    && (pillar.hiddenGanDetails ?? []).some((detail) => GAN_WUXING[detail.gan] === GAN_WUXING[gan]));
   const rootedGan = (gan) => pillars.some((pillar) => (pillar.hiddenGanDetails ?? []).some((detail) => GAN_WUXING[detail.gan] === GAN_WUXING[gan]));
   // 一气而天干有克它的字通根，势被制住，不作一气论（「三逢辰支，通根身库……甲乙并透，通根制土」）。
   const yiQiElement = new Set(branchElements).size === 1 ? branchElements[0] : null;
@@ -372,9 +374,10 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     && faintRoots.length === outsideRoots.length
     && (yiQi || (faintRoots.length <= 1 && !faintRoots.some((root) => root.key === 'day')))
     && supportStems.length <= 2
-    // 天干有印的，只能是这一个帮身之干，还要有财星透出克印（「时干丁火，被年上癸水克去」）或财星占到三成、足以坏印；
-    // 印比各一的，任注仍取印比（同上面打分的条件）。
-    && (!yinStems.length || (supportStems.length === 1 && (roleShare['财'] >= 30 || summary.transparentRole('财').length > 0)));
+    // 天干有印的，只能是这一个帮身之干，还要财星占到三成、足以坏印，或财星透出克这个无根之印
+    // （「时干丁火，被年上癸水克去」；印在局外地支有根的，如寅中戊土，透财也克不去）；印比各一的，任注仍取印比。
+    && (!yinStems.length || (supportStems.length === 1 && (roleShare['财'] >= 30
+      || (summary.transparentRole('财').length > 0 && !yinRootedOutside(yinStems[0].gan)))));
   if (congByRatio || congByScore || congByBranches) {
     const outer = ['财', '官杀', '食伤'].sort((a, b) => roleShare[b] - roleShare[a]);
     const dominant = outer[0];
