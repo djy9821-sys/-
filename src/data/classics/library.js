@@ -268,6 +268,29 @@ export const ziweiLifePalaceHits = (library, palaces, { gender = null } = {}) =>
 
 /* ---------- 术语词典 ---------- */
 
+/** 八字盘里出现的术语（给词典面板先列出来）：十神、格局、神煞、旺衰，再加几个基础词。 */
+export const baziGlossarySeeds = ({ chart, judge = null, strength = null } = {}) => {
+  const pillars = (chart?.pillars ?? []).filter((pillar) => pillar?.gan);
+  const tenGods = pillars.flatMap((pillar) => [pillar.ganShiShen, ...(pillar.hiddenShiShens ?? [])]);
+  const patterns = [judge?.pattern?.name, judge?.special?.name];
+  const shensha = pillars.flatMap((pillar) => pillar.shensha ?? []);
+  return unique([
+    '日主', '十神', ...tenGods, '格局', ...patterns, '用神', '旺衰', strength?.band,
+    '神煞', ...shensha, '藏干', '纳音', '空亡', '大运', '流年',
+  ]);
+};
+
+/** 紫微某一宫里出现的术语：宫名、宫中星曜、四化、几个基础词。 */
+export const ziweiGlossarySeeds = (palace) => {
+  if (!palace) return ['命宫', '身宫', '十二宫', '四化', '大限', '流年'];
+  const stars = [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])];
+  const mutagens = stars.map((star) => (star.mutagen ? `化${String(star.mutagen).replace(/^化/, '')}` : null));
+  return unique([
+    palace.name, palace.isBodyPalace ? '身宫' : null, ...stars.map((star) => star.name), ...mutagens,
+    '三方四正', '庙旺利陷', '四化', '大限', '流年',
+  ]);
+};
+
 /** 合并术语词典文件。 */
 export const buildGlossary = (docs) => {
   const entries = [];
