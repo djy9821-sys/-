@@ -16,8 +16,9 @@
  * 只一致 27 造、相反 8 造，而且随机命盘有六成以上判成偏弱。
  *
  * 喜用按「扶抑」取用（子平与《滴天髓》通行取法），透干或在地支作本气、确实有力的五行排前：
- * - 身弱：看食伤、财、官杀哪一方最重——财重取比劫帮身；食伤重取印制伤生身；官杀重取印化杀，
- *   印无力而食伤有力时取食伤制杀；
+ * - 身弱：看食伤、财、官杀哪一方最重（透干的字每个另加半分：元神透出，力量更显）——财重取比劫帮身；
+ *   食伤重取印制伤生身；官杀重取印化杀，印无力而食伤有力时取食伤制杀（任注「庚金并透，通根砍伐……
+ *   更妙丙火独透，制杀扶身」：地支土气虽略多，并透的庚金才是病）；
  * - 身旺：看印、比劫哪一方多——印多取财破印；比劫多取官杀制劫（官杀无力就取食伤泄秀）；旺极（4 分及以上）先取食伤泄秀；
  * - 中和：不硬分喜忌。
  * 调候按《穷通宝鉴》调候用神表（src/data/tiaohou.js）查日干与月令：主用神的五行附在喜用末尾，并从忌神里剔除。
@@ -36,6 +37,8 @@ const CONTROLS = { 木: '土', 火: '金', 土: '水', 金: '木', 水: '火' };
 const HIDDEN_WEIGHTS = [1, 0.5, 0.3];
 const HIDDEN_POSITIONS = ['本气', '中气', '余气'];
 const MONTH_FACTOR = 2;
+/** 身弱时找病，透干的字每个另加的分（见文件头）。 */
+const TOU_WEIGHT = 0.5;
 
 /** 旺衰三项打分的权重（按《滴天髓阐微》命例校准，见文件头）。 */
 export const STRENGTH_SCORE = Object.freeze({
@@ -148,7 +151,7 @@ const usableElementsOf = (chart) => new Set(chart.pillars.flatMap((pillar) => [
  * 扶抑取用：按旺衰与病因排出喜用、忌神的五行，并给一句取用思路。
  * 有力（透干或作本气）的排前，同样有力的保持原先的先后。
  */
-const supportAndRestrain = ({ band, total, scores, dayWuxing, usable }) => {
+const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts = {} }) => {
   const yin = GENERATED_BY[dayWuxing];
   const output = GENERATES[dayWuxing];
   const wealth = CONTROLS[dayWuxing];
@@ -157,7 +160,8 @@ const supportAndRestrain = ({ band, total, scores, dayWuxing, usable }) => {
   const byScoreDesc = (elements) => [...elements].sort((a, b) => scores[b] - scores[a]);
 
   if (band === '偏弱' || band === '极弱') {
-    const heaviest = byScoreDesc([output, wealth, officer])[0];
+    const weightOf = (element) => scores[element] + TOU_WEIGHT * (touCounts[element] ?? 0);
+    const heaviest = [output, wealth, officer].sort((a, b) => weightOf(b) - weightOf(a))[0];
     let favorable;
     let basis;
     if (heaviest === wealth) {
@@ -238,7 +242,11 @@ export const analyzeStrength = (chart) => {
 
   const tiaoHou = tiaoHouOf(chart.dayMaster.gan, byKey.month?.zhi ?? '');
   const usable = usableElementsOf(chart);
-  const fuYi = supportAndRestrain({ band, total: score.total, scores, dayWuxing, usable });
+  const touCounts = {};
+  chart.pillars.forEach((pillar) => {
+    if (pillar.key !== 'day' && pillar.gan) touCounts[pillar.ganWuxing] = (touCounts[pillar.ganWuxing] ?? 0) + 1;
+  });
+  const fuYi = supportAndRestrain({ band, total: score.total, scores, dayWuxing, usable, touCounts });
   const { basis } = fuYi;
   let { favorable, unfavorable } = fuYi;
   let tiaoHouNote = '';
