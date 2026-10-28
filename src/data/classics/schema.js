@@ -9,6 +9,9 @@
  */
 import { CLASSICS } from '../classics.js';
 import { YAO_CI } from '../yaoci.js';
+import { SHENSHA_ORDER } from '../../utils/baziShensha.js';
+import { BAZI_PATTERN_VOCAB, ZIWEI_PATTERN_VOCAB } from './patternNames.js';
+import { LIUYAO_TOPIC_VOCAB } from './topicNames.js';
 
 export const ENTRY_STATUS = Object.freeze(['draft', 'translated', 'reviewed']);
 export const MODULES = Object.freeze(['bazi', 'ziwei', 'liuyao']);
@@ -42,7 +45,7 @@ export const APPLIES_KEYS = Object.freeze({
     branches: ZHI,
     brightness: ZIWEI_BRIGHTNESS,
     mutagen: ZIWEI_MUTAGENS,
-    pattern: null,
+    pattern: ZIWEI_PATTERN_VOCAB,
     limit: ['本命', '大限', '流年', '流月', '流日'],
   }),
   bazi: Object.freeze({
@@ -52,8 +55,8 @@ export const APPLIES_KEYS = Object.freeze({
     monthZhis: ZHI,
     tenGod: TEN_GODS,
     tenGods: TEN_GODS,
-    pattern: null,
-    shensha: null,
+    pattern: BAZI_PATTERN_VOCAB,
+    shensha: SHENSHA_ORDER,
     relation: null,
     strength: ['极弱', '偏弱', '中和', '偏强', '极强'],
     season: ['春', '夏', '秋', '冬', '四季'],
@@ -65,7 +68,7 @@ export const APPLIES_KEYS = Object.freeze({
     relation: LIUYAO_RELATIONS,
     sixRelative: LIUYAO_SIX_RELATIVES,
     sixGod: LIUYAO_SIX_GODS,
-    topic: null,
+    topic: LIUYAO_TOPIC_VOCAB,
     movingLines: ['无', '一', '多'],
   }),
 });
@@ -74,6 +77,23 @@ const ID_PATTERN = /^[a-z][a-z0-9]*(\.[a-z0-9-]+)+$/;
 const HALF_WIDTH_PUNCT = /[,;:!?()"']/;
 
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
+
+/** 程序认得的名字（格局、神煞）：写错了条件永远匹配不上，报错时说清楚。 */
+const NAME_KEYS = Object.freeze({ pattern: '格局名', shensha: '神煞名', topic: '问事类别' });
+
+/** 一个文件录了几篇时，section 用「、」把各篇名列出来；返回篇名数组。 */
+export const chaptersOf = (doc) => String(doc?.section ?? '').split('、').map((name) => name.trim()).filter(Boolean);
+
+/**
+ * 一条属于哪一篇：条目自带 section 优先；一文件多篇时按 title 的「篇名·其N」前缀归篇；单篇文件就是文件的 section。
+ * 多篇文件里既没写 section、title 前缀也对不上任何一篇时返回 null。
+ */
+export const sectionOfEntry = (entry, doc, chapters = chaptersOf(doc)) => {
+  if (isNonEmptyString(entry?.section)) return entry.section.trim();
+  if (chapters.length <= 1) return isNonEmptyString(doc?.section) ? doc.section : null;
+  const head = String(entry?.title ?? '').split('·')[0].trim();
+  return chapters.includes(head) ? head : null;
+};
 
 const checkApplies = (applies, where, errors) => {
   if (applies === undefined) return;
@@ -107,7 +127,12 @@ const checkApplies = (applies, where, errors) => {
           return;
         }
         const normalized = key === 'palace' ? (ZIWEI_PALACE_ALIASES[item] ?? item) : item;
-        if (!range.includes(normalized)) errors.push(`${at}.${key}: 「${item}」不在允许范围（${range.join('、')}）`);
+        if (range.includes(normalized)) return;
+        if (NAME_KEYS[key]) {
+          errors.push(`${at}.${key}: 「${item}」不是程序认得的${NAME_KEYS[key]}，写了永远匹配不上；改用下列名字之一，或改写成星曜、十神、月令、卦名等条件，实在编不出就只写 note（可用：${range.join('、')}）`);
+          return;
+        }
+        errors.push(`${at}.${key}: 「${item}」不在允许范围（${range.join('、')}）`);
       });
     });
   });
@@ -133,12 +158,19 @@ export const validateClassicsDoc = (doc, ctx = {}) => {
     errors.push(`${file}: entries 必须是非空数组`);
     return errors;
   }
+  const chapters = chaptersOf(doc);
 
   doc.entries.forEach((entry, index) => {
     const where = `${file} entries[${index}]${entry?.id ? ` (${entry.id})` : ''}`;
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
       errors.push(`${where}: 必须是对象`);
       return;
+    }
+    if (entry.section !== undefined && !isNonEmptyString(entry.section)) errors.push(`${where}: section 必须是非空字符串`);
+    else if (chapters.length > 1 && entry.section !== undefined && !chapters.includes(entry.section.trim())) {
+      errors.push(`${where}: section「${entry.section}」不在文件 section 列出的篇名里（${chapters.join('、')}）`);
+    } else if (chapters.length > 1 && sectionOfEntry(entry, doc, chapters) === null) {
+      errors.push(`${where}: 这个文件录了 ${chapters.length} 篇，条目 title 须以「篇名·」开头（如「${chapters[0]}·其一」），或单写 section 字段`);
     }
     if (!isNonEmptyString(entry.id) || !ID_PATTERN.test(entry.id)) errors.push(`${where}: id 须形如 ziwei.quanshu.zhuxing.001（小写字母、数字、点、短横）`);
     else if (doc.classic && !entry.id.startsWith(`${doc.classic}.`)) errors.push(`${where}: id 须以「${doc.classic}.」开头`);
@@ -160,7 +192,7 @@ export const validateClassicsDoc = (doc, ctx = {}) => {
     if (entry.tags !== undefined && (!Array.isArray(entry.tags) || entry.tags.some((item) => !isNonEmptyString(item)))) errors.push(`${where}: tags 必须是字符串数组`);
     checkApplies(entry.applies, where, errors);
 
-    const known = new Set(['id', 'title', 'original', 'vernacular', 'notes', 'doubts', 'applies', 'tags', 'status']);
+    const known = new Set(['id', 'title', 'section', 'original', 'vernacular', 'notes', 'doubts', 'applies', 'tags', 'status']);
     Object.keys(entry).forEach((key) => {
       if (!known.has(key)) errors.push(`${where}: 未知字段 ${key}`);
     });
