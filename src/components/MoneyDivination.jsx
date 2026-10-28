@@ -200,7 +200,6 @@ export default function MoneyDivination({ onBack, onComplete = null, question = 
         checkMobile();
         window.addEventListener('resize', checkMobile);
 
-        console.log('MoneyDivination Responsive - Initialized');
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         audioContextRef.current = ctx;
         setAudioContext(ctx);

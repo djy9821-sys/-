@@ -101,3 +101,28 @@ test('起运前的年份按小运导出', () => {
   assert.ok(prompt.includes('子丑合（土）：小运丑 · 月柱子'));
   assert.ok(prompt.includes('结合所行小运'));
 });
+
+test('提示词附古籍原文：只附原文不附白话，最多六条，说明条数与状态；没有命中就不加这一节', () => {
+  const hit = (id, status, original, extra = {}) => ({
+    entry: { id, title: `题${id}`, book: '子平真诠', volume: '卷一', section: '论用神', status, original, vernacular: '白话不该出现', doubts: [], ...extra },
+    reason: '格局·正官格',
+  });
+  const classics = [
+    hit('a', 'reviewed', '官逢财印，\n又无刑冲破害。'),
+    hit('b', 'translated', '乙'), hit('c', 'translated', '丙'), hit('d', 'draft', '丁'), hit('e', 'draft', '戊'), hit('f', 'draft', '己'),
+    hit('g', 'draft', '庚'), hit('h', 'draft', '辛'),
+  ];
+  const prompt = buildBaziPrompt({ chart, scope: 'natal', selections, now, classics });
+  assert.match(prompt, /【古籍原文（与本命相关）】\n- 《子平真诠》·卷一·论用神「题a」（匹配：格局·正官格）：官逢财印， 又无刑冲破害。\n- 《子平真诠》/);
+  assert.ok(!prompt.includes('白话不该出现'));
+  assert.ok(prompt.includes('「题f」') && !prompt.includes('「题g」'), '最多六条');
+  assert.ok(prompt.includes('古籍库里与本命相关的原文共 8 条，这里只附最相关的 6 条。'));
+  assert.ok(prompt.includes('（条目状态：已审、待审、待审、仅原文、仅原文、仅原文）'));
+  // 古籍一节排在神煞出处之后、运限关系之前。
+  assert.ok(prompt.indexOf('【神煞查法出处】') < prompt.indexOf('【古籍原文（与本命相关）】'));
+  assert.ok(prompt.indexOf('【古籍原文（与本命相关）】') < prompt.indexOf('【原局内部的干支关系】'));
+
+  assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now }).includes('【古籍原文'));
+  assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now, classics: [] }).includes('【古籍原文'));
+  assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now, classics: [{ entry: { title: '无原文' } }] }).includes('【古籍原文'));
+});

@@ -437,3 +437,6 @@ export const formatZiweiPatternReport = (patterns = [], structures = []) => {
 };
 
 export const ZIWEI_PATTERN_RULE_COUNT = strictRules.length;
+
+/** 本规则库判得出的全部格局与星系名（古籍库校验 applies.pattern 时对照）。 */
+export const ZIWEI_PATTERN_NAMES = Object.freeze([...strictRules, ...structureRules].map((rule) => rule.name));

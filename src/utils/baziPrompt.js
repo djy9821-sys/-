@@ -11,6 +11,9 @@ import { getShensha, SHENSHA_SOURCES } from './baziShensha.js';
 import { cite } from '../data/classics.js';
 import { analyzeStrength } from './baziStrength.js';
 import { describeYearMarks, describeYearSummary, getLiuNianMarks } from './baziYearMarks.js';
+import { PROMPT_CLASSICS_LIMIT, classicsPromptLines } from './classicsPrompt.js';
+
+export { PROMPT_CLASSICS_LIMIT };
 
 export const PROMPT_SCOPES = Object.freeze([
   { value: 'natal', label: '本命' },
@@ -76,6 +79,12 @@ const birthLines = (chart, personName) => {
   lines.push(`- 农历：${lunarInfo.yearChinese}年${lunarInfo.monthChinese}月${lunarInfo.dayChinese}`);
   if (input.hourOption?.index === 12) {
     lines.push(`- 晚子时流派：${input.daySect === 1 ? '晚子时换次日' : '晚子时不换日'}`);
+  }
+  const yearBoundary = chart.yearBoundary;
+  if (yearBoundary?.differs) {
+    lines.push(yearBoundary.mode === 'chunjie'
+      ? `- 年柱分界：出生在立春与正月初一之间，本盘按农历正月初一换年，年柱取${yearBoundary.chunjie}；若按子平法以立春换年则为${yearBoundary.lichun}`
+      : `- 年柱分界：出生在立春与正月初一之间，本盘按子平法以立春换年，年柱取${yearBoundary.lichun}；若按农历正月初一换年则为${yearBoundary.chunjie}`);
   }
   const boundary = timeInfo?.boundary;
   if (boundary) {
@@ -212,8 +221,9 @@ const scopeTitle = (scope, { liuNian, liuYue, liuRi, liuShi }) => {
  * @param {string} [params.personName]
  * @param {{daYun?, liuNian?, liuYue?, liuRi?, liuShi?}} [params.selections]
  * @param {Date} [params.now]
+ * @param {object[]} [params.classics] 古籍库命中（matchEntries 的结果，按相关度排好序）；给了就附一节原文
  */
-export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selections = {}, now = new Date() }) => {
+export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selections = {}, now = new Date(), classics = null }) => {
   const rank = SCOPE_RANK[scope] ?? 0;
   const { daYun, liuNian, liuYue, liuRi, liuShi } = selections;
   const pad = (value) => String(value).padStart(2, '0');
@@ -233,6 +243,8 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
   sections.push(['【旺衰参考（程序估算）】', ...strengthLines(chart, strength)].join('\n'));
   sections.push(['【格局与组合（程序初判）】', ...patternLines(chart, strength)].join('\n'));
   sections.push(['【神煞查法出处】', ...shenshaSourceLines(chart)].join('\n'));
+  const classicsSection = classicsPromptLines(classics);
+  if (classicsSection) sections.push(['【古籍原文（与本命相关）】', ...classicsSection].join('\n'));
 
   // 流月、流日、流时没有预先算好的神煞，在这里按本命补上。
   const layerPillar = (label, item) => describePillar(label, item, {

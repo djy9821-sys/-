@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 import {
-  baziContextOf, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
-  patternNamesOf, searchGlossary, termsIn, ziweiContextOf,
+  baziContextOf, baziGlossarySeeds, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
+  patternNamesOf, searchGlossary, termsIn, ziweiContextOf, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiPalaceContextOf,
 } from '../src/data/classics/library.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
@@ -32,7 +32,9 @@ test('仓库数据能合成索引：每条带书名、篇名、出处，按书�
   assert.equal(entry.section, '论用神成败救应');
   assert.equal(entry.source, '《子平真诠》·论用神成败救应');
   assert.ok(entry.file.endsWith('ziping-chengbai.json'));
-  assert.deepEqual(entriesOfClassic(library, 'sanming').map((item) => item.id), ['sanming.shensha.tianyi.001']);
+  const sanming = entriesOfClassic(library, 'sanming');
+  assert.ok(sanming.some((item) => item.id === 'sanming.shensha.tianyi.001'));
+  assert.ok(sanming.every((item) => item.classic === 'sanming'));
   assert.equal(entryById(library, 'nope'), null);
 });
 
@@ -63,7 +65,7 @@ test('格名同义展开', () => {
   assert.deepEqual(patternNamesOf('杂气正印格'), ['杂气正印格', '正印格', '印格', '印绶格']);
   assert.deepEqual(patternNamesOf('羊刃格'), ['羊刃格', '阳刃格', '刃格']);
   assert.deepEqual(patternNamesOf('建禄格'), ['建禄格', '建禄月劫', '禄劫格']);
-  assert.deepEqual(patternNamesOf('疑似从杀格'), ['疑似从杀格', '从杀格']);
+  assert.deepEqual(patternNamesOf('疑似从杀格'), ['疑似从杀格', '从杀格', '从格', '从煞格', '从官杀格']);
   assert.deepEqual(patternNamesOf(null), []);
 });
 
@@ -85,8 +87,12 @@ test('真实命盘能从仓库数据里匹配到条目：正官格命中《子�
   assert.ok(qianlongIds.includes('sanming.shensha.tianyi.001'));
   assert.ok(qianlongIds.includes('ziping.chengbai.001'), '羊刃格也在成败两段的适用范围里');
 
-  assert.deepEqual(matchEntries(library, ziweiContextOf({ stars: ['紫微'] })).map(({ entry }) => entry.id), ['ziwei.quanshu.zhuxing.001']);
-  assert.deepEqual(matchEntries(library, ziweiContextOf({ stars: ['天机'] })), []);
+  // 支线还在陆续录入，这里只断言「该命中的在、不该命中的不在」，不锁死条目总数。
+  const ziweiIds = matchEntries(library, ziweiContextOf({ stars: ['紫微'] })).map(({ entry }) => entry.id);
+  assert.ok(ziweiIds.includes('ziwei.quanshu.zhuxing.001'), ziweiIds.join());
+  const tianjiIds = matchEntries(library, ziweiContextOf({ stars: ['天机'] })).map(({ entry }) => entry.id);
+  assert.ok(!tianjiIds.includes('ziwei.quanshu.zhuxing.001'), '紫微星的条目不会因为天机命中');
+  assert.deepEqual(matchEntries(library, ziweiContextOf({ stars: ['不存在的星'] })), []);
 });
 
 test('匹配规则：任一条件命中、键内任一取值、复数键、只写 note 不命中、模块不符不命中、宫位别名、上下文缺键不猜', () => {
@@ -112,6 +118,117 @@ test('匹配规则：任一条件命中、键内任一取值、复数键、只�
   assert.equal(conditionMatches({ module: 'ziwei', note: 'x' }, ziweiContextOf({ stars: ['紫微'] })), null);
   assert.equal(conditionMatches({ module: 'ziwei', star: '紫微' }, { module: 'bazi', star: ['紫微'] }), null);
   assert.deepEqual(conditionMatches({ module: 'ziwei', palace: '交友' }, ziweiContextOf({ palace: '仆役' })), [{ key: 'palace', value: '仆役' }]);
+});
+
+test('相关度排序：专讲这颗星的条目在前，只按宫位命中的、一口气列很多星的往后；挂了很多并列条件的通论排在专论后面', () => {
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.r.001', title: '命宫总论', original: '甲', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫' }] },
+      { id: 'ziwei.r.002', title: '诸星', original: '乙', status: 'translated', applies: [{ module: 'ziwei', stars: ['紫微', '天机', '太阳', '武曲', '天同', '廉贞', '天府'] }] },
+      { id: 'ziwei.r.003', title: '紫微', original: '丙', status: 'translated', applies: [{ module: 'ziwei', star: '紫微' }] },
+      { id: 'ziwei.r.004', title: '女命紫微', original: '丁', status: 'translated', applies: [{ module: 'ziwei', star: '紫微', gender: '女' }] },
+    ],
+  }]);
+  const ctxOf = (gender) => ziweiContextOf({ stars: ['紫微', '七杀'], palace: '命宫', gender });
+  assert.deepEqual(matchEntries(lib, ctxOf('男')).map(({ entry }) => entry.id), ['ziwei.r.003', 'ziwei.r.001', 'ziwei.r.002']);
+  assert.deepEqual(matchEntries(lib, ctxOf('女')).map(({ entry }) => entry.id), ['ziwei.r.004', 'ziwei.r.003', 'ziwei.r.001', 'ziwei.r.002']);
+
+  const bazi = buildLibrary([{
+    classic: 'ziping', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziping.r.001', title: '通论', original: '甲', status: 'reviewed', applies: ['正官格', '七杀格', '正财格', '偏财格', '正印格', '偏印格', '食神格', '伤官格'].map((pattern) => ({ module: 'bazi', pattern })) },
+      { id: 'ziping.r.002', title: '论正官', original: '乙', status: 'draft', applies: [{ module: 'bazi', pattern: '正官格' }] },
+      { id: 'ziping.r.003', title: '十神', original: '丙', status: 'reviewed', applies: [{ module: 'bazi', tenGods: ['正官', '七杀', '正财', '偏财', '正印', '偏印'] }] },
+    ],
+  }]);
+  const ranked = matchEntries(bazi, { module: 'bazi', pattern: ['正官格'], tenGod: ['正官', '正财'] });
+  assert.deepEqual(ranked.map(({ entry }) => entry.id), ['ziping.r.002', 'ziping.r.001', 'ziping.r.003']);
+  assert.ok(ranked.every((hit, index) => index === 0 || ranked[index - 1].score >= hit.score));
+});
+
+test('相关度相近时各书各篇轮流排：一篇几首诗诀不占满前几条，同篇之内次序不变', () => {
+  const official = (id, title, section, original) => ({ id, title, section, original, status: 'translated', applies: [{ module: 'bazi', pattern: '正官格' }] });
+  const lib = buildLibrary([
+    {
+      classic: 'yuanhai', section: '正官诗诀、正官论', edition: '测试',
+      entries: [
+        official('yuanhai.t.001', '正官诗诀·其一', '正官诗诀', '甲'),
+        official('yuanhai.t.002', '正官诗诀·其二', '正官诗诀', '乙'),
+        official('yuanhai.t.003', '正官诗诀·其三', '正官诗诀', '丙'),
+        official('yuanhai.t.004', '正官论·其一', '正官论', '丁'),
+      ],
+    },
+    {
+      classic: 'ziping', section: '论正官', edition: '测试',
+      entries: [official('ziping.t.001', '论正官·其一', '论正官', '戊'), official('ziping.t.002', '论正官·其二', '论正官', '己')],
+    },
+  ]);
+  const ctx = { module: 'bazi', pattern: ['正官格'] };
+  const ids = matchEntries(lib, ctx).map(({ entry }) => entry.id);
+  assert.deepEqual(ids, ['yuanhai.t.001', 'ziping.t.001', 'yuanhai.t.004', 'ziping.t.002', 'yuanhai.t.002', 'yuanhai.t.003']);
+  assert.deepEqual(matchEntries(lib, ctx, { limit: 3 }).map(({ entry }) => entry.id), ids.slice(0, 3));
+  // 分数差得多的照旧：专论在前，挂一串格局的通论在后
+  const withGeneral = buildLibrary([{
+    classic: 'ziping', section: '论正官、论成败', edition: '测试',
+    entries: [
+      { id: 'ziping.g.001', title: '何谓成', section: '论成败', original: '庚', status: 'translated', applies: ['正官格', '七杀格', '正财格', '偏财格', '正印格', '偏印格', '食神格', '伤官格'].map((pattern) => ({ module: 'bazi', pattern })) },
+      official('ziping.g.002', '论正官·其一', '论正官', '辛'),
+      official('ziping.g.003', '论正官·其二', '论正官', '壬'),
+    ],
+  }]);
+  assert.deepEqual(matchEntries(withGeneral, ctx).map(({ entry }) => entry.id), ['ziping.g.002', 'ziping.g.003', 'ziping.g.001']);
+});
+
+test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算，身宫同宫时命宫身宫都给，四化去掉「化」字）', () => {
+  const palace = {
+    name: '命宫', earthlyBranch: '亥', isBodyPalace: true,
+    majorStars: [{ name: '紫微', brightness: '旺', mutagen: '' }, { name: '七杀', brightness: '平', mutagen: '化权' }],
+    minorStars: [{ name: '文曲', brightness: '', mutagen: '忌' }],
+    adjectiveStars: [{ name: '天巫' }, { name: '天官' }],
+  };
+  const ctx = ziweiPalaceContextOf(palace, { gender: 'female' });
+  assert.deepEqual(ctx, {
+    module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], palace: ['命宫', '身宫'], branches: ['亥'],
+    brightness: ['旺', '平'], mutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女',
+  });
+  assert.deepEqual(ziweiPalaceContextOf({ name: '交友', earthlyBranch: '辰', majorStars: [] }, { gender: '男' }).palace, ['仆役']);
+  assert.equal(ziweiPalaceContextOf(null), null);
+
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.p.001', title: '紫微守命', original: '甲', status: 'draft', applies: [{ module: 'ziwei', star: '紫微', palace: '命宫' }] },
+      { id: 'ziwei.p.002', title: '紫微守身', original: '乙', status: 'draft', applies: [{ module: 'ziwei', star: '紫微', palace: '身宫' }] },
+      { id: 'ziwei.p.003', title: '女命文曲化忌', original: '丙', status: 'draft', applies: [{ module: 'ziwei', star: '文曲', mutagen: '忌', gender: '女' }] },
+      { id: 'ziwei.p.004', title: '紫微在午', original: '丁', status: 'draft', applies: [{ module: 'ziwei', star: '紫微', branches: '午' }] },
+    ],
+  }]);
+  // 文曲化忌那条命中三个键，排最前；命宫、身宫两条各命中两个键，按 id 排。
+  assert.deepEqual(matchEntries(lib, ctx).map(({ entry }) => entry.id), ['ziwei.p.003', 'ziwei.p.001', 'ziwei.p.002']);
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf({ ...palace, isBodyPalace: false })).map(({ entry }) => entry.id), ['ziwei.p.001']);
+});
+
+test('紫微提示词用：命宫与身宫星曜的命中去重合并（身宫同宫只算一次），按相关度排序', () => {
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.l.001', title: '紫微', original: '甲', status: 'translated', applies: [{ module: 'ziwei', star: '紫微' }] },
+      { id: 'ziwei.l.002', title: '天机', original: '乙', status: 'translated', applies: [{ module: 'ziwei', star: '天机' }] },
+      { id: 'ziwei.l.003', title: '紫微守身', original: '丙', status: 'reviewed', applies: [{ module: 'ziwei', star: '紫微', palace: '身宫' }] },
+      { id: 'ziwei.l.004', title: '左辅', original: '丁', status: 'translated', applies: [{ module: 'ziwei', star: '左辅' }] },
+    ],
+  }]);
+  const ming = { index: 9, name: '命宫', earthlyBranch: '亥', isBodyPalace: false, majorStars: [{ name: '紫微' }], minorStars: [{ name: '左辅' }] };
+  const shen = { index: 3, name: '迁移', earthlyBranch: '巳', isBodyPalace: true, majorStars: [{ name: '天机' }], minorStars: [] };
+  const other = { index: 0, name: '田宅', earthlyBranch: '寅', majorStars: [{ name: '紫微' }] };
+  // 命宫紫微、左辅 + 身宫天机；身宫紫微那条不命中（身宫里没有紫微）。
+  assert.deepEqual(ziweiLifePalaceHits(lib, [other, shen, ming]).map(({ entry }) => entry.id), ['ziwei.l.001', 'ziwei.l.002', 'ziwei.l.004']);
+  // 身宫与命宫同宫：命中带宫位条件的「紫微守身」，排最前（两键），且不重复。
+  const same = { ...ming, isBodyPalace: true };
+  assert.deepEqual(ziweiLifePalaceHits(lib, [other, same]).map(({ entry }) => entry.id), ['ziwei.l.003', 'ziwei.l.001', 'ziwei.l.004']);
+  assert.deepEqual(ziweiLifePalaceHits(lib, []), []);
+  assert.deepEqual(ziweiLifePalaceHits(null, [ming]), []);
 });
 
 test('排序与筛选：条件更具体的在前，同样具体时已审 > 待审 > 仅原文；可按状态过滤与限制条数', () => {
@@ -164,4 +281,20 @@ test('术语词典：按术语或别名精确查，优先本模块，再通用�
   assert.deepEqual(searchGlossary(mixed, '天干').map((item) => item.term), ['天干']);
   assert.deepEqual(searchGlossary(mixed, '').length, 0);
   assert.deepEqual(termsIn(mixed, '取十天干里的用神为主', { module: 'bazi' }).map(({ term, entry }) => `${term}=${entry.brief}`), ['十天干=甲乙丙丁戊己庚辛壬癸', '用神=八字的用神']);
+});
+
+test('词典面板的种子术语：八字盘给十神、格局、神煞、旺衰；紫微给宫名、星曜、四化', () => {
+  const { chart, strength, judge } = chartOf(1998, 1, 2, 4);
+  const seeds = baziGlossarySeeds({ chart, judge, strength });
+  assert.deepEqual(seeds.slice(0, 2), ['日主', '十神']);
+  assert.ok(seeds.includes('正财') && seeds.includes('偏财'), '透出与藏干的十神');
+  assert.ok(seeds.includes(judge.pattern.name), '格局名');
+  assert.ok(seeds.includes(strength.band), '旺衰档');
+  assert.ok(seeds.includes('大运') && seeds.includes('流年'));
+  assert.equal(new Set(seeds).size, seeds.length, '不重复');
+  assert.deepEqual(baziGlossarySeeds({}), ['日主', '十神', '格局', '用神', '旺衰', '神煞', '藏干', '纳音', '空亡', '大运', '流年']);
+
+  const palace = { name: '命宫', isBodyPalace: true, majorStars: [{ name: '紫微', mutagen: '' }, { name: '七杀', mutagen: '化权' }], minorStars: [{ name: '文曲', mutagen: '忌' }], adjectiveStars: [{ name: '天巫' }] };
+  assert.deepEqual(ziweiGlossarySeeds(palace), ['命宫', '身宫', '紫微', '七杀', '文曲', '天巫', '化权', '化忌', '三方四正', '庙旺利陷', '四化', '大限', '流年']);
+  assert.deepEqual(ziweiGlossarySeeds(null), ['命宫', '身宫', '十二宫', '四化', '大限', '流年']);
 });

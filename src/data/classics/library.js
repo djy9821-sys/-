@@ -17,7 +17,11 @@
  * 术语词典（src/data/glossary/*.json）同样合成索引，按术语或别名精确查，或按关键字搜。
  */
 import { CLASSICS, cite } from '../classics.js';
-import { ENTRY_STATUS, ZIWEI_PALACE_ALIASES } from './schema.js';
+import { patternNamesOf, ziweiPatternNamesOf } from './patternNames.js';
+import { liuyaoTopicNamesOf } from './topicNames.js';
+import { ENTRY_STATUS, ZIWEI_PALACE_ALIASES, chaptersOf, sectionOfEntry } from './schema.js';
+
+export { patternNamesOf, ziweiPatternNamesOf };
 
 /** 复数键 → 单数键。 */
 const SINGULAR = Object.freeze({ stars: 'star', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram' });
@@ -29,8 +33,27 @@ export const CONDITION_LABELS = Object.freeze({
   hexagram: '卦', line: '爻', sixRelative: '六亲', sixGod: '六神', topic: '问事', movingLines: '动爻', gender: '性别',
 });
 
-const STATUS_WEIGHT = Object.freeze({ reviewed: 3, translated: 2, draft: 1 });
+/** 同等相关时的次序：已审 > 待审 > 仅原文（只作并列时的微调）。 */
+const STATUS_BONUS = Object.freeze({ reviewed: 0.3, translated: 0.2, draft: 0.1 });
 export const STATUS_LABELS = Object.freeze({ reviewed: '已审', translated: '待审', draft: '仅原文' });
+
+/**
+ * 各类条件的分量：越能把这张盘和别的盘区分开的键越重。
+ * 格局、星曜、卦名最具体；人人都有的「命宫」、多数盘都有的十神、对半分的性别就轻。
+ */
+export const KEY_WEIGHT = Object.freeze({
+  pattern: 10, star: 10, hexagram: 10,
+  dayGan: 8, monthZhi: 8, topic: 8,
+  mutagen: 7, shensha: 7, sixRelative: 7,
+  season: 6, palace: 6, branches: 6, line: 6, relation: 6,
+  strength: 5, sixGod: 5,
+  brightness: 4, tenGod: 4,
+  gender: 3, movingLines: 3,
+  limit: 2,
+});
+
+/** 一个键列了几种取值：只写一颗星的条目比一口气列十颗星的更专门。 */
+const breadthFactor = (count) => (count <= 1 ? 1 : count <= 3 ? 0.8 : count <= 6 ? 0.6 : 0.4);
 
 const toArray = (value) => (value === undefined || value === null ? [] : Array.isArray(value) ? value : [value]);
 const unique = (list) => [...new Set(list.filter((item) => item !== undefined && item !== null && item !== ''))];
@@ -46,16 +69,20 @@ export const buildLibrary = (docs) => {
     if (!doc || !Array.isArray(doc.entries)) return;
     const classic = CLASSICS[doc.classic] ?? null;
     const book = classic?.title ?? String(doc.classic ?? '');
-    const docInfo = { file, classic: doc.classic, book, volume: doc.volume ?? '', section: doc.section ?? '', edition: doc.edition ?? '', contributor: doc.contributor ?? '' };
+    const docInfo = { file, classic: doc.classic, book, volume: doc.volume ?? '', docSection: doc.section ?? '', edition: doc.edition ?? '', contributor: doc.contributor ?? '' };
+    const chapters = chaptersOf(doc);
     doc.entries.forEach((entry) => {
       if (!entry || typeof entry !== 'object') return;
+      // 一个文件录了几篇时（section 用「、」列出各篇），每条归到自己那一篇，出处只写这一篇。
+      const section = sectionOfEntry(entry, doc, chapters) ?? doc.section ?? '';
       entries.push({
         ...entry,
         doubts: toArray(entry.doubts),
         tags: toArray(entry.tags),
         applies: toArray(entry.applies),
         ...docInfo,
-        source: cite(doc.classic, doc.section),
+        section,
+        source: cite(doc.classic, section),
       });
       const stat = (books[book] ??= { classic: doc.classic, book, total: 0, draft: 0, translated: 0, reviewed: 0 });
       stat.total += 1;
@@ -100,8 +127,58 @@ export const conditionMatches = (cond, ctx) => {
 
 const reasonOf = (matched) => matched.map(({ key, value }) => `${CONDITION_LABELS[key] ?? key}·${value}`).join('，');
 
+/** 一个命中条件的分量：命中的每个键按 KEY_WEIGHT 计，该键列的取值越多打得越轻。 */
+const conditionWeight = (cond, matched) => matched.reduce((sum, { key }) => {
+  const condKey = Object.keys(cond).find((name) => (SINGULAR[name] ?? name) === key);
+  return sum + (KEY_WEIGHT[key] ?? 5) * breadthFactor(toArray(cond[condKey]).length);
+}, 0);
+
+/** 能编成机器条件的条件数（只写 note 的不算）。 */
+const machineConditionCount = (applies) => applies
+  .filter((cond) => cond && Object.keys(cond).some((key) => key !== 'module' && key !== 'note')).length;
+
+/** 轮流排各书各篇：前面每排过一条同篇的，让 2 分；每排过一条同书的，再让 0.5 分。 */
+const SAME_SECTION_STEP = 2;
+const SAME_BOOK_STEP = 0.5;
+
 /**
- * 按上下文找出相关条目，按相关度排序：条件越具体（命中的键越多）越靠前，其次已审 > 待审 > 仅原文。
+ * 相关度相近的条目轮流排各书各篇，免得一篇七首诗诀占满第一页、提示词只附到同一篇。
+ * 贪心：每次取「分数 − 已排同篇条数 × 2 − 已排同书条数 × 0.5」最高的；
+ * 同篇之内仍按原来的分数与 id 先后，分数差得多的（如格局专论与通论）次序不变。
+ * @param {object[]} hits 已按分数、id 排好的命中
+ */
+const interleaveSources = (hits) => {
+  const remaining = [...hits];
+  const ordered = [];
+  const sectionCount = new Map();
+  const bookCount = new Map();
+  while (remaining.length) {
+    let bestIndex = 0;
+    let bestValue = -Infinity;
+    remaining.forEach((hit, index) => {
+      const value = hit.score
+        - SAME_SECTION_STEP * (sectionCount.get(`${hit.entry.book}|${hit.entry.section}`) ?? 0)
+        - SAME_BOOK_STEP * (bookCount.get(hit.entry.book) ?? 0);
+      if (value > bestValue + 1e-9) {
+        bestValue = value;
+        bestIndex = index;
+      }
+    });
+    const [hit] = remaining.splice(bestIndex, 1);
+    ordered.push(hit);
+    const sectionKey = `${hit.entry.book}|${hit.entry.section}`;
+    sectionCount.set(sectionKey, (sectionCount.get(sectionKey) ?? 0) + 1);
+    bookCount.set(hit.entry.book, (bookCount.get(hit.entry.book) ?? 0) + 1);
+  }
+  return ordered;
+};
+
+/**
+ * 按上下文找出相关条目，按相关度排序：
+ * - 命中的键越多、越能区分命盘（格局、星曜、卦名重，命宫、十神、性别轻）、列的取值越少，越靠前；
+ * - 一条原文挂了很多并列条件的（如「何谓成」对十几种格局都适用），算通论，往后放一点；
+ * - 再相同时已审 > 待审 > 仅原文，最后按 id；
+ * - 最后各书各篇轮流排（见 interleaveSources），第一页与提示词里能看到不同古籍的说法。
  * @param {object} library buildLibrary 的结果
  * @param {object} ctx 上下文
  * @param {{ limit?: number, status?: string[] }} [options] 条数上限；只看某些状态
@@ -115,36 +192,26 @@ export const matchEntries = (library, ctx, options = {}) => {
     let best = null;
     entry.applies.forEach((cond) => {
       const matched = conditionMatches(cond, ctx);
-      if (matched && (!best || matched.length > best.length)) best = matched;
+      if (!matched) return;
+      const weight = conditionWeight(cond, matched);
+      if (!best || weight > best.weight) best = { matched, weight };
     });
     if (!best) return;
+    const generality = Math.min(3, (machineConditionCount(entry.applies) - 1) * 0.5);
     hits.push({
       entry,
-      matched: best,
-      reason: reasonOf(best),
-      score: best.length * 10 + (STATUS_WEIGHT[entry.status] ?? 0),
+      matched: best.matched,
+      reason: reasonOf(best.matched),
+      score: Math.round((best.weight - generality + (STATUS_BONUS[entry.status] ?? 0)) * 100) / 100,
     });
   });
   hits.sort((a, b) => b.score - a.score || a.entry.id.localeCompare(b.entry.id));
-  return options.limit ? hits.slice(0, options.limit) : hits;
+  const ordered = interleaveSources(hits);
+  return options.limit ? ordered.slice(0, options.limit) : ordered;
 };
 
 const SEASON_OF_ZHI = Object.freeze({ 寅: '春', 卯: '春', 辰: '春', 巳: '夏', 午: '夏', 未: '夏', 申: '秋', 酉: '秋', 戌: '秋', 亥: '冬', 子: '冬', 丑: '冬' });
 const SI_JI_MONTHS = new Set(['辰', '戌', '丑', '未']);
-
-/** 格名的同义展开：正财格 → 正财格、财格；羊刃格 → 羊刃格、阳刃格；建禄格 → 建禄格、建禄月劫…… */
-export const patternNamesOf = (name) => {
-  if (!name) return [];
-  const base = name.replace(/^杂气/, '');
-  const names = [name, base];
-  if (/^[正偏]财格$/.test(base)) names.push('财格');
-  if (/^[正偏]印格$/.test(base)) names.push('印格', '印绶格');
-  if (base === '七杀格') names.push('偏官格', '杀格');
-  if (base === '羊刃格' || base === '阳刃格') names.push('羊刃格', '阳刃格', '刃格');
-  if (base === '建禄格' || base === '月劫格') names.push('建禄月劫', '禄劫格');
-  if (/^疑似/.test(base)) names.push(base.replace(/^疑似/, ''));
-  return unique(names);
-};
 
 /**
  * 从一张八字盘生成匹配上下文。
@@ -189,23 +256,51 @@ export const baziContextOf = ({ chart, strength = null, judge = null, relations 
 
 /**
  * 紫微上下文：传入当前关心的星曜与宫位即可（匹配引擎本身不依赖 iztro）。
- * @param {{ stars?: string[], palace?: string, branches?: string[], brightness?: string[], mutagens?: string[], patterns?: string[], limit?: string, gender?: string }} input
+ * @param {{ stars?: string[], palace?: string|string[], branches?: string[], brightness?: string[], mutagens?: string[], patterns?: string[], limit?: string, gender?: string }} input
+ *   palace 可以给多个（身宫与命宫同宫时给 ['命宫', '身宫']）。
  */
 export const ziweiContextOf = ({ stars = [], palace = null, branches = [], brightness = [], mutagens = [], patterns = [], limit = null, gender = null } = {}) => ({
   module: 'ziwei',
   star: unique(stars),
-  palace: palace ? (ZIWEI_PALACE_ALIASES[palace] ?? palace) : null,
+  palace: unique(toArray(palace).map((name) => ZIWEI_PALACE_ALIASES[name] ?? name)),
   branches: unique(branches),
   brightness: unique(brightness),
   mutagen: unique(mutagens),
-  pattern: unique(patterns),
+  pattern: unique(toArray(patterns).flatMap(ziweiPatternNamesOf)),
   limit,
   gender,
 });
 
+/** 四化标记转成登记名：iztro 给「禄权科忌」，也兼容「化禄」写法。 */
+const mutagenNameOf = (mutagen) => (mutagen ? String(mutagen).replace(/^化/, '') : null);
+
+/**
+ * 从排盘结果里的一个宫（iztro 的 palace：name、earthlyBranch、isBodyPalace、majorStars、minorStars、adjectiveStars）生成上下文。
+ * 宫里所有星曜（主星、辅星、杂曜）都算，庙旺与四化取自各星自带的 brightness / mutagen。
+ * @param {object} palace iztro 宫对象
+ * @param {{ gender?: 'male'|'female'|'男'|'女'|null, limit?: string, patterns?: string[] }} [options]
+ *   性别、运限层（默认本命）；patterns：程序认出的格局名（按命宫三方四正判的，调用方只在命宫传）
+ */
+export const ziweiPalaceContextOf = (palace, { gender = null, limit = '本命', patterns = [] } = {}) => {
+  if (!palace) return null;
+  const starList = [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])].filter((star) => star?.name);
+  const palaceNames = [palace.name, palace.isBodyPalace ? '身宫' : null];
+  return ziweiContextOf({
+    stars: starList.map((star) => star.name),
+    palace: palaceNames.filter(Boolean),
+    branches: [palace.earthlyBranch],
+    brightness: starList.map((star) => star.brightness).filter(Boolean),
+    mutagens: starList.map((star) => mutagenNameOf(star.mutagen)).filter(Boolean),
+    patterns,
+    limit,
+    gender: gender === 'female' || gender === '女' ? '女' : gender === 'male' || gender === '男' ? '男' : null,
+  });
+};
+
 /**
  * 六爻上下文。
  * @param {{ hexagram?: string, changed?: string, movingLines?: number[], relations?: string[], sixRelatives?: string[], sixGods?: string[], topic?: string }} input
+ *   topic：程序类别 key（wealth）或中文名（求财），会展开成古籍里的各种叫法（求财、财运、买卖……）
  */
 export const liuyaoContextOf = ({ hexagram = null, changed = null, movingLines = [], relations = [], sixRelatives = [], sixGods = [], topic = null } = {}) => ({
   module: 'liuyao',
@@ -214,11 +309,90 @@ export const liuyaoContextOf = ({ hexagram = null, changed = null, movingLines =
   relation: unique(relations),
   sixRelative: unique(sixRelatives),
   sixGod: unique(sixGods),
-  topic,
+  topic: liuyaoTopicNamesOf(topic),
   movingLines: movingLines.length === 0 ? '无' : movingLines.length === 1 ? '一' : '多',
 });
 
+/**
+ * 从一次起卦（buildLiuYaoReading）与断卦要点（judgeLiuYao）生成上下文：
+ * 本卦、变卦、动爻位置与多少、六冲六合、用神的六亲、动爻与用神所临六神、问事类别。
+ */
+export const liuyaoReadingContextOf = (reading, judge = null) => {
+  if (!reading?.hexagram) return null;
+  const moving = (reading.lines ?? []).filter((line) => line?.isMoving);
+  return liuyaoContextOf({
+    hexagram: reading.hexagram.name,
+    changed: reading.changed?.name ?? null,
+    movingLines: reading.movingPositions ?? moving.map((line) => line.position),
+    relations: [reading.hexagram.relation, reading.changed?.relation].filter(Boolean),
+    // 天时等一卦看几种六亲的类别，判断结果里带 contextRelatives（发动、暗动、化出的六亲）。
+    sixRelatives: (judge?.contextRelatives ?? [judge?.yongShen?.relative]).filter(Boolean),
+    sixGods: [...moving.map((line) => line.god), judge?.yongShen?.god].filter(Boolean),
+    topic: judge?.topic ?? reading.topic ?? null,
+  });
+};
+
+/**
+ * 紫微提示词用：命宫与身宫（同宫时只算一次）星曜命中的条目，去重后按相关度排序（各书各篇轮流排，同 matchEntries）。
+ * @param {object} library buildLibrary 的结果
+ * @param {object[]} palaces iztro 的十二宫
+ * @param {{ gender?: string, patterns?: string[] }} [options] patterns：程序认出的格局名，算进命宫的上下文
+ */
+export const ziweiLifePalaceHits = (library, palaces, { gender = null, patterns = [] } = {}) => {
+  if (!library || !Array.isArray(palaces)) return [];
+  const ming = palaces.find((palace) => palace?.name === '命宫') ?? null;
+  const shen = palaces.find((palace) => palace?.isBodyPalace) ?? null;
+  const targets = ming && shen && ming !== shen ? [ming, shen] : [ming ?? shen].filter(Boolean);
+  const seen = new Set();
+  const hits = [];
+  targets.forEach((palace) => {
+    const ctx = ziweiPalaceContextOf(palace, { gender, patterns: palace === ming ? patterns : [] });
+    matchEntries(library, ctx).forEach((hit) => {
+      if (seen.has(hit.entry.id)) return;
+      seen.add(hit.entry.id);
+      hits.push(hit);
+    });
+  });
+  return interleaveSources(hits.sort((a, b) => b.score - a.score || a.entry.id.localeCompare(b.entry.id)));
+};
+
 /* ---------- 术语词典 ---------- */
+
+/** 八字盘里出现的术语（给词典面板先列出来）：十神、格局、神煞、旺衰，再加几个基础词。 */
+export const baziGlossarySeeds = ({ chart, judge = null, strength = null } = {}) => {
+  const pillars = (chart?.pillars ?? []).filter((pillar) => pillar?.gan);
+  const tenGods = pillars.flatMap((pillar) => [pillar.ganShiShen, ...(pillar.hiddenShiShens ?? [])]);
+  const patterns = [judge?.pattern?.name, judge?.special?.name];
+  const shensha = pillars.flatMap((pillar) => pillar.shensha ?? []);
+  return unique([
+    '日主', '十神', ...tenGods, '格局', ...patterns, '用神', '旺衰', strength?.band,
+    '神煞', ...shensha, '藏干', '纳音', '空亡', '大运', '流年',
+  ]);
+};
+
+/** 紫微某一宫里出现的术语：宫名、宫中星曜、四化、几个基础词。 */
+export const ziweiGlossarySeeds = (palace) => {
+  if (!palace) return ['命宫', '身宫', '十二宫', '四化', '大限', '流年'];
+  const stars = [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])];
+  const mutagens = stars.map((star) => (star.mutagen ? `化${String(star.mutagen).replace(/^化/, '')}` : null));
+  return unique([
+    palace.name, palace.isBodyPalace ? '身宫' : null, ...stars.map((star) => star.name), ...mutagens,
+    '三方四正', '庙旺利陷', '四化', '大限', '流年',
+  ]);
+};
+
+/** 六爻一卦里出现的术语：世应、用神与其六亲、动变、空破、伏神、六冲六合，再加几个基础词。 */
+export const liuyaoGlossarySeeds = (reading, judge = null) => {
+  if (!reading?.hexagram) return ['世爻', '应爻', '用神', '六亲', '六神', '本卦', '动爻', '变卦', '旬空', '月破'];
+  const marks = (reading.lines ?? []).flatMap((line) => line?.marks ?? []);
+  const relationTerm = (relation) => (relation ? `${relation}卦` : null);
+  return unique([
+    '世爻', '应爻', '用神', judge?.yongShen?.relative, '原神', '忌神', '六亲', '六神',
+    '本卦', reading.movingPositions?.length ? '动爻' : '静爻', reading.changed ? '变卦' : null, '互卦',
+    relationTerm(reading.hexagram.relation), relationTerm(reading.changed?.relation),
+    ...marks, '旬空', '月破', '月建', '日辰', '暗动', (reading.hidden ?? []).length ? '伏神' : null, '应期', '八宫',
+  ]);
+};
 
 /** 合并术语词典文件。 */
 export const buildGlossary = (docs) => {
