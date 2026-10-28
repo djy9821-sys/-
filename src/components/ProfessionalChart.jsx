@@ -38,7 +38,8 @@ import {
 import { buildBaziChart } from '../utils/baziChart';
 import ZiweiClassicsPanel from './ziwei/ZiweiClassicsPanel.jsx';
 import { useClassicsLibrary } from './common/useClassicsLibrary.js';
-import { ziweiLifePalaceHits } from '../data/classics/index.js';
+import { ziweiGlossarySeeds, ziweiLifePalaceHits } from '../data/classics/index.js';
+import GlossaryPanel from './common/GlossaryPanel.jsx';
 import { classicsPromptSection } from '../utils/classicsPrompt.js';
 import { Sparkles, Coffee, Save, Archive, Calendar, Printer } from "lucide-react";
 import wechatPayImg from '../assets/wechat_pay.jpg';
@@ -205,6 +206,9 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     // 古籍原文：按当前高亮的宫查古籍库（可在弹层里换宫）
     const [showClassics, setShowClassics] = React.useState(false);
     const classicsDialogRef = React.useRef(null);
+    // 术语词典：先列当前高亮的宫里出现的术语
+    const [showGlossary, setShowGlossary] = React.useState(false);
+    const glossaryDialogRef = React.useRef(null);
     const [mobileChartMode, setMobileChartMode] = React.useState('professional');
     const patternDialogRef = React.useRef(null);
     // State for Partner Modal (Conception Planner)
@@ -311,6 +315,28 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [showClassics]);
+
+    React.useEffect(() => {
+        if (!showGlossary) return undefined;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        const focusFrame = window.requestAnimationFrame(() => {
+            glossaryDialogRef.current?.querySelector('[data-glossary-focus]')?.focus();
+        });
+        const handleKeyDown = (event) => {
+            if (event.key !== 'Escape') return;
+            setShowGlossary(false);
+            window.requestAnimationFrame(() => commonMenuButtonRef.current?.focus());
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.cancelAnimationFrame(focusFrame);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [showGlossary]);
 
     const palaceRelationship = useMemo(() => {
         if (!focusedPalace) return null;
@@ -1652,6 +1678,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
             setShowAiMenu(false);
             setShowPatternAnalysis(false);
             setShowClassics(false);
+            setShowGlossary(false);
         }
         setShowCommonMenu((visible) => !visible);
     };
@@ -1688,6 +1715,21 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         setShowClassics(false);
         window.requestAnimationFrame(() => commonMenuButtonRef.current?.focus());
     };
+
+    const openGlossary = () => {
+        setSelectedMutationInfo(null);
+        setShowCommonMenu(false);
+        setPromptPreview(null);
+        setShowPatternAnalysis(false);
+        setShowClassics(false);
+        setShowGlossary(true);
+    };
+
+    const closeGlossary = () => {
+        setShowGlossary(false);
+        window.requestAnimationFrame(() => commonMenuButtonRef.current?.focus());
+    };
+    const glossarySeeds = useMemo(() => ziweiGlossarySeeds(focusedPalace), [focusedPalace]);
 
     const copyPatternAnalysis = async (feedback = false) => {
         const report = formatZiweiPatternReport(patternResults, structureResults);
@@ -2702,6 +2744,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                             <button type="button" onClick={openAiFromCommonMenu}>AI 分析</button>
                             <button type="button" onClick={openPatternAnalysis}>格局分析</button>
                             <button type="button" onClick={openClassics}>古籍原文</button>
+                            <button type="button" onClick={openGlossary}>术语词典</button>
                             <button
                                 type="button"
                                 aria-pressed={compactStarView}
@@ -3115,6 +3158,38 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
 
                         <footer className="wenmo-pattern-actions wenmo-pattern-actions--single">
                             <button type="button" onClick={closeClassics}>关闭</button>
+                        </footer>
+                    </section>
+                </div>
+            )}
+
+            {showGlossary && (
+                <div
+                    className="wenmo-pattern-modal chart-modal"
+                    data-testid="ziwei-glossary-modal"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) closeGlossary();
+                    }}
+                >
+                    <section
+                        ref={glossaryDialogRef}
+                        className="wenmo-pattern-sheet"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="wenmo-glossary-title"
+                    >
+                        <div className="wenmo-pattern-paper">
+                            <header>
+                                <h2 id="wenmo-glossary-title" tabIndex="-1" data-glossary-focus>
+                                    术语词典 <small>beta</small>
+                                </h2>
+                                <p>看不懂的名词在这里查：先列当前宫里出现的星曜与四化，也能搜任何术语</p>
+                            </header>
+                            <GlossaryPanel module="ziwei" seedTerms={glossarySeeds} subject={focusedPalace ? `${focusedPalace.name === '仆役' ? '交友' : focusedPalace.name}宫` : '这张盘'} testId="ziwei-glossary" className="mt-3 space-y-3" />
+                        </div>
+
+                        <footer className="wenmo-pattern-actions wenmo-pattern-actions--single">
+                            <button type="button" onClick={closeGlossary}>关闭</button>
                         </footer>
                     </section>
                 </div>
