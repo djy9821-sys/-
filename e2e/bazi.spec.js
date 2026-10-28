@@ -52,6 +52,19 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   await expect(glossary).toContainText('没有找到包含「不存在的词」的术语');
 });
 
+test('疑似从格：格局一节给出按此格论的喜忌，旺衰一节提示另见格局', async ({ page }) => {
+  // 1975-02-26 午时：乙卯 戊寅 癸卯 戊午，癸水地支无根、天干无印比，食伤独旺。
+  await page.goto('/#/bazi?cal=s&d=1975-2-26&g=m&h=6');
+  const result = page.getByRole('region', { name: '八字排盘结果' });
+  await expect(result).toBeVisible();
+  const special = result.getByTestId('bazi-special-pattern');
+  await expect(special).toContainText('疑似从儿格');
+  const gods = special.getByTestId('bazi-special-gods');
+  await expect(gods).toContainText('若按此格论');
+  await expect(gods).toContainText('从儿以食伤为用');
+  await expect(result.getByTestId('bazi-strength-special')).toContainText('格局一节疑似从儿格：若成格，喜木（食伤）、火（财）；忌金（印）、土（官杀）');
+});
+
 test('手动录入排盘、存档，再从档案打开', async ({ page }) => {
   await page.goto('/#/bazi');
   await page.locator('.bazi-landing__start').click();
