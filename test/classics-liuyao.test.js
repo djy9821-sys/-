@@ -17,7 +17,9 @@ test('类别名表与程序类别一一对应，第一个名字就是程序显�
   Object.entries(LIUYAO_TOPIC_NAMES).forEach(([key, names]) => assert.equal(names[0], LIUYAO_TOPIC_LABELS[key], key));
   assert.ok(liuyaoTopicNamesOf('love').includes('婚姻'));
   assert.ok(liuyaoTopicNamesOf('感情婚姻').includes('姻缘'));
-  assert.deepEqual(liuyaoTopicNamesOf('天时'), ['天时']);
+  assert.deepEqual(liuyaoTopicNamesOf('失物'), ['失物']);
+  assert.deepEqual(liuyaoTopicNamesOf('天时'), ['天时晴雨', '天时', '晴雨', '天气']);
+  assert.ok(liuyaoTopicNamesOf('life').includes('身命'));
   assert.deepEqual(liuyaoTopicNamesOf(null), []);
   assert.ok(LIUYAO_TOPIC_VOCAB.includes('词讼') && LIUYAO_TOPIC_VOCAB.includes('失物'));
 });

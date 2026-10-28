@@ -57,10 +57,12 @@ test('卦例存档后能重新装出同一卦', () => {
   assert.equal(back.gender, 'female');
   assert.equal(back.method, 'number');
   assert.equal(back.castNote, '报数 37、58');
-  const odd = liuYaoRecordToInput({ type: 'liuyao', data: { values: [7, 7, 7, 7, 7, 7], castAt: '2026-10-26 10:07', method: 'dice', topic: 'weather', gender: 'x' } });
+  const odd = liuYaoRecordToInput({ type: 'liuyao', data: { values: [7, 7, 7, 7, 7, 7], castAt: '2026-10-26 10:07', method: 'dice', topic: 'lottery', gender: 'x' } });
   assert.equal(odd.method, 'coins');
   assert.equal(odd.topic, 'general');
   assert.equal(odd.gender, '');
+  const weather = liuYaoRecordToInput({ type: 'liuyao', data: { values: [7, 7, 7, 7, 7, 7], castAt: '2026-10-26 10:07', method: 'coins', topic: 'weather' } });
+  assert.equal(weather.topic, 'weather');
 });
 
 test('残缺或别的类型的记录不能当六爻卦例打开', () => {

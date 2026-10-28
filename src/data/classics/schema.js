@@ -280,6 +280,22 @@ export const validateGlossaryDoc = (doc, ctx = {}) => {
 };
 
 const GANZHI = /^[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]$/;
+/** 卦名里的上下卦象，自初爻起的阴阳（1 阳 0 阴）。 */
+const TRIGRAM_LINES = Object.freeze({ 天: [1, 1, 1], 地: [0, 0, 0], 雷: [1, 0, 0], 风: [0, 1, 1], 水: [0, 1, 0], 火: [1, 0, 1], 山: [0, 0, 1], 泽: [1, 1, 0] });
+const hexagramLines = (name) => {
+  const [upper, lower] = name.includes('为') ? [name[2], name[2]] : [name[0], name[1]];
+  return [...TRIGRAM_LINES[lower], ...TRIGRAM_LINES[upper]];
+};
+/** 本卦变之卦，哪几爻动。 */
+export const movingLinesBetween = (hexagram, changed) => {
+  const from = hexagramLines(hexagram);
+  const to = hexagramLines(changed);
+  return from.map((bit, i) => (bit !== to[i] ? i + 1 : 0)).filter(Boolean);
+};
+/** 六爻占例 expected 的取值：原书所取用神，原书的断与应验归成的几类。 */
+export const LIUYAO_CASE_YONGSHEN = Object.freeze(['父母', '兄弟', '子孙', '妻财', '官鬼', '世爻', '应爻']);
+const WEATHER_WORDS = '晴|雨|阴|多云|风';
+export const LIUYAO_CASE_VERDICT = new RegExp(`^(吉|凶|平|${WEATHER_WORDS}|先(${WEATHER_WORDS})后(${WEATHER_WORDS})|晴雨各有其时)$`);
 
 /** 校验经典命例文件（src/data/cases/*.json）。 */
 export const validateCasesDoc = (doc, ctx = {}) => {
@@ -307,6 +323,7 @@ export const validateCasesDoc = (doc, ctx = {}) => {
       if (entry.source.classic !== undefined && !CLASSICS[entry.source.classic]) errors.push(`${where}: source.classic「${entry.source.classic}」不在登记表里`);
       if (entry.source.classic === undefined && !isNonEmptyString(entry.source.title)) errors.push(`${where}: source 须有 classic（登记表 key）或 title（书名）`);
       if (!isNonEmptyString(entry.source.section)) errors.push(`${where}: 缺 source.section（卷/篇）`);
+      if (entry.source.entry !== undefined && (!isNonEmptyString(entry.source.entry) || !ID_PATTERN.test(entry.source.entry))) errors.push(`${where}: source.entry 须是古籍条目 id，如 zengshan.zhanfa.015`);
     }
     if (!isNonEmptyString(entry.original)) errors.push(`${where}: 缺 original（原书记载：断语或生辰原文）`);
 
@@ -324,6 +341,14 @@ export const validateCasesDoc = (doc, ctx = {}) => {
         });
         if (cast.date !== undefined && !isNonEmptyString(cast.date)) errors.push(`${where}: cast.date 须是字符串（原书所记日期）`);
         if (cast.topic !== undefined && !isNonEmptyString(cast.topic)) errors.push(`${where}: cast.topic 须是字符串`);
+        // 动爻须与本卦、之卦对得上：有动爻就要写之卦，写了之卦动爻就得是两卦不同的那几爻
+        if (HEXAGRAMS.includes(cast.hexagram) && Array.isArray(cast.movingLines)) {
+          const lines = [...cast.movingLines].sort((a, b) => a - b);
+          if (cast.changed && HEXAGRAMS.includes(cast.changed)) {
+            const expected = movingLinesBetween(cast.hexagram, cast.changed);
+            if (expected.join() !== lines.join()) errors.push(`${where}: ${cast.hexagram}之${cast.changed}动爻应为 [${expected.join(',')}]，写的是 [${lines.join(',')}]`);
+          } else if (lines.length) errors.push(`${where}: 有动爻须写 cast.changed（之卦）`);
+        }
         const knownCast = new Set(['hexagram', 'changed', 'movingLines', 'monthGanZhi', 'dayGanZhi', 'date', 'topic']);
         Object.keys(cast).forEach((key) => {
           if (!knownCast.has(key)) errors.push(`${where}: cast 未知字段 ${key}`);
@@ -345,6 +370,17 @@ export const validateCasesDoc = (doc, ctx = {}) => {
       if (!Array.isArray(entry.pillars) || entry.pillars.length !== 4 || entry.pillars.some((p) => p !== '不详' && !GANZHI.test(p))) errors.push(`${where}: pillars 须是 4 个干支（时柱不详写「不详」）`);
     }
     if (entry.expected !== undefined && (!entry.expected || typeof entry.expected !== 'object')) errors.push(`${where}: expected 必须是对象`);
+    else if (entry.expected !== undefined && doc.module === 'liuyao') {
+      const { expected } = entry;
+      if (expected.yongShen !== undefined && !LIUYAO_CASE_YONGSHEN.includes(expected.yongShen)) errors.push(`${where}: expected.yongShen 须是 ${LIUYAO_CASE_YONGSHEN.join('/')}`);
+      if (expected.verdict !== undefined && !LIUYAO_CASE_VERDICT.test(String(expected.verdict))) errors.push(`${where}: expected.verdict 须是 吉/凶/平，天时写 晴/雨/阴/多云/风、先某后某或晴雨各有其时`);
+      ['timing', 'outcome'].forEach((key) => {
+        if (expected[key] !== undefined && !isNonEmptyString(expected[key])) errors.push(`${where}: expected.${key} 须是非空字符串`);
+      });
+      Object.keys(expected).forEach((key) => {
+        if (!['yongShen', 'verdict', 'timing', 'outcome'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
+      });
+    }
     if (!ENTRY_STATUS.includes(entry.status)) errors.push(`${where}: status 须是 ${ENTRY_STATUS.join('/')}`);
     ['vernacular', 'notes'].forEach((key) => {
       if (entry[key] !== undefined && typeof entry[key] !== 'string') errors.push(`${where}: ${key} 必须是字符串`);

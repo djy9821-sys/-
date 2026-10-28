@@ -50,7 +50,23 @@
 ```
 
 - `cast.monthGanZhi` / `dayGanZhi` 原书有则填；只有月支日支的填 `date`，干支留空。
-- `movingLines` 自初爻起 1–6；无动爻写 `[]`。
+- `movingLines` 自初爻起 1–6；无动爻写 `[]`。有动爻必须写 `changed`（之卦），而且动爻要正好是本卦、之卦不同的那几爻——校验脚本会算。
+
+六爻占例另有两项（主线拿来做断卦回归，务必按原书填）：
+
+```json
+{
+  "source": { "classic": "zengshan", "section": "天时章", "entry": "zengshan.zhanfa.015" },
+  "expected": { "yongShen": "子孙", "verdict": "晴", "timing": "午时", "outcome": "日午时之后，满天红日无云" }
+}
+```
+
+- `source.entry`：这条占例在古籍库里的条目 id（`src/data/classics/liuyao/*.json`），没有就不写。
+- `expected.yongShen`：原书明说取的用神，只能是 父母 / 兄弟 / 子孙 / 妻财 / 官鬼 / 世爻 / 应爻；原书没明说的不填，不要替作者推断。
+- `expected.verdict`：原书对所问之事的断语归类。人事写 吉（成、有、愈、平安、得）/ 凶（不成、无、危、失）/ 平（成而有损、迟成等吉凶参半）；天时写 晴 / 雨 / 阴 / 多云 / 风，有先后的写「先雨后晴」这类，雨晴各应其时的写「晴雨各有其时」。拿不准就不填，写进 `notes`。
+- `expected.timing`：原书说的应期原样摘几个字，如「酉日」「巳年」「午时」；没有不填。
+- `expected.outcome`：原书记的应验结果原文摘句，如「果于酉日大晴」；没有不填。
+- 同一占例里接连占了几卦（「又占」「再占」）的，每一卦各录一条（`id` 连号，`name` 后面写「（再占）」），各自的月日、卦、动爻照原文或卦图；断语只针对合起来说的，`expected` 写在最后一卦，前几卦只填 `cast`。
 
 `node scripts/validate-data.mjs` 会校验格式。
 
@@ -70,6 +86,10 @@
 - 原书只有四柱没有年份的，`birth.calendar` 写 `unknown`，不要硬猜年份；能根据大运与行文推定的写在 `notes` 并说明推定依据。
 - 原书断语抄原文到 `original`，自己的白话写 `vernacular`，不要混。
 - 同一人多书记载不一致的，各录一条，`notes` 互相注明。
+
+## 第二批：《增删卜易》占例转命例（六爻）
+
+古籍库里已录《增删卜易》占例 162 条（总论 81、分类占法前半 50、后半 31，id 见 `zengshan-zonglun.json`、`zengshan-zhanfa-1.json`、`zengshan-zhanfa-2.json`，标题都以「占例·」开头）。逐条转成 `src/data/cases/liuyao.json` 的命例：`id` 用 `liuyao.zengshan.001` 起连号，`original` 抄起卦、断语与应验的原文（太长可节录，完整原文由 `source.entry` 指向），`vernacular` 可沿用古籍条目的白话。只有月支日支、没有完整干支的照原文写 `date` 与 `dayGanZhi`。分支 `side/05-cases-liuyao`，从当前集成基准分支新开；每 30 条左右提交一次，跑 `node scripts/validate-data.mjs`。
 
 ## 步骤 / 验收 / 禁止
 
