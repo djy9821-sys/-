@@ -139,7 +139,9 @@ export const getTimelineFortune = (horoscope, selection = {}) => {
   const flowGanZhi = `${fortune.yearly.heavenlyStem}${fortune.yearly.earthlyBranch}`;
   if (flowGanZhi !== yearGanZhiOf(year)) notes.push(`这一刻的流年是${flowGanZhi}（流年以立春为界）`);
   if (hour !== null && fortune.lateZi) {
-    notes.push(fortune.lateZi.mode === 'next' ? `${fortune.lateZi.text}（${fortune.lunarDate}）` : fortune.lateZi.text);
+    // 换次日时写明换到哪天（农历月日，如「十月初一」），月底的晚子时连流月都换了。
+    const nextDay = String(fortune.lunarDate ?? '').replace(/^.*?年/, '');
+    notes.push(fortune.lateZi.mode === 'next' && nextDay ? `晚子时换次日：流日、流时按${nextDay}子时` : fortune.lateZi.text);
   }
   return result(fortune);
 };
