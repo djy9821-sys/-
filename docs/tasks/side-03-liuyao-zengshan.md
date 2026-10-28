@@ -24,7 +24,7 @@
 
 - 每章按自然段拆；章首的总纲一条，其后各段各一条。
 - `applies`：论某卦的写 `hexagram`；论六冲六合的写 `relation`；论某六亲为用神的写 `sixRelative`；论动爻多少的写 `movingLines`；分类占法写 `topic`（求财、婚姻、疾病……）。
-- 占例条目 `applies` 写 `hexagram`（本卦）和 `topic`。
+- 占例条目 `applies` 写 `hexagram`（本卦）和 `topic`；有动爻的写 `line`（原文「得某之某」两卦不同的那几爻，一爻不多一爻不少）。推送前跑 `node scripts/check-zhanli.mjs`，报错必须为 0（见协作手册第 4 步）。
 
 ## 白话要求
 
