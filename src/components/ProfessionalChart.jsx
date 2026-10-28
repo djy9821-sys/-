@@ -233,14 +233,9 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         return palaces.find((palace) => palace.index === focusedIndex) || palaces[focusedIndex] || null;
     }, [focusedIndex, palaces]);
 
-    // 古籍库里与命宫、身宫星曜相关的条目：附进各类 AI 话术（古籍库按需加载，没加载完就先不附）。
+    // 古籍库里与命宫、身宫星曜（及程序认出的格局）相关的条目：附进各类 AI 话术（古籍库按需加载，没加载完就先不附；
+    // 话术文本在下面认出格局之后再算）。
     const { data: classicsData } = useClassicsLibrary(palaces.length > 0);
-    const classicsPromptText = useMemo(() => {
-        if (!classicsData?.library || palaces.length === 0) return null;
-        const hits = ziweiLifePalaceHits(classicsData.library, palaces, { gender: basicInfo.gender });
-        return classicsPromptSection(hits, { title: '【古籍原文（命宫、身宫星曜）】', subject: '命宫身宫星曜', limit: 4 });
-    }, [classicsData, palaces, basicInfo.gender]);
-    const withClassics = (text) => (text && classicsPromptText ? `${text}\n\n${classicsPromptText}` : text);
 
     React.useEffect(() => {
         if (focusedIndex !== null || palaces.length === 0) return;
@@ -471,6 +466,14 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         () => [...patternResults, ...structureResults],
         [patternResults, structureResults],
     );
+    // 程序认出的格局名（三奇加会、机月同梁格……），古籍匹配时算进命宫的上下文。
+    const patternNames = useMemo(() => patternEntries.map((pattern) => pattern.name), [patternEntries]);
+    const classicsPromptText = useMemo(() => {
+        if (!classicsData?.library || palaces.length === 0) return null;
+        const hits = ziweiLifePalaceHits(classicsData.library, palaces, { gender: basicInfo.gender, patterns: patternNames });
+        return classicsPromptSection(hits, { title: '【古籍原文（命宫、身宫星曜）】', subject: '命宫身宫星曜', limit: 4 });
+    }, [classicsData, palaces, basicInfo.gender, patternNames]);
+    const withClassics = (text) => (text && classicsPromptText ? `${text}\n\n${classicsPromptText}` : text);
     const selectedPattern = patternEntries.find((pattern) => pattern.id === selectedPatternId)
         || patternEntries[0]
         || null;
@@ -3153,7 +3156,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 </h2>
                                 <p>选一个宫，看古籍里怎么说宫中的星曜；原文逐字照录公版古籍，白话另译并标注审核状态</p>
                             </header>
-                            <ZiweiClassicsPanel palaces={palaces} focusedIndex={focusedIndex} gender={basicInfo.gender} />
+                            <ZiweiClassicsPanel palaces={palaces} focusedIndex={focusedIndex} gender={basicInfo.gender} patterns={patternNames} />
                         </div>
 
                         <footer className="wenmo-pattern-actions wenmo-pattern-actions--single">
