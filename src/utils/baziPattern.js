@@ -285,7 +285,8 @@ export const determinePattern = (chart, summary = null) => {
  * - 化气先看：日干与月干或时干相合，日主地支没有本气之根，而化神得令（月令正是化神，日主又无根），
  *   或化神之气占到二成五（「土旺乘权，克去壬水，又无比劫，合神更真」「丙火透而通根，化火斯真」）。
  *   日主有本气之根（不在日支），但化神当令、气占三成五以上的，作假化（任注假化诸造「虽是假化，却有情而不悖」
- *   「化神当令……日干不得不从合而化」）；日主坐下本气之根、化神与日主同一五行的（如庚日合乙化金）不作化论。
+ *   「化神当令……日干不得不从合而化」）；日主坐下本气之根、化神与日主同一五行的（如庚日合乙化金）不作化论；
+ *   日主坐下本气是印的，印生身，也不作真化（「日元柔弱，以印为夫，清而得用」）。
  * - 从格（「衰极者似X」）：地支无比劫之根，印气至多一点中气、余气（不见本气，得令加得地不过 0.25 分）；天干帮身的只有无根比劫、
  *   至多两个（「天干三透甲乙，而地支不载……格成从杀」），或只有一个无根之印而财星占到三成、足以坏印。
  *   天干比劫三透、印比各一的，任注仍取印比，不作从论。旧的比例条件（同党不到两成、无根、无印透）也算。
@@ -297,6 +298,8 @@ export const determinePattern = (chart, summary = null) => {
  * - 专旺、从强（「旺极者似X」）：打分到极强（或同党占八成以上），而且四支本气都是印比，不见食伤、财、官杀之根。
  *   打分的两条（从格与极强）要时辰已知。
  *   食伤有本气之根的是「太旺」，任注取食伤泄秀（「水太旺者……喜其寅木吐秀」），仍按扶抑。
+ *   从强要「绝无一毫财星官杀之气」：天干官杀在地支有根（「乙木官星透露，盘根在未……本可为用」），
+ *   或食伤透干有根、又有财星透出（「喜其甲丙并透……用神必是甲木」），也按扶抑。
  */
 export const detectSpecialPattern = (chart, strength, summary) => {
   const { roleShare, roleCount, byKey, stems, pillars } = summary;
@@ -316,7 +319,9 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     const monthElement = ZHI_WUXING[byKey.month?.zhi];
     const huaShare = strength.percents?.[element] ?? 0;
     const deLing = monthElement === element && !hasRoot;
-    const zhenHua = element && !benqiRootZhis.length && (deLing || huaShare >= 25);
+    // 日主坐下本气是印的，印生身，日主不孤，化不真（任注「日元柔弱，以印为夫，清而得用」：癸酉日，时干戊土相合，仍取印）。
+    const sitsOnYin = GAN_WUXING[byKey.day?.hiddenGanDetails?.[0]?.gan] === GENERATED_BY[dayWuxing];
+    const zhenHua = element && !benqiRootZhis.length && !sitsOnYin && (deLing || huaShare >= 25);
     // 日主坐下就是本气之根（坐禄、坐刃）的不作假化（「喜其日元得地……壬水可用」「日主虽临旺地……日主不能从合矣」）。
     const sitsOnRoot = GAN_WUXING[byKey.day?.hiddenGanDetails?.[0]?.gan] === dayWuxing;
     const jiaHua = element && benqiRootZhis.length > 0 && !sitsOnRoot && element !== dayWuxing && monthElement === element && huaShare >= 35;
@@ -414,7 +419,12 @@ export const detectSpecialPattern = (chart, strength, summary) => {
 
   const benqiRoles = new Set(pillars.map((pillar) => ROLE_OF[pillar.hiddenGanDetails?.[0]?.shiShen]).filter(Boolean));
   const wangJi = (scored && score.total >= 4) || strength.ratio > 0.8;
-  const shunShi = !['食伤', '财', '官杀'].some((role) => benqiRoles.has(role));
+  // 从强「绝无一毫财星官杀之气」：天干官杀在地支有根，官星有力（「乙木官星透露，盘根在未，余气在辰，本可为用」）；
+  // 食伤透干有根、又有财星透出，旺神有泄、食伤生财（「喜其甲丙并透……用神必是甲木」）：都按扶抑，不作专旺、从强。
+  const rootedStemOf = (role) => stems.some((stem) => stem.key !== 'day' && ROLE_OF[stem.shiShen] === role && rootedGan(stem.gan));
+  const shunShi = !['食伤', '财', '官杀'].some((role) => benqiRoles.has(role))
+    && !rootedStemOf('官杀')
+    && !(rootedStemOf('食伤') && summary.transparentRole('财').length > 0);
   if (wangJi && shunShi) {
     const level = score ? `帮身打分 ${Math.round(score.total * 100) / 100} 分` : `同党占 ${Math.round(strength.ratio * 100)}%`;
     if (roleCount['官杀'] === 0 && roleShare['比劫'] >= roleShare['印']) {
