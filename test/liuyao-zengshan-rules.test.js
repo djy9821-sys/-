@@ -223,3 +223,18 @@ test('出行世动逢合；进神化空仍进；用神临应克世来就我', ()
   assert.match(allText(money), /用神临应而克世，用神来就我/);
   assert.equal(money.verdict.level, 'good');
 });
+
+test('行人三合冲开而来；世爻独发与日月共成三合；寻地世爻化回头克非吉地', () => {
+  // 占伯何日来（未月戊戌日，屯之随）：「父母为用神，克世者速至」；用神在申子辰局中，行人章「用神三合，冲开之月日而来」
+  const uncle = bookCase('水雷屯', [4], '2001-8-3', { topic: 'travel', subject: 'parents' });
+  assert.match(allText(uncle), /用神在局中，被合住，冲开之月日而来/);
+  assert.equal(uncle.verdict.level, 'good');
+  // 占墓地（寅月戊午日，颐之无妄）：「日月世爻共成三合，青龙戏水」
+  const tomb = bookCase('山雷颐', [4, 5], '2001-2-24', { topic: 'gravesite' });
+  assert.match(allText(tomb), /寅午戌合成火局，生用神/);
+  assert.equal(tomb.verdict.level, 'good');
+  // 占以父柩附葬祖茔（子月丙申日，复之坤）：「世爻被克，不宜附葬」；寻地章「化回头克……皆非吉地」
+  const rebury = bookCase('地雷复', [1], '2007-1-2', { topic: 'gravesite' });
+  assert.match(allText(rebury), /世爻动而化破、化墓绝、化退或化回头克，但逢一者，皆非吉地/);
+  assert.equal(rebury.verdict.level, 'bad');
+});
