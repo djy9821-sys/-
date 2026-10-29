@@ -110,6 +110,15 @@ test('身弱食伤重：取印制伤生身', () => {
   assert.equal(result.favorable[0].element, '木');
 });
 
+test('身旺印多而财星无力：官杀生印，列为忌神；有财破印、滋杀的官杀照旧可用', () => {
+  // 丁丑 丙午 己酉 辛未（《滴天髓阐微》命造，书用金）：己土生午月，丙丁火印透出；财星水不透、不作本气。
+  const result = analyzeStrength(chartByPillars('丁丑 丙午 己酉 辛未'));
+  assert.equal(result.band, '偏强');
+  assert.equal(result.basis, '身旺印多，取财破印，食伤次之；官杀生印，为忌');
+  assert.deepEqual(elements(result.favorable), ['金', '水']);
+  assert.ok(elements(result.unfavorable).includes('木'), '官杀木为忌');
+});
+
 test('身旺：印多取财破印；比劫多取官杀，官杀无力取食伤泄秀', () => {
   const yinDuo = analyzeStrength(chartOf(1990, 8, 15, 0));
   assert.equal(yinDuo.band, '偏强');
