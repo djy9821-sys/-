@@ -66,6 +66,8 @@ export const APPLIES_KEYS = Object.freeze({
     relation: null,
     strength: ['极弱', '偏弱', '中和', '偏强', '极强'],
     season: ['春', '夏', '秋', '冬', '四季'],
+    // 讲某一种六亲的（《滴天髓》夫妻、子女、父母、兄弟诸篇），只在结果页「六亲宫星」那一亲下面出现。
+    liuqin: ['夫妻', '子女', '父母', '兄弟'],
   }),
   liuyao: Object.freeze({
     hexagram: HEXAGRAMS,
