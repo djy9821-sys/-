@@ -23,6 +23,7 @@ test('男命看妻：财星是喜用、来合日主（任注「此喜神即是�
   assert.deepEqual(liuqin.items.map((item) => item.title), ['妻', '子女', '父母', '兄弟']);
   assert.deepEqual(liuqin.items.map((item) => item.kind), ['夫妻', '子女', '父母', '兄弟'], '古籍 applies.liuqin 的取值，「六亲宫星」按它找讲这一亲的原文');
   const wife = itemOf(liuqin, 'spouse');
+  assert.equal(wife.tone, 'good', '妻星现身且是喜用');
   const [star] = wife.stars;
   assert.equal(star.label, '妻星');
   assert.equal(star.element, '木');
@@ -56,6 +57,7 @@ test('女命看夫：官杀为夫星、食伤为子女；夫妻宫逢冲另提�
   const siblings = itemOf(liuqin, 'siblings');
   assert.equal(siblings.stars[0].places.length, 0);
   assert.match(siblings.verdict, /^兄弟星不现，古法看宫位与岁运引出/);
+  assert.equal(siblings.tone, siblings.palaces[0].tone, '星不现看宫位');
   // 父母：母星、父星分开看，宫位看年月。
   const parents = itemOf(liuqin, 'parents');
   assert.deepEqual(parents.stars.map((star) => star.label), ['母星', '父星']);
