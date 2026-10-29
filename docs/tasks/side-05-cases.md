@@ -200,6 +200,27 @@
 - `quote` 摘原句，不改字。已有 `expected` 的在里面加 `liuqin`；四柱、`original`、`vernacular`、其余字段一律不动。
 - 分支：第八批做完、PR 开好之后，在同一分支 `side/05-cases-bazi-b6` 接着做。先 `git merge origin/claude/round8-collab`（校验脚本要认得 `expected.liuqin`），每 50 造左右提交一次，跑 `node scripts/validate-data.mjs` 与 `node scripts/bazi-cases.mjs`。推送后在第八批的 PR 里补一张表：各篇补了多少条妻（夫）、子女、父、母、兄弟。
 
+## 第十批：《滴天髓阐微》通神论前半命例（八字）
+
+第三、四批收了通神论体用以后诸篇和任注命造，前半（天道至八格、生时）还没收。本批按第三批的口径录这些篇的任注命造，连同 `expected.yun`、`expected.liuqin`（第八、九批口径）一起写：
+
+- 编号接着 `bazi.ditian.423` 往下；`source.section` 写「通神论·人道」这样的篇名，方局上下篇统一写「通神论·方局」，notes 注明上下篇与卷页。
+- 任氏泛举的同柱命式（「四戊午……甚多」）按命式录，`birth.gender` 写 `unknown`，不补个人后验，不计入人物。
+- 原书只说「生时」片段、没有完整四柱的不收，也不补年月。
+- 分支：从第九批的分支开出 `side/05-cases-bazi-b7`，先 merge `origin/claude/round8-collab`；每三十造左右提交一次。PR 附表：各篇造数、岁运条数、六亲条数。
+
+## 第十一批：给六亲回填应运（expected.liuqin[].yun）
+
+六亲回归要分开原局定论与运中应事：任注说「刑妻克子」，多半是「一交丙运，刑妻克子」——应在那步运上，看的是岁运，不全是原局的六亲宫星。主线的回归脚本现在先看条目写没写 `yun`，没写才按原句猜（`scripts/lib/baziCases.mjs` 的 `liuqinScopeOf`）。本批把它写实：
+
+```json
+{ "kind": "妻", "verdict": "凶", "quote": "一交丙运，刑妻克子", "yun": "丙" }
+```
+
+- 给全部《滴天髓阐微》命造的 `expected.liuqin` 回填 `yun`：原书明说应在某步运、某个流年的，写那步运或那年的干支；原书只说「丙运」「丑运」的写单字；连说两运的写更靠近这句的那一步；原局定论（「其不刑妻者，无财之妙也」）不写。
+- 每条只加 `yun` 这一个字段，`kind`、`verdict`、`quote` 与其余字段一律不动。
+- 分支：从第十批的分支开出 `side/05-cases-bazi-b8`，先 merge `origin/claude/round8-collab`；每一百造提交一次，跑 `node scripts/validate-data.mjs` 与 `node scripts/bazi-cases.mjs`（「六亲（原局）」「六亲（运中应事）」两行）。PR 附表：各篇回填了多少条。
+
 ## 步骤 / 验收 / 禁止
 
 分支 `side/05-cases`；按来源分 PR。校验脚本与 CI 通过；抽查 10% 核对四柱与原书一致、来源可查。只产出 JSON，不碰代码，不改金样（金样由主线从这些命例生成）。
