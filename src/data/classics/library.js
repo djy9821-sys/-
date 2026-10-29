@@ -11,6 +11,7 @@
  * 匹配规则（与 README 里 applies 的约定一致）：
  * - 条目的 applies 数组里任一条件满足即命中；一个条件里的每个键都要满足（module 必须相同）。
  * - 键值为数组的表示「任一」；复数键（stars、tenGods、dayGans、monthZhis、hexagrams）与单数键同义。
+ * - 例外是紫微的 allStars：列的几颗星都要在（同宫、同守）；jia：两颗星（或化禄、化权等）分坐本宫左右两邻（「夹」）。
  * - 只写 note 的条件编不出机器条件，默认不命中（给人读的）。
  * - 上下文里没有的键一律算不满足，不猜。
  *
@@ -23,29 +24,34 @@ import { ENTRY_STATUS, ZIWEI_PALACE_ALIASES, chaptersOf, sectionOfEntry } from '
 
 export { patternNamesOf, ziweiPatternNamesOf };
 
-/** 复数键 → 单数键。 */
-const SINGULAR = Object.freeze({ stars: 'star', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram' });
+/** 复数键 → 单数键（allStars 也查上下文的 star，只是要几颗都在）。 */
+const SINGULAR = Object.freeze({ stars: 'star', allStars: 'star', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram' });
+/** 要「全都在」的键。 */
+const ALL_OF = new Set(['allStars']);
+/** 列的取值是一组、不按「任一」打折的键。 */
+const NO_BREADTH = new Set(['allStars', 'jia']);
 
 /** 条件键的中文名，给界面写「为什么匹配到这条」。 */
 export const CONDITION_LABELS = Object.freeze({
   pattern: '格局', tenGod: '十神', shensha: '神煞', dayGan: '日干', monthZhi: '月令', season: '季节', strength: '旺衰', relation: '合冲刑害',
-  star: '星曜', palace: '宫位', branches: '地支', brightness: '庙旺', mutagen: '四化', limit: '运限',
-  hexagram: '卦', line: '爻', sixRelative: '六亲', sixGod: '六神', topic: '问事', movingLines: '动爻', gender: '性别',
+  star: '星曜', jia: '夹', palace: '宫位', branches: '地支', brightness: '庙旺', mutagen: '四化', limit: '运限',
+  hexagram: '卦', line: '爻', sixRelative: '六亲', sixGod: '六神', topic: '问事', movingLines: '动爻', gender: '性别', liuqin: '六亲',
 });
 
 /** 同等相关时的次序：已审 > 待审 > 仅原文（只作并列时的微调）。 */
 const STATUS_BONUS = Object.freeze({ reviewed: 0.3, translated: 0.2, draft: 0.1 });
-export const STATUS_LABELS = Object.freeze({ reviewed: '已审', translated: '待审', draft: '仅原文' });
+/** 条目卡上的状态标签：说的是白话的状态（原文都逐字校对过）。 */
+export const STATUS_LABELS = Object.freeze({ reviewed: '白话已校', translated: '白话初稿', draft: '仅原文' });
 
 /**
  * 各类条件的分量：越能把这张盘和别的盘区分开的键越重。
  * 格局、星曜、卦名最具体；人人都有的「命宫」、多数盘都有的十神、对半分的性别就轻。
  */
 export const KEY_WEIGHT = Object.freeze({
-  pattern: 10, star: 10, hexagram: 10,
+  pattern: 10, star: 10, jia: 10, hexagram: 10,
   dayGan: 8, monthZhi: 8, topic: 8,
   mutagen: 7, shensha: 7, sixRelative: 7,
-  season: 6, palace: 6, branches: 6, line: 6, relation: 6,
+  season: 6, palace: 6, branches: 6, line: 6, relation: 6, liuqin: 6,
   strength: 5, sixGod: 5,
   brightness: 4, tenGod: 4,
   gender: 3, movingLines: 3,
@@ -118,6 +124,17 @@ export const conditionMatches = (cond, ctx) => {
     const ctxValues = toArray(ctx[ctxKey]).map((value) => normalizeValue(ctxKey, String(value)));
     if (ctxValues.length === 0) return null;
     const wanted = toArray(cond[key]).map((value) => normalizeValue(ctxKey, String(value)));
+    if (ALL_OF.has(key)) {
+      if (!wanted.every((value) => ctxValues.includes(value))) return null;
+      matched.push({ key: ctxKey, value: wanted.join('、') });
+      continue;
+    }
+    if (key === 'jia') {
+      // 上下文的 jia 是左右两邻各取一颗配成的「甲|乙」对（两个次序都有）。
+      if (wanted.length !== 2 || !ctxValues.includes(`${wanted[0]}|${wanted[1]}`)) return null;
+      matched.push({ key, value: wanted.join('、') });
+      continue;
+    }
     const hit = wanted.find((value) => ctxValues.includes(value));
     if (hit === undefined) return null;
     matched.push({ key: ctxKey, value: hit });
@@ -127,10 +144,14 @@ export const conditionMatches = (cond, ctx) => {
 
 const reasonOf = (matched) => matched.map(({ key, value }) => `${CONDITION_LABELS[key] ?? key}·${value}`).join('，');
 
-/** 一个命中条件的分量：命中的每个键按 KEY_WEIGHT 计，该键列的取值越多打得越轻。 */
+/**
+ * 一个命中条件的分量：命中的每个键按 KEY_WEIGHT 计，该键列的取值越多打得越轻（「任一」列得越多越泛）；
+ * allStars 是几颗都要在，星越多越专门，不打折。
+ */
 const conditionWeight = (cond, matched) => matched.reduce((sum, { key }) => {
-  const condKey = Object.keys(cond).find((name) => (SINGULAR[name] ?? name) === key);
-  return sum + (KEY_WEIGHT[key] ?? 5) * breadthFactor(toArray(cond[condKey]).length);
+  const name = Object.keys(cond).find((item) => (SINGULAR[item] ?? item) === key);
+  const factor = NO_BREADTH.has(name) ? 1 : breadthFactor(toArray(cond[name]).length);
+  return sum + (KEY_WEIGHT[key] ?? 5) * factor;
 }, 0);
 
 /** 能编成机器条件的条件数（只写 note 的不算）。 */
@@ -254,14 +275,36 @@ export const baziContextOf = ({ chart, strength = null, judge = null, relations 
   };
 };
 
+/** 八字六亲宫星的四亲（applies.liuqin 的取值）。 */
+export const BAZI_LIUQIN = Object.freeze(['夫妻', '子女', '父母', '兄弟']);
+
+/**
+ * 八字「六亲宫星」一节用：讲某一亲的条目。
+ * 只看 applies 里写了 liuqin 的条件（同一条件里的 gender、tenGod、strength 等也要满足），
+ * 上下文用 baziContextOf 的，再加上这一亲；排序同 matchEntries。
+ * 总列表的上下文没有 liuqin，所以这些条件不会让条目进「古籍原文」总列表（条目另有不带 liuqin 的条件命中的除外）。
+ * @param {object} library buildLibrary 的结果
+ * @param {object} ctx baziContextOf 的结果
+ * @param {'夫妻'|'子女'|'父母'|'兄弟'} liuqin
+ * @param {{ limit?: number, status?: string[] }} [options]
+ */
+export const baziLiuqinHits = (library, ctx, liuqin, options = {}) => {
+  if (!library || !ctx || ctx.module !== 'bazi' || !BAZI_LIUQIN.includes(liuqin)) return [];
+  const scoped = library.entries
+    .filter((entry) => entry.applies.some((cond) => cond && 'liuqin' in cond))
+    .map((entry) => ({ ...entry, applies: entry.applies.filter((cond) => cond && 'liuqin' in cond) }));
+  return matchEntries({ entries: scoped }, { ...ctx, liuqin }, options);
+};
+
 /**
  * 紫微上下文：传入当前关心的星曜与宫位即可（匹配引擎本身不依赖 iztro）。
  * @param {{ stars?: string[], palace?: string|string[], branches?: string[], brightness?: string[], mutagens?: string[], patterns?: string[], limit?: string, gender?: string }} input
  *   palace 可以给多个（身宫与命宫同宫时给 ['命宫', '身宫']）。
  */
-export const ziweiContextOf = ({ stars = [], palace = null, branches = [], brightness = [], mutagens = [], patterns = [], limit = null, gender = null } = {}) => ({
+export const ziweiContextOf = ({ stars = [], jia = [], palace = null, branches = [], brightness = [], mutagens = [], patterns = [], limit = null, gender = null } = {}) => ({
   module: 'ziwei',
   star: unique(stars),
+  jia: unique(jia),
   palace: unique(toArray(palace).map((name) => ZIWEI_PALACE_ALIASES[name] ?? name)),
   branches: unique(branches),
   brightness: unique(brightness),
@@ -274,19 +317,44 @@ export const ziweiContextOf = ({ stars = [], palace = null, branches = [], brigh
 /** 四化标记转成登记名：iztro 给「禄权科忌」，也兼容「化禄」写法。 */
 const mutagenNameOf = (mutagen) => (mutagen ? String(mutagen).replace(/^化/, '') : null);
 
+/** 一宫里的星（主星、辅星、杂曜）与四化（写成「化禄」等），给「夹」用。 */
+const palaceTokensOf = (palace) => {
+  const starList = [...(palace?.majorStars ?? []), ...(palace?.minorStars ?? []), ...(palace?.adjectiveStars ?? [])].filter((star) => star?.name);
+  return unique([
+    ...starList.map((star) => star.name),
+    ...starList.map((star) => mutagenNameOf(star.mutagen)).filter(Boolean).map((name) => `化${name}`),
+  ]);
+};
+/** 左右两邻各取一颗配成「甲|乙」对（两个次序都列），条件 jia: [甲, 乙] 查这里。 */
+const jiaPairsOf = (neighbors) => {
+  const [left, right] = (neighbors ?? []).map(palaceTokensOf);
+  if (!left?.length || !right?.length) return [];
+  return left.flatMap((a) => right.flatMap((b) => [`${a}|${b}`, `${b}|${a}`]));
+};
+/** 十二宫里某宫的左右两邻（按 iztro 的宫序 index，首尾相接）。 */
+export const ziweiNeighborsOf = (palaces, palace) => {
+  if (!Array.isArray(palaces) || !Number.isInteger(palace?.index)) return null;
+  const at = (index) => palaces.find((item) => item?.index === (index + 12) % 12) ?? null;
+  const left = at(palace.index - 1);
+  const right = at(palace.index + 1);
+  return left && right ? [left, right] : null;
+};
+
 /**
  * 从排盘结果里的一个宫（iztro 的 palace：name、earthlyBranch、isBodyPalace、majorStars、minorStars、adjectiveStars）生成上下文。
  * 宫里所有星曜（主星、辅星、杂曜）都算，庙旺与四化取自各星自带的 brightness / mutagen。
  * @param {object} palace iztro 宫对象
- * @param {{ gender?: 'male'|'female'|'男'|'女'|null, limit?: string, patterns?: string[] }} [options]
- *   性别、运限层（默认本命）；patterns：程序认出的格局名（按命宫三方四正判的，调用方只在命宫传）
+ * @param {{ gender?: 'male'|'female'|'男'|'女'|null, limit?: string, patterns?: string[], neighbors?: object[]|null }} [options]
+ *   性别、运限层（默认本命）；patterns：程序认出的格局名（按命宫三方四正判的，调用方只在命宫传）；
+ *   neighbors：左右两邻的宫（ziweiNeighborsOf），给「夹」的条件用，不传就不判夹
  */
-export const ziweiPalaceContextOf = (palace, { gender = null, limit = '本命', patterns = [] } = {}) => {
+export const ziweiPalaceContextOf = (palace, { gender = null, limit = '本命', patterns = [], neighbors = null } = {}) => {
   if (!palace) return null;
   const starList = [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])].filter((star) => star?.name);
   const palaceNames = [palace.name, palace.isBodyPalace ? '身宫' : null];
   return ziweiContextOf({
     stars: starList.map((star) => star.name),
+    jia: jiaPairsOf(neighbors),
     palace: palaceNames.filter(Boolean),
     branches: [palace.earthlyBranch],
     brightness: starList.map((star) => star.brightness).filter(Boolean),
@@ -346,7 +414,7 @@ export const ziweiLifePalaceHits = (library, palaces, { gender = null, patterns 
   const seen = new Set();
   const hits = [];
   targets.forEach((palace) => {
-    const ctx = ziweiPalaceContextOf(palace, { gender, patterns: palace === ming ? patterns : [] });
+    const ctx = ziweiPalaceContextOf(palace, { gender, patterns: palace === ming ? patterns : [], neighbors: ziweiNeighborsOf(palaces, palace) });
     matchEntries(library, ctx).forEach((hit) => {
       if (seen.has(hit.entry.id)) return;
       seen.add(hit.entry.id);

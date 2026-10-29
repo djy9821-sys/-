@@ -76,11 +76,22 @@ test('提示词带上神煞、自坐、胎元命宫与旺衰参考', () => {
     '- 胎元 癸卯（金箔金）；命宫 癸丑（桑柘木）；身宫 乙巳（覆灯火）',
     '起运前行小运（1–9 虚岁）：1998丁卯',
     '【旺衰参考（程序估算）】',
-    '- 日主己土：偏弱',
-    '- 喜用参考：火（印，调候）、土（比劫）',
+    '- 日主己土：偏弱（旺衰打分 2：得令 0 + 得地 1 + 得势 1；',
+    '- 得地：年支丑（己比劫本气）、时支辰（戊比劫本气）',
+    '- 取用思路：身弱财重，取比劫帮身，印次之；调候宜火，与扶抑取用一致',
+    '- 喜用参考：土（比劫）、火（印，调候）',
     '- 忌神参考：水（财）',
   ].forEach((text) => assert.ok(natal.includes(text), `缺少：${text}`));
   assert.ok(!natal.includes('当日黄历'));
+});
+
+test('疑似从格时，旺衰一节指向格局一节，格局一节附按此格论的喜忌', () => {
+  // 乙卯 戊寅 癸卯 戊午：癸水无根，食伤独旺，疑似从儿格。
+  const cong = buildBaziChart({ calendarType: 'solar', year: 1975, month: 2, day: 26, gender: 'male', hourIndex: 6 }, now);
+  const text = buildBaziPrompt({ chart: cong, scope: 'natal', selections: {}, now });
+  assert.match(text, /未考虑从格、化格、专旺等特殊格局（本盘疑似从儿格，按此格论的喜忌见下一节）/);
+  assert.ok(text.includes('- 若按从儿格论：喜火（财）、木（食伤）；忌金（印）、土（官杀）（'));
+  assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now }).includes('按此格论'));
 });
 
 test('流日、流时补上神煞与黄历宜忌', () => {
@@ -125,4 +136,38 @@ test('提示词附古籍原文：只附原文不附白话，最多六条，说�
   assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now }).includes('【古籍原文'));
   assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now, classics: [] }).includes('【古籍原文'));
   assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now, classics: [{ entry: { title: '无原文' } }] }).includes('【古籍原文'));
+});
+
+test('六亲宫星一节每亲附一条讲这一亲的古籍原文（只附原文、最相关的一条）；没给就不附', () => {
+  const hit = (id, section, original) => ({ entry: { id, title: `题${id}`, book: '滴天髓', volume: '', section, status: 'draft', original, vernacular: '白话不该出现', doubts: [] }, reason: '六亲·夫妻' });
+  const liuqinClassics = {
+    spouse: [hit('a', '夫妻', '夫妻因缘宿世来，\n喜神有意傍天财。'), hit('b', '夫妻', '第二条不附')],
+    children: [{ entry: { id: 'x', title: '无原文' } }],
+    parents: [],
+  };
+  const prompt = buildBaziPrompt({ chart, scope: 'natal', selections, now, liuqinClassics });
+  const section = prompt.slice(prompt.indexOf('【六亲宫星（程序初判）】'), prompt.indexOf('【神煞查法出处】'));
+  assert.match(section, /\n- 兄弟：[^\n]+\n- 古籍论夫妻（《滴天髓》·夫妻）：夫妻因缘宿世来， 喜神有意傍天财。\n*$/);
+  assert.ok(!section.includes('第二条不附') && !section.includes('白话不该出现') && !section.includes('古籍论子女'));
+  assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now }).includes('古籍论'));
+});
+
+test('大运一节注明运支与原局会成的方局（程序的大运喜忌按局的五行论）', () => {
+  // 丁丑 壬子 己酉 戊辰：辛亥运亥子丑三会水方，戊申运申子辰三合水局，乙巳运巳酉丑三合金局；庚戌运凑不齐。
+  const prompt = buildBaziPrompt({ chart, scope: 'natal', selections, now });
+  assert.match(prompt, /辛亥，天干十神食神，运支亥与原局子丑会成亥子丑三会水方/);
+  assert.match(prompt, /戊申，天干十神劫财，运支申与原局子辰会成申子辰三合水局/);
+  assert.match(prompt, /乙巳，天干十神七杀，运支巳与原局酉丑会成巳酉丑三合金局/);
+  assert.match(prompt, /庚戌，天干十神伤官(?!，运支)/);
+});
+
+test('认出疑似从格的盘：所选运限一节注明运限喜忌按此格论，流年标注照此判', () => {
+  // 乙卯 戊寅 癸卯 戊午，疑似从儿格：喜火木，忌金土。2026 丙午年：丙午火，按从儿论为喜。
+  const congChart = buildBaziChart({ calendarType: 'solar', year: 1975, month: 2, day: 26, gender: 'male', hourIndex: 6 }, now);
+  const congDaYun = congChart.yun.dayun.find((item) => item.liuNian.some(({ year }) => year === 2026));
+  const congLiuNian = congDaYun.liuNian.find(({ year }) => year === 2026);
+  const prompt = buildBaziPrompt({ chart: congChart, scope: 'year', selections: { daYun: congDaYun, liuNian: congLiuNian }, now });
+  assert.match(prompt, /【所选运限】\n- 运限喜忌按从儿格论（程序认出疑似从儿格；若不成格，以扶抑喜忌为准）\n/);
+  assert.match(prompt, /- 流年标注：[^\n]*天干丙火喜（财）[^\n]*地支午火喜（财）/);
+  assert.ok(!buildBaziPrompt({ chart, scope: 'year', selections, now }).includes('运限喜忌按'), '没认出特殊格局的不加这一行');
 });

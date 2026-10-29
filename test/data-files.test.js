@@ -102,6 +102,42 @@ test('八字命例的 expected：原书明说的旺衰、格局、用神与结�
   assert.match(messages, /expected\.useGod 须是五行/);
   assert.match(messages, /expected\.outcome 须是非空字符串/);
   assert.match(messages, /expected 未知字段 luck/);
+  // 岁运：原书点名的大运、流年及吉凶；只说「丑运」的写一个字。
+  assert.deepEqual(validateCasesDoc(doc({ yun: [
+    { ganZhi: '癸巳', kind: '大运', verdict: '吉', quote: '至癸巳运，连登甲第' },
+    { ganZhi: '丑', kind: '大运', verdict: '凶', quote: '丑运生金泄火，刑克异常' },
+    { ganZhi: '丁卯', kind: '流年', verdict: '平', quote: '丁卯年……' },
+  ] })), []);
+  const yunMessages = validateCasesDoc(doc({ yun: [{ ganZhi: '甲丑', kind: '小运', verdict: '大吉', quote: '', extra: 1 }, '癸巳'] })).join('\n');
+  assert.match(yunMessages, /expected\.yun\[0\]\.ganZhi 须是干支/);
+  assert.match(yunMessages, /expected\.yun\[0\]\.kind 须是 大运\/流年/);
+  assert.match(yunMessages, /expected\.yun\[0\]\.verdict 须是 吉\/凶\/平/);
+  assert.match(yunMessages, /expected\.yun\[0\]\.quote 须摘原书/);
+  assert.match(yunMessages, /expected\.yun\[0\] 未知字段 extra/);
+  assert.match(yunMessages, /expected\.yun\[1\] 须是对象/);
+  assert.match(validateCasesDoc(doc({ yun: [] })).join('\n'), /expected\.yun 须是非空数组/);
+  // 取用理由：只在写了 useGod 时写，kind 取固定几类。
+  assert.deepEqual(validateCasesDoc(doc({ useGod: '火', useGodWhy: { kind: '调候', quote: '寒金喜火' } })), []);
+  const whyMessages = validateCasesDoc(doc({ useGodWhy: { kind: '直觉', quote: '', extra: 1 } })).join('\n');
+  assert.match(whyMessages, /expected\.useGodWhy 只在写了 useGod 时写/);
+  assert.match(whyMessages, /expected\.useGodWhy\.kind 须是 扶抑\/调候/);
+  assert.match(whyMessages, /expected\.useGodWhy\.quote 须摘原书/);
+  assert.match(whyMessages, /expected\.useGodWhy 未知字段 extra/);
+  // 六亲：原书说到的妻（夫）、子女、父、母、兄弟吉凶。
+  assert.deepEqual(validateCasesDoc(doc({ liuqin: [
+    { kind: '妻', verdict: '凶', quote: '刑妻克子' },
+    { kind: '子女', verdict: '凶', quote: '刑妻克子' },
+    { kind: '父', verdict: '吉', quote: '父荫甚厚' },
+    { kind: '妻', verdict: '凶', quote: '一交丙运，刑妻克子', yun: '丙' },
+  ] })), [], '应在某步运的写 yun');
+  const liuqinMessages = validateCasesDoc(doc({ liuqin: [{ kind: '朋友', verdict: '大凶', quote: '', who: 1, yun: '丙运' }, '妻'] })).join('\n');
+  assert.match(liuqinMessages, /expected\.liuqin\[0\]\.kind 须是 妻\/夫\/子女\/父\/母\/父母\/兄弟/);
+  assert.match(liuqinMessages, /expected\.liuqin\[0\]\.verdict 须是 吉\/凶\/平/);
+  assert.match(liuqinMessages, /expected\.liuqin\[0\]\.quote 须摘原书/);
+  assert.match(liuqinMessages, /expected\.liuqin\[0\] 未知字段 who/);
+  assert.match(liuqinMessages, /expected\.liuqin\[0\]\.yun 须是干支/);
+  assert.match(liuqinMessages, /expected\.liuqin\[1\] 须是对象/);
+  assert.match(validateCasesDoc(doc({ liuqin: [] })).join('\n'), /expected\.liuqin 须是非空数组/);
 });
 
 test('六爻占例的 expected：原书用神、断语归类、应期与应验', () => {

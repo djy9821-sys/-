@@ -3,13 +3,14 @@ import assert from 'node:assert/strict';
 
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 import {
-  baziContextOf, baziGlossarySeeds, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
-  patternNamesOf, searchGlossary, termsIn, ziweiContextOf, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiPalaceContextOf,
+  BAZI_LIUQIN, baziContextOf, baziGlossarySeeds, baziLiuqinHits, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
+  patternNamesOf, searchGlossary, termsIn, ziweiContextOf, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiNeighborsOf, ziweiPalaceContextOf,
 } from '../src/data/classics/library.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
 import { judgeBaziPattern } from '../src/utils/baziPattern.js';
 import { findRelations } from '../src/utils/baziRelations.js';
+import { validateClassicsDoc } from '../src/data/classics/schema.js';
 
 const files = loadDataFiles();
 const library = buildLibrary(files.classics);
@@ -33,7 +34,7 @@ test('仓库数据能合成索引：每条带书名、篇名、出处，按书�
   assert.equal(entry.source, '《子平真诠》·论用神成败救应');
   assert.ok(entry.file.endsWith('ziping-chengbai.json'));
   const sanming = entriesOfClassic(library, 'sanming');
-  assert.ok(sanming.some((item) => item.id === 'sanming.shensha.tianyi.001'));
+  assert.ok(sanming.some((item) => item.applies.some((cond) => cond.shensha === '天乙贵人')));
   assert.ok(sanming.every((item) => item.classic === 'sanming'));
   assert.equal(entryById(library, 'nope'), null);
 });
@@ -69,14 +70,15 @@ test('格名同义展开', () => {
   assert.deepEqual(patternNamesOf(null), []);
 });
 
-test('真实命盘能从仓库数据里匹配到条目：正官格命中《子平真诠》成败两段，乾隆命中天乙贵人歌诀', () => {
+test('真实命盘能从仓库数据里匹配到条目：正官格命中《子平真诠》成败两段，乾隆命中《三命通会》论天乙贵人', () => {
   const guan = baziContextOf(chartOf(1960, 6, 2, 1));
   const hits = matchEntries(library, guan);
   const ids = hits.map(({ entry }) => entry.id);
   assert.ok(ids.includes('ziping.chengbai.001') && ids.includes('ziping.chengbai.002'), ids.join());
-  assert.ok(ids.includes('sanming.shensha.tianyi.001'), '时柱丑为年干庚的天乙贵人');
+  const isTianYi = (id) => id.startsWith('sanming.shensha.tianyi.');
+  assert.ok(ids.some(isTianYi), '时柱丑为年干庚的天乙贵人');
   const noTianYi = matchEntries(library, { module: 'bazi', shensha: ['文昌贵人'] }).map(({ entry }) => entry.id);
-  assert.ok(!noTianYi.includes('sanming.shensha.tianyi.001'));
+  assert.ok(!noTianYi.some(isTianYi));
   const first = hits.find(({ entry }) => entry.id === 'ziping.chengbai.001');
   assert.equal(first.reason, '格局·正官格');
   assert.deepEqual(first.matched, [{ key: 'pattern', value: '正官格' }]);
@@ -84,7 +86,7 @@ test('真实命盘能从仓库数据里匹配到条目：正官格命中《子�
   const qianlong = baziContextOf(chartOf(1711, 9, 25, 0));
   assert.ok(qianlong.shensha.includes('天乙贵人'));
   const qianlongIds = matchEntries(library, qianlong).map(({ entry }) => entry.id);
-  assert.ok(qianlongIds.includes('sanming.shensha.tianyi.001'));
+  assert.ok(qianlongIds.some(isTianYi));
   assert.ok(qianlongIds.includes('ziping.chengbai.001'), '羊刃格也在成败两段的适用范围里');
 
   // 支线还在陆续录入，这里只断言「该命中的在、不该命中的不在」，不锁死条目总数。
@@ -118,6 +120,54 @@ test('匹配规则：任一条件命中、键内任一取值、复数键、只�
   assert.equal(conditionMatches({ module: 'ziwei', note: 'x' }, ziweiContextOf({ stars: ['紫微'] })), null);
   assert.equal(conditionMatches({ module: 'ziwei', star: '紫微' }, { module: 'bazi', star: ['紫微'] }), null);
   assert.deepEqual(conditionMatches({ module: 'ziwei', palace: '交友' }, ziweiContextOf({ palace: '仆役' })), [{ key: 'palace', value: '仆役' }]);
+});
+
+test('紫微 allStars：几颗星都要在同一宫才算（同宫、同守），星越多越专门', () => {
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.t.101', title: '紫府同宫', original: '甲', status: 'draft', applies: [{ module: 'ziwei', palace: '命宫', allStars: ['紫微', '天府'] }] },
+      { id: 'ziwei.t.102', title: '紫微或天府', original: '乙', status: 'draft', applies: [{ module: 'ziwei', palace: '命宫', stars: ['紫微', '天府'] }] },
+    ],
+  }]);
+  const ids = (stars) => matchEntries(lib, ziweiContextOf({ stars, palace: '命宫' })).map(({ entry }) => entry.id);
+  assert.deepEqual(ids(['紫微']), ['ziwei.t.102'], '只有紫微：allStars 不算，任一颗的算');
+  assert.deepEqual(ids(['紫微', '天府', '左辅']), ['ziwei.t.101', 'ziwei.t.102'], '两颗都在：同宫的条目更专门，排在前面');
+  assert.deepEqual(conditionMatches({ module: 'ziwei', allStars: ['紫微', '天府'] }, ziweiContextOf({ stars: ['天府', '紫微'] })), [{ key: 'star', value: '紫微、天府' }]);
+  assert.equal(conditionMatches({ module: 'ziwei', allStars: ['紫微', '天府'] }, ziweiContextOf({ stars: ['天府'] })), null);
+  // 校验：allStars 要两颗以上不同的星。
+  const doc = (cond) => ({ classic: 'ziwei', section: '测试', edition: '测试', entries: [{ id: 'ziwei.t.201', title: '测试', original: '甲', status: 'draft', applies: [{ module: 'ziwei', ...cond }] }] });
+  assert.deepEqual(validateClassicsDoc(doc({ allStars: ['武曲', '贪狼'] })), []);
+  assert.match(validateClassicsDoc(doc({ allStars: ['武曲'] })).join('\n'), /allStars: 要写两颗以上不同的星/);
+  assert.match(validateClassicsDoc(doc({ allStars: '武曲' })).join('\n'), /allStars: 要写两颗以上不同的星/);
+  assert.match(validateClassicsDoc(doc({ allStars: ['武曲', '武曲'] })).join('\n'), /allStars: 要写两颗以上不同的星/);
+});
+
+test('紫微 jia：两颗星（或四化）分坐左右两邻才算「夹」，哪边是哪颗不论', () => {
+  const palaceOf = (index, names, mutagens = {}) => ({
+    index, name: `宫${index}`, earthlyBranch: '子', minorStars: [], adjectiveStars: [],
+    majorStars: names.map((name) => ({ name, mutagen: mutagens[name] ?? null })),
+  });
+  const palaces = [
+    palaceOf(0, ['文曲']), palaceOf(1, ['天机'], { 天机: '忌' }), palaceOf(2, ['文昌', '太阴'], { 太阴: '禄' }),
+    ...Array.from({ length: 9 }, (_, i) => palaceOf(i + 3, [])),
+  ];
+  const ctx = ziweiPalaceContextOf(palaces[1], { neighbors: ziweiNeighborsOf(palaces, palaces[1]) });
+  assert.deepEqual(conditionMatches({ module: 'ziwei', jia: ['文昌', '文曲'] }, ctx), [{ key: 'jia', value: '文昌、文曲' }]);
+  assert.deepEqual(conditionMatches({ module: 'ziwei', jia: ['文曲', '文昌'] }, ctx), [{ key: 'jia', value: '文曲、文昌' }]);
+  // 四化写成「化禄」；「羊陀夹忌」这类再加本宫的四化。
+  assert.deepEqual(conditionMatches({ module: 'ziwei', jia: ['化禄', '文曲'], mutagen: '忌' }, ctx), [{ key: 'jia', value: '化禄、文曲' }, { key: 'mutagen', value: '忌' }]);
+  // 两颗都在同一边不算夹；不传两邻就不判夹。
+  assert.equal(conditionMatches({ module: 'ziwei', jia: ['文昌', '太阴'] }, ctx), null);
+  assert.equal(conditionMatches({ module: 'ziwei', jia: ['文昌', '文曲'] }, ziweiPalaceContextOf(palaces[1])), null);
+  // 十二宫首尾相接：0 宫的左邻是 11 宫。
+  assert.deepEqual(ziweiNeighborsOf(palaces, palaces[0]).map(({ index }) => index), [11, 1]);
+  // 校验：jia 写两个名字，四化写「化禄」等。
+  const doc = (cond) => ({ classic: 'ziwei', section: '测试', edition: '测试', entries: [{ id: 'ziwei.t.301', title: '测试', original: '甲', status: 'draft', applies: [{ module: 'ziwei', ...cond }] }] });
+  assert.deepEqual(validateClassicsDoc(doc({ palace: '命宫', jia: ['文昌', '文曲'] })), []);
+  assert.deepEqual(validateClassicsDoc(doc({ palace: '命宫', jia: ['化权', '化禄'] })), []);
+  assert.match(validateClassicsDoc(doc({ jia: ['文昌'] })).join('\n'), /jia: 要写左右两邻各一颗/);
+  assert.match(validateClassicsDoc(doc({ jia: ['文昌', '禄'] })).join('\n'), /jia: 「禄」不在允许范围/);
 });
 
 test('相关度排序：专讲这颗星的条目在前，只按宫位命中的、一口气列很多星的往后；挂了很多并列条件的通论排在专论后面', () => {
@@ -189,7 +239,7 @@ test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算�
   };
   const ctx = ziweiPalaceContextOf(palace, { gender: 'female' });
   assert.deepEqual(ctx, {
-    module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], palace: ['命宫', '身宫'], branches: ['亥'],
+    module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], jia: [], palace: ['命宫', '身宫'], branches: ['亥'],
     brightness: ['旺', '平'], mutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女',
   });
   assert.deepEqual(ziweiPalaceContextOf({ name: '交友', earthlyBranch: '辰', majorStars: [] }, { gender: '男' }).palace, ['仆役']);
@@ -297,4 +347,33 @@ test('词典面板的种子术语：八字盘给十神、格局、神煞、旺�
   const palace = { name: '命宫', isBodyPalace: true, majorStars: [{ name: '紫微', mutagen: '' }, { name: '七杀', mutagen: '化权' }], minorStars: [{ name: '文曲', mutagen: '忌' }], adjectiveStars: [{ name: '天巫' }] };
   assert.deepEqual(ziweiGlossarySeeds(palace), ['命宫', '身宫', '紫微', '七杀', '文曲', '天巫', '化权', '化忌', '三方四正', '庙旺利陷', '四化', '大限', '流年']);
   assert.deepEqual(ziweiGlossarySeeds(null), ['命宫', '身宫', '十二宫', '四化', '大限', '流年']);
+});
+
+test('八字六亲：写了 liuqin 的条件只在「六亲宫星」那一亲下面命中，不进总列表；同一条件里的性别、十神也要满足', () => {
+  const doc = (applies) => ({ classic: 'ditian', section: '夫妻', edition: '测试', entries: [{ id: 'ditian.t.001', title: '夫妻·其一', original: '原', status: 'draft', applies }] });
+  assert.deepEqual(validateClassicsDoc(doc([{ module: 'bazi', liuqin: '夫妻' }])), []);
+  assert.deepEqual(validateClassicsDoc(doc([{ module: 'bazi', liuqin: ['子女', '父母'], gender: '女' }])), []);
+  assert.match(validateClassicsDoc(doc([{ module: 'bazi', liuqin: '朋友' }])).join('\n'), /liuqin: 「朋友」不在允许范围/);
+  assert.deepEqual(BAZI_LIUQIN, ['夫妻', '子女', '父母', '兄弟']);
+
+  const lib = buildLibrary([{
+    classic: 'ditian',
+    section: '夫妻、子女、女命',
+    edition: '测试',
+    entries: [
+      { id: 'ditian.t.001', title: '夫妻·其一', section: '夫妻', original: '夫妻因缘宿世来', status: 'draft', applies: [{ module: 'bazi', liuqin: '夫妻' }] },
+      { id: 'ditian.t.002', title: '女命·其一', section: '女命', original: '论夫论子要安详', status: 'draft', applies: [{ module: 'bazi', liuqin: ['夫妻', '子女'], gender: '女' }] },
+      { id: 'ditian.t.003', title: '子女·其一', section: '子女', original: '子女根枝一世传', status: 'draft', applies: [{ module: 'bazi', liuqin: '子女', tenGod: ['伤官', '食神'] }] },
+      { id: 'ditian.t.004', title: '通论', section: '夫妻', original: '通', status: 'draft', applies: [{ module: 'bazi', liuqin: '夫妻' }, { module: 'bazi', tenGod: '正财' }] },
+    ],
+  }]);
+  const ctx = { module: 'bazi', tenGod: ['正财', '七杀'], gender: '男' };
+  assert.deepEqual(matchEntries(lib, ctx).map(({ entry }) => entry.id), ['ditian.t.004'], '总列表的上下文没有 liuqin，只有带别的条件的通论命中');
+  assert.deepEqual(baziLiuqinHits(lib, ctx, '夫妻').map(({ entry }) => entry.id).sort(), ['ditian.t.001', 'ditian.t.004']);
+  assert.equal(baziLiuqinHits(lib, ctx, '夫妻').find(({ entry }) => entry.id === 'ditian.t.004').reason, '六亲·夫妻', '只按带 liuqin 的条件说明');
+  assert.deepEqual(baziLiuqinHits(lib, ctx, '子女'), [], '男命、不见食伤：女命条与食伤条都不中');
+  assert.deepEqual(baziLiuqinHits(lib, { ...ctx, gender: '女', tenGod: ['食神'] }, '子女').map(({ entry }) => entry.id), ['ditian.t.003', 'ditian.t.002']);
+  assert.deepEqual(baziLiuqinHits(lib, ctx, '朋友'), []);
+  assert.deepEqual(baziLiuqinHits(lib, { module: 'ziwei' }, '夫妻'), []);
+  assert.deepEqual(baziLiuqinHits(lib, ctx, '夫妻', { limit: 1 }).length, 1);
 });

@@ -4,7 +4,8 @@
  */
 import { buildLiuRi, buildLiuShi, buildLiuYue, getBaziYearOfDate, getHourIndexForTime, toYmd } from './baziFlow.js';
 import { findRelations } from './baziRelations.js';
-import { analyzeStrength, elementToneOf } from './baziStrength.js';
+import { judgeBaziPattern } from './baziPattern.js';
+import { analyzeStrength, elementToneOf, favorBasisOf } from './baziStrength.js';
 
 const GAN_WUXING = { 甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水' };
 const ZHI_WUXING = { 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' };
@@ -55,9 +56,11 @@ export const buildBaziToday = (chart, now = new Date()) => {
   ).filter(({ tone }) => tone !== 'break');
 
   const strength = analyzeStrength(chart);
+  // 喜忌与结果页的运限同一依据：认出疑似从、化、专旺的按此格论。
+  const favorBasis = favorBasisOf(strength, judgeBaziPattern(chart, strength).special);
   const dayTone = {
-    gan: elementToneOf(GAN_WUXING[liuRi.gan], strength),
-    zhi: elementToneOf(ZHI_WUXING[liuRi.zhi], strength),
+    gan: elementToneOf(GAN_WUXING[liuRi.gan], favorBasis),
+    zhi: elementToneOf(ZHI_WUXING[liuRi.zhi], favorBasis),
   };
 
   return {

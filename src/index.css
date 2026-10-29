@@ -2400,6 +2400,10 @@ select.field-control { cursor: pointer; }
 .wenmo-pattern-card[data-fortune="established"] > b { background: #f2a23c; }
 .wenmo-pattern-card[data-fortune="observed"] { border-color: #cadde5; color: #557487; background: #edf5f8; }
 .wenmo-pattern-card[data-fortune="observed"] > b { background: #6d97af; }
+/* 《全书》定贫贱局的格：红边，与吉格分开。 */
+.wenmo-pattern-card[data-group="定贫贱局"] { border-color: #e7b9ae; color: #8f3027; background: #fbefea; }
+.wenmo-pattern-card[data-group="定贫贱局"] > b { background: #b8473a; }
+.wenmo-pattern-card > span > small { display: block; margin-top: 2px; font-size: 0.55em; font-weight: 700; opacity: 0.8; }
 .wenmo-pattern-card[aria-pressed="true"] { border-color: #5fc6e1; box-shadow: 0 0 0 3px rgba(84, 190, 220, 0.14); }
 .wenmo-pattern-card:focus-visible { outline: 3px solid #2689b4; outline-offset: 2px; }
 .wenmo-pattern-empty {

@@ -30,6 +30,8 @@ export const ZIWEI_STARS = Object.freeze([
   '蜚廉', '破碎', '台辅', '封诰', '天巫', '天月', '三台', '八座', '恩光', '天贵', '天才', '天寿', '截空', '旬空', '空亡', '截路',
   '月德', '天伤', '天使', '天厨', '天德', '龙德', '年解', '华盖', '咸池', '天煞', '指背', '月煞', '亡神', '灾煞', '劫煞', '将星', '攀鞍', '岁驿', '息神',
 ]);
+/** 「夹」能写的名字：星名，加上四化（写成「化禄」等）。 */
+export const ZIWEI_JIA_NAMES = Object.freeze([...ZIWEI_STARS, ...ZIWEI_MUTAGENS.map((name) => `化${name}`)]);
 export const LIUYAO_SIX_RELATIVES = Object.freeze(['父母', '兄弟', '子孙', '妻财', '官鬼']);
 export const LIUYAO_SIX_GODS = Object.freeze(['青龙', '朱雀', '勾陈', '螣蛇', '白虎', '玄武']);
 export const LIUYAO_RELATIONS = Object.freeze(['六冲', '六合']);
@@ -41,6 +43,10 @@ export const APPLIES_KEYS = Object.freeze({
   ziwei: Object.freeze({
     star: ZIWEI_STARS,
     stars: ZIWEI_STARS,
+    // 几颗星都要在同一宫（「同宫」「同守」「同垣」）；star / stars 是任一颗在宫就算。
+    allStars: ZIWEI_STARS,
+    // 两颗星（或化禄、化权、化科、化忌）分坐本宫左右两邻（「昌曲夹命」「羊陀夹忌」「科权禄夹」）。
+    jia: ZIWEI_JIA_NAMES,
     palace: ZIWEI_PALACES,
     branches: ZHI,
     brightness: ZIWEI_BRIGHTNESS,
@@ -60,6 +66,8 @@ export const APPLIES_KEYS = Object.freeze({
     relation: null,
     strength: ['极弱', '偏弱', '中和', '偏强', '极强'],
     season: ['春', '夏', '秋', '冬', '四季'],
+    // 讲某一种六亲的（《滴天髓》夫妻、子女、父母、兄弟诸篇），只在结果页「六亲宫星」那一亲下面出现。
+    liuqin: ['夫妻', '子女', '父母', '兄弟'],
   }),
   liuyao: Object.freeze({
     hexagram: HEXAGRAMS,
@@ -146,6 +154,12 @@ const checkApplies = (applies, where, errors, dirModule = null) => {
       const range = allowed[key];
       const values = Array.isArray(value) ? value : [value];
       if (values.length === 0) errors.push(`${at}.${key}: 不能为空数组`);
+      if (key === 'allStars' && (!Array.isArray(value) || new Set(value).size < 2)) {
+        errors.push(`${at}.allStars: 要写两颗以上不同的星（几颗都要在同一宫）；只要一颗星用 star`);
+      }
+      if (key === 'jia' && (!Array.isArray(value) || value.length !== 2)) {
+        errors.push(`${at}.jia: 要写左右两邻各一颗，共两个名字，如 ["文昌", "文曲"]；四化写「化禄」「化权」`);
+      }
       values.forEach((item) => {
         if (range === null) {
           if (!isNonEmptyString(item)) errors.push(`${at}.${key}: 必须是非空字符串`);
@@ -300,6 +314,22 @@ export const LIUYAO_CASE_VERDICT = new RegExp(`^(吉|凶|平|${WEATHER_WORDS}|�
 /** 八字命例 expected 的取值：原书明说的日主旺衰、用神（五行或十神）；格局名同古籍 applies.pattern，用程序认得的名字。 */
 export const BAZI_CASE_STRENGTH = Object.freeze(['旺', '弱', '中和']);
 export const BAZI_CASE_USE_GOD = Object.freeze(['木', '火', '土', '金', '水', '比劫', '印', '食伤', '财', '官杀', ...TEN_GODS]);
+/** 八字命例 expected.yun：原书点名的大运、流年及其吉凶（「至癸巳运，连登甲第」「丑运……夫妇皆亡」）。 */
+export const BAZI_CASE_YUN_KIND = Object.freeze(['大运', '流年']);
+export const BAZI_CASE_YUN_VERDICT = Object.freeze(['吉', '凶', '平']);
+/**
+ * 八字命例 expected.useGodWhy：原书取这个用神的理由归哪一类（只在写了 useGod 时写），回归里按类看程序哪一类取得不准。
+ * 扶抑：身强取克泄、身弱取生扶；调候：寒暖燥湿；通关：两神相战取居中者；病药：取制忌神（病）之神；
+ * 从势：从格、从势、从强、专旺，顺其气势；化气：化格取化神；格局：按子平格局取用（官格用财印之类）；源流：取源头、流通之神。
+ */
+export const BAZI_CASE_USE_GOD_WHY = Object.freeze(['扶抑', '调候', '通关', '病药', '从势', '化气', '格局', '源流', '其他']);
+const YUN_KEYS = ['ganZhi', 'kind', 'verdict', 'quote'];
+/** 八字命例 expected.liuqin：原书说到的六亲吉凶（「刑妻克子」「妻贤子肖」「早年丧父」「兄弟无靠」）。父、母分开说的分开写，并说的写「父母」。 */
+export const BAZI_CASE_LIUQIN_KIND = Object.freeze(['妻', '夫', '子女', '父', '母', '父母', '兄弟']);
+const LIUQIN_KEYS = ['kind', 'verdict', 'quote', 'yun'];
+/** 一个干支，或原书只说「丑运」「辛运」时的一个干、一个支。 */
+const isYunGanZhi = (value) => typeof value === 'string' && ((GANZHI.test(value) && GAN.indexOf(value[0]) % 2 === ZHI.indexOf(value[1]) % 2)
+  || (value.length === 1 && (GAN.includes(value) || ZHI.includes(value))));
 
 const GAN_INDEX = Object.fromEntries(GAN.map((gan, index) => [gan, index]));
 const ZHI_INDEX = Object.fromEntries(ZHI.map((zhi, index) => [zhi, index]));
@@ -413,9 +443,60 @@ export const validateCasesDoc = (doc, ctx = {}) => {
         const gods = Array.isArray(expected.useGod) ? expected.useGod : [expected.useGod];
         if (!gods.length || gods.some((god) => !BAZI_CASE_USE_GOD.includes(god))) errors.push(`${where}: expected.useGod 须是五行（木火土金水）或十神（比劫、印、食伤、财、官杀，或正官、七杀等），可写数组`);
       }
+      if (expected.useGodWhy !== undefined) {
+        const why = expected.useGodWhy;
+        if (!why || typeof why !== 'object' || Array.isArray(why)) errors.push(`${where}: expected.useGodWhy 须是对象 { kind, quote }`);
+        else {
+          if (expected.useGod === undefined) errors.push(`${where}: expected.useGodWhy 只在写了 useGod 时写`);
+          if (!BAZI_CASE_USE_GOD_WHY.includes(why.kind)) errors.push(`${where}: expected.useGodWhy.kind 须是 ${BAZI_CASE_USE_GOD_WHY.join('/')}`);
+          if (!isNonEmptyString(why.quote)) errors.push(`${where}: expected.useGodWhy.quote 须摘原书说取用理由的那句`);
+          Object.keys(why).forEach((key) => {
+            if (!['kind', 'quote'].includes(key)) errors.push(`${where}: expected.useGodWhy 未知字段 ${key}`);
+          });
+        }
+      }
       if (expected.outcome !== undefined && !isNonEmptyString(expected.outcome)) errors.push(`${where}: expected.outcome 须是非空字符串`);
+      if (expected.yun !== undefined) {
+        if (!Array.isArray(expected.yun) || !expected.yun.length) errors.push(`${where}: expected.yun 须是非空数组`);
+        else {
+          expected.yun.forEach((item, index) => {
+            const at = `${where}: expected.yun[${index}]`;
+            if (!item || typeof item !== 'object' || Array.isArray(item)) {
+              errors.push(`${at} 须是对象`);
+              return;
+            }
+            if (!isYunGanZhi(item.ganZhi)) errors.push(`${at}.ganZhi 须是干支（如「癸巳」）；原书只说「丑运」「辛运」的写一个字`);
+            if (!BAZI_CASE_YUN_KIND.includes(item.kind)) errors.push(`${at}.kind 须是 ${BAZI_CASE_YUN_KIND.join('/')}`);
+            if (!BAZI_CASE_YUN_VERDICT.includes(item.verdict)) errors.push(`${at}.verdict 须是 ${BAZI_CASE_YUN_VERDICT.join('/')}`);
+            if (!isNonEmptyString(item.quote)) errors.push(`${at}.quote 须摘原书说这一运（年）吉凶的那句`);
+            Object.keys(item).forEach((key) => {
+              if (!YUN_KEYS.includes(key)) errors.push(`${at} 未知字段 ${key}`);
+            });
+          });
+        }
+      }
+      if (expected.liuqin !== undefined) {
+        if (!Array.isArray(expected.liuqin) || !expected.liuqin.length) errors.push(`${where}: expected.liuqin 须是非空数组`);
+        else {
+          expected.liuqin.forEach((item, index) => {
+            const at = `${where}: expected.liuqin[${index}]`;
+            if (!item || typeof item !== 'object' || Array.isArray(item)) {
+              errors.push(`${at} 须是对象`);
+              return;
+            }
+            if (!BAZI_CASE_LIUQIN_KIND.includes(item.kind)) errors.push(`${at}.kind 须是 ${BAZI_CASE_LIUQIN_KIND.join('/')}`);
+            if (!BAZI_CASE_YUN_VERDICT.includes(item.verdict)) errors.push(`${at}.verdict 须是 ${BAZI_CASE_YUN_VERDICT.join('/')}`);
+            if (!isNonEmptyString(item.quote)) errors.push(`${at}.quote 须摘原书说这一亲吉凶的那句`);
+            // 原书说应在某步运、某个流年的（「一交丙运，刑妻克子」），yun 写那步运或那年的干支。
+            if (item.yun !== undefined && !isYunGanZhi(item.yun)) errors.push(`${at}.yun 须是干支（或原书只说的一个干、一个支）`);
+            Object.keys(item).forEach((key) => {
+              if (!LIUQIN_KEYS.includes(key)) errors.push(`${at} 未知字段 ${key}`);
+            });
+          });
+        }
+      }
       Object.keys(expected).forEach((key) => {
-        if (!['strength', 'pattern', 'useGod', 'outcome'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
+        if (!['strength', 'pattern', 'useGod', 'useGodWhy', 'outcome', 'yun', 'liuqin'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
       });
     } else if (entry.expected !== undefined && doc.module === 'liuyao') {
       const { expected } = entry;

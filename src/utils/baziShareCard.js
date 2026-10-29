@@ -44,8 +44,7 @@ const strengthLineOf = (strength) => {
   if (!strength) return '';
   const favorable = strength.favorable?.map((item) => item.element).join('') || '—';
   const unfavorable = strength.unfavorable?.map((item) => item.element).join('') || '—';
-  const supportPercent = strength.total ? Math.round((strength.supportScore / strength.total) * 100) : null;
-  return `${strength.band}${supportPercent === null ? '' : `（同党 ${supportPercent}%）`} · 喜 ${favorable} · 忌 ${unfavorable}`;
+  return `${strength.band} · 喜 ${favorable} · 忌 ${unfavorable}`;
 };
 
 /**
