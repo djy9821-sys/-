@@ -13,6 +13,7 @@ import { judgeBaziPattern } from '../../src/utils/baziPattern.js';
 const GAN = '甲乙丙丁戊己庚辛壬癸';
 const ZHI = '子丑寅卯辰巳午未申酉戌亥';
 const WUXING_OF_GAN = { 甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水' };
+const WUXING_OF_ZHI = { 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' };
 const GENERATES = { 木: '火', 火: '土', 土: '金', 金: '水', 水: '木' };
 const CONTROLS = { 木: '土', 火: '金', 土: '水', 金: '木', 水: '火' };
 const invert = (map) => Object.fromEntries(Object.entries(map).map(([key, value]) => [value, key]));
@@ -92,6 +93,19 @@ export const useGodElement = (god, dayWuxing) => {
 };
 
 /**
+ * 原书点名的一步大运或一个流年，按程序的喜忌归成吉、凶、平：干支各算一票，喜多为吉、忌多为凶，相抵或不分喜忌为平；
+ * 原书只说「丑运」「辛运」的只看这一个字。
+ */
+export const yunVerdictOf = (ganZhi, favorable, unfavorable) => {
+  const tones = [...ganZhi].map((char) => {
+    const element = WUXING_OF_GAN[char] ?? WUXING_OF_ZHI[char];
+    return favorable.includes(element) ? 1 : unfavorable.includes(element) ? -1 : 0;
+  });
+  const sum = tones.reduce((total, tone) => total + tone, 0);
+  return sum > 0 ? '吉' : sum < 0 ? '凶' : '平';
+};
+
+/**
  * 排盘并对照一条命例。
  * @returns {{ id, pillars, date, chartPillars, expected, program, checks }|{ id, error }}
  */
@@ -136,6 +150,13 @@ export const evaluateBaziCase = (entry) => {
       : fav.slice(0, 2).some((element) => gods.includes(element)) ? 'near'
         : gods[0] && unfav.includes(gods[0]) ? 'reversed' : 'miss';
   }
+  // 岁运：原书说吉、凶的那几步运（年），程序按同一套喜忌（认出特殊格局就按此格论）判；原书说「平」的不比。
+  const yun = (expected.yun ?? []).map((item) => {
+    const program = yunVerdictOf(item.ganZhi, useGodSource === 'special' ? specialFavorable : favorable, useGodSource === 'special' ? specialUnfavorable : unfavorable);
+    const check = item.verdict === '平' ? null : program === item.verdict ? 'same' : program === '平' ? 'near' : 'reversed';
+    return { ...item, program, check };
+  });
+  if (yun.some((item) => item.check)) checks.yun = yun.map((item) => item.check).filter(Boolean);
   return {
     id: entry.id,
     pillars,
@@ -145,5 +166,6 @@ export const evaluateBaziCase = (entry) => {
     expected,
     program: { band: strength.band, score: strength.score.total, ratio: Math.round(strength.ratio * 100) / 100, class: programClass, special, favorable, unfavorable, specialFavorable, specialUnfavorable, useGodSource, basis: strength.basis, deLing: strength.deLing, pattern: judge.pattern?.name ?? null },
     checks,
+    yun,
   };
 };
