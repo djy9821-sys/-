@@ -339,7 +339,10 @@ const isDarkMoving = (line, time) => {
 const sanHeFramesOf = (lines, time) => SAN_HE.map(({ zhis, element }) => {
   const movers = lines.filter((line) => (line.isMoving || isDarkMoving(line, time)) && zhis.includes(line.zhi));
   const movingZhis = new Set(movers.map((line) => line.zhi));
-  if (movingZhis.size < 2) return null;
+  // 世爻独发而日辰、月建凑足其余两支，也成局：占地得颐之无妄「日月世爻共成三合」
+  const byDayMonth = movingZhis.size === 1 && movers.every((line) => line.isShi) && time.dayZhi !== time.monthZhi
+    && zhis.every((zhi) => movingZhis.has(zhi) || zhi === time.dayZhi || zhi === time.monthZhi);
+  if (movingZhis.size < 2 && !byDayMonth) return null;
   const fillers = new Set([
     ...lines.filter((line) => !line.isMoving).map((line) => line.zhi),
     ...lines.filter((line) => line.isMoving && line.changed).map((line) => line.changed.zhi),
@@ -864,8 +867,15 @@ const TOPIC_RULES = Object.freeze({
       notes.push('父化父，儿孙夭折（卦中不宜父动）');
     });
     if (shiLine.god === '白虎' && shiLine.relative === '官鬼') notes.push('世临白虎鬼爻，地有伏尸');
+    // 寻地章「世爻子孙爻……不宜动逢破散及化破散化绝化墓化退神化回头克，但逢一者，皆非吉地」；「世爻虽旺……吉变为凶之象」
+    const spoiled = [shiLine, ...sons].filter((line, index, all) => line.isMoving && line.changed && all.indexOf(line) === index).find((line) => {
+      const flags = changeFlagsOf(line, time);
+      return flags.backCtrl || flags.broken || flags.tomb || flags.jue || flags.retreat;
+    });
+    if (spoiled) notes.push(`${spoiled === shiLine ? '世爻' : '子孙'}动而化破、化墓绝、化退或化回头克，但逢一者，皆非吉地`);
     return {
       score,
+      cap: Boolean(spoiled),
       points: notes.length ? [`寻地：${notes.join('；')}`] : [],
       notices: ['寻地、点穴以世爻为穴（野鹤：「所验者，世为穴也」），子孙为儿孙；已葬的坟请改选「祖坟风水」，以父母为用神（《增删卜易·寻地章》）。'],
     };
@@ -1590,9 +1600,14 @@ export const judgeLiuYao = (reading, options = {}) => {
         }
       }
     }
-    if (meta.value === 'travel' && !yong.hidden && frame.zhis.includes(yong.zhi)) {
+    if (awayTraveler) {
+      // 行人章：问在外的人来不来只看来与不来之象，局生克用神是在外安否的事，不计入倾向；「用神三合，冲开之月日而来」
+      delta = 0;
+      if (!yong.hidden && frame.zhis.includes(yong.zhi)) text += '；用神在局中，被合住，冲开之月日而来（《增删卜易·行人章》）';
+    } else if (meta.value === 'travel' && !yong.hidden && frame.zhis.includes(yong.zhi)) {
+      // 出行章「动逢合住而留」
       delta -= 3;
-      text += `；用神在局中，被合${proxy ? '不回' : '而留'}`;
+      text += '；用神在局中，被合而留';
     }
     total += delta;
     dynamics.push(`${name}${text}（《增删卜易·六合章》）`);
@@ -1714,6 +1729,7 @@ export const judgeLiuYao = (reading, options = {}) => {
   const special = TOPIC_RULES[meta.value]?.({ lines, hidden, time, shiLine, yingLine, yong, hexagram, changed, proxy, who, illness, strength });
   if (special) {
     total += special.score;
+    if (special.cap) cap = true;
     points.push(...special.points);
     notices.push(...special.notices);
   }
