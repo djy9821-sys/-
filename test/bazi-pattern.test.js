@@ -174,6 +174,15 @@ test('从格、专旺按《滴天髓阐微·衰旺》任注的「旺极」「衰
   // （壬午 癸卯 壬寅 庚戌 年月两透比肩、时透庚印，任注「用庚金以降之」。）
   ['壬寅 辛亥 壬子 辛丑', '戊辰 戊午 戊申 己未', '丙子 丙申 丙子 丙申', '癸巳 壬戌 壬午 壬寅', '壬午 癸卯 壬寅 庚戌']
     .forEach((text) => assert.equal(judgeByPillars(text).judge.special, null, text));
+
+  // 从强要「绝无一毫财星官杀之气」。天干官杀有根：「乙木官星透露，盘根在未，余气在辰，本可为用」。
+  assert.equal(judgeByPillars('乙未 庚辰 戊辰 丙辰').judge.special, null);
+  // 食伤透干有根、财星也透：「三逢旺支，其势汪洋，喜其甲丙并透……用神必是甲木」，按扶抑取食伤。
+  const xieXiu = judgeByPillars('甲申 丙子 癸亥 癸亥');
+  assert.equal(xieXiu.judge.special, null);
+  assert.equal(xieXiu.strength.favorable[0].element, '木');
+  // 财星透干有根而无食伤生它的，仍作从强（「支类西方，又逢厚土，金旺极者，似水也」，戊子己丑庚运名利皆遂）。
+  assert.equal(judgeByPillars('庚申 乙酉 庚戌 庚辰').judge.special.kind, 'congqiang');
 });
 
 test('从格看地支、化气看化神得势：任注从象、化象、顺局诸造', () => {
@@ -198,8 +207,9 @@ test('从格看地支、化气看化神得势：任注从象、化象、顺局�
   const huo = judgeByPillars('丙戌 戊戌 癸巳 壬戌').judge.special;
   assert.equal(huo.name, '疑似癸戊化火格');
   assert.match(huo.basis, /火气占 27%，日主地支没有本气之根/);
-  // 不作从、化：三辰都藏癸水余气（任注用食神）；印比各一透干（孙中山造）；日主坐亥禄的合（任注「日主不能从合」）。
-  ['戊辰 戊午 壬辰 甲辰', '丙寅 己亥 辛卯 庚寅', '甲寅 辛未 癸亥 戊午']
+  // 不作从、化：三辰都藏癸水余气（任注用食神）；印比各一透干（孙中山造）；日主坐亥禄的合（任注「日主不能从合」）；
+  // 日主坐酉印的合（任注「日元柔弱，以印为夫，清而得用」）。
+  ['戊辰 戊午 壬辰 甲辰', '丙寅 己亥 辛卯 庚寅', '甲寅 辛未 癸亥 戊午', '丙寅 辛卯 癸酉 戊午']
     .forEach((text) => assert.equal(judgeByPillars(text).judge.special, null, text));
 });
 
