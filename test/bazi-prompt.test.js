@@ -151,3 +151,12 @@ test('六亲宫星一节每亲附一条讲这一亲的古籍原文（只附原�
   assert.ok(!section.includes('第二条不附') && !section.includes('白话不该出现') && !section.includes('古籍论子女'));
   assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now }).includes('古籍论'));
 });
+
+test('大运一节注明运支与原局会成的方局（程序的大运喜忌按局的五行论）', () => {
+  // 丁丑 壬子 己酉 戊辰：辛亥运亥子丑三会水方，戊申运申子辰三合水局，乙巳运巳酉丑三合金局；庚戌运凑不齐。
+  const prompt = buildBaziPrompt({ chart, scope: 'natal', selections, now });
+  assert.match(prompt, /辛亥，天干十神食神，运支亥与原局子丑会成亥子丑三会水方/);
+  assert.match(prompt, /戊申，天干十神劫财，运支申与原局子辰会成申子辰三合水局/);
+  assert.match(prompt, /乙巳，天干十神七杀，运支巳与原局酉丑会成巳酉丑三合金局/);
+  assert.match(prompt, /庚戌，天干十神伤官(?!，运支)/);
+});
