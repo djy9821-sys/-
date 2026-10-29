@@ -213,7 +213,18 @@ const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts 
   if (band === '偏强' || band === '极强') {
     let favorable;
     let basis;
-    if (scores[yin] > scores[dayWuxing]) {
+    if (scores[yin] > scores[dayWuxing] && !usable.has(wealth)) {
+      // 印多身旺而财星无力：官杀生印、印又生身，官杀不作喜用，列为忌神（有财破印、滋杀的，官杀照旧可用）。
+      // 拿《滴天髓阐微》命造的岁运对照：身旺印多的造，官杀运原书判凶的多（前后两半命造都是如此）。
+      favorable = [wealth, output];
+      basis = '身旺印多，取财破印，食伤次之；官杀生印，为忌';
+      favorable = usableFirst(favorable);
+      if (total >= STRENGTH_BOUNDS.extremeStrong) {
+        favorable = [output, wealth];
+        basis = '旺极宜泄，先取食伤泄秀；官杀生印，为忌';
+      }
+      return { favorable, unfavorable: byScoreDesc([yin, dayWuxing, officer]), basis };
+    } else if (scores[yin] > scores[dayWuxing]) {
       favorable = [wealth, output, officer];
       basis = '身旺印多，取财破印，食伤、官杀次之';
     } else {
