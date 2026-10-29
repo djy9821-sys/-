@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildBaziChart } from '../src/utils/baziChart.js';
-import { STRENGTH_BOUNDS, STRENGTH_SCORE, analyzeStrength } from '../src/utils/baziStrength.js';
+import { STRENGTH_BOUNDS, STRENGTH_SCORE, analyzeStrength, elementToneOf, favorBasisOf } from '../src/utils/baziStrength.js';
+import { judgeBaziPattern } from '../src/utils/baziPattern.js';
 import { findSolarDateByPillars } from '../scripts/lib/baziCases.mjs';
 
 const chartOf = (year, month, day, hourIndex, extra = {}) => buildBaziChart({ calendarType: 'solar', year, month, day, gender: 'male', hourIndex, ...extra });
@@ -188,4 +189,26 @@ test('时辰不详：时柱按平均 0.4 分估', () => {
   // 年支丑己 0.5 + 丁 0.5 + 估 0.4
   assert.equal(result.score.total, 1.4);
   assert.equal(result.band, '偏弱');
+});
+
+test('运限喜忌的依据：认出疑似从、化、专旺的按此格论（《滴天髓·从象》），否则扶抑', () => {
+  // 乙卯 戊寅 癸卯 戊午：癸水极弱、食伤独旺，疑似从儿格。扶抑喜金水；按从儿论喜火（财）木（食伤），忌金（印）土（官杀）。
+  const chart = chartOf(1975, 2, 26, 6);
+  const strength = analyzeStrength(chart);
+  const special = judgeBaziPattern(chart, strength).special;
+  assert.equal(special.name, '疑似从儿格');
+  const basis = favorBasisOf(strength, special);
+  assert.equal(basis.source, 'special');
+  assert.equal(basis.specialName, '疑似从儿格');
+  assert.deepEqual(elements(basis.favorable), ['火', '木']);
+  assert.deepEqual(basis.favorable.map(({ role }) => role), ['财', '食伤']);
+  assert.deepEqual(elements(basis.unfavorable), ['金', '土']);
+  assert.equal(elementToneOf('火', basis).tone, 'good');
+  assert.equal(elementToneOf('火', strength).tone, 'bad', '扶抑看火是忌');
+  assert.equal(basis.band, strength.band, '其余字段照旧');
+
+  const plain = favorBasisOf(strength, null);
+  assert.equal(plain.source, 'fuyi');
+  assert.deepEqual(plain.favorable, strength.favorable);
+  assert.equal(favorBasisOf(null, special), null);
 });
