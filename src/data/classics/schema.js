@@ -312,6 +312,13 @@ export const LIUYAO_CASE_VERDICT = new RegExp(`^(吉|凶|平|${WEATHER_WORDS}|�
 /** 八字命例 expected 的取值：原书明说的日主旺衰、用神（五行或十神）；格局名同古籍 applies.pattern，用程序认得的名字。 */
 export const BAZI_CASE_STRENGTH = Object.freeze(['旺', '弱', '中和']);
 export const BAZI_CASE_USE_GOD = Object.freeze(['木', '火', '土', '金', '水', '比劫', '印', '食伤', '财', '官杀', ...TEN_GODS]);
+/** 八字命例 expected.yun：原书点名的大运、流年及其吉凶（「至癸巳运，连登甲第」「丑运……夫妇皆亡」）。 */
+export const BAZI_CASE_YUN_KIND = Object.freeze(['大运', '流年']);
+export const BAZI_CASE_YUN_VERDICT = Object.freeze(['吉', '凶', '平']);
+const YUN_KEYS = ['ganZhi', 'kind', 'verdict', 'quote'];
+/** 一个干支，或原书只说「丑运」「辛运」时的一个干、一个支。 */
+const isYunGanZhi = (value) => typeof value === 'string' && ((GANZHI.test(value) && GAN.indexOf(value[0]) % 2 === ZHI.indexOf(value[1]) % 2)
+  || (value.length === 1 && (GAN.includes(value) || ZHI.includes(value))));
 
 const GAN_INDEX = Object.fromEntries(GAN.map((gan, index) => [gan, index]));
 const ZHI_INDEX = Object.fromEntries(ZHI.map((zhi, index) => [zhi, index]));
@@ -426,8 +433,27 @@ export const validateCasesDoc = (doc, ctx = {}) => {
         if (!gods.length || gods.some((god) => !BAZI_CASE_USE_GOD.includes(god))) errors.push(`${where}: expected.useGod 须是五行（木火土金水）或十神（比劫、印、食伤、财、官杀，或正官、七杀等），可写数组`);
       }
       if (expected.outcome !== undefined && !isNonEmptyString(expected.outcome)) errors.push(`${where}: expected.outcome 须是非空字符串`);
+      if (expected.yun !== undefined) {
+        if (!Array.isArray(expected.yun) || !expected.yun.length) errors.push(`${where}: expected.yun 须是非空数组`);
+        else {
+          expected.yun.forEach((item, index) => {
+            const at = `${where}: expected.yun[${index}]`;
+            if (!item || typeof item !== 'object' || Array.isArray(item)) {
+              errors.push(`${at} 须是对象`);
+              return;
+            }
+            if (!isYunGanZhi(item.ganZhi)) errors.push(`${at}.ganZhi 须是干支（如「癸巳」）；原书只说「丑运」「辛运」的写一个字`);
+            if (!BAZI_CASE_YUN_KIND.includes(item.kind)) errors.push(`${at}.kind 须是 ${BAZI_CASE_YUN_KIND.join('/')}`);
+            if (!BAZI_CASE_YUN_VERDICT.includes(item.verdict)) errors.push(`${at}.verdict 须是 ${BAZI_CASE_YUN_VERDICT.join('/')}`);
+            if (!isNonEmptyString(item.quote)) errors.push(`${at}.quote 须摘原书说这一运（年）吉凶的那句`);
+            Object.keys(item).forEach((key) => {
+              if (!YUN_KEYS.includes(key)) errors.push(`${at} 未知字段 ${key}`);
+            });
+          });
+        }
+      }
       Object.keys(expected).forEach((key) => {
-        if (!['strength', 'pattern', 'useGod', 'outcome'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
+        if (!['strength', 'pattern', 'useGod', 'outcome', 'yun'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
       });
     } else if (entry.expected !== undefined && doc.module === 'liuyao') {
       const { expected } = entry;
