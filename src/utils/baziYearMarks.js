@@ -39,13 +39,52 @@ const overallTone = (gan, zhi) => {
   return 'neutral';
 };
 
-/** 某柱天干、地支对日主的喜忌。 */
-export const describeFavor = (item, strength) => {
+/** 三会方与三合局：三会的方气专一，先查。 */
+const JU = Object.freeze([
+  { members: ['寅', '卯', '辰'], element: '木', kind: '三会', name: '寅卯辰三会木方' },
+  { members: ['巳', '午', '未'], element: '火', kind: '三会', name: '巳午未三会火方' },
+  { members: ['申', '酉', '戌'], element: '金', kind: '三会', name: '申酉戌三会金方' },
+  { members: ['亥', '子', '丑'], element: '水', kind: '三会', name: '亥子丑三会水方' },
+  { members: ['申', '子', '辰'], element: '水', kind: '三合', name: '申子辰三合水局' },
+  { members: ['亥', '卯', '未'], element: '木', kind: '三合', name: '亥卯未三合木局' },
+  { members: ['寅', '午', '戌'], element: '火', kind: '三合', name: '寅午戌三合火局' },
+  { members: ['巳', '酉', '丑'], element: '金', kind: '三合', name: '巳酉丑三合金局' },
+]);
+
+/**
+ * 运、年的地支与原局地支（流年再加大运地支）凑齐的三会方或三合局。
+ * 《滴天髓·岁运》任注论运多看会局：「乙丑支全金局，火土两泄」「壬戌支类西方，木火并伤」「至亥运会木生杀而亡」——
+ * 运支补齐了局，就按局的五行论喜忌，不再按本支。只算三字凑齐的，半合不算。
+ * @param {string} zhi 运或年的地支
+ * @param {string[]} zhis 原局地支（流年再加大运地支）
+ * @returns {{ element: string, kind: '三会'|'三合', name: string, members: string[], others: string[] }|null}
+ */
+export const juOfZhi = (zhi, zhis = []) => {
+  if (!zhi) return null;
+  const found = JU.find((ju) => ju.members.includes(zhi) && ju.members.every((member) => member === zhi || zhis.includes(member)));
+  return found ? { ...found, others: found.members.filter((member) => member !== zhi) } : null;
+};
+
+/**
+ * 某柱天干、地支对日主的喜忌。
+ * @param {object} item 大运或流年（gan、zhi）
+ * @param {object} strength analyzeStrength 的结果
+ * @param {{ zhis?: string[] }} [options] 与之会局的地支（原局四支，流年再加大运支）；地支凑齐会局的按局的五行论
+ */
+export const describeFavor = (item, strength, { zhis = [] } = {}) => {
   if (!item?.gan || !strength) return null;
   const gan = elementToneOf(GAN_WUXING[item.gan], strength);
-  const zhi = elementToneOf(ZHI_WUXING[item.zhi], strength);
+  const ju = juOfZhi(item.zhi, zhis);
+  const zhi = ju ? { ...elementToneOf(ju.element, strength), ju } : elementToneOf(ZHI_WUXING[item.zhi], strength);
   return { gan, zhi, overall: overallTone(gan, zhi) };
 };
+
+const natalZhisOf = (chart) => (chart?.pillars ?? []).map((pillar) => pillar.zhi).filter(Boolean);
+
+/** 地支喜忌的说法（后面接「喜」「忌」或「为喜用」）：会局的写明会成什么局，按局的五行论。 */
+export const zhiFavorText = (zhi, favorZhi) => (favorZhi?.ju
+  ? `地支${zhi}会成${favorZhi.ju.name}，${favorZhi.element}`
+  : `地支${zhi}${favorZhi?.element ?? ''}`);
 
 /**
  * @param {object} liuNian 流年
@@ -68,11 +107,12 @@ export const getLiuNianMarks = (liuNian, { chart, daYun = null, strength = null 
     labels: ordered,
     badge: ordered[0] ?? null,
     badgeTone: ordered[0] ? YEAR_MARK_TONE[ordered[0]] : null,
-    favor: describeFavor(liuNian, strength),
+    favor: describeFavor(liuNian, strength, { zhis: [...natalZhisOf(chart), daYun?.zhi].filter(Boolean) }),
   };
 };
 
-export const getDaYunMarks = (daYun, { strength = null } = {}) => ({ favor: describeFavor(daYun, strength) });
+/** 大运的喜忌（地支与原局会局的按局论）。 */
+export const getDaYunMarks = (daYun, { strength = null, chart = null } = {}) => ({ favor: describeFavor(daYun, strength, { zhis: natalZhisOf(chart) }) });
 
 const TONE_TEXT = { good: '喜', bad: '忌', neutral: '平' };
 
@@ -82,7 +122,7 @@ export const describeYearMarks = (liuNian, marks) => {
   const parts = [...marks.labels];
   if (marks.favor) {
     parts.push(`天干${liuNian.gan}${marks.favor.gan.element}${TONE_TEXT[marks.favor.gan.tone]}（${marks.favor.gan.role}）`);
-    parts.push(`地支${liuNian.zhi}${marks.favor.zhi.element}${TONE_TEXT[marks.favor.zhi.tone]}（${marks.favor.zhi.role}）`);
+    parts.push(`${zhiFavorText(liuNian.zhi, marks.favor.zhi)}${TONE_TEXT[marks.favor.zhi.tone]}（${marks.favor.zhi.role}）`);
   }
   return parts.join(' · ');
 };
@@ -205,11 +245,12 @@ export const describeYearSummary = (liuNian, { chart = null, daYun = null, stren
   }
 
   if (favor && zhiTone !== 'neutral') {
-    const hiddenMain = liuNian.hiddenShiShens?.[0] ?? '';
+    const hiddenMain = favor.zhi.ju ? '' : liuNian.hiddenShiShens?.[0] ?? '';
     const hidden = hiddenMain ? `，藏干主气${hiddenMain}` : '';
+    const subject = zhiFavorText(liuNian.zhi, favor.zhi);
     sentences.push(zhiTone === 'good'
-      ? `地支${liuNian.zhi}${favor.zhi.element}为喜用（${favor.zhi.role}${hidden}），落到人事与环境上多有助力。`
-      : `地支${liuNian.zhi}${favor.zhi.element}为忌神（${favor.zhi.role}${hidden}），具体推进时牵绊较多，留足余量。`);
+      ? `${subject}为喜用（${favor.zhi.role}${hidden}），落到人事与环境上多有助力。`
+      : `${subject}为忌神（${favor.zhi.role}${hidden}），具体推进时牵绊较多，留足余量。`);
   }
 
   const advices = resolved.labels.map((label) => MARK_ADVICE[label]).filter(Boolean);
