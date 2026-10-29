@@ -9,6 +9,7 @@ import { Solar } from 'lunar-javascript';
 import { buildBaziChart } from '../../src/utils/baziChart.js';
 import { analyzeStrength } from '../../src/utils/baziStrength.js';
 import { judgeBaziPattern } from '../../src/utils/baziPattern.js';
+import { analyzeLiuqin } from '../../src/utils/baziLiuqin.js';
 import { juOfZhi } from '../../src/utils/baziYearMarks.js';
 
 const GAN = '甲乙丙丁戊己庚辛壬癸';
@@ -107,6 +108,34 @@ export const yunVerdictOf = (ganZhi, favorable, unfavorable, natalZhis = []) => 
   return sum > 0 ? '吉' : sum < 0 ? '凶' : '平';
 };
 
+const LIUQIN_ITEM_OF_KIND = { 妻: 'spouse', 夫: 'spouse', 子女: 'children', 父: 'parents', 母: 'parents', 父母: 'parents', 兄弟: 'siblings' };
+const LIUQIN_STAR_OF_KIND = { 父: '父星', 母: '母星' };
+const TONE_VERDICT = { good: '吉', bad: '凶' };
+
+/** 几处的喜忌合起来：都是喜为 good、都是忌为 bad，其余 neutral。 */
+const tonesTogether = (tones) => {
+  const set = new Set(tones);
+  if (set.has('good') && !set.has('bad')) return 'good';
+  if (set.has('bad') && !set.has('good')) return 'bad';
+  return 'neutral';
+};
+
+/**
+ * 原书说到的某一亲，程序「六亲宫星」（analyzeLiuqin）怎么看，归成吉、凶、平：
+ * 看那一亲的总体倾向（六亲星现身看星的喜忌，不现看宫位）；父、母分开说的只看父星（偏财）或母星（印），星不现看年月两宫。
+ * @param {object|null} liuqin analyzeLiuqin 的结果
+ * @param {string} kind 妻、夫、子女、父、母、父母、兄弟
+ */
+export const liuqinVerdictOf = (liuqin, kind) => {
+  const item = liuqin?.items?.find((candidate) => candidate.key === LIUQIN_ITEM_OF_KIND[kind]);
+  if (!item) return '平';
+  const label = LIUQIN_STAR_OF_KIND[kind];
+  if (!label) return TONE_VERDICT[item.tone] ?? '平';
+  const star = item.stars.find((candidate) => candidate.label === label);
+  const tone = star?.places.length ? star.tone : tonesTogether(item.palaces.filter((palace) => !palace.missing).map((palace) => palace.tone));
+  return TONE_VERDICT[tone] ?? '平';
+};
+
 /**
  * 排盘并对照一条命例。
  * @returns {{ id, pillars, date, chartPillars, expected, program, checks }|{ id, error }}
@@ -159,6 +188,14 @@ export const evaluateBaziCase = (entry) => {
     return { ...item, program, check };
   });
   if (yun.some((item) => item.check)) checks.yun = yun.map((item) => item.check).filter(Boolean);
+  // 六亲：原书说到某一亲吉凶的，拿结果页「六亲宫星」那一亲的倾向比；原书说「平」的不比。
+  const liuqinResult = expected.liuqin?.length ? analyzeLiuqin(chart, strength, { special: judge.special }) : null;
+  const liuqin = (expected.liuqin ?? []).map((item) => {
+    const program = liuqinVerdictOf(liuqinResult, item.kind);
+    const check = item.verdict === '平' ? null : program === item.verdict ? 'same' : program === '平' ? 'near' : 'reversed';
+    return { ...item, program, check };
+  });
+  if (liuqin.some((item) => item.check)) checks.liuqin = liuqin.map((item) => item.check).filter(Boolean);
   return {
     id: entry.id,
     pillars,
@@ -169,5 +206,6 @@ export const evaluateBaziCase = (entry) => {
     program: { band: strength.band, score: strength.score.total, ratio: Math.round(strength.ratio * 100) / 100, class: programClass, special, favorable, unfavorable, specialFavorable, specialUnfavorable, useGodSource, basis: strength.basis, deLing: strength.deLing, pattern: judge.pattern?.name ?? null },
     checks,
     yun,
+    liuqin,
   };
 };
