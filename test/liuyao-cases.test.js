@@ -99,7 +99,7 @@ const CASES = [
   { id: '151', name: '占通乡避乱', date: '2001-5-23', hex: '乾为天', lines: [5], topic: 'refuge', subject: 'self', book: '平', near: true },
   { id: '152', name: '占母在外何时来', date: '2002-10-7', hex: '火山旅', lines: [4], topic: 'travel', subject: 'parents', book: '凶' },
   { id: '153', name: '占仆人何日回', date: '2005-12-6', hex: '泽火革', lines: [2], topic: 'travel', subject: 'staff', book: '吉' },
-  { id: '154', name: '占伯何日来', date: '2001-8-3', hex: '水雷屯', lines: [4], topic: 'travel', subject: 'parents', book: '吉', near: true },
+  { id: '154', name: '占伯何日来', date: '2001-8-3', hex: '水雷屯', lines: [4], topic: 'travel', subject: 'parents', book: '吉' },
   { id: '155', name: '占父远去何日回', date: '2001-1-7', hex: '天泽履', lines: [], topic: 'travel', subject: 'parents', book: '吉' },
   { id: '156', name: '占主人何日回', date: '2001-3-1', hex: '山天大畜', lines: [5], topic: 'travel', subject: 'parents', book: '吉', near: true },
   { id: '157', name: '占夫还往他省去否', date: '2005-12-6', hex: '雷天大壮', lines: [1, 5], topic: 'travel', subject: 'spouse', gender: 'female', book: '吉' },
@@ -110,11 +110,11 @@ const CASES = [
   { id: '172', name: '占家内井有碍否', date: '2001-9-12', hex: '地水师', lines: [1], topic: 'home', book: '吉', near: true },
   { id: '175', name: '占旧宅庙宇冲射', date: '2003-6-5', hex: '火天大有', lines: [5], topic: 'general', subject: 'self', book: '平', near: true },
   { id: '177', name: '占衙署后沟', date: '2006-11-6', hex: '火风鼎', lines: [], topic: 'home', book: '凶', miss: '虎鬼持世，地下有尸骸白骨；程序的房屋类还不看六神' },
-  { id: '179', name: '占墓地', date: '2001-2-24', hex: '山雷颐', lines: [4, 5], topic: 'gravesite', book: '吉', near: true },
+  { id: '179', name: '占墓地', date: '2001-2-24', hex: '山雷颐', lines: [4, 5], topic: 'gravesite', book: '吉' },
   { id: '180', name: '占墓地', date: '2001-3-26', hex: '巽为风', lines: [5, 6], topic: 'gravesite', book: '凶' },
   { id: '182', name: '占何时得墓地', date: '2001-4-22', hex: '地雷复', lines: [5], topic: 'gravesite', book: '平' },
   { id: '183', name: '占墓穴', date: '2002-8-5', hex: '雷天大壮', lines: [], topic: 'gravesite', book: '吉', near: true },
-  { id: '184', name: '占以父柩附葬祖茔', date: '2007-1-2', hex: '地雷复', lines: [1], topic: 'gravesite', book: '凶', near: true },
+  { id: '184', name: '占以父柩附葬祖茔', date: '2007-1-2', hex: '地雷复', lines: [1], topic: 'gravesite', book: '凶' },
 ];
 
 const LEVEL = Object.freeze({ 吉: 'good', 凶: 'bad', 平: 'mixed' });
@@ -137,10 +137,10 @@ CASES.filter((item) => !item.miss).forEach((item) => {
   });
 });
 
-test('人事占例：同档的不少于 61 例，断反的只有列明缘故的几例', () => {
+test('人事占例：同档的不少于 64 例，断反的只有列明缘故的几例', () => {
   const results = CASES.map((item) => ({ item, level: judgeCase(item).verdict.level }));
   const exact = results.filter(({ item, level }) => level === LEVEL[item.book]).length;
   const reversed = results.filter(({ item, level }) => opposite(level, LEVEL[item.book])).map(({ item }) => item.id);
-  assert.ok(exact >= 61, `同档 ${exact} 例`);
+  assert.ok(exact >= 64, `同档 ${exact} 例`);
   assert.deepEqual(reversed.sort(), CASES.filter((item) => item.miss).map((item) => item.id).sort());
 });
