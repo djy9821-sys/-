@@ -92,6 +92,7 @@ src/data/classics/
 | `bazi` | `relation` | 合冲刑害：`冲`、`合`、`半合`、`三合`、`三会`、`刑`、`自刑`、`害`、`破`，或具体如 `子午冲`、`乙庚合` |
 | `bazi` | `strength` | 极弱 / 偏弱 / 中和 / 偏强 / 极强 |
 | `bazi` | `season` | 春 / 夏 / 秋 / 冬 / 四季 |
+| `bazi` | `liuqin` | 夫妻 / 子女 / 父母 / 兄弟：讲某一种六亲的（《滴天髓》六亲论诸篇、《子平真诠》论妻子等）。带 `liuqin` 的条件只在八字结果页「六亲宫星」那一亲下面命中，不进「古籍原文」总列表（同一条目另写了不带 `liuqin` 的条件，按那一条照常进总列表）；可与 `gender`、`tenGod`、`strength` 等同写，如以财为妻的男命说法写 `{ "module": "bazi", "liuqin": "夫妻", "gender": "男" }` |
 | `liuyao` | `hexagram` / `hexagrams` | 六十四卦全名（乾为天、水雷屯……） |
 | `liuyao` | `line` | 1–6 |
 | `liuyao` | `relation` | 六冲 / 六合 |
