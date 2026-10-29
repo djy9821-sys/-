@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { buildLiuYaoPrompt, buildLiuYaoReading } from '../src/utils/liuyao.js';
 import { assessStrength, judgeLiuYao, liuyaoNeedsGender, LIUYAO_SUBJECTS, topicSubjectDefault } from '../src/utils/liuyaoJudge.js';
 import { buildLiuYaoRecord, describeLiuYaoRecord, LIUYAO_SUBJECT_LABELS, liuYaoRecordToInput } from '../src/utils/liuyaoRecord.js';
+import { HEXAGRAM_MAP } from '../src/utils/hexagramLogic.js';
 
 // 2026-10-26 13:47：戊戌月 癸酉日，旬空戌亥。
 const castAt = new Date(2026, 9, 26, 13, 47);
@@ -132,4 +133,58 @@ test('官司：子孙发动必不成非，官鬼持世定然有讼', () => {
   assert.match(allText(sons.judge), /子孙发动，必不成非/);
   const ghost = findCast({ topic: 'lawsuit' }, (reading) => reading.lines[reading.hexagram.shi - 1].relative === '官鬼' && !reading.movingPositions.length);
   assert.match(allText(ghost.judge), /官鬼持世，定然有讼/);
+});
+
+// 按《增删卜易》占例起卦：日期取月建、日辰与原书相同的一天正午（同 liuyao-cases.test.js）
+const HEX_BITS = Object.fromEntries(Object.entries(HEXAGRAM_MAP).map(([key, hexagram]) => [hexagram.name, [...key].reverse().map(Number)]));
+const bookCase = (hex, moving, date, meta) => {
+  const [y, m, d] = date.split('-').map(Number);
+  const values = HEX_BITS[hex].map((bit, i) => (moving.includes(i + 1) ? (bit ? 9 : 6) : (bit ? 7 : 8)));
+  return judgeLiuYao(buildLiuYaoReading(values, new Date(y, m - 1, d, 12, 0), { gender: 'male', ...meta }));
+};
+
+test('回头克：化回头冲克如逢仇敌；临日月逢伤待时，寡不敌众则伤；世化回头克；卦变回头克皆以凶推', () => {
+  // 占随官上任（卯月壬申日，比之井）：世临月建之官，化酉金回头冲克，又绝于申日
+  const officer = bookCase('水地比', [2, 3], '2001-3-10', { topic: 'career' });
+  assert.match(allText(officer), /化子孙辛酉回头冲克，如逢仇敌/);
+  assert.match(allText(officer), /用神虽临月建，而日辰又来克，寡不敌众/);
+  assert.equal(officer.verdict.level, 'bad');
+  // 占谒贵（酉月丙寅日，蛊之蒙）：世临月建之官，被午火回头之克，须待子日冲去午火
+  const visit = bookCase('山风蛊', [3], '2006-10-4', { topic: 'career' });
+  assert.match(allText(visit), /用神临月建，逢伤亦伤，却有待时之用，待子日冲去克神/);
+  // 占病（申月戊午日，遁之姤）：世爻午火临日辰，申金月建生亥水回头克世
+  const ill = bookCase('天山遁', [2], '2001-8-23', { topic: 'health', subject: 'self' });
+  assert.match(allText(ill), /用神虽临日辰，而克神得月建生扶，寡不敌众/);
+  assert.equal(ill.verdict.level, 'bad');
+  // 占开铺（寅月辛酉日，艮之明夷）：世化回头之克，用神是财而不是世
+  const shop = bookCase('艮为山', [1, 6], '2001-2-27', { topic: 'wealth' });
+  assert.match(allText(shop), /世爻动而化癸酉回头克，所谋多凶/);
+  assert.equal(shop.verdict.level, 'bad');
+  // 代占则只提醒问卦的人自己
+  const proxy = bookCase('艮为山', [1, 6], '2001-2-27', { topic: 'health', subject: 'parents' });
+  assert.match(allText(proxy), /世爻动而化癸酉回头克，问卦的人自己也要当心/);
+  // 占长子病（寅月癸酉日，震之兑）：卦变回头之克，少女亦难保
+  const son = bookCase('震为雷', [2, 5], '2003-3-1', { topic: 'health', subject: 'children' });
+  assert.match(allText(son), /卦变回头克（震为雷木化兑为泽金）/);
+  assert.equal(son.verdict.level, 'bad');
+  // 不是八纯卦内外同变的，不按卦变论（艮之颐，卦宫土化木，原书吉）
+  const promoted = bookCase('艮为山', [1, 3], '2007-3-3', { topic: 'career' });
+  assert.doesNotMatch(allText(promoted), /卦变回头克/);
+  assert.equal(promoted.verdict.level, 'good');
+});
+
+test('世应与三合：用神持世；应爻休囚安静生之不起；合局之爻月破无扶，待填实', () => {
+  // 占将来有官否再占（亥月己丑日，水地比）：「命若无官，难得……官星以持世也」
+  const officer = bookCase('水地比', [], '2001-11-22', { topic: 'career' });
+  assert.match(allText(officer), /用神持世，事在自己手里/);
+  assert.equal(officer.verdict.level, 'good');
+  // 占复起功名（寅月丙辰日，地泽临）：「九五来生，今被日克」
+  const again = bookCase('地泽临', [], '2001-2-22', { topic: 'career' });
+  assert.match(allText(again), /应爻虽生世，而休囚安静，生之不起/);
+  assert.equal(again.verdict.level, 'mixed');
+  // 占后遇功名（午月癸卯日，艮之观）：「子水破而化空……作元神而无用」，申子辰目下不成局
+  const later = bookCase('艮为山', [3, 5], '2001-6-9', { topic: 'career' });
+  assert.match(allText(later), /申子辰欲合水局，但五爻子月破无生扶，目下不成局/);
+  assert.doesNotMatch(allText(later), /申子辰合成水局/);
+  assert.equal(later.verdict.level, 'mixed');
 });
