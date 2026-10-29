@@ -417,7 +417,9 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     }, strength.roles, CONG_GODS[name]);
   }
 
-  const benqiRoles = new Set(pillars.map((pillar) => ROLE_OF[pillar.hiddenGanDetails?.[0]?.shiShen]).filter(Boolean));
+  // 地支会成三合、三会局的，按局的五行论（「亥卯未」木局里的未土不再算财根）：任注「此木局全，混一寅字，然四柱无金，
+  // 其势从强」；「地支亥子丑，干透壬癸辛，局成润下」。
+  const benqiRoles = new Set(pillars.map((pillar) => (ju[pillar.zhi] ? strength.roles[ju[pillar.zhi]] : ROLE_OF[pillar.hiddenGanDetails?.[0]?.shiShen])).filter(Boolean));
   const wangJi = (scored && score.total >= 4) || strength.ratio > 0.8;
   // 从强「绝无一毫财星官杀之气」：天干官杀在地支有根，官星有力（「乙木官星透露，盘根在未，余气在辰，本可为用」）；
   // 食伤透干有根、又有财星透出，旺神有泄、食伤生财（「喜其甲丙并透……用神必是甲木」）：都按扶抑，不作专旺、从强。
