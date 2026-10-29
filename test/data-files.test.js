@@ -102,6 +102,20 @@ test('八字命例的 expected：原书明说的旺衰、格局、用神与结�
   assert.match(messages, /expected\.useGod 须是五行/);
   assert.match(messages, /expected\.outcome 须是非空字符串/);
   assert.match(messages, /expected 未知字段 luck/);
+  // 岁运：原书点名的大运、流年及吉凶；只说「丑运」的写一个字。
+  assert.deepEqual(validateCasesDoc(doc({ yun: [
+    { ganZhi: '癸巳', kind: '大运', verdict: '吉', quote: '至癸巳运，连登甲第' },
+    { ganZhi: '丑', kind: '大运', verdict: '凶', quote: '丑运生金泄火，刑克异常' },
+    { ganZhi: '丁卯', kind: '流年', verdict: '平', quote: '丁卯年……' },
+  ] })), []);
+  const yunMessages = validateCasesDoc(doc({ yun: [{ ganZhi: '甲丑', kind: '小运', verdict: '大吉', quote: '', extra: 1 }, '癸巳'] })).join('\n');
+  assert.match(yunMessages, /expected\.yun\[0\]\.ganZhi 须是干支/);
+  assert.match(yunMessages, /expected\.yun\[0\]\.kind 须是 大运\/流年/);
+  assert.match(yunMessages, /expected\.yun\[0\]\.verdict 须是 吉\/凶\/平/);
+  assert.match(yunMessages, /expected\.yun\[0\]\.quote 须摘原书/);
+  assert.match(yunMessages, /expected\.yun\[0\] 未知字段 extra/);
+  assert.match(yunMessages, /expected\.yun\[1\] 须是对象/);
+  assert.match(validateCasesDoc(doc({ yun: [] })).join('\n'), /expected\.yun 须是非空数组/);
 });
 
 test('六爻占例的 expected：原书用神、断语归类、应期与应验', () => {
