@@ -60,7 +60,8 @@ const baziContextOfChart = (chart) => {
   const strength = analyzeStrength(chart);
   const judge = judgeBaziPattern(chart, strength);
   const relations = findRelations(chart.pillars.map((pillar) => ({ key: pillar.key, label: pillar.name, gan: pillar.gan, zhi: pillar.zhi })));
-  return baziContextOf({ chart, strength, judge, relations });
+  // 「六亲宫星」按每一亲各取一次上下文，这里四亲一起给，讲某一亲的条目都能试到。
+  return { ...baziContextOf({ chart, strength, judge, relations }), liuqin: ['夫妻', '子女', '父母', '兄弟'] };
 };
 const randomBaziInput = () => ({
   calendarType: 'solar',
