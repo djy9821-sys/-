@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateBaziCase, findSolarDateByPillars, samePatternFamily, useGodElement } from '../scripts/lib/baziCases.mjs';
+import { evaluateBaziCase, findSolarDateByPillars, samePatternFamily, useGodElement, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 
 test('八字命例：按四柱找日子（时柱可缺），找不到或干支不合法时为 null', () => {
@@ -53,6 +53,35 @@ test('八字命例：十神或类别换成五行；排盘四柱与命例一致�
   assert.equal(hua.checks.strength, undefined);
   const unknown = evaluateBaziCase({ id: 'bazi.test.002', pillars: ['甲子', '甲子', '甲子', '甲子'], expected: { strength: '旺' } });
   assert.match(unknown.error, /找不到/);
+});
+
+test('八字命例的岁运：原书点名的大运、流年按程序喜忌判吉凶，干支各算一票', () => {
+  assert.equal(yunVerdictOf('丁卯', ['木', '火', '水'], ['土', '金']), '吉');
+  assert.equal(yunVerdictOf('己巳', ['木', '火', '水'], ['土', '金']), '平', '干忌支喜，相抵');
+  assert.equal(yunVerdictOf('丑', ['木', '火', '水'], ['土', '金']), '凶', '原书只说「丑运」的只看丑');
+  // 任注：「至丁卯运，克去辛金，破其丑土，所谓有病得药……接运丙寅，体用皆宜，仕至黄堂」。
+  const good = evaluateBaziCase({
+    id: 'bazi.test.005',
+    pillars: ['己丑', '辛未', '丙寅', '己丑'],
+    expected: { yun: [
+      { ganZhi: '丁卯', kind: '大运', verdict: '吉', quote: '至丁卯运，克去辛金，破其丑土' },
+      { ganZhi: '丙寅', kind: '大运', verdict: '吉', quote: '接运丙寅，体用皆宜，仕至黄堂' },
+    ] },
+  });
+  assert.deepEqual(good.checks.yun, ['same', 'same']);
+  assert.deepEqual(good.yun.map((item) => item.program), ['吉', '吉']);
+  // 任注：「初运己巳戊辰，土旺之地，财喜辐辏……交丁卯，土金两伤，连遭回禄三次」——程序按身弱扶抑判，一平一反。
+  const mixed = evaluateBaziCase({
+    id: 'bazi.test.006',
+    pillars: ['己卯', '辛未', '丙子', '辛卯'],
+    expected: { yun: [
+      { ganZhi: '己巳', kind: '大运', verdict: '吉', quote: '初运己巳戊辰，土旺之地，财喜辐辏' },
+      { ganZhi: '丁卯', kind: '大运', verdict: '凶', quote: '交丁卯，土金两伤，连遭回禄三次' },
+      { ganZhi: '丙寅', kind: '大运', verdict: '平', quote: '丙寅妻子皆克' },
+    ] },
+  });
+  assert.deepEqual(mixed.checks.yun, ['near', 'reversed'], '原书说平的不比');
+  assert.equal(mixed.yun[2].check, null);
 });
 
 // 古籍命例（src/data/cases/bazi.json）里写了旺衰、用神的，拿来卡住旺衰与喜用算法的一致率。
