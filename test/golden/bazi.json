@@ -61,7 +61,9 @@
             "role": "比劫",
             "tiaoHou": false,
             "usable": true
-          },
+          }
+        ],
+        "unfavorable": [
           {
             "element": "土",
             "role": "印",
@@ -72,14 +74,6 @@
             "element": "火",
             "role": "官杀",
             "tiaoHou": true,
-            "usable": true
-          }
-        ],
-        "unfavorable": [
-          {
-            "element": "木",
-            "role": "财",
-            "tiaoHou": false,
             "usable": true
           }
         ]
@@ -186,21 +180,21 @@
         "deLing": false,
         "favorable": [
           {
-            "element": "金",
-            "role": "比劫",
-            "tiaoHou": false,
-            "usable": true
-          },
-          {
             "element": "土",
             "role": "印",
             "tiaoHou": false,
             "usable": true
           },
           {
-            "element": "水",
-            "role": "食伤",
-            "tiaoHou": true,
+            "element": "金",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": false
+          },
+          {
+            "element": "火",
+            "role": "官杀",
+            "tiaoHou": false,
             "usable": true
           }
         ],
@@ -212,9 +206,9 @@
             "usable": true
           },
           {
-            "element": "火",
-            "role": "官杀",
-            "tiaoHou": false,
+            "element": "水",
+            "role": "食伤",
+            "tiaoHou": true,
             "usable": true
           }
         ]
@@ -343,15 +337,15 @@
             "role": "比劫",
             "tiaoHou": false,
             "usable": true
-          }
-        ],
-        "unfavorable": [
+          },
           {
             "element": "水",
             "role": "官杀",
             "tiaoHou": false,
             "usable": true
-          },
+          }
+        ],
+        "unfavorable": [
           {
             "element": "金",
             "role": "财",
@@ -481,14 +475,14 @@
         ],
         "unfavorable": [
           {
-            "element": "土",
-            "role": "食伤",
+            "element": "金",
+            "role": "财",
             "tiaoHou": false,
             "usable": true
           },
           {
-            "element": "金",
-            "role": "财",
+            "element": "土",
+            "role": "食伤",
             "tiaoHou": false,
             "usable": true
           }
@@ -616,14 +610,14 @@
         ],
         "unfavorable": [
           {
-            "element": "土",
-            "role": "食伤",
+            "element": "金",
+            "role": "财",
             "tiaoHou": false,
             "usable": true
           },
           {
-            "element": "金",
-            "role": "财",
+            "element": "土",
+            "role": "食伤",
             "tiaoHou": false,
             "usable": true
           }
@@ -729,25 +723,19 @@
             "element": "金",
             "role": "印",
             "tiaoHou": false,
-            "usable": true
-          },
-          {
-            "element": "土",
-            "role": "官杀",
-            "tiaoHou": true,
             "usable": false
           }
         ],
         "unfavorable": [
           {
-            "element": "火",
-            "role": "财",
-            "tiaoHou": false,
-            "usable": true
+            "element": "土",
+            "role": "官杀",
+            "tiaoHou": true,
+            "usable": false
           },
           {
-            "element": "木",
-            "role": "食伤",
+            "element": "火",
+            "role": "财",
             "tiaoHou": false,
             "usable": true
           }
@@ -859,24 +847,24 @@
             "role": "比劫",
             "tiaoHou": false,
             "usable": false
+          },
+          {
+            "element": "金",
+            "role": "官杀",
+            "tiaoHou": false,
+            "usable": true
           }
         ],
         "unfavorable": [
           {
-            "element": "金",
-            "role": "官杀",
+            "element": "土",
+            "role": "财",
             "tiaoHou": false,
             "usable": true
           },
           {
             "element": "火",
             "role": "食伤",
-            "tiaoHou": false,
-            "usable": true
-          },
-          {
-            "element": "土",
-            "role": "财",
             "tiaoHou": false,
             "usable": true
           }
@@ -1028,28 +1016,28 @@
             "usable": true
           },
           {
-            "element": "火",
-            "role": "比劫",
-            "tiaoHou": false,
-            "usable": true
-          },
-          {
             "element": "木",
             "role": "印",
             "tiaoHou": false,
             "usable": false
-          }
-        ],
-        "unfavorable": [
+          },
           {
             "element": "金",
             "role": "财",
             "tiaoHou": false,
             "usable": true
-          },
+          }
+        ],
+        "unfavorable": [
           {
             "element": "土",
             "role": "食伤",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "火",
+            "role": "比劫",
             "tiaoHou": false,
             "usable": true
           }
@@ -1148,24 +1136,18 @@
             "role": "财",
             "tiaoHou": false,
             "usable": true
-          },
+          }
+        ],
+        "unfavorable": [
           {
             "element": "金",
             "role": "食伤",
             "tiaoHou": false,
             "usable": false
-          }
-        ],
-        "unfavorable": [
+          },
           {
             "element": "土",
             "role": "比劫",
-            "tiaoHou": false,
-            "usable": true
-          },
-          {
-            "element": "火",
-            "role": "印",
             "tiaoHou": false,
             "usable": true
           }
@@ -1259,15 +1241,21 @@
         ]
       },
       "strength": {
-        "band": "偏弱",
+        "band": "中和",
         "ratio": 0.5588,
         "deLing": true,
         "favorable": [
           {
-            "element": "金",
-            "role": "印",
-            "tiaoHou": true,
+            "element": "木",
+            "role": "食伤",
+            "tiaoHou": false,
             "usable": true
+          },
+          {
+            "element": "火",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": false
           },
           {
             "element": "水",
@@ -1278,9 +1266,9 @@
         ],
         "unfavorable": [
           {
-            "element": "木",
-            "role": "食伤",
-            "tiaoHou": false,
+            "element": "金",
+            "role": "印",
+            "tiaoHou": true,
             "usable": true
           },
           {
@@ -1288,12 +1276,6 @@
             "role": "官杀",
             "tiaoHou": false,
             "usable": true
-          },
-          {
-            "element": "火",
-            "role": "财",
-            "tiaoHou": false,
-            "usable": false
           }
         ]
       },
@@ -1407,16 +1389,16 @@
         ],
         "unfavorable": [
           {
-            "element": "土",
-            "role": "印",
-            "tiaoHou": false,
-            "usable": true
-          },
-          {
             "element": "金",
             "role": "比劫",
             "tiaoHou": false,
             "usable": false
+          },
+          {
+            "element": "土",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": true
           }
         ]
       },
@@ -1505,7 +1487,7 @@
         ]
       },
       "strength": {
-        "band": "偏强",
+        "band": "中和",
         "ratio": 0.3419,
         "deLing": false,
         "favorable": [
@@ -1530,14 +1512,14 @@
         ],
         "unfavorable": [
           {
-            "element": "木",
-            "role": "印",
+            "element": "火",
+            "role": "比劫",
             "tiaoHou": false,
             "usable": true
           },
           {
-            "element": "火",
-            "role": "比劫",
+            "element": "木",
+            "role": "印",
             "tiaoHou": false,
             "usable": true
           }
