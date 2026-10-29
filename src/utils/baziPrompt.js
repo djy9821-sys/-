@@ -10,7 +10,7 @@ import { analyzeLiuqin } from './baziLiuqin.js';
 import { findRelations } from './baziRelations.js';
 import { getShensha, SHENSHA_SOURCES } from './baziShensha.js';
 import { cite } from '../data/classics.js';
-import { analyzeStrength } from './baziStrength.js';
+import { analyzeStrength, favorBasisOf } from './baziStrength.js';
 import { describeYearMarks, describeYearSummary, getLiuNianMarks, juOfZhi } from './baziYearMarks.js';
 import { PROMPT_CLASSICS_LIMIT, classicsPromptLines } from './classicsPrompt.js';
 
@@ -288,11 +288,14 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
 
   if (layers.length) {
     const almanac = rank >= 3 ? almanacLine(liuRi) : null;
-    const marks = liuNian ? getLiuNianMarks(liuNian, { chart, daYun, strength }) : null;
+    // 运限喜忌与结果页同一依据：认出疑似从、化、专旺的按此格论。
+    const favorBasis = favorBasisOf(strength, judge.special);
+    const marks = liuNian ? getLiuNianMarks(liuNian, { chart, daYun, strength: favorBasis }) : null;
     const yearMarks = liuNian ? describeYearMarks(liuNian, marks) : '';
-    const yearSummary = liuNian ? describeYearSummary(liuNian, { chart, daYun, strength, marks }) : null;
+    const yearSummary = liuNian ? describeYearSummary(liuNian, { chart, daYun, strength: favorBasis, marks }) : null;
     sections.push([
       '【所选运限】',
+      ...(favorBasis.source === 'special' ? [`- 运限喜忌按${favorBasis.specialName.replace(/^疑似/, '')}论（程序认出${favorBasis.specialName}；若不成格，以扶抑喜忌为准）`] : []),
       ...layers.map((layer) => layer.text),
       ...(yearMarks ? [`- 流年标注：${yearMarks}`] : []),
       ...(yearSummary ? [`- 流年提要（程序合成，供参考）：${yearSummary.headline}。${yearSummary.text}`] : []),
