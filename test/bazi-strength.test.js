@@ -79,6 +79,25 @@ test('身弱官杀重：取印化杀；印无力而食伤透出，取食伤制�
   assert.equal(gui.basis, '身弱官杀重，印星无力，取食伤制杀');
   assert.equal(gui.favorable[0].element, '木');
   assert.equal(gui.favorable[0].usable, true);
+
+  // 找病时透干的字另加半分：地支土气（3.6）略多于金（3.5），但庚金并透，才是病。
+  // 任注「庚金并透，通根砍伐……更妙丙火独透，制杀扶身」，用火。
+  const jia = analyzeStrength(chartByPillars('庚申 庚辰 甲戌 丙寅'));
+  assert.deepEqual([jia.scores.土, jia.scores.金], [3.6, 3.5]);
+  assert.equal(jia.basis, '身弱官杀重，印星无力，取食伤制杀');
+  assert.equal(jia.favorable[0].element, '火');
+});
+
+test('辰戌丑未月余气是比劫的记一点得令：丙丁生未、戌月，任注「火气有余」', () => {
+  // 丙申 戊戌 丁卯 乙巳：戌中藏丁火（火库）。任注「劫印重叠，旺可知矣」，原先 2.25 分中和，现 2.55 分偏强。
+  const ding = analyzeStrength(chartByPillars('丙申 戊戌 丁卯 乙巳'));
+  assert.deepEqual(ding.score.lingYuqi, { zhi: '戌', gan: '丁' });
+  assert.equal(ding.score.ling, STRENGTH_SCORE.lingYuqi);
+  assert.equal(ding.band, '偏强');
+  // 本气就帮身的月令不另加：甲木生寅月，本气甲木是比劫，仍记 1 分。
+  const yin = analyzeStrength(chartByPillars('丁未 壬寅 甲子 丙寅'));
+  assert.equal(yin.score.lingYuqi, null);
+  assert.equal(yin.score.ling, STRENGTH_SCORE.lingSame);
 });
 
 test('身弱食伤重：取印制伤生身', () => {
@@ -152,7 +171,10 @@ test('中和不硬分喜忌，只附调候', () => {
   const chart = chartOf(1985, 1, 13, 4);
   assert.equal(ganZhiOf(chart), '甲子 丁丑 壬子 甲辰');
   const result = analyzeStrength(chart);
-  assert.equal(result.score.total, 2.15);
+  // 丑月本气己土不帮壬水，所藏癸水是冬水余气，得令 0.3 分。
+  assert.equal(result.score.ling, 0.3);
+  assert.deepEqual(result.score.lingYuqi, { zhi: '丑', gan: '癸' });
+  assert.equal(result.score.total, 2.45);
   assert.equal(result.band, '中和');
   assert.match(result.basis, /中和/);
   assert.deepEqual(elements(result.favorable), ['火']);

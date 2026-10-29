@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateBaziCase, findSolarDateByPillars, samePatternFamily, useGodElement } from '../scripts/lib/baziCases.mjs';
+import { evaluateBaziCase, findSolarDateByPillars, samePatternFamily, useGodElement, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 
 test('八字命例：按四柱找日子（时柱可缺），找不到或干支不合法时为 null', () => {
@@ -55,10 +55,40 @@ test('八字命例：十神或类别换成五行；排盘四柱与命例一致�
   assert.match(unknown.error, /找不到/);
 });
 
+test('八字命例的岁运：原书点名的大运、流年按程序喜忌判吉凶，干支各算一票', () => {
+  assert.equal(yunVerdictOf('丁卯', ['木', '火', '水'], ['土', '金']), '吉');
+  assert.equal(yunVerdictOf('己巳', ['木', '火', '水'], ['土', '金']), '平', '干忌支喜，相抵');
+  assert.equal(yunVerdictOf('丑', ['木', '火', '水'], ['土', '金']), '凶', '原书只说「丑运」的只看丑');
+  // 任注：「至丁卯运，克去辛金，破其丑土，所谓有病得药……接运丙寅，体用皆宜，仕至黄堂」。
+  const good = evaluateBaziCase({
+    id: 'bazi.test.005',
+    pillars: ['己丑', '辛未', '丙寅', '己丑'],
+    expected: { yun: [
+      { ganZhi: '丁卯', kind: '大运', verdict: '吉', quote: '至丁卯运，克去辛金，破其丑土' },
+      { ganZhi: '丙寅', kind: '大运', verdict: '吉', quote: '接运丙寅，体用皆宜，仕至黄堂' },
+    ] },
+  });
+  assert.deepEqual(good.checks.yun, ['same', 'same']);
+  assert.deepEqual(good.yun.map((item) => item.program), ['吉', '吉']);
+  // 任注：「初运己巳戊辰，土旺之地，财喜辐辏……交丁卯，土金两伤，连遭回禄三次」——程序按身弱扶抑判，一平一反。
+  const mixed = evaluateBaziCase({
+    id: 'bazi.test.006',
+    pillars: ['己卯', '辛未', '丙子', '辛卯'],
+    expected: { yun: [
+      { ganZhi: '己巳', kind: '大运', verdict: '吉', quote: '初运己巳戊辰，土旺之地，财喜辐辏' },
+      { ganZhi: '丁卯', kind: '大运', verdict: '凶', quote: '交丁卯，土金两伤，连遭回禄三次' },
+      { ganZhi: '丙寅', kind: '大运', verdict: '平', quote: '丙寅妻子皆克' },
+    ] },
+  });
+  assert.deepEqual(mixed.checks.yun, ['near', 'reversed'], '原书说平的不比');
+  assert.equal(mixed.yun[2].check, null);
+});
+
 // 古籍命例（src/data/cases/bazi.json）里写了旺衰、用神的，拿来卡住旺衰与喜用算法的一致率。
 // 下限按《滴天髓阐微》任铁樵命造定，留了余量。第五批（六亲论从象、化象、顺局诸篇）并入后：
-// 旺衰 87 造一致 70、相反 9（相反的多是「水多木漂」之类，书说弱、程序按印多算旺，取用一样），
-// 喜用 103 造一致 63、相反 15。
+// 旺衰 87 造一致 71、相反 8（相反的多是「水多木漂」之类，书说弱、程序按印多算旺，取用一样），
+// 喜用 103 造一致 68、相反 11；书上点名从、化、专旺的 30 造，程序认出同类 23 造
+// （认不出的是假从、顺局「从儿不论身强弱」与化神失令的假化，任注各有特别的理由）。
 // 新命例并进来跌破下限时，先用 node scripts/bazi-cases.mjs 看是哪些造、为什么，再决定改算法还是改下限。
 const caseEntries = loadDataFiles().cases
   .filter(({ doc }) => doc?.module === 'bazi')
@@ -66,7 +96,7 @@ const caseEntries = loadDataFiles().cases
   .filter((entry) => entry?.expected && Array.isArray(entry.pillars) && !/自检/.test(entry.notes ?? ''));
 const strengthCaseCount = caseEntries.filter((entry) => entry.expected.strength).length;
 
-test('古籍命例校准：旺衰与书上大体一致、极少相反；喜用之首与书上用神一致的四成以上',
+test('古籍命例校准：旺衰与书上大体一致、极少相反；喜用之首与书上用神一致的四成以上；书上点名的特殊格局认出六成以上',
   { skip: strengthCaseCount < 40 ? `写了旺衰的命例只有 ${strengthCaseCount} 条，等《滴天髓阐微》命例并入后再跑` : false },
   () => {
     const results = caseEntries.map(evaluateBaziCase);
@@ -78,9 +108,12 @@ test('古籍命例校准：旺衰与书上大体一致、极少相反；喜用�
     const total = (counts) => Object.values(counts).reduce((sum, value) => sum + value, 0);
     const strength = tally('strength');
     const useGod = tally('useGod');
-    const summary = `旺衰 ${JSON.stringify(strength)}，喜用 ${JSON.stringify(useGod)}`;
+    const pattern = tally('pattern');
+    const summary = `旺衰 ${JSON.stringify(strength)}，喜用 ${JSON.stringify(useGod)}，格局 ${JSON.stringify(pattern)}`;
     assert.ok((strength.same ?? 0) / total(strength) >= 0.7, summary);
     assert.ok((strength.reversed ?? 0) / total(strength) <= 0.12, summary);
     assert.ok((useGod.same ?? 0) / total(useGod) >= 0.4, summary);
     assert.ok((useGod.reversed ?? 0) / total(useGod) <= 0.25, summary);
+    const named = (pattern.same ?? 0) + (pattern.miss ?? 0);
+    assert.ok(named === 0 || (pattern.same ?? 0) / named >= 0.6, summary);
   });

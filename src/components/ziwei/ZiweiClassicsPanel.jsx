@@ -3,7 +3,7 @@
  * 从古籍库里找出相关条目（如《紫微斗数全书》诸星问答论里这颗星怎么说）。界面在 common/ClassicsPanel.jsx。
  */
 import React, { useMemo, useState } from 'react';
-import { ziweiPalaceContextOf } from '../../data/classics/index.js';
+import { ziweiNeighborsOf, ziweiPalaceContextOf } from '../../data/classics/index.js';
 import ClassicsPanel from '../common/ClassicsPanel.jsx';
 
 /** 按命盘习惯的顺序列宫：命宫起，逆行到父母。 */
@@ -46,8 +46,8 @@ export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, 
     const palace = palaces.find((item) => item.index === selectedIndex) ?? null;
     const isMing = !limitInfo && palace?.name === '命宫';
     const ctx = useMemo(
-        () => ziweiPalaceContextOf(palace, { gender, limit: activeLayer, patterns: isMing ? patterns : EMPTY }),
-        [palace, gender, activeLayer, isMing, patterns],
+        () => ziweiPalaceContextOf(palace, { gender, limit: activeLayer, patterns: isMing ? patterns : EMPTY, neighbors: ziweiNeighborsOf(palaces, palace) }),
+        [palaces, palace, gender, activeLayer, isMing, patterns],
     );
     const stars = palace ? [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])] : [];
 

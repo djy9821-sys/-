@@ -16,12 +16,19 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   await expect(result).toContainText('测试 · 乾造');
   await expect(result).toContainText('乙木');
   await expect(result).toContainText('1990.5.20');
-  // 旺衰按得令、得地、得势打分：此造不得令、地支无根，只有时干壬水（印）帮身，0.5 分极弱；食伤（火）最重，取印。
+  // 旺衰按得令、得地、得势打分：此造不得令、地支无根，只有时干壬水（印）帮身，0.5 分极弱；
+  // 火（食伤）与金（官杀）地支气数相当，庚辛并透的金为病，取印化杀。
   await expect(result.getByTestId('bazi-strength-score')).toContainText('0.5 分');
-  await expect(result.getByTestId('bazi-strength-basis')).toContainText('身弱食伤重，取印制伤生身');
+  await expect(result.getByTestId('bazi-strength-basis')).toContainText('身弱官杀重，取印化杀生身');
   // 格局与择日两节都在。
   await expect(result.getByRole('heading', { name: /格局与命局组合/ })).toBeVisible();
   await expect(result.getByRole('heading', { name: /择日参考/ })).toBeVisible();
+  // 六亲宫星：男命以财为妻星、官杀为子女星；此造身弱，财与官杀都是忌神，比劫四柱不见。
+  await expect(result.getByRole('heading', { name: /六亲宫星/ })).toBeVisible();
+  const liuqin = result.getByTestId('bazi-liuqin');
+  await expect(liuqin).toContainText('妻星是忌神，古法看作难得其力。');
+  await expect(liuqin).toContainText('兄弟星不现');
+  await expect(liuqin).toContainText('《滴天髓·夫妻》：「夫妻因缘宿世来，喜神有意傍天财。」');
   // 古籍原文：正官格命中《子平真诠》成败两段等条目，白话默认，切到原文能看到原句。
   // 支线还在录入，条目排序会变（各书各篇轮流排）：只断言第一页有按正官格命中的，翻完所有页再找原句。
   await expect(result.getByRole('heading', { name: /古籍原文/ })).toBeVisible();
@@ -35,6 +42,7 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   await expect(classics).toContainText('官逢财印，又无刑冲破害');
   // 导出给 AI 的提示词附上同一批古籍原文（排序随支线录入的条目变化，只断言有正官格那条）。
   const promptText = result.locator('textarea[aria-label="提示词全文"]');
+  await expect(promptText).toHaveValue(/【六亲宫星（程序初判）】\n男命；喜忌按「五行与旺衰」一节扶抑所取。\n- 妻：妻星土/);
   await expect(promptText).toHaveValue(/【古籍原文（与本命相关）】\n- 《[^》\n]+》/);
   await expect(promptText).toHaveValue(/\n- 《[^》\n]+》[^\n]*（匹配：[^\n]*格局·正官格[^\n]*）/);
   await expect(result).toContainText(/已附上与本命相关的古籍原文 \d+ 条/);

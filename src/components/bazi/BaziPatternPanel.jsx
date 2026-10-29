@@ -70,7 +70,7 @@ export default function BaziPatternPanel({ judge }) {
                                     <span className="ml-1 font-bold text-[#8f3027]">忌</span>
                                     {special.unfavorable.map((item) => <GodChip key={`bad-${item.element}`} item={item} tone="bad" />)}
                                 </div>
-                                <p className="mt-1.5 text-[11px] leading-5 text-[#6f665d]">{special.godsBasis}。这与「五行与旺衰」一节按扶抑取的喜忌不同，真从、真化才用这一套，请人工确认。</p>
+                                <p className="mt-1.5 text-[11px] leading-5 text-[#6f665d]">{special.godsBasis}。这与「五行与旺衰」一节按扶抑取的喜忌不同，{special.caveat ?? '真从、真化才用这一套'}，请人工确认。</p>
                             </div>
                         )}
                     </div>

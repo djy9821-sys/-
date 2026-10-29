@@ -6,6 +6,7 @@
  * 每深一层就多带上一层运限的干支，以及这些运限与命局之间的合冲刑害。
  */
 import { judgeBaziPattern } from './baziPattern.js';
+import { analyzeLiuqin } from './baziLiuqin.js';
 import { findRelations } from './baziRelations.js';
 import { getShensha, SHENSHA_SOURCES } from './baziShensha.js';
 import { cite } from '../data/classics.js';
@@ -145,7 +146,7 @@ const strengthLines = (chart, strength, special = null) => {
   const lines = [
     `- 五行力量（天干每字 1 分，日干不计；藏干本气 1、中气 0.5、余气 0.3；月令加倍）：${ELEMENTS.map((element) => `${element}${strength.percents[element]}%`).join(' ')}（比劫与印合占 ${support}%）`,
     `- 日主${chart.dayMaster.gan}${chart.dayMaster.wuxing}：${strength.band}（旺衰打分 ${score.total}：得令 ${score.ling} + 得地 ${score.di} + 得势 ${score.shi}${score.hourEstimate ? ` + 时辰不详按平均 ${score.hourEstimate}` : ''}；2 分及以下偏弱，2.5 分及以上偏强）`,
-    `- 得令：${score.ling > 0 ? '是' : '否'}${strength.monthMain ? `（月令本气 ${strength.monthMain.gan}，为${strength.monthMain.role}）` : ''}`,
+    `- 得令：${score.lingYuqi ? '得余气' : score.ling > 0 ? '是' : '否'}${strength.monthMain ? `（月令本气 ${strength.monthMain.gan}，为${strength.monthMain.role}${score.lingYuqi ? `；${score.lingYuqi.zhi}中藏${score.lingYuqi.gan}，为比劫余气` : ''}）` : ''}`,
     `- 得地：${rootsByBranch.size ? [...rootsByBranch].map(([label, roots]) => `${label}（${roots.join('、')}）`).join('、') : '年、日、时支无根'}`,
     `- 得势：${score.stems.length ? score.stems.map((item) => `${item.name.replace('柱', '干')}${item.gan}（${item.role}）`).join('、') : '否'}`,
   ];
@@ -249,6 +250,8 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
   const judge = judgeBaziPattern(chart, strength);
   sections.push(['【旺衰参考（程序估算）】', ...strengthLines(chart, strength, judge.special)].join('\n'));
   sections.push(['【格局与组合（程序初判）】', ...patternLines(judge)].join('\n'));
+  const liuqin = analyzeLiuqin(chart, strength, { special: judge.special });
+  if (liuqin) sections.push(['【六亲宫星（程序初判）】', liuqin.basis, ...liuqin.points.map((line) => `- ${line}`)].join('\n'));
   sections.push(['【神煞查法出处】', ...shenshaSourceLines(chart)].join('\n'));
   const classicsSection = classicsPromptLines(classics);
   if (classicsSection) sections.push(['【古籍原文（与本命相关）】', ...classicsSection].join('\n'));
