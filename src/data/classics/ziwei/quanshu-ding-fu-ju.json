@@ -15,13 +15,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "star": "天相"
-        },
-        {
-          "module": "ziwei",
-          "palace": "田宅",
-          "star": "天相"
+          "note": "财荫夹印：天相守命而武曲、天梁来夹。按安星法武曲不与天相相邻，此格不能成立，程序不判"
         }
       ],
       "tags": [
@@ -41,13 +35,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "star": "武曲"
-        },
-        {
-          "module": "ziwei",
-          "palace": "财帛",
-          "star": "武曲"
+          "pattern": "日月夹财格"
         }
       ],
       "tags": [
@@ -67,8 +55,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "star": "天马"
+          "pattern": "财禄夹马格"
         }
       ],
       "tags": [
@@ -88,19 +75,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "身宫",
-          "stars": [
-            "天梁",
-            "天相"
-          ]
-        },
-        {
-          "module": "ziwei",
-          "palace": "田宅",
-          "stars": [
-            "天梁",
-            "天相"
-          ]
+          "note": "荫印拱身：身临田宅而天梁、天相拱冲。按安星法梁相相邻，不能同在三方四正，程序不判"
         }
       ],
       "tags": [
@@ -121,11 +96,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "田宅",
-          "stars": [
-            "太阳",
-            "太阴"
-          ]
+          "pattern": "日月照璧格"
         }
       ],
       "tags": [
@@ -147,11 +118,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "branches": [
-            "午"
-          ],
-          "star": "太阳"
+          "pattern": "金灿光辉格"
         }
       ],
       "tags": [
