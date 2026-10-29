@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateBaziCase, findSolarDateByPillars, samePatternFamily, useGodElement, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
+import { evaluateBaziCase, findSolarDateByPillars, liuqinVerdictOf, samePatternFamily, useGodElement, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 
 test('八字命例：按四柱找日子（时柱可缺），找不到或干支不合法时为 null', () => {
@@ -85,6 +85,33 @@ test('八字命例的岁运：原书点名的大运、流年按程序喜忌判�
   });
   assert.deepEqual(mixed.checks.yun, ['near', 'reversed'], '原书说平的不比');
   assert.equal(mixed.yun[2].check, null);
+});
+
+test('八字命例的六亲：原书说到的妻（夫）、子女、父、母、兄弟，拿「六亲宫星」那一亲的倾向比', () => {
+  // 癸卯 乙丑 庚申 丁丑（男）：庚金身旺，喜木水火。妻星乙木透月干为喜用；母星（印，土）为忌；
+  // 父星偏财四柱不见，年宫卯木喜、月宫丑土忌，判平。
+  const male = evaluateBaziCase({
+    id: 'bazi.test.007',
+    pillars: ['癸卯', '乙丑', '庚申', '丁丑'],
+    birth: { calendar: 'unknown', gender: 'male' },
+    expected: { liuqin: [
+      { kind: '妻', verdict: '吉', quote: '妻贤内助' },
+      { kind: '母', verdict: '吉', quote: '母慈' },
+      { kind: '父', verdict: '凶', quote: '早年丧父' },
+      { kind: '兄弟', verdict: '平', quote: '兄弟平平' },
+    ] },
+  });
+  assert.deepEqual(male.liuqin.map((item) => item.program), ['吉', '凶', '平', '凶']);
+  assert.deepEqual(male.checks.liuqin, ['same', 'reversed', 'near'], '原书说平的不比');
+  // 丙寅 辛卯 癸酉 戊午（女）：夫星官杀为土，是忌神。
+  const female = evaluateBaziCase({
+    id: 'bazi.test.008',
+    pillars: ['丙寅', '辛卯', '癸酉', '戊午'],
+    birth: { calendar: 'unknown', gender: 'female' },
+    expected: { liuqin: [{ kind: '夫', verdict: '凶', quote: '克夫' }] },
+  });
+  assert.deepEqual(female.checks.liuqin, ['same']);
+  assert.equal(liuqinVerdictOf(null, '妻'), '平');
 });
 
 // 古籍命例（src/data/cases/bazi.json）里写了旺衰、用神的，拿来卡住旺衰与喜用算法的一致率。
