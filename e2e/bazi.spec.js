@@ -23,11 +23,12 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   // 格局与择日两节都在。
   await expect(result.getByRole('heading', { name: /格局与命局组合/ })).toBeVisible();
   await expect(result.getByRole('heading', { name: /择日参考/ })).toBeVisible();
-  // 六亲宫星：男命以财为妻星、官杀为子女星；此造身弱，财与官杀都是忌神，比劫四柱不见。
+  // 六亲宫星：星照子平列（财为妻星、官杀为子女星），断语按任注推。此造身弱用印，官杀金旺又见财星土——
+  // 任注「官杀旺而用印，见财星」；比劫木四柱不见，但身弱喜比劫（「全凭日主之爱憎」）。
   await expect(result.getByRole('heading', { name: /六亲宫星/ })).toBeVisible();
   const liuqin = result.getByTestId('bazi-liuqin');
-  await expect(liuqin).toContainText('妻星是忌神，古法看作难得其力。');
-  await expect(liuqin).toContainText('兄弟星不现');
+  await expect(liuqin).toContainText('任注：官杀旺而用印，见财星，古法主妻宫不美、有刑克。');
+  await expect(liuqin).toContainText('任注「全凭日主之爱憎」：比劫木是喜用，古法看作兄弟得力。');
   await expect(liuqin).toContainText('《滴天髓·夫妻》：「夫妻因缘宿世来，喜神有意傍天财。」');
   // 古籍原文：正官格命中《子平真诠》成败两段等条目，白话默认，切到原文能看到原句。
   // 支线还在录入，条目排序会变（各书各篇轮流排）：只断言第一页有按正官格命中的，翻完所有页再找原句。
