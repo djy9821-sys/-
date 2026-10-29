@@ -188,3 +188,38 @@ test('世应与三合：用神持世；应爻休囚安静生之不起；合局�
   assert.doesNotMatch(allText(later), /申子辰合成水局/);
   assert.equal(later.verdict.level, 'mixed');
 });
+
+test('不看用神而断：六冲变六合竟以吉断，久病逢冲不治、近病逢冲即愈，子孙变鬼万无一活', () => {
+  // 占悔婚可成（未月丁巳日，离之旅）：「此卦从来难以吉断，因得屡验六冲变合……此婚一定还成」
+  const marry = bookCase('离为火', [1], '2004-8-6', { topic: 'love' });
+  assert.match(allText(marry), /六冲卦变六合者，不看用神，竟以吉断/);
+  assert.equal(marry.verdict.level, 'good');
+  // 占久病（戌月癸未日，乾之夬）：「久病逢冲莫治」
+  const chronic = bookCase('乾为天', [6], '2003-11-6', { topic: 'health', subject: 'self', illness: 'chronic' });
+  assert.equal(chronic.verdict.level, 'bad');
+  // 占妻病（午月己卯日，震之丰）：「近病逢冲即愈」
+  const recent = bookCase('震为雷', [3], '2003-7-5', { topic: 'health', subject: 'spouse', illness: 'recent' });
+  assert.equal(recent.verdict.level, 'good');
+  // 卦变回头克「新病亦主危亡」，压过近病逢冲：占长子病（震之兑）当新病问也断偏弱
+  const son = bookCase('震为雷', [2, 5], '2003-3-1', { topic: 'health', subject: 'children', illness: 'recent' });
+  assert.equal(son.verdict.level, 'bad');
+  // 占子易养否（亥月丙辰日，姤之旅）：「亥水子孙临月建……旺莫旺于此也……岂知子孙变鬼」
+  const child = bookCase('天风姤', [2, 5], '2004-12-3', { topic: 'children' });
+  assert.match(allText(child), /子孙变鬼，大凶之兆/);
+  assert.equal(child.verdict.level, 'bad');
+});
+
+test('出行世动逢合；进神化空仍进；用神临应克世来就我', () => {
+  // 占出行（申月丙子日，明夷之小过）：「合住，必有事绊，不能动身」
+  const trip = bookCase('地火明夷', [1, 4], '2002-9-5', { topic: 'travel', subject: 'self' });
+  assert.match(allText(trip), /世动逢合（化合或日辰合住），必有事故阻滞不行/);
+  assert.equal(trip.verdict.level, 'bad');
+  // 占考试中否（酉月乙丑日，兑之讼）：「此卦动散化空亦能中矣」
+  const exam = bookCase('兑为泽', [1, 6], '2005-10-8', { topic: 'study' });
+  assert.match(allText(exam), /化壬戌进神，越走越旺，变爻旬空（进退不因空破而改）/);
+  assert.equal(exam.verdict.level, 'good');
+  // 占求财（未月庚子日，风天小畜）：「应临月建之财以克世，许之必得」
+  const money = bookCase('风天小畜', [], '2001-8-5', { topic: 'wealth' });
+  assert.match(allText(money), /用神临应而克世，用神来就我/);
+  assert.equal(money.verdict.level, 'good');
+});
