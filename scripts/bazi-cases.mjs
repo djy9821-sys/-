@@ -11,6 +11,7 @@
  *   没认出记 miss；命例没写而程序认出了记 extra。化气格的旺衰说的是化神，不比日主旺衰。
  * - 喜用：命例的用神（五行或十神，换算成五行）是程序喜用第一位记 same，在前两位记 near，
  *   是程序的忌神记 reversed，其余 miss。程序认出从格、化格、专旺时，拿「按此格论」的喜忌比，否则拿扶抑喜忌比。
+ *   另按固定留集（isUseGodHoldout：编号尾数 0、4、7）分列：调规则只看非留集，留集只作验收。
  *   命例写了 useGodWhy（原书取用理由：扶抑、调候、通关、病药……）的，另按理由分类列一行。
  * - 岁运：命例 expected.yun 里原书说吉、凶的大运、流年，程序按同一套喜忌把干支各算一票（只写一个字的只看这个字；
  *   地支与原局凑齐三会方、三合局的按局的五行），与原书同记 same，程序判平记 near，相反记 reversed；原书说平的不比。
@@ -21,7 +22,7 @@
 import process from 'node:process';
 
 import { loadDataFiles } from './lib/dataFiles.mjs';
-import { evaluateBaziCase } from './lib/baziCases.mjs';
+import { evaluateBaziCase, isUseGodHoldout } from './lib/baziCases.mjs';
 
 const showAll = process.argv.includes('--all');
 const files = loadDataFiles();
@@ -43,6 +44,9 @@ console.log(`八字命例 ${entries.length} 条（写了 expected、四柱未标
 console.log(`旺衰：${fmt(tally.strength)}`);
 console.log(`格局：${fmt(tally.pattern)}`);
 console.log(`喜用：${fmt(tally.useGod)}`);
+const splitUseGod = (pick) => fmt(results.filter((result, index) => result.checks?.useGod && pick(isUseGodHoldout(entries[index])))
+  .reduce((acc, result) => ({ ...acc, [result.checks.useGod]: (acc[result.checks.useGod] ?? 0) + 1 }), {}));
+console.log(`  其中非留集：${splitUseGod((held) => !held)}；固定留集（只验收）：${splitUseGod((held) => held)}`);
 console.log(`岁运：${fmt(tally.yun)}`);
 const byWhy = {};
 results.forEach((result) => {
