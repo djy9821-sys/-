@@ -59,6 +59,9 @@ test('八字命例的岁运：原书点名的大运、流年按程序喜忌判�
   assert.equal(yunVerdictOf('丁卯', ['木', '火', '水'], ['土', '金']), '吉');
   assert.equal(yunVerdictOf('己巳', ['木', '火', '水'], ['土', '金']), '平', '干忌支喜，相抵');
   assert.equal(yunVerdictOf('丑', ['木', '火', '水'], ['土', '金']), '凶', '原书只说「丑运」的只看丑');
+  // 任注「乙丑支全金局，火土两泄」：丑与原局巳酉凑成金局，按金论。
+  assert.equal(yunVerdictOf('丑', ['土', '火'], ['水', '金']), '吉');
+  assert.equal(yunVerdictOf('丑', ['土', '火'], ['水', '金'], ['巳', '巳', '酉', '戌']), '凶');
   // 任注：「至丁卯运，克去辛金，破其丑土，所谓有病得药……接运丙寅，体用皆宜，仕至黄堂」。
   const good = evaluateBaziCase({
     id: 'bazi.test.005',
