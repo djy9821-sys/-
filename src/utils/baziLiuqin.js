@@ -220,20 +220,22 @@ const FU_RULES = [
 ];
 
 /**
- * 任注《子女》（以食伤为子），按先后取第一条合的。条文据《滴天髓阐微》通行本（维基文库本此段讹脱甚多，见古籍库 ditian.renzhu.liuqin.005 的 doubts）。
- * 「日主旺，印绶重，官杀轻，有印绶，遇财星，有子必逆」与「子多而贤」一条条件相近、断语相反，暂不收。
+ * 任注《子女》（男命以食伤为子），按先后取第一条合的。条文据 1947 年大东书局《滴天髓阐微》扫描本（古籍库
+ * ditian.renzhu.liuqin.005、006）。原书另有「日主弱，有印绶，无食伤，子必多」「日主弱，印绶轻，有财星，子必无」
+ * 「日主弱，食伤旺，有印绶，遇财星，虽有若无」「日主弱，官杀旺，有印绶，遇财星，有子必逆」等条，拿任注自己的命造
+ * 对照，按程序的旺衰、多少粗分去套反而多断错，暂不收，只在古籍库里录原文。
  */
 const ZINV_RULES = [
   { when: ({ body, yin, shi }) => body === 'strong' && yin.none && shi.has, tone: 'good', cond: '日主旺，无印绶，有食伤', verdict: '子息多', original: '子必多' },
   { when: ({ body, yin, shi, cai }) => body === 'strong' && yin.heavy && shi.light && cai.has, tone: 'good', cond: '日主旺，印绶重，食伤轻，有财星', verdict: '子多而贤', original: '子多而贤' },
-  { when: ({ body, yin, shi, cai }) => body === 'strong' && yin.heavy && shi.none && cai.none, tone: 'bad', cond: '日主旺，印绶重，无食伤，无财星', verdict: '子息艰难', original: '必无子' },
+  { when: ({ body, yin, shi, cai }) => body === 'strong' && yin.heavy && shi.none && cai.has, tone: 'good', cond: '日主旺，印绶多，无食伤，有财星', verdict: '子多而能', original: '子多而能' },
   { when: ({ body, yin, shi, cai }) => body === 'strong' && yin.has && shi.light && cai.has, tone: 'neutral', cond: '日主旺，食伤轻，逢印绶，遇财星', verdict: '子少孙多', original: '子少孙多' },
   { when: ({ body, yin, shi }) => body === 'strong' && yin.heavy && shi.light, tone: 'bad', cond: '日主旺，印绶重，食伤轻', verdict: '子息偏少', original: '子必少' },
   { when: ({ body, yin, shi, guan }) => body === 'strong' && yin.none && shi.hidden && guan.has, tone: 'good', cond: '日主旺，无印绶，食伤伏，有官杀', verdict: '子息多', original: '子必多' },
   { when: ({ body, bi, yin, shi }) => body === 'strong' && bi.heavy && yin.none && shi.hidden, tone: 'good', cond: '日主旺，比劫多，无印绶，食伤伏', verdict: '子息多', original: '子必多' },
-  { when: ({ body, shi, yin }) => body === 'weak' && shi.heavy && yin.light, tone: 'bad', cond: '日主弱，食伤重，印绶轻', verdict: '子息艰难', original: '亦无子' },
-  { when: ({ body, shi, bi, cai }) => body === 'weak' && shi.light && bi.none && cai.has, tone: 'bad', cond: '日主弱，食伤轻，无比劫，有财星', verdict: '子息艰难', original: '子必无' },
-  { when: ({ body, guan, yin, cai }) => body === 'weak' && guan.heavy && yin.light && cai.has, tone: 'bad', cond: '日主弱，七杀重，印绶轻，微伏财', verdict: '多女', original: '必多女' },
+  { when: ({ body, shi, yin }) => body === 'weak' && shi.heavy && yin.none, tone: 'bad', cond: '日主弱，食伤重，印绶无', verdict: '子息艰难', original: '亦无子' },
+  { when: ({ body, shi, bi, guan }) => body === 'weak' && shi.light && bi.none && guan.has, tone: 'bad', cond: '日主弱，食伤轻，无比劫，有官星', verdict: '子息艰难', original: '子必无' },
+  { when: ({ body, guan, yin, cai }) => body === 'weak' && guan.heavy && yin.light && cai.faint && cai.hidden, tone: 'bad', cond: '日主弱，官杀重，印绶轻，微伏财', verdict: '多女', original: '必多女' },
   { when: ({ body, guan, shi, bi }) => body === 'weak' && guan.heavy && shi.light && bi.has, tone: 'bad', cond: '日主弱，七杀重，食伤轻，有比劫', verdict: '女多子少', original: '女多子少' },
   { when: ({ body, guan, yin, bi }) => body === 'weak' && guan.heavy && yin.light && bi.light, tone: 'bad', cond: '日主弱，官杀重，无印比', verdict: '子息艰难', original: '子必无' },
 ];
