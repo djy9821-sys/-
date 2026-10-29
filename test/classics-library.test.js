@@ -34,7 +34,7 @@ test('仓库数据能合成索引：每条带书名、篇名、出处，按书�
   assert.equal(entry.source, '《子平真诠》·论用神成败救应');
   assert.ok(entry.file.endsWith('ziping-chengbai.json'));
   const sanming = entriesOfClassic(library, 'sanming');
-  assert.ok(sanming.some((item) => item.id === 'sanming.shensha.tianyi.001'));
+  assert.ok(sanming.some((item) => item.applies.some((cond) => cond.shensha === '天乙贵人')));
   assert.ok(sanming.every((item) => item.classic === 'sanming'));
   assert.equal(entryById(library, 'nope'), null);
 });
@@ -70,14 +70,15 @@ test('格名同义展开', () => {
   assert.deepEqual(patternNamesOf(null), []);
 });
 
-test('真实命盘能从仓库数据里匹配到条目：正官格命中《子平真诠》成败两段，乾隆命中天乙贵人歌诀', () => {
+test('真实命盘能从仓库数据里匹配到条目：正官格命中《子平真诠》成败两段，乾隆命中《三命通会》论天乙贵人', () => {
   const guan = baziContextOf(chartOf(1960, 6, 2, 1));
   const hits = matchEntries(library, guan);
   const ids = hits.map(({ entry }) => entry.id);
   assert.ok(ids.includes('ziping.chengbai.001') && ids.includes('ziping.chengbai.002'), ids.join());
-  assert.ok(ids.includes('sanming.shensha.tianyi.001'), '时柱丑为年干庚的天乙贵人');
+  const isTianYi = (id) => id.startsWith('sanming.shensha.tianyi.');
+  assert.ok(ids.some(isTianYi), '时柱丑为年干庚的天乙贵人');
   const noTianYi = matchEntries(library, { module: 'bazi', shensha: ['文昌贵人'] }).map(({ entry }) => entry.id);
-  assert.ok(!noTianYi.includes('sanming.shensha.tianyi.001'));
+  assert.ok(!noTianYi.some(isTianYi));
   const first = hits.find(({ entry }) => entry.id === 'ziping.chengbai.001');
   assert.equal(first.reason, '格局·正官格');
   assert.deepEqual(first.matched, [{ key: 'pattern', value: '正官格' }]);
@@ -85,7 +86,7 @@ test('真实命盘能从仓库数据里匹配到条目：正官格命中《子�
   const qianlong = baziContextOf(chartOf(1711, 9, 25, 0));
   assert.ok(qianlong.shensha.includes('天乙贵人'));
   const qianlongIds = matchEntries(library, qianlong).map(({ entry }) => entry.id);
-  assert.ok(qianlongIds.includes('sanming.shensha.tianyi.001'));
+  assert.ok(qianlongIds.some(isTianYi));
   assert.ok(qianlongIds.includes('ziping.chengbai.001'), '羊刃格也在成败两段的适用范围里');
 
   // 支线还在陆续录入，这里只断言「该命中的在、不该命中的不在」，不锁死条目总数。
