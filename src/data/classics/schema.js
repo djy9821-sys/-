@@ -317,6 +317,12 @@ export const BAZI_CASE_USE_GOD = Object.freeze(['木', '火', '土', '金', '水
 /** 八字命例 expected.yun：原书点名的大运、流年及其吉凶（「至癸巳运，连登甲第」「丑运……夫妇皆亡」）。 */
 export const BAZI_CASE_YUN_KIND = Object.freeze(['大运', '流年']);
 export const BAZI_CASE_YUN_VERDICT = Object.freeze(['吉', '凶', '平']);
+/**
+ * 八字命例 expected.useGodWhy：原书取这个用神的理由归哪一类（只在写了 useGod 时写），回归里按类看程序哪一类取得不准。
+ * 扶抑：身强取克泄、身弱取生扶；调候：寒暖燥湿；通关：两神相战取居中者；病药：取制忌神（病）之神；
+ * 从势：从格、从势、从强、专旺，顺其气势；化气：化格取化神；格局：按子平格局取用（官格用财印之类）；源流：取源头、流通之神。
+ */
+export const BAZI_CASE_USE_GOD_WHY = Object.freeze(['扶抑', '调候', '通关', '病药', '从势', '化气', '格局', '源流', '其他']);
 const YUN_KEYS = ['ganZhi', 'kind', 'verdict', 'quote'];
 /** 八字命例 expected.liuqin：原书说到的六亲吉凶（「刑妻克子」「妻贤子肖」「早年丧父」「兄弟无靠」）。父、母分开说的分开写，并说的写「父母」。 */
 export const BAZI_CASE_LIUQIN_KIND = Object.freeze(['妻', '夫', '子女', '父', '母', '父母', '兄弟']);
@@ -437,6 +443,18 @@ export const validateCasesDoc = (doc, ctx = {}) => {
         const gods = Array.isArray(expected.useGod) ? expected.useGod : [expected.useGod];
         if (!gods.length || gods.some((god) => !BAZI_CASE_USE_GOD.includes(god))) errors.push(`${where}: expected.useGod 须是五行（木火土金水）或十神（比劫、印、食伤、财、官杀，或正官、七杀等），可写数组`);
       }
+      if (expected.useGodWhy !== undefined) {
+        const why = expected.useGodWhy;
+        if (!why || typeof why !== 'object' || Array.isArray(why)) errors.push(`${where}: expected.useGodWhy 须是对象 { kind, quote }`);
+        else {
+          if (expected.useGod === undefined) errors.push(`${where}: expected.useGodWhy 只在写了 useGod 时写`);
+          if (!BAZI_CASE_USE_GOD_WHY.includes(why.kind)) errors.push(`${where}: expected.useGodWhy.kind 须是 ${BAZI_CASE_USE_GOD_WHY.join('/')}`);
+          if (!isNonEmptyString(why.quote)) errors.push(`${where}: expected.useGodWhy.quote 须摘原书说取用理由的那句`);
+          Object.keys(why).forEach((key) => {
+            if (!['kind', 'quote'].includes(key)) errors.push(`${where}: expected.useGodWhy 未知字段 ${key}`);
+          });
+        }
+      }
       if (expected.outcome !== undefined && !isNonEmptyString(expected.outcome)) errors.push(`${where}: expected.outcome 须是非空字符串`);
       if (expected.yun !== undefined) {
         if (!Array.isArray(expected.yun) || !expected.yun.length) errors.push(`${where}: expected.yun 须是非空数组`);
@@ -478,7 +496,7 @@ export const validateCasesDoc = (doc, ctx = {}) => {
         }
       }
       Object.keys(expected).forEach((key) => {
-        if (!['strength', 'pattern', 'useGod', 'outcome', 'yun', 'liuqin'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
+        if (!['strength', 'pattern', 'useGod', 'useGodWhy', 'outcome', 'yun', 'liuqin'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
       });
     } else if (entry.expected !== undefined && doc.module === 'liuyao') {
       const { expected } = entry;
