@@ -66,18 +66,22 @@ test('运、年的地支与原局凑齐三会方、三合局的，按局的五�
   assert.equal(juOfZhi('丑', ['巳', '戌']), null, '只凑齐两字（半合）的不算');
   assert.equal(juOfZhi('丑', []), null);
 
-  // 丁丑 壬子 己酉 戊辰：己土偏弱，喜土火，忌水金木。
+  // 丁丑 壬子 己酉 戊辰：己土偏弱，用神土，喜土火；木克土、水为土所克，为忌；金为土所生，是闲神。
   const xinHai = getDaYunMarks({ gan: '辛', zhi: '亥' }, { strength, chart });
   assert.equal(xinHai.favor.zhi.ju.name, '亥子丑三会水方');
   assert.equal(xinHai.favor.zhi.element, '水');
   assert.equal(getDaYunMarks({ gan: '辛', zhi: '亥' }, { strength }).favor.zhi.ju, undefined, '不给原局就不论会局');
-  // 乙巳流年：巳本是火（喜），与原局酉丑会成金局，作金论（忌）。
+  // 乙巳流年：巳本是火（喜），与原局酉丑会成金局，作金论（闲神），不再算喜。
   const yiSi = getLiuNianMarks(liuNianOf('乙巳'), { chart, strength });
-  assert.equal(yiSi.favor.zhi.tone, 'bad');
-  assert.equal(yiSi.favor.overall, 'bad');
-  assert.equal(describeYearMarks(liuNianOf('乙巳'), yiSi), '天干乙木忌（官杀） · 地支巳会成巳酉丑三合金局，金忌（食伤）');
-  const summary = describeYearSummary({ ...liuNianOf('乙巳'), ganShiShen: '七杀', hiddenShiShens: ['正印'] }, { chart, strength });
-  assert.ok(summary.text.includes('地支巳会成巳酉丑三合金局，金为忌神（食伤），'), summary.text);
+  assert.equal(yiSi.favor.zhi.tone, 'neutral');
+  assert.equal(describeYearMarks(liuNianOf('乙巳'), yiSi), '天干乙木忌（官杀） · 地支巳会成巳酉丑三合金局，金平（食伤）');
+  // 甲申流年：申本是金（闲神），与原局子辰会成水局，作水论（忌）。
+  const jiaShen = getLiuNianMarks(liuNianOf('甲申'), { chart, strength });
+  assert.equal(jiaShen.favor.zhi.tone, 'bad');
+  assert.equal(jiaShen.favor.overall, 'bad');
+  assert.equal(describeYearMarks(liuNianOf('甲申'), jiaShen), '天干甲木忌（官杀） · 地支申会成申子辰三合水局，水忌（财）');
+  const summary = describeYearSummary({ ...liuNianOf('甲申'), ganShiShen: '正官', hiddenShiShens: ['伤官'] }, { chart, strength });
+  assert.ok(summary.text.includes('地支申会成申子辰三合水局，水为忌神（财），'), summary.text);
   assert.ok(!summary.text.includes('藏干主气'), '会局的不再说本支藏干');
   // 流年地支与大运地支、原局一起凑：原局只有子，大运申、流年辰，凑成申子辰。
   const chen = getLiuNianMarks(liuNianOf('壬辰'), { chart: { pillars: [{ key: 'year', zhi: '子' }] }, daYun: { ganZhi: '戊申', gan: '戊', zhi: '申' }, strength });
@@ -136,8 +140,8 @@ test('流年提要：十神主题、地支喜忌、太岁提醒与总体倾向',
   assert.equal(nextSummary.tone, 'mixed');
 
   // 没有标注时补一句总体倾向；忌神流年为宜守。
-  const plain = describeYearSummary({ ...liuNianOf('庚子'), ganShiShen: '伤官', hiddenShiShens: ['偏财'] }, { chart, strength });
-  assert.match(plain.text, /为伤官，为忌神/);
+  const plain = describeYearSummary({ ...liuNianOf('甲子'), ganShiShen: '正官', hiddenShiShens: ['偏财'] }, { chart, strength });
+  assert.match(plain.text, /为正官，为忌神/);
   assert.match(plain.text, /地支子水为忌神（财，藏干主气偏财）/);
   assert.equal(plain.tone, 'bad');
   assert.equal(plain.headline, '宜守不宜攻');
