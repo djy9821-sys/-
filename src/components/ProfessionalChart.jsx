@@ -2993,10 +2993,14 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                         className="wenmo-pattern-card"
                                         data-testid="ziwei-pattern-result"
                                         data-fortune={pattern.fortune}
+                                        data-group={pattern.group || undefined}
                                         aria-pressed={selectedPattern?.id === pattern.id}
                                         onClick={() => setSelectedPatternId(pattern.id)}
                                     >
-                                        <span>{pattern.scopeLabel} · {pattern.name}</span>
+                                        <span>
+                                            {pattern.scopeLabel} · {pattern.name}
+                                            {pattern.group && <small>《全书》{pattern.group}</small>}
+                                        </span>
                                         <b>{pattern.fortuneLabel}</b>
                                     </button>
                                 )) : (
