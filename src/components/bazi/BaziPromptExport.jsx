@@ -14,7 +14,7 @@ const describeTarget = (scope, { daYun, liuNian, liuYue, liuRi, liuShi }) => {
     return liuRi && liuShi ? `${liuRi.date} ${liuShi.hourName}（${liuShi.range}）· ${liuShi.ganZhi}时` : '尚未选择流时';
 };
 
-export default function BaziPromptExport({ chart, personName, selections, defaultScope, now, classics = null, onLocateNow, onPickTime }) {
+export default function BaziPromptExport({ chart, personName, selections, defaultScope, now, classics = null, liuqinClassics = null, onLocateNow, onPickTime }) {
     const [scopeChoice, setScopeChoice] = useState(null);
     const [status, setStatus] = useState(null);
     const textareaRef = useRef(null);
@@ -24,8 +24,8 @@ export default function BaziPromptExport({ chart, personName, selections, defaul
     const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
     const prompt = useMemo(
-        () => buildBaziPrompt({ chart, scope, personName, selections, now, classics }),
-        [chart, scope, personName, selections, now, classics],
+        () => buildBaziPrompt({ chart, scope, personName, selections, now, classics, liuqinClassics }),
+        [chart, scope, personName, selections, now, classics, liuqinClassics],
     );
 
     const chooseScope = (value) => {
