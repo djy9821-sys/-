@@ -13,7 +13,8 @@
  *   是程序的忌神记 reversed，其余 miss。程序认出从格、化格、专旺时，拿「按此格论」的喜忌比，否则拿扶抑喜忌比。
  * - 岁运：命例 expected.yun 里原书说吉、凶的大运、流年，程序按同一套喜忌把干支各算一票（只写一个字的只看这个字；
  *   地支与原局凑齐三会方、三合局的按局的五行），与原书同记 same，程序判平记 near，相反记 reversed；原书说平的不比。
- * - 六亲：命例 expected.liuqin 里原书说吉、凶的妻（夫）、子女、父、母、兄弟，拿结果页「六亲宫星」那一亲的倾向比，口径同岁运。
+ * - 六亲：命例 expected.liuqin 里原书说吉、凶的妻（夫）、子女、父、母、兄弟，拿结果页「六亲宫星」那一亲的倾向（按任注推）比，
+ *   口径同岁运。原书应在某步运、某个流年的（「一交丙运，刑妻克子」，条目写了 yun 或原句提到运、流年）记作运中应事，另列一行。
  * 调权重时用它看逐条差异；一致率的下限写在 test/bazi-cases.test.js 里（命例够 40 条才跑）。
  */
 import process from 'node:process';
@@ -29,7 +30,7 @@ const entries = files.cases
   .filter((entry) => entry?.expected && Array.isArray(entry.pillars) && !/自检/.test(entry.notes ?? ''));
 
 const results = entries.map(evaluateBaziCase);
-const tally = { strength: {}, pattern: {}, useGod: {}, yun: {}, liuqin: {} };
+const tally = { strength: {}, pattern: {}, useGod: {}, yun: {}, liuqin: {}, liuqinYun: {} };
 results.forEach((result) => {
   Object.entries(result.checks ?? {}).forEach(([key, value]) => {
     [].concat(value).forEach((item) => { tally[key][item] = (tally[key][item] ?? 0) + 1; });
@@ -42,7 +43,8 @@ console.log(`旺衰：${fmt(tally.strength)}`);
 console.log(`格局：${fmt(tally.pattern)}`);
 console.log(`喜用：${fmt(tally.useGod)}`);
 console.log(`岁运：${fmt(tally.yun)}`);
-console.log(`六亲：${fmt(tally.liuqin)}`);
+console.log(`六亲（原局）：${fmt(tally.liuqin)}`);
+console.log(`六亲（运中应事，按原局倾向）：${fmt(tally.liuqinYun)}`);
 
 const errors = results.filter((result) => result.error);
 if (errors.length) {
@@ -66,7 +68,7 @@ if (listed.length) {
       : `喜${program.favorable.join('')} 忌${program.unfavorable.join('')}`;
     const got = [`${program.band}(${program.score} 分)`, program.special, gods].filter(Boolean).join(' ');
     const yunText = yun.filter((item) => item.check && item.check !== 'same').map((item) => `${item.ganZhi}${item.kind === '流年' ? '年' : '运'}书${item.verdict}程序${item.program}`).join('、');
-    const liuqinText = liuqin.filter((item) => item.check && item.check !== 'same').map((item) => `${item.kind}书${item.verdict}程序${item.program}`).join('、');
-    console.log(`  ${id} ${pillars.join(' ')}｜书：${exp}｜程序：${got}｜${Object.entries(checks).filter(([key]) => key !== 'yun' && key !== 'liuqin').map(([key, value]) => `${key}:${value}`).join(' ')}${yunText ? ` 岁运:${yunText}` : ''}${liuqinText ? ` 六亲:${liuqinText}` : ''}`);
+    const liuqinText = liuqin.filter((item) => item.check && item.check !== 'same').map((item) => `${item.scope === 'yun' ? '（运中）' : ''}${item.kind}书${item.verdict}程序${item.program}`).join('、');
+    console.log(`  ${id} ${pillars.join(' ')}｜书：${exp}｜程序：${got}｜${Object.entries(checks).filter(([key]) => !['yun', 'liuqin', 'liuqinYun'].includes(key)).map(([key, value]) => `${key}:${value}`).join(' ')}${yunText ? ` 岁运:${yunText}` : ''}${liuqinText ? ` 六亲:${liuqinText}` : ''}`);
   });
 }

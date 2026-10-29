@@ -121,12 +121,14 @@ test('八字命例的 expected：原书明说的旺衰、格局、用神与结�
     { kind: '妻', verdict: '凶', quote: '刑妻克子' },
     { kind: '子女', verdict: '凶', quote: '刑妻克子' },
     { kind: '父', verdict: '吉', quote: '父荫甚厚' },
-  ] })), []);
-  const liuqinMessages = validateCasesDoc(doc({ liuqin: [{ kind: '朋友', verdict: '大凶', quote: '', who: 1 }, '妻'] })).join('\n');
+    { kind: '妻', verdict: '凶', quote: '一交丙运，刑妻克子', yun: '丙' },
+  ] })), [], '应在某步运的写 yun');
+  const liuqinMessages = validateCasesDoc(doc({ liuqin: [{ kind: '朋友', verdict: '大凶', quote: '', who: 1, yun: '丙运' }, '妻'] })).join('\n');
   assert.match(liuqinMessages, /expected\.liuqin\[0\]\.kind 须是 妻\/夫\/子女\/父\/母\/父母\/兄弟/);
   assert.match(liuqinMessages, /expected\.liuqin\[0\]\.verdict 须是 吉\/凶\/平/);
   assert.match(liuqinMessages, /expected\.liuqin\[0\]\.quote 须摘原书/);
   assert.match(liuqinMessages, /expected\.liuqin\[0\] 未知字段 who/);
+  assert.match(liuqinMessages, /expected\.liuqin\[0\]\.yun 须是干支/);
   assert.match(liuqinMessages, /expected\.liuqin\[1\] 须是对象/);
   assert.match(validateCasesDoc(doc({ liuqin: [] })).join('\n'), /expected\.liuqin 须是非空数组/);
 });

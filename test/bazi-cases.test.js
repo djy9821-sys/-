@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateBaziCase, findSolarDateByPillars, liuqinVerdictOf, samePatternFamily, useGodElement, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
+import { evaluateBaziCase, findSolarDateByPillars, liuqinScopeOf, liuqinVerdictOf, samePatternFamily, useGodElement, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 
 test('八字命例：按四柱找日子（时柱可缺），找不到或干支不合法时为 null', () => {
@@ -87,31 +87,56 @@ test('八字命例的岁运：原书点名的大运、流年按程序喜忌判�
   assert.equal(mixed.yun[2].check, null);
 });
 
-test('八字命例的六亲：原书说到的妻（夫）、子女、父、母、兄弟，拿「六亲宫星」那一亲的倾向比', () => {
-  // 癸卯 乙丑 庚申 丁丑（男）：庚金身旺，喜木水火。妻星乙木透月干为喜用；母星（印，土）为忌；
-  // 父星偏财四柱不见，年宫卯木喜、月宫丑土忌，判平。
+test('八字命例的六亲：原书说到的妻（夫）、子女、父、母、兄弟，拿「六亲宫星」那一亲的倾向（按任注推）比', () => {
+  // 戊子 癸亥 壬戌 甲辰（男）：壬水身旺，喜土木火。任注「劫刃旺而财轻，有食伤，妻贤不克」；用神土有力；
+  // 父母只看年月，戊为喜、子癸亥为忌；父、母都看父母这一项。
   const male = evaluateBaziCase({
     id: 'bazi.test.007',
-    pillars: ['癸卯', '乙丑', '庚申', '丁丑'],
+    pillars: ['戊子', '癸亥', '壬戌', '甲辰'],
     birth: { calendar: 'unknown', gender: 'male' },
     expected: { liuqin: [
-      { kind: '妻', verdict: '吉', quote: '妻贤内助' },
+      { kind: '妻', verdict: '吉', quote: '其不刑妻者' },
+      { kind: '子女', verdict: '吉', quote: '有十子皆育' },
       { kind: '母', verdict: '吉', quote: '母慈' },
-      { kind: '父', verdict: '凶', quote: '早年丧父' },
       { kind: '兄弟', verdict: '平', quote: '兄弟平平' },
     ] },
   });
-  assert.deepEqual(male.liuqin.map((item) => item.program), ['吉', '凶', '平', '凶']);
-  assert.deepEqual(male.checks.liuqin, ['same', 'reversed', 'near'], '原书说平的不比');
-  // 丙寅 辛卯 癸酉 戊午（女）：夫星官杀为土，是忌神。
+  assert.deepEqual(male.liuqin.map((item) => item.program), ['吉', '吉', '凶', '凶']);
+  assert.deepEqual(male.checks.liuqin, ['same', 'same', 'reversed'], '原书说平的不比');
+  assert.equal(male.checks.liuqinYun, undefined);
+  // 戊申 甲寅 壬寅 丁未（女，疑似壬丁化木格）：任注「官星旺，印绶轻，必克夫」。
   const female = evaluateBaziCase({
     id: 'bazi.test.008',
-    pillars: ['丙寅', '辛卯', '癸酉', '戊午'],
+    pillars: ['戊申', '甲寅', '壬寅', '丁未'],
     birth: { calendar: 'unknown', gender: 'female' },
-    expected: { liuqin: [{ kind: '夫', verdict: '凶', quote: '克夫' }] },
+    expected: { liuqin: [{ kind: '夫', verdict: '凶', quote: '伤夫败业' }] },
   });
   assert.deepEqual(female.checks.liuqin, ['same']);
   assert.equal(liuqinVerdictOf(null, '妻'), '平');
+});
+
+test('六亲应在某步运、某个流年的（运中应事）另记一行', () => {
+  const entry = {
+    id: 'bazi.test.009',
+    pillars: ['壬辰', '辛亥', '戊子', '癸丑'],
+    original: '壬辰、辛亥、戊子、癸丑。此造支类北方。运至甲寅乙卯，名成利遂；一交丙运，刑妻克子，破耗多端。早年父母俱存。',
+    birth: { calendar: 'unknown', gender: 'male' },
+    expected: { liuqin: [
+      { kind: '妻', verdict: '凶', quote: '一交丙运，刑妻克子' },
+      { kind: '子女', verdict: '凶', quote: '刑妻克子', yun: '丙' },
+      { kind: '父母', verdict: '吉', quote: '早年父母俱存' },
+    ] },
+  };
+  // 原句提到运、流年的，或条目写了 yun 的，算运中；只说原局的算原局。
+  assert.deepEqual(entry.expected.liuqin.map((item) => liuqinScopeOf(entry, item)), ['yun', 'yun', 'natal']);
+  assert.equal(liuqinScopeOf(entry, { kind: '妻', verdict: '凶', quote: '原文里没有这句' }), 'natal');
+  // 提到原局以外的干支（「戊寅己卯，……刑妻克子」）也算运中；原局四柱里的干支不算。
+  assert.equal(liuqinScopeOf({ pillars: ['甲子', '甲戌', '甲寅', '乙亥'], original: '戊寅己卯，土无根木临旺，刑妻克子。' }, { quote: '刑妻克子' }), 'yun');
+  assert.equal(liuqinScopeOf({ pillars: ['甲子', '甲戌', '甲寅', '乙亥'], original: '甲寅日元，群比争财，刑妻克子。' }, { quote: '刑妻克子' }), 'natal');
+  const result = evaluateBaziCase(entry);
+  assert.deepEqual(result.liuqin.map((item) => item.scope), ['yun', 'yun', 'natal']);
+  assert.equal(result.checks.liuqin.length, 1);
+  assert.equal(result.checks.liuqinYun.length, 2);
 });
 
 // 古籍命例（src/data/cases/bazi.json）里写了旺衰、用神的，拿来卡住旺衰与喜用算法的一致率。

@@ -109,31 +109,40 @@ export const yunVerdictOf = (ganZhi, favorable, unfavorable, natalZhis = []) => 
 };
 
 const LIUQIN_ITEM_OF_KIND = { 妻: 'spouse', 夫: 'spouse', 子女: 'children', 父: 'parents', 母: 'parents', 父母: 'parents', 兄弟: 'siblings' };
-const LIUQIN_STAR_OF_KIND = { 父: '父星', 母: '母星' };
 const TONE_VERDICT = { good: '吉', bad: '凶' };
 
-/** 几处的喜忌合起来：都是喜为 good、都是忌为 bad，其余 neutral。 */
-const tonesTogether = (tones) => {
-  const set = new Set(tones);
-  if (set.has('good') && !set.has('bad')) return 'good';
-  if (set.has('bad') && !set.has('good')) return 'bad';
-  return 'neutral';
-};
-
 /**
- * 原书说到的某一亲，程序「六亲宫星」（analyzeLiuqin）怎么看，归成吉、凶、平：
- * 看那一亲的总体倾向（六亲星现身看星的喜忌，不现看宫位）；父、母分开说的只看父星（偏财）或母星（印），星不现看年月两宫。
+ * 原书说到的某一亲，程序「六亲宫星」（analyzeLiuqin）怎么看，归成吉、凶、平：看那一亲的总体倾向（按任注推的那一句）。
+ * 任铁樵不以财为父、印为母，论父母只看年月，所以父、母、父母都看父母一项。
  * @param {object|null} liuqin analyzeLiuqin 的结果
  * @param {string} kind 妻、夫、子女、父、母、父母、兄弟
  */
 export const liuqinVerdictOf = (liuqin, kind) => {
   const item = liuqin?.items?.find((candidate) => candidate.key === LIUQIN_ITEM_OF_KIND[kind]);
-  if (!item) return '平';
-  const label = LIUQIN_STAR_OF_KIND[kind];
-  if (!label) return TONE_VERDICT[item.tone] ?? '平';
-  const star = item.stars.find((candidate) => candidate.label === label);
-  const tone = star?.places.length ? star.tone : tonesTogether(item.palaces.filter((palace) => !palace.missing).map((palace) => palace.tone));
-  return TONE_VERDICT[tone] ?? '平';
+  return TONE_VERDICT[item?.tone] ?? '平';
+};
+
+const GAN_CHARS = '甲乙丙丁戊己庚辛壬癸';
+const ZHI_CHARS = '子丑寅卯辰巳午未申酉戌亥';
+const YUN_WORDS = new RegExp(`运|一交|交[${GAN_CHARS}${ZHI_CHARS}]|流年|[${GAN_CHARS}${ZHI_CHARS}]年|至[${GAN_CHARS}${ZHI_CHARS}]|[${GAN_CHARS}${ZHI_CHARS}]{1,2}岁`);
+const GAN_ZHI_PAIR = new RegExp(`[${GAN_CHARS}][${ZHI_CHARS}]`, 'g');
+
+/**
+ * 原书这句六亲是不是应在某步运、某个流年（「一交丙运，刑妻克子」）：条目写了 yun 的照写的；没写的看原文里这句所在的一句话
+ * （从句号或分号起到这句为止）有没有说到运、流年，或提到原局以外的干支。运中应事要看岁运，不全是原局六亲的事，回归里另计。
+ * @returns {'natal'|'yun'}
+ */
+export const liuqinScopeOf = (entry, item) => {
+  if (item?.yun) return 'yun';
+  const text = (entry?.original ?? '').replace(/\n/g, '');
+  const quote = (item?.quote ?? '').replace(/[，。；、]+$/, '');
+  const at = quote ? text.indexOf(quote) : -1;
+  if (at < 0) return 'natal';
+  const start = Math.max(text.lastIndexOf('。', at - 1), text.lastIndexOf('；', at - 1)) + 1;
+  const head = text.slice(start, at + quote.length);
+  const natal = new Set(entry.pillars ?? []);
+  const foreign = (head.match(GAN_ZHI_PAIR) ?? []).some((ganZhi) => !natal.has(ganZhi));
+  return YUN_WORDS.test(head) || foreign ? 'yun' : 'natal';
 };
 
 /**
@@ -189,13 +198,16 @@ export const evaluateBaziCase = (entry) => {
   });
   if (yun.some((item) => item.check)) checks.yun = yun.map((item) => item.check).filter(Boolean);
   // 六亲：原书说到某一亲吉凶的，拿结果页「六亲宫星」那一亲的倾向比；原书说「平」的不比。
+  // 应在某步运、某个流年的（运中应事）另记在 liuqinYun，看原局倾向与它合不合。
   const liuqinResult = expected.liuqin?.length ? analyzeLiuqin(chart, strength, { special: judge.special }) : null;
   const liuqin = (expected.liuqin ?? []).map((item) => {
     const program = liuqinVerdictOf(liuqinResult, item.kind);
     const check = item.verdict === '平' ? null : program === item.verdict ? 'same' : program === '平' ? 'near' : 'reversed';
-    return { ...item, program, check };
+    return { ...item, scope: liuqinScopeOf(entry, item), program, check };
   });
-  if (liuqin.some((item) => item.check)) checks.liuqin = liuqin.map((item) => item.check).filter(Boolean);
+  const liuqinChecks = (scope) => liuqin.filter((item) => item.check && item.scope === scope).map((item) => item.check);
+  if (liuqinChecks('natal').length) checks.liuqin = liuqinChecks('natal');
+  if (liuqinChecks('yun').length) checks.liuqinYun = liuqinChecks('yun');
   return {
     id: entry.id,
     pillars,
