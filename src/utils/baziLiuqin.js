@@ -24,6 +24,7 @@ const PALACE_KINDS = ['反吟', '冲', '刑', '自刑', '害', '合', '半合', 
 const relativesOf = (female) => [
   {
     key: 'spouse',
+    kind: '夫妻',
     title: female ? '夫' : '妻',
     stars: [female
       ? { label: '夫星', names: ['正官', '七杀'], note: '正官为夫，七杀为偏夫' }
@@ -35,6 +36,7 @@ const relativesOf = (female) => [
   },
   {
     key: 'children',
+    kind: '子女',
     title: '子女',
     stars: [female
       ? { label: '子女星', names: ['食神', '伤官'], note: '女命以食伤为子女' }
@@ -44,6 +46,7 @@ const relativesOf = (female) => [
   },
   {
     key: 'parents',
+    kind: '父母',
     title: '父母',
     stars: [
       { label: '母星', names: ['正印', '偏印'], note: '正印为母，偏印为偏母' },
@@ -54,6 +57,7 @@ const relativesOf = (female) => [
   },
   {
     key: 'siblings',
+    kind: '兄弟',
     title: '兄弟',
     stars: [{ label: '兄弟星', names: ['比肩', '劫财'], note: '比肩、劫财为兄弟姐妹' }],
     palaces: [{ key: 'month', label: '兄弟宫（月柱）' }],
@@ -171,7 +175,7 @@ export const analyzeLiuqin = (chart, strength, { special = null } = {}) => {
   const items = relativesOf(female).map((item) => {
     const stars = item.stars.map((star) => starOf(pillars, strength, star));
     const palaces = item.palaces.map((palace) => palaceOf(byKey, strength, relations, palace));
-    return { key: item.key, title: item.title, classic: item.classic, stars, palaces, verdict: verdictOf(item, stars, palaces, neutralBand) };
+    return { key: item.key, kind: item.kind, title: item.title, classic: item.classic, stars, palaces, verdict: verdictOf(item, stars, palaces, neutralBand) };
   });
 
   const basis = `${female ? '女命' : '男命'}；喜忌按「五行与旺衰」一节扶抑所取${special?.name ? `，若按${special.name.replace(/^疑似/, '')}论，喜忌另有一套` : ''}。`;
