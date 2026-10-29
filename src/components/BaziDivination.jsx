@@ -12,7 +12,7 @@ import BaziLiuqinPanel from './bazi/BaziLiuqinPanel';
 import BaziClassicsPanel from './bazi/BaziClassicsPanel';
 import BaziPromptExport from './bazi/BaziPromptExport';
 import { useClassicsLibrary } from './common/useClassicsLibrary.js';
-import { baziContextOf, baziGlossarySeeds, matchEntries } from '../data/classics/index.js';
+import { baziContextOf, baziGlossarySeeds, baziLiuqinHits, matchEntries } from '../data/classics/index.js';
 import GlossaryPanel from './common/GlossaryPanel.jsx';
 import BaziShareCardModal from './bazi/BaziShareCardModal';
 import BaziStrengthPanel from './bazi/BaziStrengthPanel';
@@ -472,10 +472,19 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const natalRelations = useMemo(() => findRelations(natalItems), [natalItems]);
     // 古籍库里与本命相关的条目：附进「导出给 AI」的提示词（古籍库按需加载，未加载完就先不附）。
     const { data: classicsData } = useClassicsLibrary('bazi', { enabled: Boolean(baziResult) });
+    const classicsContext = useMemo(
+        () => (baziResult ? baziContextOf({ chart: baziResult, strength, judge: patternJudge, relations: natalRelations }) : null),
+        [baziResult, strength, patternJudge, natalRelations],
+    );
     const classicsHits = useMemo(() => {
-        if (!classicsData?.library || !baziResult) return null;
-        return matchEntries(classicsData.library, baziContextOf({ chart: baziResult, strength, judge: patternJudge, relations: natalRelations }));
-    }, [classicsData, baziResult, strength, patternJudge, natalRelations]);
+        if (!classicsData?.library || !classicsContext) return null;
+        return matchEntries(classicsData.library, classicsContext);
+    }, [classicsData, classicsContext]);
+    // 六亲宫星每一亲下面列讲这一亲的古籍（applies 写了 liuqin 的条目，不进上面的总列表）。
+    const liuqinClassics = useMemo(() => {
+        if (!classicsData?.library || !classicsContext || !liuqin) return null;
+        return Object.fromEntries(liuqin.items.map((item) => [item.key, baziLiuqinHits(classicsData.library, classicsContext, item.kind)]));
+    }, [classicsData, classicsContext, liuqin]);
     // 词典面板先列这张盘里出现的术语（十神、格局、神煞、旺衰）。
     const glossarySeeds = useMemo(() => (baziResult ? baziGlossarySeeds({ chart: baziResult, judge: patternJudge, strength }) : []), [baziResult, patternJudge, strength]);
     // 本命四柱所见的神煞（去重，按收录顺序），供「神煞查法与出处」先列。
@@ -1382,7 +1391,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                         {liuqin && (
                                             <section ref={liuqinSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none sm:px-6 sm:py-6" aria-labelledby="liuqin-title">
                                                 <div id="liuqin-title"><SectionHeading seal="肆" title="六亲宫星" note="配偶、子女、父母、兄弟：六亲星与宫位的喜忌、透藏与冲合（程序初判，仅供参考）" icon={Users} /></div>
-                                                <BaziLiuqinPanel liuqin={liuqin} />
+                                                <BaziLiuqinPanel liuqin={liuqin} classics={liuqinClassics} />
                                             </section>
                                         )}
 
@@ -1560,6 +1569,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                 defaultScope={DEPTH_TO_PROMPT_SCOPE[compareDepth]}
                                                 now={chartAsOf}
                                                 classics={classicsHits}
+                                                liuqinClassics={liuqinClassics}
                                                 onLocateNow={returnFlowToNow}
                                                 onPickTime={() => scrollToSection(flowSectionRef)}
                                             />
