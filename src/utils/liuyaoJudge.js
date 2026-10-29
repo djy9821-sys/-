@@ -293,13 +293,15 @@ const changeOf = (line, time) => {
     text = `化${changed.relative}${changed.ganZhi}耗力`;
     score = -1;
   }
+  // 化进化退，变爻空破不改其进退：占自陈「子孙动休囚而化空破，进者进，而退者竟退」，占考试「动散化空亦能中矣」
+  const steps = relation === 'same' && (PROGRESS[line.zhi] === changed.zhi || PROGRESS[changed.zhi] === line.zhi);
   if (changedMarks.includes('旬空')) {
-    text += '，变爻旬空';
-    score -= 1;
+    text += steps ? '，变爻旬空（进退不因空破而改）' : '，变爻旬空';
+    if (!steps) score -= 1;
   }
   if (changedMarks.includes('月破')) {
-    text += '，变爻月破';
-    score -= 1;
+    text += steps ? '，变爻月破（进退不因空破而改）' : '，变爻月破';
+    if (!steps) score -= 1;
   }
   return { score, text, relation };
 };
@@ -367,7 +369,7 @@ const forceOf = (line, time, controllers = [], role = '') => {
   const weak = [];
   if (flags.backCtrl) weak.push('化回头克');
   if (flags.jue) weak.push('化绝');
-  if (flags.broken) weak.push('化破');
+  if (flags.broken && !flags.advance) weak.push('化破');
   if (flags.tomb) weak.push('化墓');
   if (dayStage === '墓') weak.push('入日墓');
   if (feeble && flags.retreat) weak.push('衰而化退');
@@ -538,6 +540,8 @@ const verdictOf = (total, yongHidden) => {
 const DIRECTION = Object.freeze({ 木: '东方', 火: '南方', 土: '四隅（辰戌丑未方）', 金: '西方', 水: '北方' });
 /** 出行官鬼发动，按六神看是什么灾（《增删卜易·出行章》其七）。 */
 const TRAVEL_GHOST = Object.freeze({ 玄武: '武鬼动忧盗贼', 朱雀: '雀鬼发防讼非', 白虎: '虎鬼疾病绵缠', 螣蛇: '蛇鬼风波惊险', 勾陈: '勾陈鬼动事有勾连', 青龙: '鬼动逢龙戒于嫖赌' });
+/** 六合章「六冲卦变六合者，不看用神，竟以吉断」所列：婚姻、夫妻、功名、求谋、身命、风水、家宅。 */
+const CLASH_TO_HARMONY_TOPICS = new Set(['love', 'career', 'study', 'wealth', 'general', 'life', 'gravesite', 'ancestral', 'home']);
 const generatorOf = (element) => Object.keys(GENERATES).find((key) => GENERATES[key] === element);
 const movingOf = (lines, relative) => lines.filter((line) => line.isMoving && line.relative === relative);
 const controls = (attacker, target) => CONTROLS[attacker.element] === target.element;
@@ -797,7 +801,11 @@ const TOPIC_RULES = Object.freeze({
       notes.push('世动化鬼或化回头克，不宜出行');
     }
     if (isDarkMoving(shiLine, time)) notes.push('世爻暗动，必去');
-    if (shiLine.isMoving && (changeFlagsOf(shiLine, time).harmony || ZHI_HARMONY[time.dayZhi] === shiLine.zhi)) notes.push('世动逢合，必有事故阻滞');
+    if (shiLine.isMoving && (changeFlagsOf(shiLine, time).harmony || ZHI_HARMONY[time.dayZhi] === shiLine.zhi)) {
+      // 出行章「动逢合住而留……世爻动而化合，或被日月动爻合者，必有事故阻滞不行」；占出行得明夷「合住，必有事绊，不能动身」
+      score -= 3;
+      notes.push('世动逢合（化合或日辰合住），必有事故阻滞不行');
+    }
     return {
       score,
       points: notes.length ? [`出行（出行章）：${notes.join('；')}`] : [],
@@ -1426,6 +1434,9 @@ export const judgeLiuYao = (reading, options = {}) => {
   const points = [];
   const notices = [];
   let total = 0;
+  // 原书明言「不看用神」或「万无一活」而断的情形，倾向有底线或封顶：至少偏吉（floor）、至多偏弱（cap）
+  let floor = false;
+  let cap = false;
 
   // 一、取用神
   let yong = null;
@@ -1539,6 +1550,7 @@ export const judgeLiuYao = (reading, options = {}) => {
     && (proxy || meta.value === 'children' || (meta.value === 'maternity' && yong.relative !== '妻财'))) {
     const sonToGhost = yong.relative === '子孙' && meta.value === 'children';
     total -= sonToGhost ? 5 : 2;
+    if (sonToGhost) cap = true;
     dynamics.push(sonToGhost ? '子孙变鬼，大凶之兆（子嗣章：屡占子女，若子孙变鬼，万无一活）' : '用神化鬼，凶兆');
   }
   total += rootless ? Math.min(dyn.score, 0) : dyn.score;
@@ -1637,7 +1649,11 @@ export const judgeLiuYao = (reading, options = {}) => {
     shiYingText = `用神持世，事在自己手里；${shiYingText}`;
   } else if (yong !== shiLine) {
     if (!yong.hidden && yong.isYing) {
-      shiYingText = `用神临应，事由对方或外界决定；${shiYingText}`;
+      if (shiYingRelation === 'controlled' && yong.relative !== '官鬼') {
+        // 用神临应而克世，也是用神来就我：占求财得小畜「应临月建之财以克世，许之必得」
+        shiYingScore += 2;
+        shiYingText = shiYingText.replace(shiYingTexts.controlled, '用神临应而克世，用神来就我（「应临月建之财以克世，许之必得」）');
+      } else shiYingText = `用神临应，事由对方或外界决定；${shiYingText}`;
     } else {
       const yongToShi = relationOf(shiLine.element, yong.element);
       if (yongToShi === 'generated' || ZHI_HARMONY[yong.zhi] === shiLine.zhi) {
@@ -1707,11 +1723,23 @@ export const judgeLiuYao = (reading, options = {}) => {
   // 六冲、六合按三对爻的地支算（liuyao.js 的 hexagramRelationOf）：六冲十卦、六合八卦。
   const clash = hexagram.relation === '六冲';
   const toClash = changed?.relation === '六冲';
-  if (clash && changed?.relation === '六合') {
+  if (meta.value === 'health' && (clash || toClash)) {
+    // 疾病章：「内有不看用神而断生死者，卦变与六冲是也」；「久病者，卦逢六冲，卦变六冲，不论用神之衰旺，乃不治之疾也。近病逢之，不药而愈」
+    const effect = clashEffectOf(meta.value, { illness, proxy, changedOnly: !clash });
+    total += effect.score;
+    structure.push(effect.text);
+    if (illness === 'recent') floor = true;
+    if (illness === 'chronic') cap = true;
+  } else if (clash && changed?.relation === '六合') {
     // 婚姻章：六冲变六合者更吉，求婚者目下不允，终必成之；已成不睦者，终须和美
+    // 六合章：「诸合者，以用神旺者为言，独此六冲卦变六合者，不看用神，竟以吉断」（婚姻、夫妻、功名、求谋、身命、风水、家宅）
     const marriage = meta.value === 'love';
     total += marriage ? 3 : 1;
     structure.push(marriage ? '六冲变六合，婚姻更吉：目下不允，终必成之；已成不睦，终须和美（《增删卜易·婚姻章》）' : '六冲变六合，冲中逢合，散而复聚，先难后成');
+    if (CLASH_TO_HARMONY_TOPICS.has(meta.value)) {
+      floor = true;
+      structure.push('六冲卦变六合者，不看用神，竟以吉断（《增删卜易·六合章》）');
+    }
   } else if (hexagram.relation === '六合' && toClash) {
     total -= 1;
     structure.push('六合变六冲，合处逢冲，先聚后散');
@@ -1748,7 +1776,9 @@ export const judgeLiuYao = (reading, options = {}) => {
   if (structure.length) points.push(structure.join('；'));
 
   // 六、倾向与应期
-  if (guaBackCtrl) total = Math.min(total, -3);
+  if (floor) total = Math.max(total, 3);
+  // 卦变回头克「新病亦主危亡」，压过近病逢冲之吉
+  if (guaBackCtrl || cap) total = Math.min(total, -3);
   const verdict = verdictOf(total, Boolean(yong.hidden));
   const timing = timingOf(yong, strength);
   points.push(`倾向：${verdict.title}。${verdict.text}`);
