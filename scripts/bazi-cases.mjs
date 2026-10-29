@@ -11,6 +11,7 @@
  *   没认出记 miss；命例没写而程序认出了记 extra。化气格的旺衰说的是化神，不比日主旺衰。
  * - 喜用：命例的用神（五行或十神，换算成五行）是程序喜用第一位记 same，在前两位记 near，
  *   是程序的忌神记 reversed，其余 miss。程序认出从格、化格、专旺时，拿「按此格论」的喜忌比，否则拿扶抑喜忌比。
+ *   命例写了 useGodWhy（原书取用理由：扶抑、调候、通关、病药……）的，另按理由分类列一行。
  * - 岁运：命例 expected.yun 里原书说吉、凶的大运、流年，程序按同一套喜忌把干支各算一票（只写一个字的只看这个字；
  *   地支与原局凑齐三会方、三合局的按局的五行），与原书同记 same，程序判平记 near，相反记 reversed；原书说平的不比。
  * - 六亲：命例 expected.liuqin 里原书说吉、凶的妻（夫）、子女、父、母、兄弟，拿结果页「六亲宫星」那一亲的倾向（按任注推）比，
@@ -43,6 +44,13 @@ console.log(`旺衰：${fmt(tally.strength)}`);
 console.log(`格局：${fmt(tally.pattern)}`);
 console.log(`喜用：${fmt(tally.useGod)}`);
 console.log(`岁运：${fmt(tally.yun)}`);
+const byWhy = {};
+results.forEach((result) => {
+  const kind = result.expected?.useGodWhy?.kind;
+  if (!kind || !result.checks?.useGod) return;
+  (byWhy[kind] ??= {})[result.checks.useGod] = (byWhy[kind][result.checks.useGod] ?? 0) + 1;
+});
+if (Object.keys(byWhy).length) console.log(`喜用按原书取用理由：${Object.entries(byWhy).map(([kind, counts]) => `${kind}（${fmt(counts)}）`).join('；')}`);
 console.log(`六亲（原局）：${fmt(tally.liuqin)}`);
 console.log(`六亲（运中应事，按原局倾向）：${fmt(tally.liuqinYun)}`);
 
