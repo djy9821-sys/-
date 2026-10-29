@@ -74,6 +74,22 @@ export const getElementRoles = (dayWuxing) => ({
 const round1 = (value) => Math.round(value * 10) / 10;
 const round2 = (value) => Math.round(value * 100) / 100;
 
+/**
+ * 运限（大运、流年、流月、流日、择日）喜忌的依据：认出疑似从、化、专旺等特殊格局时按此格论，否则按扶抑。
+ * 《滴天髓·从象》「从得真者只论从，从神又有吉和凶」：成了从、化、专旺，顺其气势为吉，不再扶抑日主。
+ * 拿《滴天髓阐微》命造对照：程序认出特殊格局的造，原书点名吉凶的运、年，按此格论与原书一致 125 处、相反 11 处；
+ * 按扶抑一致 15 处、相反 88 处。
+ * @param {object} strength analyzeStrength 的结果
+ * @param {object|null} special judgeBaziPattern(...).special（favorable、unfavorable 为 [{ element, label }]）
+ * @returns {object} 与 strength 同形（favorable、unfavorable、roles 可直接给 elementToneOf），另带 source：'special' | 'fuyi'
+ */
+export const favorBasisOf = (strength, special = null) => {
+  if (!strength) return strength;
+  if (!special?.favorable?.length) return { ...strength, source: 'fuyi' };
+  const asRoles = (items = []) => items.map((item) => ({ element: item.element, role: item.label ?? item.role }));
+  return { ...strength, favorable: asRoles(special.favorable), unfavorable: asRoles(special.unfavorable), source: 'special', specialName: special.name };
+};
+
 /** 某个五行对日主是喜用（good）、忌神（bad）还是平（neutral）。 */
 export const elementToneOf = (element, strength) => {
   const favorable = strength.favorable.find((item) => item.element === element);
