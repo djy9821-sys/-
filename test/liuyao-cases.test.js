@@ -9,7 +9,7 @@ import { HEXAGRAM_MAP } from '../src/utils/hexagramLogic.js';
  * 《增删卜易》人事占例回归（天时占例另见 liuyao-weather-cases.test.js）。
  *
  * - id 即 src/data/cases/liuyao.json 的 liuyao.zengshan.NNN；卦、动爻按原书，日期取 2001–2030 年里月建、日辰与原书相同的一天正午。
- * - 类别、替谁问、病程、问卦人性别按原书所问：占父病为健康疾病、替父母长辈问，「近病」为新病，占仆、占主人分别取妻财、父母。
+ * - 类别、替谁问、病程、问卦人性别按原书所问：占父病为健康疾病、替父母长辈问，「近病」为新病（问句没写、断语点明近病久病的照断语），占仆、占主人分别取妻财、父母。
  * - book 是原书断语的归类（吉、凶、平）。程序只分偏吉、平、偏弱三档，所以：
  *   没标 near 的必须与原书同档；标 near 的程序判平（或原书平而程序有倾向），至少不能断反；
  *   miss 是程序还断反的，写明缘故，等以后补规则。
@@ -26,8 +26,8 @@ const CASES = [
   { id: '013', name: '占妹临产', date: '2001-7-4', hex: '火地晋', lines: [], topic: 'maternity', subject: 'siblings', book: '吉', near: true },
   { id: '014', name: '占病', date: '2001-8-23', hex: '天山遁', lines: [2], topic: 'health', subject: 'self', book: '凶' },
   { id: '015', name: '占仆何日回', date: '2001-5-24', hex: '泽天夬', lines: [3, 6], topic: 'travel', subject: 'staff', book: '凶' },
-  { id: '016', name: '占出行', date: '2002-9-5', hex: '地火明夷', lines: [1, 4], topic: 'travel', subject: 'self', book: '凶', near: true },
-  { id: '017', name: '占悔婚可成', date: '2004-8-6', hex: '离为火', lines: [1], topic: 'love', gender: 'male', book: '吉', near: true },
+  { id: '016', name: '占出行', date: '2002-9-5', hex: '地火明夷', lines: [1, 4], topic: 'travel', subject: 'self', book: '凶' },
+  { id: '017', name: '占悔婚可成', date: '2004-8-6', hex: '离为火', lines: [1], topic: 'love', gender: 'male', book: '吉' },
   { id: '018', name: '占风水', date: '2005-3-31', hex: '泽水困', lines: [1, 4], topic: 'gravesite', book: '吉' },
   { id: '020', name: '占财', date: '2001-6-4', hex: '风雷益', lines: [], topic: 'wealth', book: '吉' },
   { id: '021', name: '占出外贸易', date: '2001-6-22', hex: '雷风恒', lines: [2, 3], topic: 'wealth', book: '吉' },
@@ -41,7 +41,7 @@ const CASES = [
   { id: '032', name: '占父外任平安', date: '2005-9-6', hex: '天风姤', lines: [5, 6], topic: 'parents', book: '平' },
   { id: '034', name: '占求财（再占）', date: '2001-4-22', hex: '火泽睽', lines: [4], topic: 'wealth', book: '凶' },
   { id: '036', name: '占远行求财（再占）', date: '2001-12-14', hex: '地火明夷', lines: [1, 4], topic: 'travel', subject: 'self', book: '吉', near: true },
-  { id: '037', name: '占妻病', date: '2003-7-5', hex: '震为雷', lines: [3], topic: 'health', subject: 'spouse', gender: 'male', book: '吉', near: true },
+  { id: '037', name: '占妻病', date: '2003-7-5', hex: '震为雷', lines: [3], topic: 'health', subject: 'spouse', gender: 'male', illness: 'recent', book: '吉' },
   { id: '041', name: '占将来有官否（再占）', date: '2001-11-22', hex: '水地比', lines: [], topic: 'career', book: '吉' },
   { id: '042', name: '占父何日回', date: '2005-5-4', hex: '乾为天', lines: [6], topic: 'travel', subject: 'parents', book: '吉' },
   { id: '043', name: '占后遇功名', date: '2001-6-9', hex: '艮为山', lines: [3, 5], topic: 'career', book: '平' },
@@ -58,7 +58,7 @@ const CASES = [
   { id: '061', name: '占终得出仕', date: '2006-8-6', hex: '天火同人', lines: [6], topic: 'career', book: '吉', miss: '问终身能否出仕：原书以子孙化退不克官、辰年冲去戌土而许之，远期之事不论眼下用神休囚旬空；程序仍按眼下旺衰断' },
   { id: '062', name: '占病', date: '2005-9-4', hex: '泽天夬', lines: [5], topic: 'health', subject: 'self', book: '吉' },
   { id: '063', name: '占妻病服药', date: '2003-1-30', hex: '地泽临', lines: [3], topic: 'health', subject: 'spouse', gender: 'male', book: '凶', near: true },
-  { id: '064', name: '占久病', date: '2003-11-6', hex: '乾为天', lines: [6], topic: 'health', subject: 'self', illness: 'chronic', book: '凶', near: true },
+  { id: '064', name: '占久病', date: '2003-11-6', hex: '乾为天', lines: [6], topic: 'health', subject: 'self', illness: 'chronic', book: '凶' },
   { id: '065', name: '占母血崩', date: '2002-11-7', hex: '天火同人', lines: [1, 2, 3, 5, 6], topic: 'health', subject: 'parents', book: '凶' },
   { id: '066', name: '占父近病', date: '2001-3-11', hex: '泽地萃', lines: [6], topic: 'health', subject: 'parents', illness: 'recent', book: '吉', near: true },
   { id: '067', name: '占流年', date: '2001-4-20', hex: '泽水困', lines: [5], topic: 'year', subject: 'self', book: '凶' },
@@ -67,7 +67,7 @@ const CASES = [
   { id: '070', name: '占兄何日归来', date: '2001-4-26', hex: '天泽履', lines: [6], topic: 'travel', subject: 'siblings', book: '平', near: true },
   { id: '072', name: '祖占孙病得火天大有（再占）', date: '2007-5-1', hex: '火天大有', lines: [3], topic: 'health', subject: 'children', book: '凶' },
   { id: '073', name: '占官府升迁', date: '2001-4-3', hex: '雷水解', lines: [5], topic: 'career', book: '吉' },
-  { id: '074', name: '占考试中否', date: '2005-10-8', hex: '兑为泽', lines: [1, 6], topic: 'study', book: '吉', near: true },
+  { id: '074', name: '占考试中否', date: '2005-10-8', hex: '兑为泽', lines: [1, 6], topic: 'study', book: '吉' },
   { id: '075', name: '占母何时来', date: '2001-7-13', hex: '火天大有', lines: [1, 4, 5, 6], topic: 'travel', subject: 'parents', book: '凶', near: true },
   { id: '076', name: '占开金银器皿铺', date: '2001-7-7', hex: '火雷噬嗑', lines: [4, 5, 6], topic: 'wealth', book: '吉' },
   { id: '078', name: '占夫病', date: '2001-9-2', hex: '天火同人', lines: [5], topic: 'health', subject: 'spouse', gender: 'female', book: '吉', near: true },
@@ -75,14 +75,14 @@ const CASES = [
   { id: '080', name: '占病', date: '2004-9-7', hex: '雷风恒', lines: [], topic: 'health', subject: 'self', book: '吉' },
   { id: '081', name: '占已定重罪可蒙赦否', date: '2006-8-7', hex: '山风蛊', lines: [1, 3], topic: 'lawsuit', subject: 'self', book: '吉' },
   { id: '086', name: '占开煤窑', date: '2006-5-5', hex: '风火家人', lines: [3], topic: 'wealth', book: '平', near: true },
-  { id: '089', name: '占求财', date: '2001-8-5', hex: '风天小畜', lines: [], topic: 'wealth', book: '吉', near: true },
+  { id: '089', name: '占求财', date: '2001-8-5', hex: '风天小畜', lines: [], topic: 'wealth', book: '吉' },
   { id: '090', name: '占升迁', date: '2001-7-30', hex: '地水师', lines: [5, 6], topic: 'career', book: '吉' },
   { id: '091', name: '占子何时脱厄', date: '2002-12-4', hex: '雷地豫', lines: [1, 2], topic: 'general', subject: 'children', book: '吉' },
   { id: '092', name: '占流年', date: '2005-8-7', hex: '艮为山', lines: [], topic: 'career', book: '吉', near: true },
   { id: '130', name: '占子嗣多少', date: '2001-3-1', hex: '坤为地', lines: [3, 6], topic: 'children', book: '凶' },
   { id: '131', name: '占子嗣', date: '2005-9-4', hex: '地雷复', lines: [], topic: 'children', book: '吉' },
   { id: '132', name: '占子孙有无', date: '2001-12-3', hex: '水雷屯', lines: [2], topic: 'children', book: '凶', miss: '子孙化子孙，老年无子者主抚他人之子（子嗣章其九）；程序不知问卦人年纪' },
-  { id: '133', name: '占子易养否', date: '2004-12-3', hex: '天风姤', lines: [2, 5], topic: 'children', book: '凶', near: true },
+  { id: '133', name: '占子易养否', date: '2004-12-3', hex: '天风姤', lines: [2, 5], topic: 'children', book: '凶' },
   { id: '134', name: '占官缺得否', date: '2002-9-4', hex: '水风井', lines: [1, 3], topic: 'career', book: '凶', near: true },
   { id: '135', name: '占得差否', date: '2002-9-7', hex: '泽天夬', lines: [], topic: 'career', book: '凶', near: true },
   { id: '137', name: '占何月补官', date: '2001-10-25', hex: '水山蹇', lines: [1, 2], topic: 'career', book: '吉', near: true },
@@ -137,10 +137,10 @@ CASES.filter((item) => !item.miss).forEach((item) => {
   });
 });
 
-test('人事占例：同档的不少于 54 例，断反的只有列明缘故的几例', () => {
+test('人事占例：同档的不少于 61 例，断反的只有列明缘故的几例', () => {
   const results = CASES.map((item) => ({ item, level: judgeCase(item).verdict.level }));
   const exact = results.filter(({ item, level }) => level === LEVEL[item.book]).length;
   const reversed = results.filter(({ item, level }) => opposite(level, LEVEL[item.book])).map(({ item }) => item.id);
-  assert.ok(exact >= 54, `同档 ${exact} 例`);
+  assert.ok(exact >= 61, `同档 ${exact} 例`);
   assert.deepEqual(reversed.sort(), CASES.filter((item) => item.miss).map((item) => item.id).sort());
 });
