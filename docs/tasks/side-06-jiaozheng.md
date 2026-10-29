@@ -41,9 +41,17 @@
 - 原来由 Antigravity 做，现交给你。规矩见 `docs/tasks/side-02-bazi-geju.md`「第 8 批返工」一节：只用维基文库本、脚本取文、`original` 必须是底本段落原样、附核对脚本输出、这一批不写白话（全部 `draft`）。
 - 在 `side/02-qiongtong` 分支上提交新版本（覆盖旧文件；不要 rebase、不要 force push），完成后在 PR #38 留言。
 
-## 第 4 批：draft 条目重译白话（等数据 PR 合并后再做）
+## 第 4 批：draft 条目重译白话（已完成）
 
-- 范围：主线按底本改过原文、改成 `draft` 的条目——《紫微斗数全书》25 条、《三命通会》19 条、《渊海子平》3 条、《滴天髓》通神论 18 条——以及第 1、2、3 批改成 `draft` 的（穷通宝鉴整批）。
+- 范围：主线按底本改过原文、改成 `draft` 的条目，以及第 1、2、3 批改成 `draft` 的。
 - 要求：逐句直译，不扩写，不加原文没有的解释和例子，长度大致不超过原文的 1.3 倍（口径同 #12 返工）；术语保留原词，第一次出现在 `notes` 简释。译完 `status` 改回 `translated`。
-- 分支：等主线说数据 PR 都合进 `claude/round8-collab` 后，从它新开 `side/06-retranslate`。
-- 例外：《滴天髓》六亲论（PR #33）的 draft 条目原文定稿后，提前在 `side/02-ditian-liuqin` 分支重译，不在此列。
+- 已在各自分支提前做完：#33 六亲论 43 条、#38 穷通宝鉴 217 条、#36 任注 15 条、#34 通神论 18 条、#23 神煞 19 条、#21 印绶 3 条、#41 成败救应 4 条、#30 论命宫 24 条、#12 七杀问答 1 条。全库已没有 `draft`。
+
+## 第 5 批：超长白话按逐句直译重译（一个分支，最后合并）
+
+主线统计：全库 2180 条里有 1196 条白话超长。抽查超长的多半是扩写：加了原文没有的断语（「主人因妻得贵」）、补了原文没写的卦名爻位（「初爻和三爻动」）、把存疑写进白话（「字句有疑，暂不能给出确定的翻译」）。本批按第 4 批的规矩重译这些条目。
+
+- **怎么算超长**：只数汉字（U+3400–U+9FFF），白话字数 > max(原文字数 × 1.3, 原文字数 + 12) 的算超长。自己写脚本列出全部超长条目，按文件统计后再动手。
+- **要求**：逐句直译，不扩写；不加原文没有的解释、断语、例子；不补原文没写的卦名、爻位、星曜、宫位；术语保留原词，第一次出现在 `notes` 简释；底本疑字、拿不准的写进 `doubts`，不写进白话。原文括号里的小字注照样译在括号里。只改 `vernacular`（必要时 `notes`、`doubts`），`original`、`applies`、`status` 等一字不动。重译后每条都要在长度口径内；实在超出的（极短的诗句、术语），在 PR 里列出 id 和缘故。
+- **分支**：从 `origin/claude/round8-collab` 新开 `side/06-retranslate`，先依次 merge 这些还没合的数据分支（不要 rebase）：`side/01-ziwei-quanshu`（#12）、`side/02-bazi-geju`（#14）、`side/01-ziwei-quanshu-b2`（#15）、`side/02-bazi-geju-b2`（#16）、`side/03-liuyao-zengshan`（#17）、`side/01-ziwei-quanshu-b3`（#18）、`side/03-liuyao-zengshan-b2`（#19）、`side/03-liuyao-zengshan-b3`（#20）、`side/02-bazi-yuanhai`（#21）、`side/02-bazi-sanming-shensha`（#23）、`side/01-ziwei-quanshu-b4`（#26）、`side/01-ziwei-quanshu-b5`（#28）、`side/01-ziwei-quanshu-b6`（#30）、`side/02-ditian-liuqin`（#33）、`side/02-ditian-tongshen`（#34）、`side/06-ziping-chengbai`（#41）。然后一个文件一个提交，推送前跑 `node scripts/validate-data.mjs` 和 `npm test`。
+- **PR**：base 选 `claude/round8-collab`，描述第一行写「合并顺序：等 #12–#44 都合进来后再合本 PR」，附每个文件重译的条数与重译前后的长度比（中位数、最大值）。上面那些 PR 不要再推。
