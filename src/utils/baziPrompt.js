@@ -6,6 +6,7 @@
  * 每深一层就多带上一层运限的干支，以及这些运限与命局之间的合冲刑害。
  */
 import { judgeBaziPattern } from './baziPattern.js';
+import { analyzeLiuqin } from './baziLiuqin.js';
 import { findRelations } from './baziRelations.js';
 import { getShensha, SHENSHA_SOURCES } from './baziShensha.js';
 import { cite } from '../data/classics.js';
@@ -249,6 +250,8 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
   const judge = judgeBaziPattern(chart, strength);
   sections.push(['【旺衰参考（程序估算）】', ...strengthLines(chart, strength, judge.special)].join('\n'));
   sections.push(['【格局与组合（程序初判）】', ...patternLines(judge)].join('\n'));
+  const liuqin = analyzeLiuqin(chart, strength, { special: judge.special });
+  if (liuqin) sections.push(['【六亲宫星（程序初判）】', liuqin.basis, ...liuqin.points.map((line) => `- ${line}`)].join('\n'));
   sections.push(['【神煞查法出处】', ...shenshaSourceLines(chart)].join('\n'));
   const classicsSection = classicsPromptLines(classics);
   if (classicsSection) sections.push(['【古籍原文（与本命相关）】', ...classicsSection].join('\n'));
