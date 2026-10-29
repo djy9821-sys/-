@@ -40,7 +40,8 @@ export const CONDITION_LABELS = Object.freeze({
 
 /** 同等相关时的次序：已审 > 待审 > 仅原文（只作并列时的微调）。 */
 const STATUS_BONUS = Object.freeze({ reviewed: 0.3, translated: 0.2, draft: 0.1 });
-export const STATUS_LABELS = Object.freeze({ reviewed: '已审', translated: '待审', draft: '仅原文' });
+/** 条目卡上的状态标签：说的是白话的状态（原文都逐字校对过）。 */
+export const STATUS_LABELS = Object.freeze({ reviewed: '白话已校', translated: '白话初稿', draft: '仅原文' });
 
 /**
  * 各类条件的分量：越能把这张盘和别的盘区分开的键越重。

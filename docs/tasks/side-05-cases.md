@@ -200,6 +200,49 @@
 - `quote` 摘原句，不改字。已有 `expected` 的在里面加 `liuqin`；四柱、`original`、`vernacular`、其余字段一律不动。
 - 分支：第八批做完、PR 开好之后，在同一分支 `side/05-cases-bazi-b6` 接着做。先 `git merge origin/claude/round8-collab`（校验脚本要认得 `expected.liuqin`），每 50 造左右提交一次，跑 `node scripts/validate-data.mjs` 与 `node scripts/bazi-cases.mjs`。推送后在第八批的 PR 里补一张表：各篇补了多少条妻（夫）、子女、父、母、兄弟。
 
+## 第十批：《滴天髓阐微》通神论前半命例（八字）
+
+第三、四批收了通神论体用以后诸篇和任注命造，前半（天道至八格、生时）还没收。本批按第三批的口径录这些篇的任注命造，连同 `expected.yun`、`expected.liuqin`（第八、九批口径）一起写：
+
+- 编号接着 `bazi.ditian.423` 往下；`source.section` 写「通神论·人道」这样的篇名，方局上下篇统一写「通神论·方局」，notes 注明上下篇与卷页。
+- 任氏泛举的同柱命式（「四戊午……甚多」）按命式录，`birth.gender` 写 `unknown`，不补个人后验，不计入人物。
+- 原书只说「生时」片段、没有完整四柱的不收，也不补年月。
+- 分支：从第九批的分支开出 `side/05-cases-bazi-b7`，先 merge `origin/claude/round8-collab`；每三十造左右提交一次。PR 附表：各篇造数、岁运条数、六亲条数。
+
+## 第十一批：给六亲回填应运（expected.liuqin[].yun）
+
+六亲回归要分开原局定论与运中应事：任注说「刑妻克子」，多半是「一交丙运，刑妻克子」——应在那步运上，看的是岁运，不全是原局的六亲宫星。主线的回归脚本现在先看条目写没写 `yun`，没写才按原句猜（`scripts/lib/baziCases.mjs` 的 `liuqinScopeOf`）。本批把它写实：
+
+```json
+{ "kind": "妻", "verdict": "凶", "quote": "一交丙运，刑妻克子", "yun": "丙" }
+```
+
+- 给全部《滴天髓阐微》命造的 `expected.liuqin` 回填 `yun`：原书明说应在某步运、某个流年的，写那步运或那年的干支；原书只说「丙运」「丑运」的写单字；连说两运的写更靠近这句的那一步；原局定论（「其不刑妻者，无财之妙也」）不写。
+- 每条只加 `yun` 这一个字段，`kind`、`verdict`、`quote` 与其余字段一律不动。
+- 分支：从第十批的分支开出 `side/05-cases-bazi-b8`，先 merge `origin/claude/round8-collab`；每一百造提交一次，跑 `node scripts/validate-data.mjs` 与 `node scripts/bazi-cases.mjs`（「六亲（原局）」「六亲（运中应事）」两行）。PR 附表：各篇回填了多少条。
+
+## 第十二批：给写了用神的命造补取用理由（expected.useGodWhy）
+
+程序取用神与任注一致的约六成，相反一成。不一致的多半不是旺衰算错，而是任氏取用另有理由（调候压倒扶抑、通关、病药、顺势……）。本批把这个理由标出来，主线按理由分类看程序哪一类取得不准（`node scripts/bazi-cases.mjs` 的「喜用按原书取用理由」一行）：
+
+```json
+"expected": {
+  "useGod": "火",
+  "useGodWhy": { "kind": "调候", "quote": "寒金喜火" }
+}
+```
+
+- 只给写了 `useGod` 的命造补；`kind` 取 扶抑、调候、通关、病药、从势、化气、格局、源流、其他 之一：
+  - 扶抑：身强取克泄、身弱取生扶（「身旺用官」「日主衰弱，全赖印绶」）；
+  - 调候：寒暖燥湿（「寒金喜火」「夏木喜水」）；
+  - 通关：两神相战，取居中通关者（「水火交战，取木通关」）；
+  - 病药：局中某神为病，取制它的为药（「土重埋金，取木疏土」）；
+  - 从势：从格、从势、从强、专旺，顺其气势；化气：化格取化神；
+  - 格局：按子平格局取用（「官格用财印」）；源流：取源头或流通之神；说不清的写「其他」。
+- `quote` 摘原书说取用理由的那句，不改字；原书没说理由的不写 `useGodWhy`。一造只写一个理由，几条理由并说的取原书放在最前、最主要的那条。
+- 每条只加 `useGodWhy` 一个字段，其余一律不动。
+- 分支：从第十一批的分支开出 `side/05-cases-bazi-b9`，先 merge `origin/claude/round8-collab`；每一百造提交一次，跑 `node scripts/validate-data.mjs` 与 `node scripts/bazi-cases.mjs`。PR 附表：各类理由多少造，以及每类里程序一致、相反各多少（看「喜用按原书取用理由」一行）。
+
 ## 步骤 / 验收 / 禁止
 
 分支 `side/05-cases`；按来源分 PR。校验脚本与 CI 通过；抽查 10% 核对四柱与原书一致、来源可查。只产出 JSON，不碰代码，不改金样（金样由主线从这些命例生成）。
