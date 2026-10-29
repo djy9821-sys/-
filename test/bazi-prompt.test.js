@@ -137,3 +137,26 @@ test('提示词附古籍原文：只附原文不附白话，最多六条，说�
   assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now, classics: [] }).includes('【古籍原文'));
   assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now, classics: [{ entry: { title: '无原文' } }] }).includes('【古籍原文'));
 });
+
+test('六亲宫星一节每亲附一条讲这一亲的古籍原文（只附原文、最相关的一条）；没给就不附', () => {
+  const hit = (id, section, original) => ({ entry: { id, title: `题${id}`, book: '滴天髓', volume: '', section, status: 'draft', original, vernacular: '白话不该出现', doubts: [] }, reason: '六亲·夫妻' });
+  const liuqinClassics = {
+    spouse: [hit('a', '夫妻', '夫妻因缘宿世来，\n喜神有意傍天财。'), hit('b', '夫妻', '第二条不附')],
+    children: [{ entry: { id: 'x', title: '无原文' } }],
+    parents: [],
+  };
+  const prompt = buildBaziPrompt({ chart, scope: 'natal', selections, now, liuqinClassics });
+  const section = prompt.slice(prompt.indexOf('【六亲宫星（程序初判）】'), prompt.indexOf('【神煞查法出处】'));
+  assert.match(section, /\n- 兄弟：[^\n]+\n- 古籍论夫妻（《滴天髓》·夫妻）：夫妻因缘宿世来， 喜神有意傍天财。\n*$/);
+  assert.ok(!section.includes('第二条不附') && !section.includes('白话不该出现') && !section.includes('古籍论子女'));
+  assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now }).includes('古籍论'));
+});
+
+test('大运一节注明运支与原局会成的方局（程序的大运喜忌按局的五行论）', () => {
+  // 丁丑 壬子 己酉 戊辰：辛亥运亥子丑三会水方，戊申运申子辰三合水局，乙巳运巳酉丑三合金局；庚戌运凑不齐。
+  const prompt = buildBaziPrompt({ chart, scope: 'natal', selections, now });
+  assert.match(prompt, /辛亥，天干十神食神，运支亥与原局子丑会成亥子丑三会水方/);
+  assert.match(prompt, /戊申，天干十神劫财，运支申与原局子辰会成申子辰三合水局/);
+  assert.match(prompt, /乙巳，天干十神七杀，运支巳与原局酉丑会成巳酉丑三合金局/);
+  assert.match(prompt, /庚戌，天干十神伤官(?!，运支)/);
+});

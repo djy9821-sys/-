@@ -66,6 +66,8 @@ export const APPLIES_KEYS = Object.freeze({
     relation: null,
     strength: ['极弱', '偏弱', '中和', '偏强', '极强'],
     season: ['春', '夏', '秋', '冬', '四季'],
+    // 讲某一种六亲的（《滴天髓》夫妻、子女、父母、兄弟诸篇），只在结果页「六亲宫星」那一亲下面出现。
+    liuqin: ['夫妻', '子女', '父母', '兄弟'],
   }),
   liuyao: Object.freeze({
     hexagram: HEXAGRAMS,
@@ -316,6 +318,9 @@ export const BAZI_CASE_USE_GOD = Object.freeze(['木', '火', '土', '金', '水
 export const BAZI_CASE_YUN_KIND = Object.freeze(['大运', '流年']);
 export const BAZI_CASE_YUN_VERDICT = Object.freeze(['吉', '凶', '平']);
 const YUN_KEYS = ['ganZhi', 'kind', 'verdict', 'quote'];
+/** 八字命例 expected.liuqin：原书说到的六亲吉凶（「刑妻克子」「妻贤子肖」「早年丧父」「兄弟无靠」）。父、母分开说的分开写，并说的写「父母」。 */
+export const BAZI_CASE_LIUQIN_KIND = Object.freeze(['妻', '夫', '子女', '父', '母', '父母', '兄弟']);
+const LIUQIN_KEYS = ['kind', 'verdict', 'quote'];
 /** 一个干支，或原书只说「丑运」「辛运」时的一个干、一个支。 */
 const isYunGanZhi = (value) => typeof value === 'string' && ((GANZHI.test(value) && GAN.indexOf(value[0]) % 2 === ZHI.indexOf(value[1]) % 2)
   || (value.length === 1 && (GAN.includes(value) || ZHI.includes(value))));
@@ -452,8 +457,26 @@ export const validateCasesDoc = (doc, ctx = {}) => {
           });
         }
       }
+      if (expected.liuqin !== undefined) {
+        if (!Array.isArray(expected.liuqin) || !expected.liuqin.length) errors.push(`${where}: expected.liuqin 须是非空数组`);
+        else {
+          expected.liuqin.forEach((item, index) => {
+            const at = `${where}: expected.liuqin[${index}]`;
+            if (!item || typeof item !== 'object' || Array.isArray(item)) {
+              errors.push(`${at} 须是对象`);
+              return;
+            }
+            if (!BAZI_CASE_LIUQIN_KIND.includes(item.kind)) errors.push(`${at}.kind 须是 ${BAZI_CASE_LIUQIN_KIND.join('/')}`);
+            if (!BAZI_CASE_YUN_VERDICT.includes(item.verdict)) errors.push(`${at}.verdict 须是 ${BAZI_CASE_YUN_VERDICT.join('/')}`);
+            if (!isNonEmptyString(item.quote)) errors.push(`${at}.quote 须摘原书说这一亲吉凶的那句`);
+            Object.keys(item).forEach((key) => {
+              if (!LIUQIN_KEYS.includes(key)) errors.push(`${at} 未知字段 ${key}`);
+            });
+          });
+        }
+      }
       Object.keys(expected).forEach((key) => {
-        if (!['strength', 'pattern', 'useGod', 'outcome', 'yun'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
+        if (!['strength', 'pattern', 'useGod', 'outcome', 'yun', 'liuqin'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
       });
     } else if (entry.expected !== undefined && doc.module === 'liuyao') {
       const { expected } = entry;

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 import {
-  baziContextOf, baziGlossarySeeds, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
+  BAZI_LIUQIN, baziContextOf, baziGlossarySeeds, baziLiuqinHits, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
   patternNamesOf, searchGlossary, termsIn, ziweiContextOf, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiNeighborsOf, ziweiPalaceContextOf,
 } from '../src/data/classics/library.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
@@ -346,4 +346,33 @@ test('词典面板的种子术语：八字盘给十神、格局、神煞、旺�
   const palace = { name: '命宫', isBodyPalace: true, majorStars: [{ name: '紫微', mutagen: '' }, { name: '七杀', mutagen: '化权' }], minorStars: [{ name: '文曲', mutagen: '忌' }], adjectiveStars: [{ name: '天巫' }] };
   assert.deepEqual(ziweiGlossarySeeds(palace), ['命宫', '身宫', '紫微', '七杀', '文曲', '天巫', '化权', '化忌', '三方四正', '庙旺利陷', '四化', '大限', '流年']);
   assert.deepEqual(ziweiGlossarySeeds(null), ['命宫', '身宫', '十二宫', '四化', '大限', '流年']);
+});
+
+test('八字六亲：写了 liuqin 的条件只在「六亲宫星」那一亲下面命中，不进总列表；同一条件里的性别、十神也要满足', () => {
+  const doc = (applies) => ({ classic: 'ditian', section: '夫妻', edition: '测试', entries: [{ id: 'ditian.t.001', title: '夫妻·其一', original: '原', status: 'draft', applies }] });
+  assert.deepEqual(validateClassicsDoc(doc([{ module: 'bazi', liuqin: '夫妻' }])), []);
+  assert.deepEqual(validateClassicsDoc(doc([{ module: 'bazi', liuqin: ['子女', '父母'], gender: '女' }])), []);
+  assert.match(validateClassicsDoc(doc([{ module: 'bazi', liuqin: '朋友' }])).join('\n'), /liuqin: 「朋友」不在允许范围/);
+  assert.deepEqual(BAZI_LIUQIN, ['夫妻', '子女', '父母', '兄弟']);
+
+  const lib = buildLibrary([{
+    classic: 'ditian',
+    section: '夫妻、子女、女命',
+    edition: '测试',
+    entries: [
+      { id: 'ditian.t.001', title: '夫妻·其一', section: '夫妻', original: '夫妻因缘宿世来', status: 'draft', applies: [{ module: 'bazi', liuqin: '夫妻' }] },
+      { id: 'ditian.t.002', title: '女命·其一', section: '女命', original: '论夫论子要安详', status: 'draft', applies: [{ module: 'bazi', liuqin: ['夫妻', '子女'], gender: '女' }] },
+      { id: 'ditian.t.003', title: '子女·其一', section: '子女', original: '子女根枝一世传', status: 'draft', applies: [{ module: 'bazi', liuqin: '子女', tenGod: ['伤官', '食神'] }] },
+      { id: 'ditian.t.004', title: '通论', section: '夫妻', original: '通', status: 'draft', applies: [{ module: 'bazi', liuqin: '夫妻' }, { module: 'bazi', tenGod: '正财' }] },
+    ],
+  }]);
+  const ctx = { module: 'bazi', tenGod: ['正财', '七杀'], gender: '男' };
+  assert.deepEqual(matchEntries(lib, ctx).map(({ entry }) => entry.id), ['ditian.t.004'], '总列表的上下文没有 liuqin，只有带别的条件的通论命中');
+  assert.deepEqual(baziLiuqinHits(lib, ctx, '夫妻').map(({ entry }) => entry.id).sort(), ['ditian.t.001', 'ditian.t.004']);
+  assert.equal(baziLiuqinHits(lib, ctx, '夫妻').find(({ entry }) => entry.id === 'ditian.t.004').reason, '六亲·夫妻', '只按带 liuqin 的条件说明');
+  assert.deepEqual(baziLiuqinHits(lib, ctx, '子女'), [], '男命、不见食伤：女命条与食伤条都不中');
+  assert.deepEqual(baziLiuqinHits(lib, { ...ctx, gender: '女', tenGod: ['食神'] }, '子女').map(({ entry }) => entry.id), ['ditian.t.003', 'ditian.t.002']);
+  assert.deepEqual(baziLiuqinHits(lib, ctx, '朋友'), []);
+  assert.deepEqual(baziLiuqinHits(lib, { module: 'ziwei' }, '夫妻'), []);
+  assert.deepEqual(baziLiuqinHits(lib, ctx, '夫妻', { limit: 1 }).length, 1);
 });

@@ -12,7 +12,7 @@ import BaziLiuqinPanel from './bazi/BaziLiuqinPanel';
 import BaziClassicsPanel from './bazi/BaziClassicsPanel';
 import BaziPromptExport from './bazi/BaziPromptExport';
 import { useClassicsLibrary } from './common/useClassicsLibrary.js';
-import { baziContextOf, baziGlossarySeeds, matchEntries } from '../data/classics/index.js';
+import { baziContextOf, baziGlossarySeeds, baziLiuqinHits, matchEntries } from '../data/classics/index.js';
 import GlossaryPanel from './common/GlossaryPanel.jsx';
 import BaziShareCardModal from './bazi/BaziShareCardModal';
 import BaziStrengthPanel from './bazi/BaziStrengthPanel';
@@ -66,7 +66,7 @@ const CHENG_BAI_CHIP = {
     败中有成: 'border-[#315f7d]/40 bg-[#315f7d]/[0.08] text-[#2b4f68]',
     default: 'border-[#cbbfac] text-[#5f574f]',
 };
-import { describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks } from '../utils/baziYearMarks';
+import { describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks, zhiFavorText } from '../utils/baziYearMarks';
 import { buildBaziShareUrl } from '../utils/baziLink';
 import { buildShareCardModel, renderBaziShareCard } from '../utils/baziShareCard';
 
@@ -472,10 +472,19 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const natalRelations = useMemo(() => findRelations(natalItems), [natalItems]);
     // 古籍库里与本命相关的条目：附进「导出给 AI」的提示词（古籍库按需加载，未加载完就先不附）。
     const { data: classicsData } = useClassicsLibrary('bazi', { enabled: Boolean(baziResult) });
+    const classicsContext = useMemo(
+        () => (baziResult ? baziContextOf({ chart: baziResult, strength, judge: patternJudge, relations: natalRelations }) : null),
+        [baziResult, strength, patternJudge, natalRelations],
+    );
     const classicsHits = useMemo(() => {
-        if (!classicsData?.library || !baziResult) return null;
-        return matchEntries(classicsData.library, baziContextOf({ chart: baziResult, strength, judge: patternJudge, relations: natalRelations }));
-    }, [classicsData, baziResult, strength, patternJudge, natalRelations]);
+        if (!classicsData?.library || !classicsContext) return null;
+        return matchEntries(classicsData.library, classicsContext);
+    }, [classicsData, classicsContext]);
+    // 六亲宫星每一亲下面列讲这一亲的古籍（applies 写了 liuqin 的条目，不进上面的总列表）。
+    const liuqinClassics = useMemo(() => {
+        if (!classicsData?.library || !classicsContext || !liuqin) return null;
+        return Object.fromEntries(liuqin.items.map((item) => [item.key, baziLiuqinHits(classicsData.library, classicsContext, item.kind)]));
+    }, [classicsData, classicsContext, liuqin]);
     // 词典面板先列这张盘里出现的术语（十神、格局、神煞、旺衰）。
     const glossarySeeds = useMemo(() => (baziResult ? baziGlossarySeeds({ chart: baziResult, judge: patternJudge, strength }) : []), [baziResult, patternJudge, strength]);
     // 本命四柱所见的神煞（去重，按收录顺序），供「神煞查法与出处」先列。
@@ -1382,7 +1391,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                         {liuqin && (
                                             <section ref={liuqinSectionRef} tabIndex={-1} className="scroll-mt-4 px-3 py-5 focus:outline-none sm:px-6 sm:py-6" aria-labelledby="liuqin-title">
                                                 <div id="liuqin-title"><SectionHeading seal="肆" title="六亲宫星" note="配偶、子女、父母、兄弟：六亲星与宫位的喜忌、透藏与冲合（程序初判，仅供参考）" icon={Users} /></div>
-                                                <BaziLiuqinPanel liuqin={liuqin} />
+                                                <BaziLiuqinPanel liuqin={liuqin} classics={liuqinClassics} />
                                             </section>
                                         )}
 
@@ -1404,13 +1413,13 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                     <div className="flex w-max min-w-full snap-x gap-2">
                                                         {[...(xiaoYunDaYun ? [xiaoYunDaYun] : []), ...baziResult.yun.dayun].map((daYun) => {
                                                             const isSelected = selectedDaYun?.index === daYun.index;
-                                                            const favor = daYun.isXiaoYun ? null : getDaYunMarks(daYun, { strength }).favor;
+                                                            const favor = daYun.isXiaoYun ? null : getDaYunMarks(daYun, { strength, chart: baziResult }).favor;
                                                             return (
                                                                 <button key={daYun.index} data-dayun-index={daYun.index} type="button" aria-pressed={isSelected} aria-expanded={isSelected} onClick={() => selectDaYun(daYun)} className={`relative min-h-[5.75rem] w-[5.6rem] shrink-0 snap-start overflow-hidden rounded-xl border px-2 py-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f3ecdf] ${isSelected ? 'border-[#a33b30] bg-[#fffaf0] shadow-sm' : daYun.isCurrent ? 'border-[#2d6b62]/70 bg-[#2d6b62]/[0.07]' : 'border-[#cbbfac] bg-[#f8f1e6] hover:border-[#9e8f7a]'}`}>
                                                                     {daYun.isCurrent && <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#2d6b62] px-1.5 py-0.5 text-[10px] font-bold leading-4 text-white">当前</span>}
                                                                     <span className="block text-[11px] tabular-nums text-[#81776b]">{daYun.startAge}-{daYun.endAge}虚岁</span><span className="mt-1 block font-serif text-xl font-bold tracking-[0.12em] text-[#3b342e]">{daYun.isXiaoYun ? '小运' : daYun.ganZhi}</span><span className="mt-1 block text-[11px] tabular-nums text-[#81776b]">{daYun.startYear}-{daYun.endYear}</span>
                                                                     {favor && (
-                                                                        <span className="absolute inset-x-0 bottom-0 flex h-1" role="img" aria-label={`天干${favor.gan.element}${FAVOR_TEXT[favor.gan.tone]}，地支${favor.zhi.element}${FAVOR_TEXT[favor.zhi.tone]}`}>
+                                                                        <span className="absolute inset-x-0 bottom-0 flex h-1" role="img" aria-label={`天干${favor.gan.element}${FAVOR_TEXT[favor.gan.tone]}，${zhiFavorText(daYun.zhi, favor.zhi)}${FAVOR_TEXT[favor.zhi.tone]}`}>
                                                                             <span className={`flex-1 ${FAVOR_CLASS[favor.gan.tone]}`} /><span className={`flex-1 ${FAVOR_CLASS[favor.zhi.tone]}`} />
                                                                         </span>
                                                                     )}
@@ -1423,7 +1432,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                     卡片底边左半为天干、右半为地支对日主的
                                                     <span className="mx-1 inline-block size-2 rounded-sm bg-[#2d6b62] align-middle" aria-hidden="true" />喜
                                                     <span className="mx-1 inline-block size-2 rounded-sm bg-[#a33b30] align-middle" aria-hidden="true" />忌
-                                                    <span className="mx-1 inline-block size-2 rounded-sm bg-[#b9ad98] align-middle" aria-hidden="true" />平；流年右上角的圆点同理。
+                                                    <span className="mx-1 inline-block size-2 rounded-sm bg-[#b9ad98] align-middle" aria-hidden="true" />平；地支与原局凑齐三会方、三合局的，按局的五行论。流年右上角的圆点同理。
                                                 </p>
                                                 <div className="hidden border-l border-t border-[#b9ad98] print:grid print:grid-cols-7">
                                                     {baziResult.yun.dayun.map((daYun) => (
@@ -1560,6 +1569,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                 defaultScope={DEPTH_TO_PROMPT_SCOPE[compareDepth]}
                                                 now={chartAsOf}
                                                 classics={classicsHits}
+                                                liuqinClassics={liuqinClassics}
                                                 onLocateNow={returnFlowToNow}
                                                 onPickTime={() => scrollToSection(flowSectionRef)}
                                             />

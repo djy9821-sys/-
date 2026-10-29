@@ -180,6 +180,26 @@
 - 已有 `expected` 的在里面加 `yun`；没有的新建 `"expected": { "yun": [...] }`。四柱、`original`、`vernacular`、其余字段一律不动。
 - 分支：从第七批的分支开出 `side/05-cases-bazi-b6`，先 `git merge origin/claude/round8-collab`（校验脚本要认得 `expected.yun`）；每 50 造左右提交一次，跑 `node scripts/validate-data.mjs` 与 `node scripts/bazi-cases.mjs`。PR 说明写依赖哪些 PR，附表：各篇补了多少条吉、凶、平。
 
+## 第九批：给《滴天髓阐微》命造补六亲（expected.liuqin）
+
+任注常顺带说到六亲：「刑妻克子」「妻贤子肖」「早年丧父」「兄弟无靠」。主线结果页新增了「六亲宫星」（妻或夫、子女、父母、兄弟各看星与宫），要拿这些校准（`node scripts/bazi-cases.mjs` 的「六亲」一行）。本批同样不录新造，只给已录的全部《滴天髓阐微》命造补 `expected.liuqin`：
+
+```json
+"expected": {
+  "liuqin": [
+    { "kind": "妻", "verdict": "凶", "quote": "刑妻克子" },
+    { "kind": "子女", "verdict": "凶", "quote": "刑妻克子" },
+    { "kind": "父", "verdict": "吉", "quote": "父荫甚厚" }
+  ]
+}
+```
+
+- `kind`：妻、夫（女命）、子女、父、母、父母（父母并说的）、兄弟。只收原书明说的；「六亲无靠」这类泛说的拆成父母、兄弟两条，各摘同一句。
+- `verdict`：得力、贤、多、荫庇、和睦、发达等记「吉」；刑、克、丧、亡、无、不和、无靠、拖累等记「凶」；先吉后凶、或原书说「平平」的记「平」。说不清的不收，写进 `notes`。
+- 坤造（女命）确认 `birth.gender` 写的是 `"female"`，没写的补上：程序按它定夫星、子女星。
+- `quote` 摘原句，不改字。已有 `expected` 的在里面加 `liuqin`；四柱、`original`、`vernacular`、其余字段一律不动。
+- 分支：第八批做完、PR 开好之后，在同一分支 `side/05-cases-bazi-b6` 接着做。先 `git merge origin/claude/round8-collab`（校验脚本要认得 `expected.liuqin`），每 50 造左右提交一次，跑 `node scripts/validate-data.mjs` 与 `node scripts/bazi-cases.mjs`。推送后在第八批的 PR 里补一张表：各篇补了多少条妻（夫）、子女、父、母、兄弟。
+
 ## 步骤 / 验收 / 禁止
 
 分支 `side/05-cases`；按来源分 PR。校验脚本与 CI 通过；抽查 10% 核对四柱与原书一致、来源可查。只产出 JSON，不碰代码，不改金样（金样由主线从这些命例生成）。

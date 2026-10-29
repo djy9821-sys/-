@@ -1,7 +1,9 @@
 /**
- * 六亲宫星（程序初判）：配偶、子女、父母、兄弟各看六亲星与宫位的喜忌、透藏与冲合。
+ * 六亲宫星（程序初判）：配偶、子女、父母、兄弟各看六亲星与宫位的喜忌、透藏与冲合；
+ * 古籍库里讲这一亲的条目（applies 写了 liuqin 的）折叠列在每张卡下面。
  */
 import React from 'react';
+import { ClassicsEntryCard } from '../common/ClassicsPanel';
 import { WUXING_STYLES } from './baziTheme';
 
 const TONE_BADGE = {
@@ -54,7 +56,22 @@ const PalaceLine = ({ palace }) => (
     </li>
 );
 
-export default function BaziLiuqinPanel({ liuqin }) {
+/** 古籍库里讲这一亲的条目：默认收起，原文与白话对照。 */
+const LiuqinClassics = ({ kind, hits }) => {
+    if (!hits?.length) return null;
+    return (
+        <details className="group mt-2 rounded-lg border border-[#cbbfac]/70 bg-[#f4ecdc]/50" data-testid="bazi-liuqin-classics">
+            <summary className="cursor-pointer select-none px-2.5 py-1.5 text-xs font-bold text-[#7f4b12] marker:text-[#b06a1f]">
+                古籍论{kind}（{hits.length} 条）
+            </summary>
+            <div className="space-y-2 px-2 pb-2">
+                {hits.map((hit) => <ClassicsEntryCard key={hit.entry.id} hit={hit} mode="both" testId="bazi-liuqin-classic-entry" />)}
+            </div>
+        </details>
+    );
+};
+
+export default function BaziLiuqinPanel({ liuqin, classics = null }) {
     if (!liuqin) return null;
     return (
         <div className="mt-4 space-y-3" data-testid="bazi-liuqin">
@@ -72,6 +89,7 @@ export default function BaziLiuqinPanel({ liuqin }) {
                         <p className="mt-2 border-t border-[#cbbfac]/60 pt-1.5 text-[11px] leading-5 text-[#81776b]">
                             {item.classic.source}：「{item.classic.text}」
                         </p>
+                        <LiuqinClassics kind={item.kind} hits={classics?.[item.key]} />
                     </li>
                 ))}
             </ul>

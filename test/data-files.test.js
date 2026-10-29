@@ -116,6 +116,19 @@ test('八字命例的 expected：原书明说的旺衰、格局、用神与结�
   assert.match(yunMessages, /expected\.yun\[0\] 未知字段 extra/);
   assert.match(yunMessages, /expected\.yun\[1\] 须是对象/);
   assert.match(validateCasesDoc(doc({ yun: [] })).join('\n'), /expected\.yun 须是非空数组/);
+  // 六亲：原书说到的妻（夫）、子女、父、母、兄弟吉凶。
+  assert.deepEqual(validateCasesDoc(doc({ liuqin: [
+    { kind: '妻', verdict: '凶', quote: '刑妻克子' },
+    { kind: '子女', verdict: '凶', quote: '刑妻克子' },
+    { kind: '父', verdict: '吉', quote: '父荫甚厚' },
+  ] })), []);
+  const liuqinMessages = validateCasesDoc(doc({ liuqin: [{ kind: '朋友', verdict: '大凶', quote: '', who: 1 }, '妻'] })).join('\n');
+  assert.match(liuqinMessages, /expected\.liuqin\[0\]\.kind 须是 妻\/夫\/子女\/父\/母\/父母\/兄弟/);
+  assert.match(liuqinMessages, /expected\.liuqin\[0\]\.verdict 须是 吉\/凶\/平/);
+  assert.match(liuqinMessages, /expected\.liuqin\[0\]\.quote 须摘原书/);
+  assert.match(liuqinMessages, /expected\.liuqin\[0\] 未知字段 who/);
+  assert.match(liuqinMessages, /expected\.liuqin\[1\] 须是对象/);
+  assert.match(validateCasesDoc(doc({ liuqin: [] })).join('\n'), /expected\.liuqin 须是非空数组/);
 });
 
 test('六爻占例的 expected：原书用神、断语归类、应期与应验', () => {

@@ -9,6 +9,8 @@ import { Solar } from 'lunar-javascript';
 import { buildBaziChart } from '../../src/utils/baziChart.js';
 import { analyzeStrength } from '../../src/utils/baziStrength.js';
 import { judgeBaziPattern } from '../../src/utils/baziPattern.js';
+import { analyzeLiuqin } from '../../src/utils/baziLiuqin.js';
+import { juOfZhi } from '../../src/utils/baziYearMarks.js';
 
 const GAN = '甲乙丙丁戊己庚辛壬癸';
 const ZHI = '子丑寅卯辰巳午未申酉戌亥';
@@ -94,15 +96,44 @@ export const useGodElement = (god, dayWuxing) => {
 
 /**
  * 原书点名的一步大运或一个流年，按程序的喜忌归成吉、凶、平：干支各算一票，喜多为吉、忌多为凶，相抵或不分喜忌为平；
- * 原书只说「丑运」「辛运」的只看这一个字。
+ * 原书只说「丑运」「辛运」的只看这一个字。地支与原局凑齐三会方、三合局的，按局的五行算（与结果页的大运流年喜忌同一口径，见 juOfZhi）。
+ * @param {string[]} [natalZhis] 原局地支
  */
-export const yunVerdictOf = (ganZhi, favorable, unfavorable) => {
+export const yunVerdictOf = (ganZhi, favorable, unfavorable, natalZhis = []) => {
   const tones = [...ganZhi].map((char) => {
-    const element = WUXING_OF_GAN[char] ?? WUXING_OF_ZHI[char];
+    const element = WUXING_OF_GAN[char] ?? juOfZhi(char, natalZhis)?.element ?? WUXING_OF_ZHI[char];
     return favorable.includes(element) ? 1 : unfavorable.includes(element) ? -1 : 0;
   });
   const sum = tones.reduce((total, tone) => total + tone, 0);
   return sum > 0 ? '吉' : sum < 0 ? '凶' : '平';
+};
+
+const LIUQIN_ITEM_OF_KIND = { 妻: 'spouse', 夫: 'spouse', 子女: 'children', 父: 'parents', 母: 'parents', 父母: 'parents', 兄弟: 'siblings' };
+const LIUQIN_STAR_OF_KIND = { 父: '父星', 母: '母星' };
+const TONE_VERDICT = { good: '吉', bad: '凶' };
+
+/** 几处的喜忌合起来：都是喜为 good、都是忌为 bad，其余 neutral。 */
+const tonesTogether = (tones) => {
+  const set = new Set(tones);
+  if (set.has('good') && !set.has('bad')) return 'good';
+  if (set.has('bad') && !set.has('good')) return 'bad';
+  return 'neutral';
+};
+
+/**
+ * 原书说到的某一亲，程序「六亲宫星」（analyzeLiuqin）怎么看，归成吉、凶、平：
+ * 看那一亲的总体倾向（六亲星现身看星的喜忌，不现看宫位）；父、母分开说的只看父星（偏财）或母星（印），星不现看年月两宫。
+ * @param {object|null} liuqin analyzeLiuqin 的结果
+ * @param {string} kind 妻、夫、子女、父、母、父母、兄弟
+ */
+export const liuqinVerdictOf = (liuqin, kind) => {
+  const item = liuqin?.items?.find((candidate) => candidate.key === LIUQIN_ITEM_OF_KIND[kind]);
+  if (!item) return '平';
+  const label = LIUQIN_STAR_OF_KIND[kind];
+  if (!label) return TONE_VERDICT[item.tone] ?? '平';
+  const star = item.stars.find((candidate) => candidate.label === label);
+  const tone = star?.places.length ? star.tone : tonesTogether(item.palaces.filter((palace) => !palace.missing).map((palace) => palace.tone));
+  return TONE_VERDICT[tone] ?? '平';
 };
 
 /**
@@ -152,11 +183,19 @@ export const evaluateBaziCase = (entry) => {
   }
   // 岁运：原书说吉、凶的那几步运（年），程序按同一套喜忌（认出特殊格局就按此格论）判；原书说「平」的不比。
   const yun = (expected.yun ?? []).map((item) => {
-    const program = yunVerdictOf(item.ganZhi, useGodSource === 'special' ? specialFavorable : favorable, useGodSource === 'special' ? specialUnfavorable : unfavorable);
+    const program = yunVerdictOf(item.ganZhi, useGodSource === 'special' ? specialFavorable : favorable, useGodSource === 'special' ? specialUnfavorable : unfavorable, chart.pillars.map((pillar) => pillar.zhi));
     const check = item.verdict === '平' ? null : program === item.verdict ? 'same' : program === '平' ? 'near' : 'reversed';
     return { ...item, program, check };
   });
   if (yun.some((item) => item.check)) checks.yun = yun.map((item) => item.check).filter(Boolean);
+  // 六亲：原书说到某一亲吉凶的，拿结果页「六亲宫星」那一亲的倾向比；原书说「平」的不比。
+  const liuqinResult = expected.liuqin?.length ? analyzeLiuqin(chart, strength, { special: judge.special }) : null;
+  const liuqin = (expected.liuqin ?? []).map((item) => {
+    const program = liuqinVerdictOf(liuqinResult, item.kind);
+    const check = item.verdict === '平' ? null : program === item.verdict ? 'same' : program === '平' ? 'near' : 'reversed';
+    return { ...item, program, check };
+  });
+  if (liuqin.some((item) => item.check)) checks.liuqin = liuqin.map((item) => item.check).filter(Boolean);
   return {
     id: entry.id,
     pillars,
@@ -167,5 +206,6 @@ export const evaluateBaziCase = (entry) => {
     program: { band: strength.band, score: strength.score.total, ratio: Math.round(strength.ratio * 100) / 100, class: programClass, special, favorable, unfavorable, specialFavorable, specialUnfavorable, useGodSource, basis: strength.basis, deLing: strength.deLing, pattern: judge.pattern?.name ?? null },
     checks,
     yun,
+    liuqin,
   };
 };
