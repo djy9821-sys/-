@@ -22,9 +22,9 @@ const CASES = [
   { id: '009', name: '占谒贵', date: '2006-10-4', hex: '山风蛊', lines: [3], topic: 'career', book: '吉', near: true },
   { id: '010', name: '占官之升迁', date: '2007-3-3', hex: '艮为山', lines: [1, 3], topic: 'career', book: '吉' },
   { id: '011', name: '占弟被讼', date: '2001-6-13', hex: '泽水困', lines: [3, 5], topic: 'lawsuit', subject: 'siblings', book: '凶' },
-  { id: '012', name: '占开铺', date: '2001-2-27', hex: '艮为山', lines: [1, 6], topic: 'wealth', book: '凶', near: true },
+  { id: '012', name: '占开铺', date: '2001-2-27', hex: '艮为山', lines: [1, 6], topic: 'wealth', book: '凶' },
   { id: '013', name: '占妹临产', date: '2001-7-4', hex: '火地晋', lines: [], topic: 'maternity', subject: 'siblings', book: '吉', near: true },
-  { id: '014', name: '占病', date: '2001-8-23', hex: '天山遁', lines: [2], topic: 'health', subject: 'self', book: '凶', near: true },
+  { id: '014', name: '占病', date: '2001-8-23', hex: '天山遁', lines: [2], topic: 'health', subject: 'self', book: '凶' },
   { id: '015', name: '占仆何日回', date: '2001-5-24', hex: '泽天夬', lines: [3, 6], topic: 'travel', subject: 'staff', book: '凶' },
   { id: '016', name: '占出行', date: '2002-9-5', hex: '地火明夷', lines: [1, 4], topic: 'travel', subject: 'self', book: '凶', near: true },
   { id: '017', name: '占悔婚可成', date: '2004-8-6', hex: '离为火', lines: [1], topic: 'love', gender: 'male', book: '吉', near: true },
@@ -36,13 +36,13 @@ const CASES = [
   { id: '026', name: '占女痘', date: '2001-2-25', hex: '坤为地', lines: [2], topic: 'health', subject: 'children', book: '吉', near: true },
   { id: '027', name: '代卜长辈功名', date: '2001-3-19', hex: '巽为风', lines: [1, 4], topic: 'career', book: '凶' },
   { id: '028', name: '占主病', date: '2001-7-2', hex: '离为火', lines: [1, 2, 3, 4, 5, 6], topic: 'health', subject: 'parents', book: '凶' },
-  { id: '029', name: '占长子病', date: '2003-3-1', hex: '震为雷', lines: [2, 5], topic: 'health', subject: 'children', book: '凶', near: true },
-  { id: '030', name: '占随官上任', date: '2001-3-10', hex: '水地比', lines: [2, 3], topic: 'career', book: '凶', near: true },
+  { id: '029', name: '占长子病', date: '2003-3-1', hex: '震为雷', lines: [2, 5], topic: 'health', subject: 'children', book: '凶' },
+  { id: '030', name: '占随官上任', date: '2001-3-10', hex: '水地比', lines: [2, 3], topic: 'career', book: '凶' },
   { id: '032', name: '占父外任平安', date: '2005-9-6', hex: '天风姤', lines: [5, 6], topic: 'parents', book: '平' },
   { id: '034', name: '占求财（再占）', date: '2001-4-22', hex: '火泽睽', lines: [4], topic: 'wealth', book: '凶' },
   { id: '036', name: '占远行求财（再占）', date: '2001-12-14', hex: '地火明夷', lines: [1, 4], topic: 'travel', subject: 'self', book: '吉', near: true },
   { id: '037', name: '占妻病', date: '2003-7-5', hex: '震为雷', lines: [3], topic: 'health', subject: 'spouse', gender: 'male', book: '吉', near: true },
-  { id: '041', name: '占将来有官否（再占）', date: '2001-11-22', hex: '水地比', lines: [], topic: 'career', book: '吉', near: true },
+  { id: '041', name: '占将来有官否（再占）', date: '2001-11-22', hex: '水地比', lines: [], topic: 'career', book: '吉' },
   { id: '042', name: '占父何日回', date: '2005-5-4', hex: '乾为天', lines: [6], topic: 'travel', subject: 'parents', book: '吉' },
   { id: '043', name: '占后遇功名', date: '2001-6-9', hex: '艮为山', lines: [3, 5], topic: 'career', book: '平' },
   { id: '044', name: '占复起功名（再占）', date: '2001-2-22', hex: '地泽临', lines: [], topic: 'career', book: '平' },
@@ -61,7 +61,7 @@ const CASES = [
   { id: '064', name: '占久病', date: '2003-11-6', hex: '乾为天', lines: [6], topic: 'health', subject: 'self', illness: 'chronic', book: '凶', near: true },
   { id: '065', name: '占母血崩', date: '2002-11-7', hex: '天火同人', lines: [1, 2, 3, 5, 6], topic: 'health', subject: 'parents', book: '凶' },
   { id: '066', name: '占父近病', date: '2001-3-11', hex: '泽地萃', lines: [6], topic: 'health', subject: 'parents', illness: 'recent', book: '吉', near: true },
-  { id: '067', name: '占流年', date: '2001-4-20', hex: '泽水困', lines: [5], topic: 'year', subject: 'self', book: '凶', near: true },
+  { id: '067', name: '占流年', date: '2001-4-20', hex: '泽水困', lines: [5], topic: 'year', subject: 'self', book: '凶' },
   { id: '068', name: '占妻母病', date: '2001-5-2', hex: '泽雷随', lines: [1, 6], topic: 'health', subject: 'parents', book: '凶' },
   { id: '069', name: '占出行', date: '2001-8-20', hex: '水雷屯', lines: [2], topic: 'travel', subject: 'self', book: '平', near: true },
   { id: '070', name: '占兄何日归来', date: '2001-4-26', hex: '天泽履', lines: [6], topic: 'travel', subject: 'siblings', book: '平', near: true },
@@ -111,7 +111,7 @@ const CASES = [
   { id: '175', name: '占旧宅庙宇冲射', date: '2003-6-5', hex: '火天大有', lines: [5], topic: 'general', subject: 'self', book: '平', near: true },
   { id: '177', name: '占衙署后沟', date: '2006-11-6', hex: '火风鼎', lines: [], topic: 'home', book: '凶', miss: '虎鬼持世，地下有尸骸白骨；程序的房屋类还不看六神' },
   { id: '179', name: '占墓地', date: '2001-2-24', hex: '山雷颐', lines: [4, 5], topic: 'gravesite', book: '吉', near: true },
-  { id: '180', name: '占墓地', date: '2001-3-26', hex: '巽为风', lines: [5, 6], topic: 'gravesite', book: '凶', near: true },
+  { id: '180', name: '占墓地', date: '2001-3-26', hex: '巽为风', lines: [5, 6], topic: 'gravesite', book: '凶' },
   { id: '182', name: '占何时得墓地', date: '2001-4-22', hex: '地雷复', lines: [5], topic: 'gravesite', book: '平' },
   { id: '183', name: '占墓穴', date: '2002-8-5', hex: '雷天大壮', lines: [], topic: 'gravesite', book: '吉', near: true },
   { id: '184', name: '占以父柩附葬祖茔', date: '2007-1-2', hex: '地雷复', lines: [1], topic: 'gravesite', book: '凶', near: true },
@@ -137,10 +137,10 @@ CASES.filter((item) => !item.miss).forEach((item) => {
   });
 });
 
-test('人事占例：同档的不少于 46 例，断反的只有列明缘故的几例', () => {
+test('人事占例：同档的不少于 54 例，断反的只有列明缘故的几例', () => {
   const results = CASES.map((item) => ({ item, level: judgeCase(item).verdict.level }));
   const exact = results.filter(({ item, level }) => level === LEVEL[item.book]).length;
   const reversed = results.filter(({ item, level }) => opposite(level, LEVEL[item.book])).map(({ item }) => item.id);
-  assert.ok(exact >= 46, `同档 ${exact} 例`);
+  assert.ok(exact >= 54, `同档 ${exact} 例`);
   assert.deepEqual(reversed.sort(), CASES.filter((item) => item.miss).map((item) => item.id).sort());
 });
