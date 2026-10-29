@@ -9,6 +9,7 @@ import { findSolarDateByPillars } from '../scripts/lib/baziCases.mjs';
 const chartOf = (year, month, day, hourIndex, extra = {}) => buildBaziChart({ calendarType: 'solar', year, month, day, gender: 'male', hourIndex, ...extra });
 const ganZhiOf = (chart) => chart.pillars.map(({ ganZhi }) => ganZhi).join(' ');
 const elements = (items) => items.map(({ element }) => element);
+const round2 = (value) => Math.round(value * 100) / 100;
 /** 古籍命例只有四柱：找一个四柱相同的日子排盘。 */
 const chartByPillars = (text) => {
   const date = findSolarDateByPillars(text.split(' '));
@@ -17,7 +18,7 @@ const chartByPillars = (text) => {
   return chart;
 };
 
-test('三项打分：己土生子月不得令；年支丑、时支辰各有比劫本气，丁、戊透出帮身，合计 2 分偏弱', () => {
+test('三项打分：己土生子月不得令，月令是财（日主囚）减 0.4；年支丑、时支辰各有比劫本气，丁、戊透出帮身，合计 1.6 分偏弱', () => {
   const chart = chartOf(1998, 1, 2, 4);
   assert.equal(ganZhiOf(chart), '丁丑 壬子 己酉 戊辰');
   const result = analyzeStrength(chart);
@@ -27,12 +28,13 @@ test('三项打分：己土生子月不得令；年支丑、时支辰各有比�
   assert.equal(Math.round(result.ratio * 100), 42);
 
   assert.equal(result.score.ling, 0);
+  assert.deepEqual(result.score.xiuQiu, { state: '囚', role: '财', points: STRENGTH_SCORE.lingCai });
   assert.deepEqual(result.score.roots.map(({ name, zhi, gan, role, position, points }) => `${name}${zhi}${gan}${role}${position}${points}`), ['年柱丑己比劫本气0.5', '时柱辰戊比劫本气0.5']);
   assert.equal(result.score.di, 1);
   assert.deepEqual(result.score.stems.map(({ gan, role }) => `${gan}${role}`), ['丁印', '戊比劫']);
   assert.equal(result.score.shi, 1);
   assert.equal(result.score.hourEstimate, 0);
-  assert.equal(result.score.total, 2);
+  assert.equal(result.score.total, 1.6);
   assert.equal(result.band, '偏弱');
 
   assert.equal(result.deLing, false);
@@ -46,40 +48,51 @@ test('三项打分：己土生子月不得令；年支丑、时支辰各有比�
   assert.deepEqual(result.tiaoHou.stems, ['丙', '甲', '戊']);
   assert.equal(result.tiaoHou.source, '《穷通宝鉴》·调候用神表');
 
-  // 财（水）最重：取比劫帮身，印次之；调候用火，正好在扶抑的喜用里。
+  // 财（水）最重：取比劫帮身，用神土；火生土为喜，调候也宜火。
   assert.equal(result.basis, '身弱财重，取比劫帮身，印次之');
   assert.deepEqual(elements(result.favorable), ['土', '火']);
   assert.equal(result.favorable[1].tiaoHou, true);
-  assert.equal(result.tiaoHouNote, '调候宜火，与扶抑取用一致');
-  assert.deepEqual(elements(result.unfavorable), ['水', '金', '木']);
+  assert.equal(result.tiaoHouNote, '调候宜火，火生用神，同列喜用');
+  // 用、喜、忌、仇、闲：木克土为忌神，水为土所克（仇神，生木）为忌；金为土所生（闲神），不列喜忌。
+  assert.deepEqual(elements(result.unfavorable), ['木', '水']);
+  assert.equal(elementToneOf('金', result).tone, 'neutral');
   assert.equal(result.roles['水'], '财');
 });
 
-test('分界：2 分及以下偏弱，2.5 分及以上偏强；时柱丁卯少了辰中戊土的根，1.5 分偏弱', () => {
-  assert.deepEqual(STRENGTH_BOUNDS, { extremeWeak: 0.5, weak: 2, strong: 2.5, extremeStrong: 4 });
+test('分界：2 分及以下偏弱，2.5 分及以上偏强，中和按 2.15 分偏向一边取用；时柱丁卯少了辰中戊土的根，1.1 分偏弱', () => {
+  assert.deepEqual(STRENGTH_BOUNDS, { extremeWeak: 0.5, weak: 2, strong: 2.5, extremeStrong: 4, lean: 2.15 });
   assert.equal(STRENGTH_SCORE.branchWeight.day, 1.5);
   const result = analyzeStrength(chartOf(1998, 1, 2, 3));
-  assert.equal(result.score.total, 1.5);
+  assert.equal(result.score.total, 1.1);
   assert.equal(result.band, '偏弱');
 });
 
-test('身弱官杀重：取印化杀；印无力而食伤透出，取食伤制杀；调候与扶抑相反时两说并存', () => {
+test('身弱官杀重：取印化杀（印透干无根而杀重有源，仍算有力）；印无力而食伤有力，取食伤制杀，克食伤的印为忌', () => {
   const winterBing = chartOf(1996, 12, 15, 6);
   assert.equal(ganZhiOf(winterBing), '丙子 庚子 丙戌 甲午');
   const bing = analyzeStrength(winterBing);
-  assert.equal(bing.score.total, 1.95);
+  // 子月官杀当令，日主死，减 0.5。
+  assert.deepEqual(bing.score.xiuQiu, { state: '死', role: '官杀', points: STRENGTH_SCORE.lingGuan });
+  assert.equal(bing.score.total, 1.45);
   assert.equal(bing.band, '偏弱');
   assert.equal(bing.basis, '身弱官杀重，取印化杀生身，比劫次之');
+  // 甲木透时干，地支无木，但两子水旺（3 分），杀生印、印生身，有源可用。
+  assert.equal(bing.favorable[0].element, '木');
+  assert.equal(bing.favorable[0].usable, true);
+  // 调候宜壬水：水生用神木，同列喜用（不再与扶抑「两说并存」）。
   assert.deepEqual(elements(bing.favorable), ['木', '火', '水']);
   assert.equal(bing.favorable[2].tiaoHou, true);
-  assert.match(bing.tiaoHouNote, /两说并存/);
-  assert.ok(elements(bing.unfavorable).every((element) => element !== '水'));
+  assert.equal(bing.tiaoHouNote, '调候宜水，水生用神，同列喜用');
+  assert.deepEqual(elements(bing.unfavorable), ['金', '土']);
 
   const gui = analyzeStrength(chartOf(1985, 2, 13, 0));
   assert.equal(gui.band, '偏弱');
   assert.equal(gui.basis, '身弱官杀重，印星无力，取食伤制杀');
   assert.equal(gui.favorable[0].element, '木');
   assert.equal(gui.favorable[0].usable, true);
+  // 用食伤制杀时，印（金）克食伤为忌神；调候宜金也让位于用神。
+  assert.deepEqual(elements(gui.unfavorable), ['金', '土']);
+  assert.equal(gui.tiaoHouNote, '调候宜金，但金克用神，以用神为重，不作喜用');
 
   // 找病时透干的字另加半分：地支土气（3.6）略多于金（3.5），但庚金并透，才是病。
   // 任注「庚金并透，通根砍伐……更妙丙火独透，制杀扶身」，用火。
@@ -110,13 +123,15 @@ test('身弱食伤重：取印制伤生身', () => {
   assert.equal(result.favorable[0].element, '木');
 });
 
-test('身旺印多而财星无力：官杀生印，列为忌神；有财破印、滋杀的官杀照旧可用', () => {
+test('身旺印多而财星无力：取财破印、食伤次之，官杀生印为忌', () => {
   // 丁丑 丙午 己酉 辛未（《滴天髓阐微》命造，书用金）：己土生午月，丙丁火印透出；财星水不透、不作本气。
   const result = analyzeStrength(chartByPillars('丁丑 丙午 己酉 辛未'));
   assert.equal(result.band, '偏强');
   assert.equal(result.basis, '身旺印多，取财破印，食伤次之；官杀生印，为忌');
-  assert.deepEqual(elements(result.favorable), ['金', '水']);
+  // 财无力，有力的食伤金排前，为用神；水（财，调候）为金所生，扶抑本就取它，仍列喜用。
+  assert.deepEqual(elements(result.favorable).slice(0, 2), ['金', '水']);
   assert.ok(elements(result.unfavorable).includes('木'), '官杀木为忌');
+  assert.ok(elements(result.unfavorable).includes('火'), '火克用神金');
 });
 
 test('身旺：印多取财破印；比劫多取官杀，官杀无力取食伤泄秀', () => {
@@ -124,14 +139,17 @@ test('身旺：印多取财破印；比劫多取官杀，官杀无力取食伤�
   assert.equal(yinDuo.band, '偏强');
   assert.equal(yinDuo.basis, '身旺印多，取财破印，食伤、官杀次之');
   assert.equal(yinDuo.favorable[0].element, '火');
-  assert.deepEqual(elements(yinDuo.unfavorable), ['金', '水']);
+  // 用神火：水克火为忌神，金为火所克（仇神）为忌。
+  assert.deepEqual(elements(yinDuo.unfavorable), ['水', '金']);
 
   // 甲寅 丁丑 戊寅 戊午：扶抑取官杀（木）；丑月寒，火透出又有寅午之根，调候为急，火排在官杀前面。
   const bijie = analyzeStrength(chartOf(1975, 2, 1, 6));
   assert.equal(bijie.band, '偏强');
   assert.equal(bijie.basis, '身旺比劫多，取官杀制劫，食伤、财次之');
-  assert.deepEqual(elements(bijie.favorable).slice(0, 2), ['火', '木']);
+  assert.deepEqual(elements(bijie.favorable), ['火', '木']);
   assert.equal(bijie.tiaoHouNote, '冬月寒冷，调候为急：火有力有根，扶抑虽嫌火，仍取火为先');
+  // 用神火、喜神木；水克火、金为火所克，为忌。
+  assert.deepEqual(elements(bijie.unfavorable), ['水', '金']);
 
   const wuli = chartOf(1985, 1, 4, 0);
   assert.equal(ganZhiOf(wuli), '甲子 丙子 癸卯 壬子');
@@ -139,12 +157,12 @@ test('身旺：印多取财破印；比劫多取官杀，官杀无力取食伤�
   assert.equal(noOfficer.score.total, 2.5);
   assert.equal(noOfficer.band, '偏强');
   assert.equal(noOfficer.basis, '身旺比劫多，官杀无力，取食伤泄秀');
-  // 土（官杀）既不透干也不作本气，排到最后。
-  assert.deepEqual(elements(noOfficer.favorable), ['木', '火', '土']);
-  assert.equal(noOfficer.favorable[2].usable, false);
+  // 用神木（食伤），喜神水；火为木所生，扶抑本就取它，仍列喜用。土（官杀）既不透干也不作本气，又是木所克，列为忌。
+  assert.deepEqual(elements(noOfficer.favorable), ['木', '火', '水']);
+  assert.deepEqual(elements(noOfficer.unfavorable), ['金', '土']);
 });
 
-test('旺极宜泄：丙午 甲午 丁巳 丙午 5 分极强，先取食伤，夏月调候的水仍在喜用里', () => {
+test('旺极宜泄：丙午 甲午 丁巳 丙午 5 分极强，先取食伤；用神土，水为土所克，调候之水让位', () => {
   const chart = chartOf(2026, 6, 12, 6);
   assert.equal(ganZhiOf(chart), '丙午 甲午 丁巳 丙午');
   const result = analyzeStrength(chart);
@@ -156,8 +174,8 @@ test('旺极宜泄：丙午 甲午 丁巳 丙午 5 分极强，先取食伤，�
   assert.equal(result.favorable[0].element, '土');
   assert.equal(result.tiaoHou.element, '水');
   assert.deepEqual(result.tiaoHou.stems, ['壬', '庚', '癸']);
-  assert.ok(result.favorable.some(({ element, tiaoHou }) => element === '水' && tiaoHou));
-  assert.ok(result.unfavorable.every(({ element }) => element !== '水'));
+  assert.deepEqual(elements(result.unfavorable), ['木', '水']);
+  assert.equal(result.tiaoHouNote, '调候宜水，但水为用神所克，以用神为重，不作喜用');
 });
 
 test('寒暖调候为急：冬月、正月宜火，夏月宜水，这一火、水有力有根时取为第一（任注《寒暖》）', () => {
@@ -165,9 +183,10 @@ test('寒暖调候为急：冬月、正月宜火，夏月宜水，这一火、�
   const nuan = analyzeStrength(chartByPillars('甲申 丙子 庚辰 戊寅'));
   assert.equal(nuan.favorable[0].element, '火');
   assert.match(nuan.tiaoHouNote, /^冬月寒冷，调候为急：火有力有根/);
-  // 「寒甚而暖无气，反以无暖为美」：丙火虽透，地支无根，不算调候为急（此造中和，火只按常法附在喜用末尾）。
+  // 「寒甚而暖无气，反以无暖为美」：丙火虽透，地支无根，不算调候为急，不取为第一。
   const wuQi = analyzeStrength(chartByPillars('己酉 丙子 庚辰 甲申'));
-  assert.equal(wuQi.tiaoHouNote, '调候宜火，附在喜用末尾');
+  assert.notEqual(wuQi.favorable[0].element, '火');
+  assert.doesNotMatch(wuQi.tiaoHouNote, /调候为急/);
   // 午月炎燥，「幸赖年干壬水临申」：壬水透出、申中有根，水排第一。
   const run = analyzeStrength(chartByPillars('壬申 丙午 庚午 丙戌'));
   assert.equal(run.favorable[0].element, '水');
@@ -177,26 +196,40 @@ test('寒暖调候为急：冬月、正月宜火，夏月宜水，这一火、�
   assert.equal(bing.favorable[0].element, '木');
 });
 
-test('中和不硬分喜忌，只附调候', () => {
+test('中和不再空着喜忌：2.15 分及以上按偏旺取，以下按偏弱取，取用思路写明略偏哪边', () => {
+  // 己酉 丙子 庚辰 甲申（任注「寒甚而暖无气」）：2.33 分中和，印（辰土）多于比劫，按偏旺取财破印。
+  const wuQi = analyzeStrength(chartByPillars('己酉 丙子 庚辰 甲申'));
+  assert.equal(wuQi.score.total, 2.33);
+  assert.equal(wuQi.band, '中和');
+  assert.equal(wuQi.basis, '日主中和略偏旺，身旺印多，取财破印，食伤、官杀次之');
+  assert.equal(wuQi.favorable[0].element, '木');
+  assert.deepEqual(elements(wuQi.unfavorable), ['金', '土']);
+
+  // 丑月本气己土是官杀（日主死，减 0.5），所藏癸水是冬水余气，得令 0.3 分：合计 1.95 分偏弱。
   const chart = chartOf(1985, 1, 13, 4);
   assert.equal(ganZhiOf(chart), '甲子 丁丑 壬子 甲辰');
   const result = analyzeStrength(chart);
-  // 丑月本气己土不帮壬水，所藏癸水是冬水余气，得令 0.3 分。
   assert.equal(result.score.ling, 0.3);
   assert.deepEqual(result.score.lingYuqi, { zhi: '丑', gan: '癸' });
-  assert.equal(result.score.total, 2.45);
-  assert.equal(result.band, '中和');
-  assert.match(result.basis, /中和/);
-  assert.deepEqual(elements(result.favorable), ['火']);
-  assert.equal(result.favorable[0].tiaoHou, true);
-  assert.deepEqual(result.unfavorable, []);
+  assert.equal(result.score.total, 1.95);
+  assert.equal(result.band, '偏弱');
+});
+
+test('根所在的支被紧贴的一支冲克，这一支的根打六折（任注「卯酉紧冲日禄」）', () => {
+  // 辛卯 甲午 乙卯 乙酉：日支卯是乙木之禄，被时支酉紧冲。任注「卯酉紧冲日禄……伤官用劫」。
+  const result = analyzeStrength(chartByPillars('辛卯 甲午 乙卯 乙酉'));
+  const dayRoot = result.score.roots.find((root) => root.key === 'day');
+  assert.equal(dayRoot.chong, '酉');
+  assert.equal(dayRoot.points, round2(1.5 * STRENGTH_SCORE.chong));
+  const yearRoot = result.score.roots.find((root) => root.key === 'year');
+  assert.equal(yearRoot.chong, null, '年支卯与月支午不冲');
 });
 
 test('时辰不详：时柱按平均 0.4 分估', () => {
   const result = analyzeStrength(chartOf(1998, 1, 2, null, { timeMode: 'unknown' }));
   assert.equal(result.score.hourEstimate, STRENGTH_SCORE.unknownHour);
-  // 年支丑己 0.5 + 丁 0.5 + 估 0.4
-  assert.equal(result.score.total, 1.4);
+  // 年支丑己 0.5 + 丁 0.5 + 估 0.4，月令是财减 0.4
+  assert.equal(result.score.total, 1);
   assert.equal(result.band, '偏弱');
 });
 
