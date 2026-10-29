@@ -35,7 +35,7 @@ const NO_BREADTH = new Set(['allStars', 'jia']);
 export const CONDITION_LABELS = Object.freeze({
   pattern: '格局', tenGod: '十神', shensha: '神煞', dayGan: '日干', monthZhi: '月令', season: '季节', strength: '旺衰', relation: '合冲刑害',
   star: '星曜', jia: '夹', palace: '宫位', branches: '地支', brightness: '庙旺', mutagen: '四化', limit: '运限',
-  hexagram: '卦', line: '爻', sixRelative: '六亲', sixGod: '六神', topic: '问事', movingLines: '动爻', gender: '性别',
+  hexagram: '卦', line: '爻', sixRelative: '六亲', sixGod: '六神', topic: '问事', movingLines: '动爻', gender: '性别', liuqin: '六亲',
 });
 
 /** 同等相关时的次序：已审 > 待审 > 仅原文（只作并列时的微调）。 */
@@ -50,7 +50,7 @@ export const KEY_WEIGHT = Object.freeze({
   pattern: 10, star: 10, jia: 10, hexagram: 10,
   dayGan: 8, monthZhi: 8, topic: 8,
   mutagen: 7, shensha: 7, sixRelative: 7,
-  season: 6, palace: 6, branches: 6, line: 6, relation: 6,
+  season: 6, palace: 6, branches: 6, line: 6, relation: 6, liuqin: 6,
   strength: 5, sixGod: 5,
   brightness: 4, tenGod: 4,
   gender: 3, movingLines: 3,
@@ -272,6 +272,27 @@ export const baziContextOf = ({ chart, strength = null, judge = null, relations 
     relation: unique(relation),
     gender: genderInput === 'female' ? '女' : genderInput === 'male' ? '男' : null,
   };
+};
+
+/** 八字六亲宫星的四亲（applies.liuqin 的取值）。 */
+export const BAZI_LIUQIN = Object.freeze(['夫妻', '子女', '父母', '兄弟']);
+
+/**
+ * 八字「六亲宫星」一节用：讲某一亲的条目。
+ * 只看 applies 里写了 liuqin 的条件（同一条件里的 gender、tenGod、strength 等也要满足），
+ * 上下文用 baziContextOf 的，再加上这一亲；排序同 matchEntries。
+ * 总列表的上下文没有 liuqin，所以这些条件不会让条目进「古籍原文」总列表（条目另有不带 liuqin 的条件命中的除外）。
+ * @param {object} library buildLibrary 的结果
+ * @param {object} ctx baziContextOf 的结果
+ * @param {'夫妻'|'子女'|'父母'|'兄弟'} liuqin
+ * @param {{ limit?: number, status?: string[] }} [options]
+ */
+export const baziLiuqinHits = (library, ctx, liuqin, options = {}) => {
+  if (!library || !ctx || ctx.module !== 'bazi' || !BAZI_LIUQIN.includes(liuqin)) return [];
+  const scoped = library.entries
+    .filter((entry) => entry.applies.some((cond) => cond && 'liuqin' in cond))
+    .map((entry) => ({ ...entry, applies: entry.applies.filter((cond) => cond && 'liuqin' in cond) }));
+  return matchEntries({ entries: scoped }, { ...ctx, liuqin }, options);
 };
 
 /**
