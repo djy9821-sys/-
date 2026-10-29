@@ -222,6 +222,19 @@ const scopeTitle = (scope, { liuNian, liuYue, liuRi, liuShi }) => {
 };
 
 /**
+ * 六亲宫星一节里，每一亲附一条讲这一亲的古籍原文（baziLiuqinHits 排在最前的那条，只附原文）。
+ * @param {object} liuqin analyzeLiuqin 的结果
+ * @param {Record<string, object[]>|null} liuqinClassics 按 item.key 分好的命中
+ */
+const liuqinClassicLines = (liuqin, liuqinClassics) => liuqin.items.flatMap((item) => {
+  const hit = (liuqinClassics?.[item.key] ?? []).find((candidate) => candidate?.entry?.original);
+  if (!hit) return [];
+  const { entry } = hit;
+  const where = `《${entry.book}》${entry.volume ? `·${entry.volume}` : ''}·${entry.section}`;
+  return [`- 古籍论${item.kind}（${where}）：${String(entry.original).replace(/\s*\n\s*/g, ' ').trim()}`];
+});
+
+/**
  * @param {object} params
  * @param {object} params.chart buildBaziChart 的结果
  * @param {'natal'|'year'|'month'|'day'|'hour'} params.scope
@@ -229,8 +242,9 @@ const scopeTitle = (scope, { liuNian, liuYue, liuRi, liuShi }) => {
  * @param {{daYun?, liuNian?, liuYue?, liuRi?, liuShi?}} [params.selections]
  * @param {Date} [params.now]
  * @param {object[]} [params.classics] 古籍库命中（matchEntries 的结果，按相关度排好序）；给了就附一节原文
+ * @param {Record<string, object[]>} [params.liuqinClassics] 六亲各自的古籍命中（键为 spouse / children / parents / siblings）；给了就在六亲一节每亲附一条
  */
-export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selections = {}, now = new Date(), classics = null }) => {
+export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selections = {}, now = new Date(), classics = null, liuqinClassics = null }) => {
   const rank = SCOPE_RANK[scope] ?? 0;
   const { daYun, liuNian, liuYue, liuRi, liuShi } = selections;
   const pad = (value) => String(value).padStart(2, '0');
@@ -251,7 +265,7 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
   sections.push(['【旺衰参考（程序估算）】', ...strengthLines(chart, strength, judge.special)].join('\n'));
   sections.push(['【格局与组合（程序初判）】', ...patternLines(judge)].join('\n'));
   const liuqin = analyzeLiuqin(chart, strength, { special: judge.special });
-  if (liuqin) sections.push(['【六亲宫星（程序初判）】', liuqin.basis, ...liuqin.points.map((line) => `- ${line}`)].join('\n'));
+  if (liuqin) sections.push(['【六亲宫星（程序初判）】', liuqin.basis, ...liuqin.points.map((line) => `- ${line}`), ...liuqinClassicLines(liuqin, liuqinClassics)].join('\n'));
   sections.push(['【神煞查法出处】', ...shenshaSourceLines(chart)].join('\n'));
   const classicsSection = classicsPromptLines(classics);
   if (classicsSection) sections.push(['【古籍原文（与本命相关）】', ...classicsSection].join('\n'));
