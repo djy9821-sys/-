@@ -160,6 +160,20 @@ const verdictOf = (item, stars, palaces, neutralBand) => {
 };
 
 /**
+ * 这一亲的总体倾向（给命例对照、一句话总评用）：现身的六亲星都是喜用为 good、都是忌神为 bad，喜忌都有为 mixed；
+ * 星不现看宫位；旺衰中和、喜忌不显的为 neutral。
+ */
+const toneOfItem = (stars, palaces, neutralBand) => {
+  if (neutralBand) return 'neutral';
+  const present = stars.filter((star) => star.places.length);
+  const tones = new Set((present.length ? present : palaces.filter((palace) => !palace.missing)).map((item) => item.tone));
+  if (tones.has('good') && tones.has('bad')) return 'mixed';
+  if (tones.has('good')) return 'good';
+  if (tones.has('bad')) return 'bad';
+  return 'neutral';
+};
+
+/**
  * @param {object} chart buildBaziChart 的结果
  * @param {object} strength analyzeStrength 的结果（喜忌取扶抑）
  * @param {{ special?: object|null }} [options] 疑似特殊格局（从、化等），喜忌另有一套时在说明里提一句
@@ -175,7 +189,7 @@ export const analyzeLiuqin = (chart, strength, { special = null } = {}) => {
   const items = relativesOf(female).map((item) => {
     const stars = item.stars.map((star) => starOf(pillars, strength, star));
     const palaces = item.palaces.map((palace) => palaceOf(byKey, strength, relations, palace));
-    return { key: item.key, kind: item.kind, title: item.title, classic: item.classic, stars, palaces, verdict: verdictOf(item, stars, palaces, neutralBand) };
+    return { key: item.key, kind: item.kind, title: item.title, classic: item.classic, stars, palaces, tone: toneOfItem(stars, palaces, neutralBand), verdict: verdictOf(item, stars, palaces, neutralBand) };
   });
 
   const basis = `${female ? '女命' : '男命'}；喜忌按「五行与旺衰」一节扶抑所取${special?.name ? `，若按${special.name.replace(/^疑似/, '')}论，喜忌另有一套` : ''}。`;
