@@ -15,7 +15,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫"
+          "pattern": "日月夹命格"
         }
       ],
       "tags": [
@@ -86,11 +86,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "田宅",
-          "branches": [
-            "子"
-          ],
-          "star": "太阴"
+          "pattern": "月生沧海格"
         }
       ],
       "tags": [
@@ -111,8 +107,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "star": "紫微"
+          "pattern": "辅弼拱主格"
         }
       ],
       "tags": [
@@ -134,8 +129,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "star": "紫微"
+          "pattern": "君臣庆会格"
         }
       ],
       "tags": [
@@ -157,13 +151,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "star": "禄存"
-        },
-        {
-          "module": "ziwei",
-          "palace": "财帛",
-          "star": "禄存"
+          "note": "财印夹禄：禄存守命而天梁、天相来夹。按安星法梁相相邻，夹不了第三宫，程序不判"
         }
       ],
       "tags": [
@@ -186,7 +174,7 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "天马",
             "天相"
           ]
@@ -211,13 +199,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "star": "天魁"
-        },
-        {
-          "module": "ziwei",
-          "palace": "命宫",
-          "star": "天钺"
+          "pattern": "坐贵向贵格"
         }
       ],
       "tags": [
@@ -238,11 +220,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "stars": [
-            "天马",
-            "擎羊"
-          ]
+          "note": "马头带剑：天马逢擎羊。按安星法天马只在寅申巳亥，擎羊不入寅申巳亥，两星不能同宫，此格不能成立，程序不判"
         }
       ],
       "tags": [
@@ -353,19 +331,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "stars": [
-            "天刑",
-            "廉贞"
-          ]
-        },
-        {
-          "module": "ziwei",
-          "palace": "身宫",
-          "stars": [
-            "天刑",
-            "廉贞"
-          ]
+          "pattern": "刑囚夹印格"
         }
       ],
       "tags": [
@@ -407,11 +373,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "stars": [
-            "贪狼",
-            "火星"
-          ]
+          "pattern": "贪火相逢格"
         }
       ],
       "tags": [
@@ -520,13 +482,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "mutagen": "权"
-        },
-        {
-          "module": "ziwei",
-          "palace": "命宫",
-          "mutagen": "禄"
+          "pattern": "权禄生逢格"
         }
       ],
       "tags": [
@@ -547,14 +503,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "branches": [
-            "辰",
-            "戌",
-            "丑",
-            "未"
-          ],
-          "star": "擎羊"
+          "pattern": "羊刃入庙格"
         }
       ],
       "tags": [
@@ -639,8 +588,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "star": "紫微"
+          "note": "金舆扶驾：紫微守命而日月前后来夹。按安星法太阳不与紫微相邻，此格不能成立，程序不判"
         }
       ],
       "tags": [
