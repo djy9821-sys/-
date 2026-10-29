@@ -15,8 +15,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "star": "廉贞"
+          "pattern": "生不逢时格"
         }
       ],
       "tags": [
@@ -36,8 +35,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "star": "禄存"
+          "pattern": "禄逢两杀格"
         }
       ],
       "tags": [
@@ -59,8 +57,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "star": "天马"
+          "pattern": "马落空亡格"
         }
       ],
       "tags": [
@@ -80,19 +77,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "stars": [
-            "太阳",
-            "巨门"
-          ]
-        },
-        {
-          "module": "ziwei",
-          "palace": "命宫",
-          "stars": [
-            "太阴",
-            "巨门"
-          ]
+          "note": "日月藏辉：日月反背又逢巨门。按安星法太阴与巨门不同宫，「逢巨暗」是同宫还是会照字义两可，程序暂不判"
         }
       ],
       "tags": [
@@ -115,19 +100,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "stars": [
-            "武曲",
-            "廉贞"
-          ]
-        },
-        {
-          "module": "ziwei",
-          "palace": "身宫",
-          "stars": [
-            "武曲",
-            "廉贞"
-          ]
+          "pattern": "财与囚仇格"
         }
       ],
       "tags": [
@@ -148,12 +121,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "branches": [
-            "卯",
-            "酉"
-          ],
-          "star": "破军"
+          "pattern": "一生孤贫格"
         }
       ],
       "tags": [
@@ -173,23 +141,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "star": "擎羊"
-        },
-        {
-          "module": "ziwei",
-          "palace": "命宫",
-          "star": "陀罗"
-        },
-        {
-          "module": "ziwei",
-          "palace": "命宫",
-          "star": "火星"
-        },
-        {
-          "module": "ziwei",
-          "palace": "命宫",
-          "star": "铃星"
+          "pattern": "君子在野格"
         }
       ],
       "tags": [
@@ -212,9 +164,7 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "命宫",
-          "star": "禄存",
-          "mutagen": "禄"
+          "pattern": "两重华盖格"
         }
       ],
       "tags": [
