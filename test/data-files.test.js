@@ -116,6 +116,13 @@ test('八字命例的 expected：原书明说的旺衰、格局、用神与结�
   assert.match(yunMessages, /expected\.yun\[0\] 未知字段 extra/);
   assert.match(yunMessages, /expected\.yun\[1\] 须是对象/);
   assert.match(validateCasesDoc(doc({ yun: [] })).join('\n'), /expected\.yun 须是非空数组/);
+  // 取用理由：只在写了 useGod 时写，kind 取固定几类。
+  assert.deepEqual(validateCasesDoc(doc({ useGod: '火', useGodWhy: { kind: '调候', quote: '寒金喜火' } })), []);
+  const whyMessages = validateCasesDoc(doc({ useGodWhy: { kind: '直觉', quote: '', extra: 1 } })).join('\n');
+  assert.match(whyMessages, /expected\.useGodWhy 只在写了 useGod 时写/);
+  assert.match(whyMessages, /expected\.useGodWhy\.kind 须是 扶抑\/调候/);
+  assert.match(whyMessages, /expected\.useGodWhy\.quote 须摘原书/);
+  assert.match(whyMessages, /expected\.useGodWhy 未知字段 extra/);
   // 六亲：原书说到的妻（夫）、子女、父、母、兄弟吉凶。
   assert.deepEqual(validateCasesDoc(doc({ liuqin: [
     { kind: '妻', verdict: '凶', quote: '刑妻克子' },
