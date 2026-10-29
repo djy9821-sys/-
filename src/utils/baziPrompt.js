@@ -11,7 +11,7 @@ import { findRelations } from './baziRelations.js';
 import { getShensha, SHENSHA_SOURCES } from './baziShensha.js';
 import { cite } from '../data/classics.js';
 import { analyzeStrength } from './baziStrength.js';
-import { describeYearMarks, describeYearSummary, getLiuNianMarks } from './baziYearMarks.js';
+import { describeYearMarks, describeYearSummary, getLiuNianMarks, juOfZhi } from './baziYearMarks.js';
 import { PROMPT_CLASSICS_LIMIT, classicsPromptLines } from './classicsPrompt.js';
 
 export { PROMPT_CLASSICS_LIMIT };
@@ -119,10 +119,13 @@ const daYunLines = (chart, selectedDaYun) => {
   const lines = [
     `- ${yun.forward ? '顺排' : '逆排'}，出生后 ${yun.startYear} 年 ${yun.startMonth} 个月 ${yun.startDay} 天起运，交运日 ${yun.startSolar.split(' ')[0]}`,
   ];
-  // 只列到百岁左右，足够分析使用。
+  // 只列到百岁左右，足够分析使用。运支与原局凑齐三会方、三合局的注明（程序的大运喜忌按局的五行论）。
+  const natalZhis = chart.pillars.map((pillar) => pillar.zhi).filter(Boolean);
   yun.dayun.filter((item) => item.startAge < 100).forEach((item) => {
     const marks = [item.isCurrent ? '当前' : '', selectedDaYun?.index === item.index && !item.isCurrent ? '所选' : ''].filter(Boolean);
-    lines.push(`- ${item.startAge}–${item.endAge} 虚岁（${item.startYear}–${item.endYear}）${item.ganZhi}，天干十神${item.ganShiShen}${marks.length ? `  ← ${marks.join('、')}` : ''}`);
+    const ju = juOfZhi(item.zhi, natalZhis);
+    const juNote = ju ? `，运支${item.zhi}与原局${ju.others.join('')}会成${ju.name}` : '';
+    lines.push(`- ${item.startAge}–${item.endAge} 虚岁（${item.startYear}–${item.endYear}）${item.ganZhi}，天干十神${item.ganShiShen}${juNote}${marks.length ? `  ← ${marks.join('、')}` : ''}`);
   });
   const xiaoYun = yun.xiaoYun;
   if (xiaoYun?.years?.length) {
