@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildBaziChart } from '../src/utils/baziChart.js';
-import { analyzeStrength } from '../src/utils/baziStrength.js';
+import { analyzeStrength, favorBasisOf } from '../src/utils/baziStrength.js';
+import { judgeBaziPattern } from '../src/utils/baziPattern.js';
 import { buildShenshaContext, getShensha } from '../src/utils/baziShensha.js';
 import * as yearMarks from '../src/utils/baziYearMarks.js';
 
@@ -81,6 +82,17 @@ test('运、年的地支与原局凑齐三会方、三合局的，按局的五�
   // 流年地支与大运地支、原局一起凑：原局只有子，大运申、流年辰，凑成申子辰。
   const chen = getLiuNianMarks(liuNianOf('壬辰'), { chart: { pillars: [{ key: 'year', zhi: '子' }] }, daYun: { ganZhi: '戊申', gan: '戊', zhi: '申' }, strength });
   assert.equal(chen.favor.zhi.ju.name, '申子辰三合水局');
+});
+
+test('认出疑似从格的盘，大运喜忌按此格论：甲戌运戌与原局寅午会成火局，按从儿论为喜', () => {
+  const chart2 = buildBaziChart({ calendarType: 'solar', year: 1975, month: 2, day: 26, gender: 'male', hourIndex: 6 }, NOW);
+  const strength2 = analyzeStrength(chart2);
+  const basis = favorBasisOf(strength2, judgeBaziPattern(chart2, strength2).special);
+  const jiaXu = { gan: '甲', zhi: '戌' };
+  assert.equal(getDaYunMarks(jiaXu, { strength: strength2, chart: chart2 }).favor.overall, 'bad', '扶抑：木火都是忌');
+  const marks = getDaYunMarks(jiaXu, { strength: basis, chart: chart2 });
+  assert.equal(marks.favor.overall, 'good');
+  assert.equal(marks.favor.zhi.ju.name, '寅午戌三合火局');
 });
 
 test('新增神煞：国印、金舆、天医、孤辰寡宿、魁罡、阴差阳错、十恶大败', () => {

@@ -54,7 +54,7 @@ import {
 import { findRelations } from '../utils/baziRelations';
 import { getShensha, SHENSHA_ORDER, SHENSHA_SOURCES } from '../utils/baziShensha';
 import { cite } from '../data/classics';
-import { analyzeStrength } from '../utils/baziStrength';
+import { analyzeStrength, favorBasisOf } from '../utils/baziStrength';
 import { judgeBaziPattern } from '../utils/baziPattern';
 import { analyzeLiuqin } from '../utils/baziLiuqin';
 
@@ -390,6 +390,8 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
             return null;
         }
     }, [baziResult, strength]);
+    // 运限（大运、流年、择日）的喜忌依据：认出疑似从、化、专旺的按此格论，否则扶抑。
+    const favorBasis = useMemo(() => (strength ? favorBasisOf(strength, patternJudge?.special ?? null) : null), [strength, patternJudge]);
     const liuqin = useMemo(() => {
         if (!baziResult || !strength) return null;
         try {
@@ -498,15 +500,15 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         if (!baziResult) return {};
         return Object.fromEntries(visibleLiuNian.map((liuNian) => [
             liuNian.year,
-            getLiuNianMarks(liuNian, { chart: baziResult, daYun: selectedDaYun?.isXiaoYun ? liuNian.xiaoYun : selectedDaYun, strength }),
+            getLiuNianMarks(liuNian, { chart: baziResult, daYun: selectedDaYun?.isXiaoYun ? liuNian.xiaoYun : selectedDaYun, strength: favorBasis }),
         ]));
-    }, [baziResult, visibleLiuNian, selectedDaYun, strength]);
+    }, [baziResult, visibleLiuNian, selectedDaYun, favorBasis]);
     const selectedYearMarks = selectedLiuNian ? liuNianMarks[selectedLiuNian.year] ?? null : null;
     // 流年提要：天干十神主题、地支喜忌与太岁标注合成两三句话。
     const selectedYearSummary = useMemo(() => {
         if (!selectedLiuNian || !baziResult) return null;
         try {
-            return describeYearSummary(selectedLiuNian, { chart: baziResult, daYun: daYunPillar, strength, marks: selectedYearMarks });
+            return describeYearSummary(selectedLiuNian, { chart: baziResult, daYun: daYunPillar, strength: favorBasis, marks: selectedYearMarks });
         } catch (error) {
             console.error('流年提要生成失败:', error);
             return null;
@@ -1413,7 +1415,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                     <div className="flex w-max min-w-full snap-x gap-2">
                                                         {[...(xiaoYunDaYun ? [xiaoYunDaYun] : []), ...baziResult.yun.dayun].map((daYun) => {
                                                             const isSelected = selectedDaYun?.index === daYun.index;
-                                                            const favor = daYun.isXiaoYun ? null : getDaYunMarks(daYun, { strength, chart: baziResult }).favor;
+                                                            const favor = daYun.isXiaoYun ? null : getDaYunMarks(daYun, { strength: favorBasis, chart: baziResult }).favor;
                                                             return (
                                                                 <button key={daYun.index} data-dayun-index={daYun.index} type="button" aria-pressed={isSelected} aria-expanded={isSelected} onClick={() => selectDaYun(daYun)} className={`relative min-h-[5.75rem] w-[5.6rem] shrink-0 snap-start overflow-hidden rounded-xl border px-2 py-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f3ecdf] ${isSelected ? 'border-[#a33b30] bg-[#fffaf0] shadow-sm' : daYun.isCurrent ? 'border-[#2d6b62]/70 bg-[#2d6b62]/[0.07]' : 'border-[#cbbfac] bg-[#f8f1e6] hover:border-[#9e8f7a]'}`}>
                                                                     {daYun.isCurrent && <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#2d6b62] px-1.5 py-0.5 text-[10px] font-bold leading-4 text-white">当前</span>}
@@ -1433,6 +1435,9 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                     <span className="mx-1 inline-block size-2 rounded-sm bg-[#2d6b62] align-middle" aria-hidden="true" />喜
                                                     <span className="mx-1 inline-block size-2 rounded-sm bg-[#a33b30] align-middle" aria-hidden="true" />忌
                                                     <span className="mx-1 inline-block size-2 rounded-sm bg-[#b9ad98] align-middle" aria-hidden="true" />平；地支与原局凑齐三会方、三合局的，按局的五行论。流年右上角的圆点同理。
+                                                    {favorBasis?.source === 'special' && (
+                                                        <span className="block text-[#7f4b12]" data-testid="bazi-favor-basis">此盘{favorBasis.specialName}，大运流年与择日的喜忌按此格论（顺其气势为吉）；若不成格，以「五行与旺衰」一节的扶抑喜忌为准。</span>
+                                                    )}
                                                 </p>
                                                 <div className="hidden border-l border-t border-[#b9ad98] print:grid print:grid-cols-7">
                                                     {baziResult.yun.dayun.map((daYun) => (
@@ -1545,7 +1550,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                             <div id="zeri-title"><SectionHeading seal="捌" title="择日参考" note="选一类事务，按黄历宜忌与这张盘的喜忌、合冲，列出近期较宜与需避开的日子（程序初选）" icon={CalendarCheck} /></div>
                                             <BaziDatePicker
                                                 chart={baziResult}
-                                                strength={strength}
+                                                strength={favorBasis}
                                                 now={chartAsOf}
                                                 personName={personName}
                                                 onJumpToDate={(date) => {

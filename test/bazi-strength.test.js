@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildBaziChart } from '../src/utils/baziChart.js';
-import { STRENGTH_BOUNDS, STRENGTH_SCORE, analyzeStrength } from '../src/utils/baziStrength.js';
+import { STRENGTH_BOUNDS, STRENGTH_SCORE, analyzeStrength, elementToneOf, favorBasisOf } from '../src/utils/baziStrength.js';
+import { judgeBaziPattern } from '../src/utils/baziPattern.js';
 import { findSolarDateByPillars } from '../scripts/lib/baziCases.mjs';
 
 const chartOf = (year, month, day, hourIndex, extra = {}) => buildBaziChart({ calendarType: 'solar', year, month, day, gender: 'male', hourIndex, ...extra });
@@ -109,6 +110,15 @@ test('身弱食伤重：取印制伤生身', () => {
   assert.equal(result.favorable[0].element, '木');
 });
 
+test('身旺印多而财星无力：官杀生印，列为忌神；有财破印、滋杀的官杀照旧可用', () => {
+  // 丁丑 丙午 己酉 辛未（《滴天髓阐微》命造，书用金）：己土生午月，丙丁火印透出；财星水不透、不作本气。
+  const result = analyzeStrength(chartByPillars('丁丑 丙午 己酉 辛未'));
+  assert.equal(result.band, '偏强');
+  assert.equal(result.basis, '身旺印多，取财破印，食伤次之；官杀生印，为忌');
+  assert.deepEqual(elements(result.favorable), ['金', '水']);
+  assert.ok(elements(result.unfavorable).includes('木'), '官杀木为忌');
+});
+
 test('身旺：印多取财破印；比劫多取官杀，官杀无力取食伤泄秀', () => {
   const yinDuo = analyzeStrength(chartOf(1990, 8, 15, 0));
   assert.equal(yinDuo.band, '偏强');
@@ -188,4 +198,26 @@ test('时辰不详：时柱按平均 0.4 分估', () => {
   // 年支丑己 0.5 + 丁 0.5 + 估 0.4
   assert.equal(result.score.total, 1.4);
   assert.equal(result.band, '偏弱');
+});
+
+test('运限喜忌的依据：认出疑似从、化、专旺的按此格论（《滴天髓·从象》），否则扶抑', () => {
+  // 乙卯 戊寅 癸卯 戊午：癸水极弱、食伤独旺，疑似从儿格。扶抑喜金水；按从儿论喜火（财）木（食伤），忌金（印）土（官杀）。
+  const chart = chartOf(1975, 2, 26, 6);
+  const strength = analyzeStrength(chart);
+  const special = judgeBaziPattern(chart, strength).special;
+  assert.equal(special.name, '疑似从儿格');
+  const basis = favorBasisOf(strength, special);
+  assert.equal(basis.source, 'special');
+  assert.equal(basis.specialName, '疑似从儿格');
+  assert.deepEqual(elements(basis.favorable), ['火', '木']);
+  assert.deepEqual(basis.favorable.map(({ role }) => role), ['财', '食伤']);
+  assert.deepEqual(elements(basis.unfavorable), ['金', '土']);
+  assert.equal(elementToneOf('火', basis).tone, 'good');
+  assert.equal(elementToneOf('火', strength).tone, 'bad', '扶抑看火是忌');
+  assert.equal(basis.band, strength.band, '其余字段照旧');
+
+  const plain = favorBasisOf(strength, null);
+  assert.equal(plain.source, 'fuyi');
+  assert.deepEqual(plain.favorable, strength.favorable);
+  assert.equal(favorBasisOf(null, special), null);
 });

@@ -160,3 +160,14 @@ test('大运一节注明运支与原局会成的方局（程序的大运喜忌�
   assert.match(prompt, /乙巳，天干十神七杀，运支巳与原局酉丑会成巳酉丑三合金局/);
   assert.match(prompt, /庚戌，天干十神伤官(?!，运支)/);
 });
+
+test('认出疑似从格的盘：所选运限一节注明运限喜忌按此格论，流年标注照此判', () => {
+  // 乙卯 戊寅 癸卯 戊午，疑似从儿格：喜火木，忌金土。2026 丙午年：丙午火，按从儿论为喜。
+  const congChart = buildBaziChart({ calendarType: 'solar', year: 1975, month: 2, day: 26, gender: 'male', hourIndex: 6 }, now);
+  const congDaYun = congChart.yun.dayun.find((item) => item.liuNian.some(({ year }) => year === 2026));
+  const congLiuNian = congDaYun.liuNian.find(({ year }) => year === 2026);
+  const prompt = buildBaziPrompt({ chart: congChart, scope: 'year', selections: { daYun: congDaYun, liuNian: congLiuNian }, now });
+  assert.match(prompt, /【所选运限】\n- 运限喜忌按从儿格论（程序认出疑似从儿格；若不成格，以扶抑喜忌为准）\n/);
+  assert.match(prompt, /- 流年标注：[^\n]*天干丙火喜（财）[^\n]*地支午火喜（财）/);
+  assert.ok(!buildBaziPrompt({ chart, scope: 'year', selections, now }).includes('运限喜忌按'), '没认出特殊格局的不加这一行');
+});

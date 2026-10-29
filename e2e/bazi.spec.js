@@ -71,6 +71,8 @@ test('疑似从格：格局一节给出按此格论的喜忌，旺衰一节提�
   await expect(gods).toContainText('若按此格论');
   await expect(gods).toContainText('从儿以财为用');
   await expect(result.getByTestId('bazi-strength-special')).toContainText('格局一节疑似从儿格：若成格，喜火（财）、木（食伤）；忌金（印）、土（官杀）');
+  // 大运流年的喜忌按此格论（拿《滴天髓阐微》命造对照，认出特殊格局的造按此格论才与原书相合）。
+  await expect(result.getByTestId('bazi-favor-basis')).toContainText('此盘疑似从儿格，大运流年与择日的喜忌按此格论');
 });
 
 test('手动录入排盘、存档，再从档案打开', async ({ page }) => {
