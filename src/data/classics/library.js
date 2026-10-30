@@ -26,18 +26,18 @@ import { displayTextOf, readerNotesOf } from './editorial.js';
 export { patternNamesOf, ziweiPatternNamesOf, readerNotesOf };
 
 /** 复数键 → 单数键（allStars 也查上下文的 star，只是要几颗都在）。 */
-const SINGULAR = Object.freeze({ stars: 'star', allStars: 'star', meetAll: 'meet', flowAll: 'flow', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram', yearGans: 'yearGan', yearZhis: 'yearZhi' });
+const SINGULAR = Object.freeze({ stars: 'star', allStars: 'star', meetAll: 'meet', flowAll: 'flow', mutagenAll: 'mutagen', meetMutagenAll: 'meetMutagen', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram', yearGans: 'yearGan', yearZhis: 'yearZhi' });
 /** 要「全都在」的键。 */
-const ALL_OF = new Set(['allStars', 'meetAll', 'flowAll']);
+const ALL_OF = new Set(['allStars', 'meetAll', 'flowAll', 'mutagenAll', 'meetMutagenAll']);
 /** 列的取值是一组、不按「任一」打折的键。 */
-const NO_BREADTH = new Set(['allStars', 'meetAll', 'flowAll', 'jia']);
+const NO_BREADTH = new Set(['allStars', 'meetAll', 'flowAll', 'mutagenAll', 'meetMutagenAll', 'jia']);
 /** 条件里写了流曜（flow / flowAll）时，同条件的星曜键只看本命的星：上下文里 star → natalStars、meet → natalMeet。 */
 const NATAL_SOURCE = Object.freeze({ star: 'natalStars', meet: 'natalMeet' });
 
 /** 条件键的中文名，给界面写「为什么匹配到这条」。 */
 export const CONDITION_LABELS = Object.freeze({
   pattern: '格局', tenGod: '十神', shensha: '神煞', dayGan: '日干', monthZhi: '月令', season: '季节', strength: '旺衰', relation: '合冲刑害',
-  star: '星曜', jia: '夹', meet: '三方四正', flow: '流曜', palace: '宫位', branches: '地支', brightness: '庙旺', mutagen: '四化', limit: '运限', empty: '宫内', yearGan: '年干', yearZhi: '年支',
+  star: '星曜', jia: '夹', meet: '三方四正', flow: '流曜', palace: '宫位', branches: '地支', brightness: '庙旺', mutagen: '四化', meetMutagen: '三方四化', limit: '运限', empty: '宫内', yearGan: '年干', yearZhi: '年支',
   hexagram: '卦', line: '爻', sixRelative: '六亲', sixGod: '六神', topic: '问事', movingLines: '动爻', gender: '性别', liuqin: '六亲',
 });
 
@@ -56,7 +56,7 @@ export const KEY_WEIGHT = Object.freeze({
   pattern: 10, star: 10, jia: 10, hexagram: 10,
   limit: 9,
   dayGan: 8, monthZhi: 8, topic: 8, meet: 8, flow: 8,
-  mutagen: 7, shensha: 7, sixRelative: 7, empty: 7,
+  mutagen: 7, meetMutagen: 7, shensha: 7, sixRelative: 7, empty: 7,
   season: 6, palace: 6, branches: 6, line: 6, relation: 6, liuqin: 6,
   strength: 5, sixGod: 5, yearGan: 5, yearZhi: 5,
   brightness: 4, tenGod: 4,
@@ -344,11 +344,11 @@ export const baziLiuqinHits = (library, ctx, liuqin, options = {}) => {
 
 /**
  * 紫微上下文：传入当前关心的星曜与宫位即可（匹配引擎本身不依赖 iztro）。
- * @param {{ stars?: string[], jia?: string[], meet?: string[], palace?: string|string[], branches?: string[], brightness?: string[], mutagens?: string[], patterns?: string[], limit?: string, gender?: string, borrowedStars?: string[], empty?: boolean, yearGan?: string|null, yearZhi?: string|null }} input
+ * @param {{ stars?: string[], jia?: string[], meet?: string[], meetMutagens?: string[], palace?: string|string[], branches?: string[], brightness?: string[], mutagens?: string[], patterns?: string[], limit?: string, gender?: string, borrowedStars?: string[], empty?: boolean, yearGan?: string|null, yearZhi?: string|null }} input
  *   palace 可以给多个（身宫与命宫同宫时给 ['命宫', '身宫']）；meet：三方四正（对宫与两个三合宫）里的星，本宫的星会自动并进去；
  *   borrowedStars：空宫借的对宫主星；empty：宫里没有主星；yearGan / yearZhi：生年干支（《全书》「壬甲生人」「寅午戌生人」的条件用）。
  */
-export const ziweiContextOf = ({ stars = [], jia = [], meet = [], palace = null, branches = [], brightness = [], mutagens = [], patterns = [], limit = null, gender = null, borrowedStars = [], empty = false, yearGan = null, yearZhi = null, flow = null } = {}) => {
+export const ziweiContextOf = ({ stars = [], jia = [], meet = [], meetMutagens = [], palace = null, branches = [], brightness = [], mutagens = [], patterns = [], limit = null, gender = null, borrowedStars = [], empty = false, yearGan = null, yearZhi = null, flow = null } = {}) => {
   const flowStars = unique(toArray(flow?.stars));
   const flowMeet = unique(toArray(flow?.meet));
   const flowMutagens = unique(toArray(flow?.mutagens));
@@ -367,6 +367,8 @@ export const ziweiContextOf = ({ stars = [], jia = [], meet = [], palace = null,
     brightness: unique(brightness),
     // 生年四化，运限层再加该层四化落在本宫的（流年化忌之类）。
     mutagen: unique([...mutagens, ...flowMutagens]),
+    // 本宫连三方四正里的生年四化（「科权拱」「权禄巡逢」），给 meetMutagen / meetMutagenAll 用。
+    meetMutagen: unique([...mutagens, ...flowMutagens, ...meetMutagens]),
     pattern: unique(toArray(patterns).flatMap(ziweiPatternNamesOf)),
     limit,
     gender,
@@ -486,6 +488,8 @@ export const ziweiSurroundOf = (palaces, palace) => {
 };
 /** 几个宫里的主星与辅星名（给三方四正的「会」用；杂曜不算）。 */
 export const ziweiMeetStarsOf = (surround) => unique((surround ?? []).flatMap((palace) => [...(palace?.majorStars ?? []), ...(palace?.minorStars ?? [])].map((star) => star?.name).filter(Boolean)));
+/** 三方四正（对宫与两个三合宫）里星曜带的生年四化（禄、权、科、忌），给「科权拱」「权禄巡逢」一类条件用。 */
+export const ziweiMeetMutagensOf = (surround) => unique((surround ?? []).flatMap((palace) => [...(palace?.majorStars ?? []), ...(palace?.minorStars ?? [])].map((star) => mutagenNameOf(star?.mutagen)).filter(Boolean)));
 
 /**
  * 从排盘结果里的一个宫（iztro 的 palace：name、earthlyBranch、isBodyPalace、majorStars、minorStars、adjectiveStars）生成上下文。
@@ -507,6 +511,7 @@ export const ziweiPalaceContextOf = (palace, { gender = null, limit = '本命', 
     empty: !(palace.majorStars ?? []).some((star) => star?.name),
     borrowedStars: ziweiBorrowedStarsOf(palace, opposite),
     meet: ziweiMeetStarsOf(surround),
+    meetMutagens: ziweiMeetMutagensOf(surround),
     jia: jiaPairsOf(neighbors),
     palace: palaceNames.filter(Boolean),
     branches: [palace.earthlyBranch],
