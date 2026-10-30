@@ -218,6 +218,13 @@ test('从格、专旺按《滴天髓阐微·衰旺》任注的「旺极」「衰
   const kuFu = judgeByPillars('癸酉 甲子 癸亥 辛酉');
   assert.equal(kuFu.judge.special.name, '疑似润下格（专旺）');
   assert.deepEqual(kuFu.judge.special.favorable.slice(0, 2).map(({ element }) => element), ['水', '金']);
+  // 「癸卯 乙卯 甲寅 辛未：未乃南方燥土，木之库根，非生金之土，故辛金之君无能为矣。当存君之子，以癸水为用」：
+  // 旺极时日主的墓库支随旺势论，四支皆印比、辛金无根，疑似从强，喜木水。
+  const kuGen = judgeByPillars('癸卯 乙卯 甲寅 辛未');
+  assert.equal(kuGen.judge.special.name, '疑似从强格');
+  assert.deepEqual(kuGen.judge.special.favorable.slice(0, 2).map(({ element }) => element), ['木', '水']);
+  // 旺不到极处的，墓库支不随势：癸未 乙卯 甲戌 乙亥 3.65 分偏强，未、戌仍是财，不作专旺。
+  assert.equal(judgeByPillars('癸未 乙卯 甲戌 乙亥').judge.special, null);
 });
 
 test('从格看地支、化气看化神得势：任注从象、化象、顺局诸造', () => {
