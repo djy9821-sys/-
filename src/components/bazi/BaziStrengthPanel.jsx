@@ -98,6 +98,7 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster, 
                     <Check ok={score.ling + (score.xiuQiu?.points ?? 0) > 0} label="得令" detail={strength.monthMain ? `月令本气 ${strength.monthMain.gan}（${strength.monthMain.role}）${score.lingYuqi ? `不帮日主，但${score.lingYuqi.zhi}中藏${score.lingYuqi.gan}（比劫余气），${points(score.ling)}` : score.ling > 0 ? `帮扶日主，${points(score.ling)}` : '不帮日主，0 分'}${score.xiuQiu ? `；月令是${score.xiuQiu.role}，日主${score.xiuQiu.state}（旺相休囚死），${points(score.xiuQiu.points)}` : ''}` : '—'} />
                     <Check ok={score.di > 0} label="得地" detail={rootGroups.length ? `${rootGroups.map((group) => `${group.label}（${group.roles.join('、')}）`).join('、')}，共 ${points(score.di)}` : '年、日、时支没有比劫或印的根气（月支算在得令里）'} />
                     <Check ok={score.shi > 0} label="得势" detail={score.stems.length ? `${score.stems.map((item) => `${stemLabel(item.name)}${item.gan}（${item.role}）`).join('、')}，共 ${points(score.shi)}` : '年、月、时干没有比劫或印相帮'} />
+                    {score.ju && <Check ok label="会局" detail={`${score.ju.zhis}${score.ju.kind}成${score.ju.element}局（${score.ju.role}），局全的旺势不是逐支相加算得出的，另加 ${points(score.ju.points)}`} />}
                     {score.hourEstimate > 0 && <Check mark="≈" label="时辰不详" detail={`时柱按平均 ${points(score.hourEstimate)}估`} />}
                     {strength.tiaoHou && <Check mark={strength.tiaoHou.element} label="调候" detail={`${strength.tiaoHou.text}${strength.tiaoHou.season ? `；${strength.tiaoHou.season}` : ''}。${strength.tiaoHou.presenceText ? `${strength.tiaoHou.presenceText}。` : ''}出处${strength.tiaoHou.source}`} />}
                 </ul>
@@ -129,7 +130,7 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster, 
                 </p>
             )}
             <p className="rounded-lg bg-[#e9dfcd]/55 px-3 py-2 text-[11px] leading-5 text-[#6f665d] sm:text-xs">
-                以上为程序估算的参考：五行力量按天干每字 1 分（日干不计）、藏干本气 1 / 中气 0.5 / 余气 0.3、月令加倍计；旺衰按得令、得地、得势三项打分（月令是财、官杀的减分，根被紧贴的一支冲克的打折），权重按《滴天髓阐微》任铁樵命造校准；先按扶抑取定用神（有力的排前，中和按略偏的一边取），再论喜忌：用神与生用神者为喜，克用神者、用神所克者为忌；调候附在后面。从格、化格、专旺等特殊格局需要人工判断。
+                以上为程序估算的参考：五行力量按天干每字 1 分（日干不计）、藏干本气 1 / 中气 0.5 / 余气 0.3、月令加倍计；旺衰按得令、得地、得势三项打分（月令是财、官杀的减分，根被紧贴的一支冲克的打折，四支会成帮身的三合、三会局的另加），权重按《滴天髓阐微》任铁樵命造校准；先按扶抑取定用神（有力的排前，中和按略偏的一边取），再论喜忌：用神与生用神者为喜，克用神者、用神所克者为忌；调候附在后面。从格、化格、专旺等特殊格局需要人工判断。
             </p>
         </div>
     );
