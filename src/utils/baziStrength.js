@@ -20,8 +20,10 @@
  * - 身弱：看食伤、财、官杀哪一方最重（透干的字每个另加半分：元神透出，力量更显）——财重取比劫帮身；
  *   食伤重取印制伤生身；官杀重取印化杀，印无力而食伤有力时取食伤制杀（任注「庚金并透，通根砍伐……
  *   更妙丙火独透，制杀扶身」：地支土气虽略多，并透的庚金才是病）；
- * - 身旺：看印、比劫哪一方多——印多取财破印（财星有力，官星又透出有力、不比印重的，身旺足以用官）；
- *   比劫多取官杀制劫（官杀无力就取食伤泄秀）；旺极（4 分及以上）先取食伤泄秀；
+ * - 身旺：看印、比劫哪一方多——印多取财破印（财星有力，官星又透出有力、不比印重的，身旺足以用官；
+ *   印在比劫两倍以上而财星、食伤都无力的是「母多灭子」，顺母之性，取比劫帮身）；
+ *   比劫多取官杀制劫（官杀无力就取食伤泄秀；3.3 分以上「太旺」的，官杀逆其旺势，先取食伤泄秀）；
+ *   旺极（4 分及以上）先取食伤泄秀；
  * - 中和：任注没有不取用神的，2.15 分及以上按偏旺取，以下按偏弱取（取用思路里写明「中和略偏旺／弱」）。
  * 调候按《穷通宝鉴》调候用神表（src/data/tiaohou.js）查日干与月令：主用神的五行附在喜用末尾。
  * 寒暖调候为急的除外：冬月（亥子丑）与正月（寅）调候宜火、夏月（巳午未）调候宜水，而这一火、水在原局有力（透干或作本气）
@@ -39,6 +41,8 @@
  * 留集岁运一致 57 → 67、相反 30 → 25，留集用神第一位一致 44 → 44（中和改为偏向一边取后，相反 8 → 12）。
  * 全部 510 造：岁运一致 437 → 506、相反 232 → 203；旺衰一致 141 → 139、相反 16 → 14。
  * 其后补「身旺印多，官星透出有力，足以用官」：非留集用神第一位一致 124 → 128，留集 44 → 45，岁运一致、相反的造数不变。
+ * 再补「太旺宜泄」「母多灭子，顺母之性」（任注《衰旺》「五行颠倒之真机」）：岁运一致 511 → 527、相反 198 → 190
+ * （非留集 365 → 373、134 → 131；留集 146 → 154、64 → 59），用神第一位非留集不变、留集 45 → 46。
  * 不处理从格、化格等特殊格局（极端时只做提示）。
  */
 import { tiaoHouOf } from '../data/tiaohou.js';
@@ -77,9 +81,11 @@ export const STRENGTH_SCORE = Object.freeze({
 
 /**
  * 旺衰分档的分界：合计 ≤ extremeWeak 极弱，≤ weak 偏弱，< strong 中和，< extremeStrong 偏强，其余极强；
- * 中和档 ≥ lean 按偏旺取用，以下按偏弱取用。
+ * 中和档 ≥ lean 按偏旺取用，以下按偏弱取用；偏强档 ≥ tooStrong 算「太旺」，比劫多而食伤有力的先取食伤泄秀。
  */
-export const STRENGTH_BOUNDS = Object.freeze({ extremeWeak: 0.5, weak: 2, strong: 2.5, extremeStrong: 4, lean: 2.15 });
+export const STRENGTH_BOUNDS = Object.freeze({ extremeWeak: 0.5, weak: 2, strong: 2.5, extremeStrong: 4, lean: 2.15, tooStrong: 3.3 });
+/** 印的分数在比劫两倍以上，算「母多」。 */
+const MOTHER_HEAVY = 2;
 
 const invert = (map) => Object.fromEntries(Object.entries(map).map(([key, value]) => [value, key]));
 const GENERATED_BY = invert(GENERATES);
@@ -281,6 +287,12 @@ const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts 
 
   let favorable;
   let basis;
+  // 母多灭子：印在比劫两倍以上，财星、食伤都无力，破不了印、也泄不动，只得顺母之性，以比劫帮身为用，
+  // 财星犯母、官杀生印为忌（任注「土重金埋，母多灭子……一交庚申，助起日元，顺母之性，大得际遇」
+  // 「一交壬运，水木齐来，犯母之性」「春初嫩木……子申拱水，乃母多灭子也」）。
+  if (scores[yin] > scores[dayWuxing] && !usable.has(wealth) && !usable.has(output) && scores[yin] >= MOTHER_HEAVY * scores[dayWuxing]) {
+    return { favorable: [dayWuxing, yin], unfavorable: byScoreDesc([wealth, officer, output]), basis: '印多灭子，财星、食伤无力，顺母之性，取比劫帮身' };
+  }
   if (scores[yin] > scores[dayWuxing] && !usable.has(wealth)) {
     // 印多身旺而财星无力：官杀生印、印又生身，官杀不作喜用，列为忌神（有财破印、滋杀的，官杀照旧可用）。
     // 拿《滴天髓阐微》命造的岁运对照：身旺印多的造，官杀运原书判凶的多（前后两半命造都是如此）。
@@ -303,6 +315,12 @@ const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts 
       favorable = [officer, wealth, output];
       basis = '身旺印多，官星透出有力，足以用官，财、食伤次之';
     }
+  } else if (total >= STRENGTH_BOUNDS.tooStrong && usable.has(output)) {
+    // 太旺（3.3 分以上、未到旺极）：官杀逆其旺势反激，宜食伤泄秀（任注「木太旺者而似金，喜火之炼也」
+    // 「水太旺者而似土，喜木之制也」；戊辰 乙丑 戊戌 辛酉「重重厚土……伤官又旺，其势足以敌官星之寡。
+    // 故初交丙寅丁卯，官星得地，刑耗多端」）。
+    favorable = [output, wealth, officer];
+    basis = '身旺太过，官杀逆其旺势，取食伤泄秀，财次之';
   } else {
     favorable = [officer, output, wealth];
     basis = usable.has(officer) ? '身旺比劫多，取官杀制劫，食伤、财次之' : '身旺比劫多，官杀无力，取食伤泄秀';

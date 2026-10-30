@@ -59,8 +59,8 @@ test('三项打分：己土生子月不得令，月令是财（日主囚）减 0
   assert.equal(result.roles['水'], '财');
 });
 
-test('分界：2 分及以下偏弱，2.5 分及以上偏强，中和按 2.15 分偏向一边取用；时柱丁卯少了辰中戊土的根，1.1 分偏弱', () => {
-  assert.deepEqual(STRENGTH_BOUNDS, { extremeWeak: 0.5, weak: 2, strong: 2.5, extremeStrong: 4, lean: 2.15 });
+test('分界：2 分及以下偏弱，2.5 分及以上偏强，中和按 2.15 分偏向一边取用，3.3 分以上算太旺；时柱丁卯少了辰中戊土的根，1.1 分偏弱', () => {
+  assert.deepEqual(STRENGTH_BOUNDS, { extremeWeak: 0.5, weak: 2, strong: 2.5, extremeStrong: 4, lean: 2.15, tooStrong: 3.3 });
   assert.equal(STRENGTH_SCORE.branchWeight.day, 1.5);
   const result = analyzeStrength(chartOf(1998, 1, 2, 3));
   assert.equal(result.score.total, 1.1);
@@ -176,6 +176,28 @@ test('身旺印多、财星有力，官星透出有力又不比印重：足以�
   const sha = analyzeStrength(heavy);
   assert.equal(sha.basis, '身旺印多，取财破印，食伤、官杀次之');
   assert.equal(sha.favorable[0].element, '木');
+});
+
+test('太旺宜泄：3.3 分以上、比劫多而食伤有力的，官杀逆其旺势，先取食伤（任注「木太旺者而似金，喜火之炼也」）', () => {
+  // 戊辰 乙丑 戊戌 辛酉（《滴天髓阐微》命造）：任注「重重厚土，乙木无根，伤官又旺，其势足以敌官星之寡。
+  // 故初交丙寅丁卯，官星得地，刑耗多端……及己巳二十年，土生金旺」。
+  const tu = analyzeStrength(chartByPillars('戊辰 乙丑 戊戌 辛酉'));
+  assert.equal(tu.score.total, 3.73);
+  assert.equal(tu.basis, '身旺太过，官杀逆其旺势，取食伤泄秀，财次之');
+  assert.equal(tu.favorable[0].element, '金');
+  assert.ok(elements(tu.unfavorable).includes('木'), '官杀木逆其旺势，为忌');
+});
+
+test('母多灭子：印在比劫两倍以上，财星、食伤都无力，顺母之性，取比劫帮身（任注「土重金埋，母多灭子」）', () => {
+  // 丙戌 戊戌 辛丑 戊戌（同书命造）：任注「初运己亥庚子辛丑，金水丑土养金，出身富贵……一交壬运，水木齐来，犯母之性」。
+  const jin = analyzeStrength(chartByPillars('丙戌 戊戌 辛丑 戊戌'));
+  assert.equal(jin.basis, '印多灭子，财星、食伤无力，顺母之性，取比劫帮身');
+  assert.equal(jin.favorable[0].element, '金');
+  assert.ok(elements(jin.unfavorable).includes('木'), '财星木破印犯母，为忌');
+  // 壬子 壬寅 甲子 壬申（同书命造）：任注「春初嫩木……子申拱水，乃母多灭子也」，癸卯、甲辰运吉。
+  const mu = analyzeStrength(chartByPillars('壬子 壬寅 甲子 壬申'));
+  assert.equal(mu.favorable[0].element, '木');
+  assert.ok(elements(mu.unfavorable).includes('土'), '财星土破印犯母，为忌');
 });
 
 test('旺极宜泄：丙午 甲午 丁巳 丙午 5 分极强，先取食伤；用神土，水为土所克，调候之水让位', () => {
