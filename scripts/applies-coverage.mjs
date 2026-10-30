@@ -22,6 +22,7 @@ import {
   buildLibrary,
   conditionMatches,
   liuyaoReadingContextOf,
+  ziweiFlowOf,
   ziweiNatalOf,
   ziweiNeighborsOf,
   ziweiOppositeOf,
@@ -120,6 +121,21 @@ const ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉
 const yearStemOf = (year) => GAN[(year - 4 + 100) % 10];
 const yearBranchOf = (year) => ZHI[(year - 4 + 120) % 12];
 /**
+ * 看大限、流年那一层时，排盘库那一层的运限对象（流曜、四化）：取命主 2 到 80 岁间随机一年（流曜随流年干支变，多试几次就能遇到）。
+ * 返回 { 大限: scope, 流年: scope }，排盘库没有 horoscope() 时为空。
+ */
+const flowScopesOf = (horoscope) => {
+  if (typeof horoscope?.horoscope !== 'function') return {};
+  const birthYear = Number(String(horoscope.solarDate ?? '').split('-')[0]) || 1980;
+  try {
+    const h = horoscope.horoscope(`${birthYear + pickInt(2, 80)}-${pad(pickInt(1, 12))}-${pad(pickInt(1, 28))} 12:00`);
+    return { 大限: h?.decadal ?? null, 流年: h?.yearly ?? null };
+  } catch {
+    return {};
+  }
+};
+
+/**
  * 按条件定向排一张紫微盘，返回它的一个宫的上下文：生年干支、性别照条件挑（出生日取农历年不会跨年的月份），
  * 宫取条件写的宫（没写就随机），层取条件的运限（没写就本命）。星曜、地支没法定向，靠多试几次。
  */
@@ -156,14 +172,18 @@ const targetedZiweiContext = (cond) => {
   const wanted = [...toArray(cond.palace), ...(cond.pattern ? ['命宫'] : [])].map((name) => (name === '身宫' ? horoscope.palaces.find((item) => item.isBodyPalace)?.name : name)).filter(Boolean);
   const palace = (wanted.length ? horoscope.palaces.find((item) => wanted.includes(item.name)) : null) ?? pickOne(horoscope.palaces);
   const patterns = palace.name === '命宫' ? [...analyzeZiweiPatterns(horoscope), ...analyzeZiweiStructures(horoscope)].map((item) => item.name) : [];
+  const limit = cond.limit && cond.limit !== '本命' ? cond.limit : '本命';
+  const surround = ziweiSurroundOf(horoscope.palaces, palace);
   return ziweiPalaceContextOf(palace, {
     gender: gender === 'male' ? '男' : '女',
-    limit: cond.limit && cond.limit !== '本命' ? cond.limit : '本命',
+    limit,
     patterns,
     neighbors: ziweiNeighborsOf(horoscope.palaces, palace),
     opposite: ziweiOppositeOf(horoscope.palaces, palace),
-    surround: ziweiSurroundOf(horoscope.palaces, palace),
+    surround,
     natal: ziweiNatalOf(horoscope),
+    // 运限层带该层的流曜与四化（流羊、运昌……），与界面、提示词一样
+    flow: limit === '本命' ? null : ziweiFlowOf(flowScopesOf(horoscope)[limit] ?? null, palace, surround),
   });
 };
 function* ziweiContexts(count) {
@@ -177,6 +197,7 @@ function* ziweiContexts(count) {
     });
     const patterns = [...analyzeZiweiPatterns(horoscope), ...analyzeZiweiStructures(horoscope)].map((item) => item.name);
     const genderLabel = gender === 'male' ? '男' : '女';
+    const scopes = flowScopesOf(horoscope);
     for (const palace of horoscope.palaces) {
       // 与界面、提示词一样：带左右两邻（夹）、对宫（空宫借星）、三方四正（会、拱、照）
       const around = {
@@ -186,9 +207,9 @@ function* ziweiContexts(count) {
         natal: ziweiNatalOf(horoscope),
       };
       yield ziweiPalaceContextOf(palace, { gender: genderLabel, patterns: palace.name === '命宫' ? patterns : [], ...around });
-      // 古籍弹层还能切到「当前大限 / 今年流年」：任何一宫都可能是那一层的命宫
-      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '大限', ...around });
-      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '流年', ...around });
+      // 古籍弹层还能切到「当前大限 / 今年流年」：任何一宫都可能是那一层的命宫；带该层的流曜与四化
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '大限', ...around, flow: ziweiFlowOf(scopes.大限, palace, around.surround) });
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '流年', ...around, flow: ziweiFlowOf(scopes.流年, palace, around.surround) });
     }
   }
 }
@@ -270,7 +291,11 @@ for (const [module, { generate, retry, retries, more }] of Object.entries(MODULE
   for (const ctx of generate()) {
     contexts += 1;
     conditions.forEach(({ cond }, i) => { if (conditionMatches(cond, ctx)) hits[i] += 1; });
-    orStars.forEach(({ i, allCond }) => { if (!together.has(i) && conditionMatches(allCond, ctx)) together.add(i); });
+    // 没写运限的条件只拿本命层的上下文试「几颗都在」：运限层把流羊算作擎羊，会让本命从不同宫的羊陀「同在」。
+    orStars.forEach(({ i, allCond }) => {
+      if (together.has(i) || (!allCond.limit && (ctx.limit ?? '本命') !== '本命')) return;
+      if (conditionMatches(allCond, ctx)) together.add(i);
+    });
   }
   const unsupported = [];
   const rare = [];
