@@ -153,12 +153,31 @@ export const natalYearText = (horoscope, gender = null) => {
 };
 
 /**
- * 十二宫数据，附在各类提示词后面：生年干支、五行局、命主、身主，每宫的宫干支、是否身宫、主星（带庙旺、四化）、辅星、杂曜、长生、大限年岁。
+ * 程序认出的格局一行（ziweiPatterns.js 的结果）：
+ * 「程序认出的格局：日月并明格（《紫微斗数全书》卷三·论诸星同垣；原书：定贵局「日月并明：见前批注」……）；杀破狼星系（星系观察，不等同古典吉格）」。
+ * 只列完整命中、能回溯原书的格，并带原书那一句，AI 对照定局说高下时有据可查；一个没认出的写明「不代表别无格局」，免得 AI 据此断「无格」。
+ * @param {Array<{ name: string, category?: string, source?: { title?: string, rule?: string } }>} patterns
+ */
+export const patternsText = (patterns = []) => {
+  const list = (Array.isArray(patterns) ? patterns : []).filter((item) => item?.name);
+  if (!list.length) return '程序认出的格局：未认出已收录的格（程序只核对定义明白、能回溯原书的几十种格，不代表别无格局）';
+  const items = list.map((item) => {
+    if (item.category === 'star-system') return `${item.name}（星系观察，不等同古典吉格）`;
+    const where = item.source?.title || '';
+    const rule = item.source?.rule ? `原书：${item.source.rule}` : '';
+    const detail = [where, rule].filter(Boolean).join('；');
+    return detail ? `${item.name}（${detail}）` : item.name;
+  });
+  return `程序认出的格局：${items.join('；')}`;
+};
+
+/**
+ * 十二宫数据，附在各类提示词后面：生年干支、五行局、命主、身主、程序认出的格局，每宫的宫干支、是否身宫、主星（带庙旺、四化）、辅星、杂曜、长生、大限年岁。
  * 庙旺照《紫微斗数全书》（见 ziweiBrightness.js），AI 按原书论星先看庙陷。
  * @param {object} horoscope iztro 排盘结果
- * @param {{ gender?: string }} [options] 性别（写成阳男、阴女）
+ * @param {{ gender?: string, patterns?: Array }} [options] 性别（写成阳男、阴女）；patterns 给了（哪怕是空数组）就写「程序认出的格局」一行
  */
-export const generateChartDataPrompt = (horoscope, { gender = null } = {}) => {
+export const generateChartDataPrompt = (horoscope, { gender = null, patterns = null } = {}) => {
   try {
     if (!horoscope || !horoscope.palaces) {
       return "--- 命盘十二宫数据 ---\n数据获取失败\n";
@@ -173,6 +192,7 @@ export const generateChartDataPrompt = (horoscope, { gender = null } = {}) => {
       horoscope.body ? `身主：${horoscope.body}` : '',
     ].filter(Boolean);
     if (header.length) chartData += `- ${header.join('；')}\n`;
+    if (Array.isArray(patterns)) chartData += `- ${patternsText(patterns)}\n`;
 
     // 从命宫起按兄弟、夫妻、子女……父母的顺序列（排盘库的数组从寅宫起，命宫往前一格是兄弟宫）。
     const total = horoscope.palaces.length;
@@ -218,7 +238,7 @@ export const generateChartDataPrompt = (horoscope, { gender = null } = {}) => {
   }
 };
 
-export const generateFortunePromptText = (layerKey, selection, activeStems, basicInfo, horoscope, palaces, SI_HUA_MAP, fortuneContext = null) => {
+export const generateFortunePromptText = (layerKey, selection, activeStems, basicInfo, horoscope, palaces, SI_HUA_MAP, fortuneContext = null, { patterns = null } = {}) => {
   const targetScope = fortuneContext?.fortune?.[layerKey];
   const stem = targetScope?.heavenlyStem || activeStems[layerKey];
   if (!stem) return null;
@@ -249,7 +269,9 @@ export const generateFortunePromptText = (layerKey, selection, activeStems, basi
   const natal = natalYearText(horoscope, basicInfo.gender);
   if (natal) prompt += `${natal}\n`;
   prompt += `五行局：${horoscope.fiveElementsClass}\n`;
-  prompt += `命主：${horoscope.soul}  身主：${horoscope.body}\n\n`;
+  prompt += `命主：${horoscope.soul}  身主：${horoscope.body}\n`;
+  if (Array.isArray(patterns)) prompt += `${patternsText(patterns)}\n`;
+  prompt += `\n`;
 
   prompt += `【${layerName}信息】\n`;
   prompt += `时间：${timeInfo}\n`;
