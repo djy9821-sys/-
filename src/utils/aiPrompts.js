@@ -288,7 +288,12 @@ export const generateFortunePromptText = (layerKey, selection, activeStems, basi
     prompt += `阳历：${solarDate}\n`;
     prompt += `农历：${lunarDate}\n`;
     if (dayBoundaryNote) prompt += `换日规则：${dayBoundaryNote}\n`;
-    prompt += `虚岁：${fortune.age?.nominalAge ?? '未知'}岁\n\n`;
+    prompt += `虚岁：${fortune.age?.nominalAge ?? '未知'}岁\n`;
+    // 小限（《全书》论运限多以大小二限并举）：干支与落在本命哪一宫。
+    const age = fortune.age;
+    const agePalace = Number.isInteger(age?.index) ? palaces[age.index] : null;
+    if (agePalace) prompt += `小限：${age.heavenlyStem ?? ''}${age.earthlyBranch ?? ''}，命宫落点：本命${agePalace.name || '未知宫'}（${agePalace.heavenlyStem || ''}${agePalace.earthlyBranch || ''}）${age.mutagen?.length >= 4 ? `，四化：禄-${age.mutagen[0]}、权-${age.mutagen[1]}、科-${age.mutagen[2]}、忌-${age.mutagen[3]}` : ''}\n`;
+    prompt += `\n`;
 
     scopeKeys.forEach((scopeKey) => {
       const scope = fortune[scopeKey];
