@@ -171,7 +171,7 @@ const strengthLines = (chart, strength, special = null) => {
   if (strength.favorable.length) lines.push(`- 喜用参考：${elementList(strength.favorable)}`);
   if (strength.unfavorable.length) lines.push(`- 忌神参考：${elementList(strength.unfavorable)}`);
   if (strength.hint) lines.push(`- 提示：${strength.hint}`);
-  lines.push(`- 以上为程序估算：旺衰按得令、得地、得势三项打分（四支会成帮身的三合、三会局另加，权重按《滴天髓阐微》任铁樵命例校准），先按扶抑取定用神（调候附后），再按用神论喜忌（用神与生用神者为喜，克用神者、用神所克者为忌），未考虑从格、化格、专旺等特殊格局${special ? `（本盘${special.name}，按此格论的喜忌见下一节）` : ''}；若你的判断不同，请说明理由并以你的分析为准。`);
+  lines.push(`- 以上为程序估算：旺衰按得令、得地、得势三项打分（四支会成帮身的三合、三会局另加，权重按《滴天髓阐微》任铁樵命例校准），先按扶抑取定用神（调候附后），再按用神论喜忌（用神与生用神者为喜，克用神者、用神所克者为忌），${special ? `扶抑的喜忌不计特殊格局，本盘${special.name}，按此格论的喜忌见下一节` : '未考虑从格、化格、专旺等特殊格局'}；若你的判断不同，请说明理由并以你的分析为准。`);
   return lines;
 };
 
