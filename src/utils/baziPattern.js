@@ -69,6 +69,8 @@ const PATTERN_NAME = {
 const ZHUAN_WANG = { 木: '曲直格', 火: '炎上格', 土: '稼穑格', 金: '从革格', 水: '润下格' };
 /** 三合局之外同气的余气支：木局的辰（木余气）、火局的未、金局的戌、水局的丑；局齐全时这一支随局论。 */
 const YU_QI_ZHI = { 木: '辰', 火: '未', 金: '戌', 水: '丑' };
+/** 两气成象只认任注验过的三种生局：木火（甲午 丁卯 甲午 丁卯）、火土（丙午 戊戌 丙午 戊戌）、土金（戊戌 辛酉 戊戌 辛酉），按日主一行登记。 */
+const LIANG_QI_PAIRS = new Set(['木', '火', '土']);
 /** 日主本气的墓库支：木库未、火库戌、金库丑、水库辰（土寄四季，不另算）。 */
 const KU_ZHI = { 木: '未', 火: '戌', 金: '丑', 水: '辰' };
 /** 地支六合所化：相邻两支六合而化神正是日主本气时，合住的那一支随化神论（任注「子丑化土，斯真格象，已成稼穑」）。 */
@@ -441,6 +443,27 @@ export const detectSpecialPattern = (chart, strength, summary) => {
         : `日主${dayGan}${dayWuxing}${rootPart}，${stemPart}，${shiPart}。`,
       note: '从格以顺从旺势为用，喜忌与常法相反：扶身反而不利。是否真从还要看是否有微根、印星是否被制，请人工确认。',
     }, strength.roles, CONG_GODS[name]);
+  }
+
+  // 两气成象（《滴天髓·形象》「两气合而成象，象不可破也」）：天干与地支本气只有两行、各占一半，而日主是生的一方
+  //（甲午 丁卯 甲午 丁卯 木火、丙午 戊戌 丙午 戊戌 火土、戊戌 辛酉 戊戌 辛酉 土金），任注「凡两气成象者，要日主去生，或食或伤，
+  // 谓英华秀发，多致富贵；所不足者，运破局，不免于祸」，取食伤秀气为用。印局（「金水水木之印绶格，无秀可取」）、
+  // 财局（「身财均敌」）、杀局（「纯杀无制，日主受伤」）任注不作此论，仍按扶抑或专旺（丁卯 乙巳 丁卯 乙巳 木从火势，格成炎上）。
+  // 只认任注验过的木火、火土、土金三种：水木各半的两造任注都不作秀气论（癸亥 甲寅 癸亥 甲寅「寅亥化木，伤官太重」，
+  // 土金运反吉；壬寅 壬寅 壬寅 壬寅「仍作偏枯论」），金水生局没有命造可凭。
+  if (pillars.length === 4 && pillars.every((pillar) => pillar.gan) && LIANG_QI_PAIRS.has(dayWuxing)) {
+    const mainElements = pillars.flatMap((pillar) => [GAN_WUXING[pillar.gan], GAN_WUXING[pillar.hiddenGanDetails?.[0]?.gan] ?? ZHI_WUXING[pillar.zhi]]);
+    const counts = mainElements.reduce((acc, element) => ({ ...acc, [element]: (acc[element] ?? 0) + 1 }), {});
+    const kinds = Object.keys(counts);
+    const output = GENERATES[dayWuxing];
+    if (kinds.length === 2 && kinds.includes(dayWuxing) && kinds.includes(output) && Math.min(...Object.values(counts)) >= 3) {
+      return withRoleGods({
+        name: `两气成象（${dayWuxing}${output}相生）`,
+        kind: 'liangqi',
+        basis: `天干与地支本气只有${dayWuxing}、${output}两行（${counts[dayWuxing]} 比 ${counts[output]}），两气成象；日主${dayGan}${dayWuxing}是生的一方，以${output}（食伤）秀气为用。`,
+        note: '任注「凡两气成象者，要日主去生，或食或伤，谓英华秀发，多致富贵；所不足者，运破局，不免于祸」。旺衰仍按打分看，喜忌按此象论。',
+      }, strength.roles, { favorable: ['食伤', '比劫'], unfavorable: ['印', '官杀'], basis: '两气成象而日主去生，取食伤秀气为用，比劫助之；印克食伤、官杀克身都是破局（任注「运破局，不免于祸」）' });
+    }
   }
 
   // 地支会成三合、三会局的，按局的五行论（「亥卯未」木局里的未土不再算财根）：任注「此木局全，混一寅字，然四柱无金，
