@@ -1435,7 +1435,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                     卡片底边左半为天干、右半为地支对日主的
                                                     <span className="mx-1 inline-block size-2 rounded-sm bg-[#2d6b62] align-middle" aria-hidden="true" />喜
                                                     <span className="mx-1 inline-block size-2 rounded-sm bg-[#a33b30] align-middle" aria-hidden="true" />忌
-                                                    <span className="mx-1 inline-block size-2 rounded-sm bg-[#b9ad98] align-middle" aria-hidden="true" />平；地支与原局凑齐三会方、三合局的，按局的五行论。流年右上角的圆点同理。运以地支为重：运干是喜、运支是忌又克运干的（截脚，任注「支不载干，十年皆否」），右上角标<span className="mx-0.5 font-bold text-[#a33b30]">截</span>，整步运按忌论。
+                                                    <span className="mx-1 inline-block size-2 rounded-sm bg-[#b9ad98] align-middle" aria-hidden="true" />平；地支与原局凑齐三会方、三合局的，按局的五行论。流年右上角的圆点同理。运以地支为重：运干是喜、运支是忌又克运干的（截脚，任注「支不载干，则十年皆否」），右上角标<span className="mx-0.5 font-bold text-[#a33b30]">截</span>，整步运按忌论。
                                                     {favorBasis?.source === 'special' && (
                                                         <span className="block text-[#7f4b12]" data-testid="bazi-favor-basis">此盘{favorBasis.specialName}，大运流年与择日的喜忌按此格论（顺其气势为吉）；若不成格，以「五行与旺衰」一节的扶抑喜忌为准。</span>
                                                     )}
