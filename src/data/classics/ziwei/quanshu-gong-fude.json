@@ -504,8 +504,21 @@
       "applies": [
         {
           "module": "ziwei",
+          "limit": "流年",
           "palace": "福德",
-          "note": "岁君大小限过福德宫，逢吉享福，逢凶劳力辛苦。"
+          "note": "太岁（流年命宫）过福德宫"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "palace": "福德",
+          "note": "大限过福德宫"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "palace": "福德",
+          "note": "小限过福德宫"
         }
       ],
       "tags": [
