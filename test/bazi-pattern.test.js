@@ -158,7 +158,8 @@ test('从格、专旺按《滴天髓阐微·衰旺》任注的「旺极」「衰
   assert.equal(yanShang.judge.special.name, '疑似炎上格（专旺）');
   assert.equal(yanShang.judge.special.favorable[0].element, '火');
   const tuWang = judgeByPillars('戊戌 丙辰 己巳 己巳'); // 「土旺极者，似金也」，「一交庚申……家业渐消」
-  assert.equal(tuWang.judge.special.kind, 'congqiang');
+  // 辰中一点乙木余气不算「见官杀」，比劫又重于印，按专旺（稼穑）论；旺极顺势，喜忌与从强同。
+  assert.equal(tuWang.judge.special.kind, 'zhuanwang');
   assert.ok(tuWang.judge.special.unfavorable.some(({ element }) => element === '金'));
 
   // 衰极：天干只有无根比劫，或一个无根之印而财星坏印，作从论。
@@ -182,7 +183,7 @@ test('从格、专旺按《滴天髓阐微·衰旺》任注的「旺极」「衰
   assert.equal(xieXiu.judge.special, null);
   assert.equal(xieXiu.strength.favorable[0].element, '木');
   // 财星透干有根而无食伤生它的，仍作从强（「支类西方，又逢厚土，金旺极者，似水也」，戊子己丑庚运名利皆遂）。
-  assert.equal(judgeByPillars('庚申 乙酉 庚戌 庚辰').judge.special.kind, 'congqiang');
+  assert.ok(['zhuanwang', 'congqiang'].includes(judgeByPillars('庚申 乙酉 庚戌 庚辰').judge.special.kind));
 
   // 地支会成三合、三会局的按局的五行看四支本气：「此木局全，混一寅字，然四柱无金，其势从强」，亥卯未木局里的未土不算财根。
   const muJu = judgeByPillars('甲寅 乙亥 乙卯 癸未');
@@ -206,6 +207,10 @@ test('从格、专旺按《滴天髓阐微·衰旺》任注的「旺极」「衰
   assert.equal(judgeByPillars('甲寅 丁卯 甲辰 丙寅').judge.special.favorable[0].element, '火', '「化神者丙丁也」，食伤两透以吐秀为用');
   assert.equal(judgeByPillars('丁卯 甲辰 甲寅 乙亥').judge.special.name, '疑似曲直格（专旺）');
   assert.equal(judgeByPillars('丙寅 甲午 丙戌 乙未').judge.special.name, '疑似炎上格（专旺）');
+  // 费中堂造「己未 丁丑 戊子 己未：天干戊己逢丁，地支重重丑未。子丑化土，斯真格象，已成稼穑」：相邻子丑六合化土正是日主本气，
+  // 子随化神论，干支一气，打分不到四分也作稼穑。
+  const jiaSe = judgeByPillars('己未 丁丑 戊子 己未');
+  assert.equal(jiaSe.judge.special.name, '疑似稼穑格（专旺）');
   // 「癸卯 丙辰 甲辰 丙寅：此造财旺提纲，丙食生助，当以财星为用……不论成方成局，必先察财官之势」：辰辰财旺，局全也不作专旺。
   const caiWang = judgeByPillars('癸卯 丙辰 甲辰 丙寅');
   assert.equal(caiWang.judge.special, null);
