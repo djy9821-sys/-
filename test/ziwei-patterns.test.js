@@ -148,6 +148,11 @@ test('《紫微斗数全书》卷一定富局、定贵局、定贫贱局：照�
     ['1978-10-15', 1, '男', '一生孤贫格', '定贫贱局', /破军（陷）在命宫/],
     ['1999-8-2', 1, '女', '两重华盖格', '定贫贱局', /禄存坐命宫[\s\S]*生年化禄[\s\S]*遇地/],
     ['1952-10-23', 2, '女', '君子在野格', '定贫贱局', /擎羊（陷）[\s\S]*铃星（陷）/],
+    // 明禄暗禄、科明暗禄：原书「见前批注」而批注无明文，按通行解判（命宫见禄或科，六合宫见禄）。
+    ['1986-3-10', 10, '女', '明禄暗禄格', '定贵局', /明禄：禄存在命宫（巳）[\s\S]*暗禄：天同.*田宅（申），生年化禄，申与命宫巳六合/],
+    ['1978-4-6', 7, '女', '明禄暗禄格', '定贵局', /明禄：贪狼.*命宫（申），生年化禄[\s\S]*暗禄：禄存在子女（巳），巳与命宫申六合/],
+    // 甲年命在亥，武曲化科守命，禄存在寅，寅亥合：通行举例的那张盘。
+    ['1954-2-19', 3, '女', '科明暗禄格', '定贵局', /科明：武曲.*命宫（亥），生年化科[\s\S]*禄暗：禄存在田宅（寅），寅与命宫亥六合/],
   ];
   for (const [date, hour, gender, name, group, evidence] of cases) {
     const hit = analyzeZiweiPatterns(astro.bySolar(date, hour, gender, true, 'zh-CN')).find((item) => item.name === name);
@@ -158,8 +163,15 @@ test('《紫微斗数全书》卷一定富局、定贵局、定贫贱局：照�
     assert.match(hit.summary, /《紫微斗数全书》/);
     assert.match(hit.evidence.join('\n'), evidence);
   }
-  // 按安星法不可能成立、或原书写「见前批注」的格暂不收。
+  // 按安星法不可能成立、或原书写「见前批注」而又没有通行解的格暂不收。
   ['金舆扶驾格', '财荫夹印格', '财印夹禄格', '荫印拱身格', '文星暗拱格', '马头带剑格'].forEach((name) => assert.ok(!ZIWEI_PATTERN_NAMES.includes(name), name));
+  // 明禄暗禄、科明暗禄的「暗」取六合宫是通行解，结果里要写明不是原书原句；禄存守命而六合宫无禄的不算。
+  for (const name of ['明禄暗禄格', '科明暗禄格']) {
+    const hit = analyzeZiweiPatterns(astro.bySolar(name === '明禄暗禄格' ? '1986-3-10' : '1954-2-19', name === '明禄暗禄格' ? 10 : 3, '女', true, 'zh-CN')).find((item) => item.name === name);
+    assert.match(hit.source.rule, /批注无明文；通行解/);
+    assert.ok(hit.limitations.some((text) => /六合宫（暗合宫）.*通行的解法，不是原书原句/.test(text)), name);
+  }
+  assert.equal(analyzeZiweiPatterns(astro.bySolar('1999-8-2', 1, '女', true, 'zh-CN')).some((item) => item.name === '明禄暗禄格'), false, '禄存化禄都坐命（两重华盖），六合宫无禄，不是明禄暗禄');
   // 马头带剑「谓马有刃」：天马只在寅申巳亥，擎羊在禄存前一位、不入寅申巳亥，十个年干排下来两星从不同宫。
   const siMa = new Set(['寅', '申', '巳', '亥']);
   for (let year = 1984; year < 1994; year += 1) {
