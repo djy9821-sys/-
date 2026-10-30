@@ -369,7 +369,8 @@ export const analyzeLiuqin = (chart, strength, { special = null } = {}) => {
   const neutralBand = !basis.favorable?.length && !basis.unfavorable?.length;
   const scores = strength.scores ?? {};
   const roleElement = (role) => Object.keys(basis.roles).find((key) => basis.roles[key] === role);
-  const body = basis.source === 'special'
+  // 从、化、专旺按格论身旺身弱；两气成象只定喜忌（任注「旺衰仍看打分」），身旺身弱照旺衰档。
+  const body = basis.source === 'special' && basis.specialKind !== 'liangqi'
     ? (STRONG_SPECIAL.test(basis.specialName ?? '') ? 'strong' : 'weak')
     : /强/.test(strength.band ?? '') ? 'strong' : /弱/.test(strength.band ?? '') ? 'weak' : 'even';
   const ctx = {
