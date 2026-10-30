@@ -162,6 +162,22 @@ test('身旺：印多取财破印；比劫多取官杀，官杀无力取食伤�
   assert.deepEqual(elements(noOfficer.unfavorable), ['金', '土']);
 });
 
+test('身旺印多、财星有力，官星透出有力又不比印重：足以用官，财、食伤次之（任注「日元生旺，足以用官」）', () => {
+  // 庚午 己卯 壬申 己酉（《滴天髓阐微》命造）：任注「喜其官印通根，年支逢财，伤官有制有化，日元生旺，足以用官」。
+  const ren = analyzeStrength(chartByPillars('庚午 己卯 壬申 己酉'));
+  assert.equal(ren.band, '中和');
+  assert.equal(ren.basis, '日主中和略偏旺，身旺印多，官星透出有力，足以用官，财、食伤次之');
+  assert.equal(ren.favorable[0].element, '土');
+  // 壬戌 戊申 庚寅 丙戌（同书命造，书用火）：丙火透时，寅、戌有根；印土虽多，官星不比印重。
+  assert.equal(analyzeStrength(chartByPillars('壬戌 戊申 庚寅 丙戌')).favorable[0].element, '火');
+  // 官杀比印还重的不在此列，仍按原取法取财破印：丙寅 乙未 辛酉 丙申，两丙透出，官杀 3.5 分重于印 2.6 分。
+  const heavy = chartOf(1986, 7, 16, 8);
+  assert.equal(ganZhiOf(heavy), '丙寅 乙未 辛酉 丙申');
+  const sha = analyzeStrength(heavy);
+  assert.equal(sha.basis, '身旺印多，取财破印，食伤、官杀次之');
+  assert.equal(sha.favorable[0].element, '木');
+});
+
 test('旺极宜泄：丙午 甲午 丁巳 丙午 5 分极强，先取食伤；用神土，水为土所克，调候之水让位', () => {
   const chart = chartOf(2026, 6, 12, 6);
   assert.equal(ganZhiOf(chart), '丙午 甲午 丁巳 丙午');
