@@ -38,7 +38,7 @@ const stemLabel = (name = '') => name.replace('柱', '干');
 const rootGroupsOf = (roots = []) => {
     const groups = new Map();
     roots.forEach((root) => {
-        const group = groups.get(root.key) ?? { key: root.key, label: `${branchLabel(root.name)}${root.zhi}`, roles: [], points: 0 };
+        const group = groups.get(root.key) ?? { key: root.key, label: `${branchLabel(root.name)}${root.zhi}${root.chong ? `（逢${root.chong}冲，打六折）` : ''}`, roles: [], points: 0 };
         if (!group.roles.includes(root.role)) group.roles.push(root.role);
         group.points += root.points;
         groups.set(root.key, group);
@@ -95,7 +95,7 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster, 
                     <p className="mt-1 text-[11px] leading-5 text-[#9b9185]">刻度：2 分及以下偏弱，2.5 分及以上偏强，其间中和；0.5 分及以下极弱，4 分及以上极强</p>
                 </div>
                 <ul className="mt-3 space-y-1.5">
-                    <Check ok={score.ling > 0} label="得令" detail={strength.monthMain ? `月令本气 ${strength.monthMain.gan}（${strength.monthMain.role}）${score.lingYuqi ? `不帮日主，但${score.lingYuqi.zhi}中藏${score.lingYuqi.gan}（比劫余气），${points(score.ling)}` : score.ling > 0 ? `帮扶日主，${points(score.ling)}` : '不帮日主，0 分'}` : '—'} />
+                    <Check ok={score.ling + (score.xiuQiu?.points ?? 0) > 0} label="得令" detail={strength.monthMain ? `月令本气 ${strength.monthMain.gan}（${strength.monthMain.role}）${score.lingYuqi ? `不帮日主，但${score.lingYuqi.zhi}中藏${score.lingYuqi.gan}（比劫余气），${points(score.ling)}` : score.ling > 0 ? `帮扶日主，${points(score.ling)}` : '不帮日主，0 分'}${score.xiuQiu ? `；月令是${score.xiuQiu.role}，日主${score.xiuQiu.state}（旺相休囚死），${points(score.xiuQiu.points)}` : ''}` : '—'} />
                     <Check ok={score.di > 0} label="得地" detail={rootGroups.length ? `${rootGroups.map((group) => `${group.label}（${group.roles.join('、')}）`).join('、')}，共 ${points(score.di)}` : '年、日、时支没有比劫或印的根气（月支算在得令里）'} />
                     <Check ok={score.shi > 0} label="得势" detail={score.stems.length ? `${score.stems.map((item) => `${stemLabel(item.name)}${item.gan}（${item.role}）`).join('、')}，共 ${points(score.shi)}` : '年、月、时干没有比劫或印相帮'} />
                     {score.hourEstimate > 0 && <Check mark="≈" label="时辰不详" detail={`时柱按平均 ${points(score.hourEstimate)}估`} />}
@@ -129,7 +129,7 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster, 
                 </p>
             )}
             <p className="rounded-lg bg-[#e9dfcd]/55 px-3 py-2 text-[11px] leading-5 text-[#6f665d] sm:text-xs">
-                以上为程序估算的参考：五行力量按天干每字 1 分（日干不计）、藏干本气 1 / 中气 0.5 / 余气 0.3、月令加倍计；旺衰按得令、得地、得势三项打分，权重按《滴天髓阐微》任铁樵明说旺衰的命造校准；喜用按扶抑取用（有力的排前），调候附在后面。从格、化格、专旺等特殊格局需要人工判断。
+                以上为程序估算的参考：五行力量按天干每字 1 分（日干不计）、藏干本气 1 / 中气 0.5 / 余气 0.3、月令加倍计；旺衰按得令、得地、得势三项打分（月令是财、官杀的减分，根被紧贴的一支冲克的打折），权重按《滴天髓阐微》任铁樵命造校准；先按扶抑取定用神（有力的排前，中和按略偏的一边取），再论喜忌：用神与生用神者为喜，克用神者、用神所克者为忌；调候附在后面。从格、化格、专旺等特殊格局需要人工判断。
             </p>
         </div>
     );

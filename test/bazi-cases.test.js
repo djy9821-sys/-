@@ -40,7 +40,7 @@ test('八字命例：十神或类别换成五行；排盘四柱与命例一致�
   assert.equal(cong.program.useGodSource, 'special');
   assert.equal(cong.program.class, '弱');
   assert.equal(cong.checks.useGod, 'same');
-  assert.equal(cong.program.favorable[0], '木', '扶抑喜忌仍照常给出');
+  assert.equal(cong.program.favorable[0], '水', '扶抑喜忌仍照常给出（身弱官杀重，取印）');
   // 格局按类比：「化气格」对程序的「某某化某格」，从强对专旺；从财不等于从杀。
   assert.ok(samePatternFamily('疑似甲己化土格', '化气格'));
   assert.ok(samePatternFamily('疑似曲直格（专旺）', '从强格'));
@@ -73,7 +73,8 @@ test('八字命例的岁运：原书点名的大运、流年按程序喜忌判�
   });
   assert.deepEqual(good.checks.yun, ['same', 'same']);
   assert.deepEqual(good.yun.map((item) => item.program), ['吉', '吉']);
-  // 任注：「初运己巳戊辰，土旺之地，财喜辐辏……交丁卯，土金两伤，连遭回禄三次」——程序按身弱扶抑判，一平一反。
+  // 任注：「初运己巳戊辰，土旺之地，财喜辐辏……交丁卯，土金两伤，连遭回禄三次」——任注说此造旺、用辛金，
+  // 程序算作偏弱、夏月调候取子水为用，一反一平（留作已知差异）。
   const mixed = evaluateBaziCase({
     id: 'bazi.test.006',
     pillars: ['己卯', '辛未', '丙子', '辛卯'],
@@ -83,7 +84,7 @@ test('八字命例的岁运：原书点名的大运、流年按程序喜忌判�
       { ganZhi: '丙寅', kind: '大运', verdict: '平', quote: '丙寅妻子皆克' },
     ] },
   });
-  assert.deepEqual(mixed.checks.yun, ['near', 'reversed'], '原书说平的不比');
+  assert.deepEqual(mixed.checks.yun, ['reversed', 'near'], '原书说平的不比');
   assert.equal(mixed.yun[2].check, null);
 });
 
@@ -140,9 +141,9 @@ test('六亲应在某步运、某个流年的（运中应事）另记一行', ()
 });
 
 // 古籍命例（src/data/cases/bazi.json）里写了旺衰、用神的，拿来卡住旺衰与喜用算法的一致率。
-// 下限按《滴天髓阐微》任铁樵命造定，留了余量。第五批（六亲论从象、化象、顺局诸篇）并入后：
-// 旺衰 87 造一致 71、相反 8（相反的多是「水多木漂」之类，书说弱、程序按印多算旺，取用一样），
-// 喜用 103 造一致 68、相反 11；书上点名从、化、专旺的 30 造，程序认出同类 23 造
+// 下限按《滴天髓阐微》任铁樵命造定，留了余量。522 造全部并入、喜忌改按用神定之后：
+// 旺衰 189 造一致 139、相反 14（相反的多是「水多木漂」之类，书说弱、程序按印多算旺，取用一样），
+// 喜用 258 造一致 168、相反 33（相反多出在中和偏向一边取用的造）；书上点名从、化、专旺的 43 造，程序认出同类 26 造
 // （认不出的是假从、顺局「从儿不论身强弱」与化神失令的假化，任注各有特别的理由）。
 // 新命例并进来跌破下限时，先用 node scripts/bazi-cases.mjs 看是哪些造、为什么，再决定改算法还是改下限。
 const caseEntries = loadDataFiles().cases

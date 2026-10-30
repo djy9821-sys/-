@@ -144,12 +144,13 @@ const strengthLines = (chart, strength, special = null) => {
   const rootsByBranch = new Map();
   score.roots.forEach((root) => {
     const label = `${root.name.replace('柱', '支')}${root.zhi}`;
-    rootsByBranch.set(label, [...(rootsByBranch.get(label) ?? []), `${root.gan}${root.role}${root.position}`]);
+    const branch = `${label}${root.chong ? `，逢${root.chong}冲打折` : ''}`;
+    rootsByBranch.set(branch, [...(rootsByBranch.get(branch) ?? []), `${root.gan}${root.role}${root.position}`]);
   });
   const lines = [
     `- 五行力量（天干每字 1 分，日干不计；藏干本气 1、中气 0.5、余气 0.3；月令加倍）：${ELEMENTS.map((element) => `${element}${strength.percents[element]}%`).join(' ')}（比劫与印合占 ${support}%）`,
-    `- 日主${chart.dayMaster.gan}${chart.dayMaster.wuxing}：${strength.band}（旺衰打分 ${score.total}：得令 ${score.ling} + 得地 ${score.di} + 得势 ${score.shi}${score.hourEstimate ? ` + 时辰不详按平均 ${score.hourEstimate}` : ''}；2 分及以下偏弱，2.5 分及以上偏强）`,
-    `- 得令：${score.lingYuqi ? '得余气' : score.ling > 0 ? '是' : '否'}${strength.monthMain ? `（月令本气 ${strength.monthMain.gan}，为${strength.monthMain.role}${score.lingYuqi ? `；${score.lingYuqi.zhi}中藏${score.lingYuqi.gan}，为比劫余气` : ''}）` : ''}`,
+    `- 日主${chart.dayMaster.gan}${chart.dayMaster.wuxing}：${strength.band}（旺衰打分 ${score.total}：得令 ${score.ling}${score.xiuQiu ? ` − 月令${score.xiuQiu.state} ${-score.xiuQiu.points}` : ''} + 得地 ${score.di} + 得势 ${score.shi}${score.hourEstimate ? ` + 时辰不详按平均 ${score.hourEstimate}` : ''}；2 分及以下偏弱，2.5 分及以上偏强，其间中和、按略偏的一边取用）`,
+    `- 得令：${score.lingYuqi ? '得余气' : score.ling > 0 ? '是' : '否'}${strength.monthMain ? `（月令本气 ${strength.monthMain.gan}，为${strength.monthMain.role}${score.lingYuqi ? `；${score.lingYuqi.zhi}中藏${score.lingYuqi.gan}，为比劫余气` : ''}${score.xiuQiu ? `；日主${score.xiuQiu.state}于月令（旺相休囚死）` : ''}）` : ''}`,
     `- 得地：${rootsByBranch.size ? [...rootsByBranch].map(([label, roots]) => `${label}（${roots.join('、')}）`).join('、') : '年、日、时支无根'}`,
     `- 得势：${score.stems.length ? score.stems.map((item) => `${item.name.replace('柱', '干')}${item.gan}（${item.role}）`).join('、') : '否'}`,
   ];
@@ -158,7 +159,7 @@ const strengthLines = (chart, strength, special = null) => {
   if (strength.favorable.length) lines.push(`- 喜用参考：${elementList(strength.favorable)}`);
   if (strength.unfavorable.length) lines.push(`- 忌神参考：${elementList(strength.unfavorable)}`);
   if (strength.hint) lines.push(`- 提示：${strength.hint}`);
-  lines.push(`- 以上为程序估算：旺衰按得令、得地、得势三项打分（权重按《滴天髓阐微》任铁樵命例校准），喜用按扶抑取用、调候附后，未考虑从格、化格、专旺等特殊格局${special ? `（本盘${special.name}，按此格论的喜忌见下一节）` : ''}；若你的判断不同，请说明理由并以你的分析为准。`);
+  lines.push(`- 以上为程序估算：旺衰按得令、得地、得势三项打分（权重按《滴天髓阐微》任铁樵命例校准），先按扶抑取定用神（调候附后），再按用神论喜忌（用神与生用神者为喜，克用神者、用神所克者为忌），未考虑从格、化格、专旺等特殊格局${special ? `（本盘${special.name}，按此格论的喜忌见下一节）` : ''}；若你的判断不同，请说明理由并以你的分析为准。`);
   return lines;
 };
 

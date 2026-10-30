@@ -67,6 +67,14 @@ export const findSolarDateByPillars = (pillars, { from = 1600, to = 2100 } = {})
   return null;
 };
 
+/**
+ * 喜用的固定留集：写了用神的命造里编号尾数是 0、4、7 的（除早先已逐造讨论过的 120、344），只作验收、不拿来定规则。
+ * 调旺衰、取用规则时只看非留集；改完再看留集有没有一起变好，防止只是凑合了眼前这些造。
+ */
+export const USE_GOD_HOLDOUT_SEEN = Object.freeze(['bazi.ditian.120', 'bazi.ditian.344']);
+export const isUseGodHoldout = (entry) => Boolean(entry?.expected?.useGod) && /[047]$/.test(entry.id ?? '')
+  && !USE_GOD_HOLDOUT_SEEN.includes(entry.id);
+
 /** 程序的旺衰档归成命例的三类：旺 / 弱 / 中和。 */
 const strengthClassOf = (band) => (band === '偏强' || band === '极强' ? '旺' : band === '偏弱' || band === '极弱' ? '弱' : '中和');
 /** 从格、专旺格在旺衰上算哪一边（命例按「从强为旺、从弱为弱」填）。 */
