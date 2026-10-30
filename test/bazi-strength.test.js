@@ -86,7 +86,10 @@ test('身弱官杀重：取印化杀（印透干无根而杀重有源，仍算�
   assert.equal(bing.tiaoHouNote, '调候宜水，水生用神，同列喜用');
   assert.deepEqual(elements(bing.unfavorable), ['金', '土']);
 
-  const gui = analyzeStrength(chartOf(1985, 2, 13, 0));
+  // 壬戌 壬寅 癸未 戊午：土重（4.1）为病，金印无力，寅木食伤有力而不重（2.3），取食伤制杀。
+  const guiChart = chartOf(1982, 3, 1, 6);
+  assert.equal(ganZhiOf(guiChart), '壬戌 壬寅 癸未 戊午');
+  const gui = analyzeStrength(guiChart);
   assert.equal(gui.band, '偏弱');
   assert.equal(gui.basis, '身弱官杀重，印星无力，取食伤制杀');
   assert.equal(gui.favorable[0].element, '木');
@@ -94,6 +97,10 @@ test('身弱官杀重：取印化杀（印透干无根而杀重有源，仍算�
   // 用食伤制杀时，印（金）克食伤为忌神；调候宜金也让位于用神。
   assert.deepEqual(elements(gui.unfavorable), ['金', '土']);
   assert.equal(gui.tiaoHouNote, '调候宜金，但金克用神，以用神为重，不作喜用');
+  // 乙丑 戊寅 癸未 壬子：土重而寅木食伤也重（3.3 分又透乙），克泄交加，先取比劫壬水帮身（见「调候让位于扶抑」一条的任注）。
+  const jiaoJia = analyzeStrength(chartOf(1985, 2, 13, 0));
+  assert.match(jiaoJia.basis, /克泄交加，取比劫帮身，食伤制杀次之/);
+  assert.deepEqual(elements(jiaoJia.favorable).slice(0, 2), ['水', '木']);
 
   // 找病时透干的字另加半分：地支土气（3.6）略多于金（3.5），但庚金并透，才是病。
   // 任注「庚金并透，通根砍伐……更妙丙火独透，制杀扶身」，用火。
@@ -233,6 +240,26 @@ test('寒暖调候为急：冬月、正月宜火，夏月宜水，这一火、�
   // 调候之神不是火、水（丙火生子月，原书调候用壬）的，不按寒暖提前。
   const bing = analyzeStrength(chartOf(1996, 12, 15, 6));
   assert.equal(bing.favorable[0].element, '木');
+});
+
+test('调候让位于扶抑：身弱而官杀重的冬金，火只是暖局；身旺比劫多而官杀当令的，「真神得用」，不急调候', () => {
+  // 熊中丞造「丁巳 壬子 辛巳 丁酉：金寒水冷，过于泄气，全赖酉时扶身……天干丁火不过取其敌寒解冻，非用丁火也。用神必在酉金」：
+  // 丁火两透、巳巳为根（官杀 4 分），杀重身轻，不作调候为急；印无力而壬水又重（克泄交加），先取比劫金帮身。
+  const xiong = analyzeStrength(chartByPillars('丁巳 壬子 辛巳 丁酉'));
+  assert.doesNotMatch(xiong.tiaoHouNote, /调候为急/);
+  assert.equal(xiong.favorable[0].element, '金');
+  assert.match(xiong.basis, /克泄交加，取比劫帮身/);
+  // 「庚戌 壬午 丙子 壬辰：月时两透壬水，日主三面受敌……全赖午火旺刃当权为用，更喜戌之燥土」：夏月调候之水正是重杀，不急；比劫火第一、食伤土次之。
+  const bingZi = analyzeStrength(chartByPillars('庚戌 壬午 丙子 壬辰'));
+  assert.doesNotMatch(bingZi.tiaoHouNote, /调候为急/);
+  assert.deepEqual(elements(bingZi.favorable).slice(0, 2), ['火', '土']);
+  // 「庚申 壬午 辛酉 癸巳：谓午火真神得用……更嫌壬癸覆之」：辛金比劫多，午火官杀当令，扶抑正取官杀制劫，壬癸不按夏月调候提前。
+  const zhen = analyzeStrength(chartByPillars('庚申 壬午 辛酉 癸巳'));
+  assert.doesNotMatch(zhen.tiaoHouNote, /调候为急/);
+  assert.equal(zhen.favorable[0].element, '火');
+  assert.ok(!elements(zhen.favorable).includes('水'), '壬癸不列喜用');
+  // 官杀只一位、不重的冬金（甲申 丙子 庚辰 戊寅）照旧调候为急，见上一条。
+  assert.match(analyzeStrength(chartByPillars('甲申 丙子 庚辰 戊寅')).tiaoHouNote, /调候为急/);
 });
 
 test('中和不再空着喜忌：2.15 分及以上按偏旺取，以下按偏弱取，取用思路写明略偏哪边', () => {
