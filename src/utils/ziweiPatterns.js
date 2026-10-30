@@ -303,6 +303,23 @@ const strictRules = [
     },
   },
   {
+    id: 'sun-moon-both-bright',
+    name: '日月并明格',
+    // 前批注在卷三太阳太阴条下：「日巳月酉，丑宫命步蟾宫」；又「日月守命不如照合并明」。
+    // 按安星法太阳在巳则太阴必在酉（紫微在申），丑宫命坐天梁，日在官禄、月在财帛拱照。
+    source: makeSource(
+      QUANSHU_TONGYUAN,
+      '太阳太阴',
+      '定贵局「日月并明：见前批注」；前批注：日巳月酉，丑宫命步蟾宫。',
+    ),
+    evaluate: (facts) => {
+      const sun = findMajorStar([facts.byBranch.get('巳')], '太阳');
+      const moon = findMajorStar([facts.byBranch.get('酉')], '太阴');
+      if (facts.root.earthlyBranch !== '丑' || !sun || !moon) return null;
+      return ['命宫地支为丑', describeStar(sun), describeStar(moon)];
+    },
+  },
+  {
     id: 'sun-moon-together',
     name: '日月同临格',
     source: makeSource(
@@ -370,7 +387,7 @@ const quanshu = (group, name, text) => ({ ...QUANSHU_SOURCES[group], section: `$
 
 /**
  * 《紫微斗数全书》卷一定富局、定贵局、定贫贱局里定义明白、按安星法又能成立的格，照原书一句判。
- * 原书写「见前批注」的（日月并明、文星暗拱、明禄暗禄、科明暗禄），和按安星法不可能成立的
+ * 原书写「见前批注」而批注又没有明文的（文星暗拱、明禄暗禄、科明暗禄），和按安星法不可能成立的
  * （财荫夹印：武曲不会与天相相邻；财印夹禄：梁相相邻，夹不了第三宫；金舆扶驾：太阳不会与紫微相邻；
  * 荫印拱身：梁相相邻，不能同在三方四正；马头带剑「谓马有刃」：天马只在寅申巳亥，擎羊在禄存前一位，
  * 不入寅申巳亥，两星不能同宫），以及字义两可的（禄马佩印、日月藏辉）暂不收，待考。
