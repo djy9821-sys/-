@@ -22,7 +22,9 @@ import {
   conditionMatches,
   liuyaoReadingContextOf,
   ziweiNeighborsOf,
+  ziweiOppositeOf,
   ziweiPalaceContextOf,
+  ziweiSurroundOf,
 } from '../src/data/classics/library.js';
 import { LIUYAO_TOPIC_NAMES, LIUYAO_TOPIC_PENDING } from '../src/data/classics/topicNames.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
@@ -124,11 +126,16 @@ function* ziweiContexts(count) {
     const patterns = [...analyzeZiweiPatterns(horoscope), ...analyzeZiweiStructures(horoscope)].map((item) => item.name);
     const genderLabel = gender === 'male' ? '男' : '女';
     for (const palace of horoscope.palaces) {
-      const neighbors = ziweiNeighborsOf(horoscope.palaces, palace);
-      yield ziweiPalaceContextOf(palace, { gender: genderLabel, patterns: palace.name === '命宫' ? patterns : [], neighbors });
+      // 与界面、提示词一样：带左右两邻（夹）、对宫（空宫借星）、三方四正（会、拱、照）
+      const around = {
+        neighbors: ziweiNeighborsOf(horoscope.palaces, palace),
+        opposite: ziweiOppositeOf(horoscope.palaces, palace),
+        surround: ziweiSurroundOf(horoscope.palaces, palace),
+      };
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, patterns: palace.name === '命宫' ? patterns : [], ...around });
       // 古籍弹层还能切到「当前大限 / 今年流年」：任何一宫都可能是那一层的命宫
-      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '大限', neighbors });
-      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '流年', neighbors });
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '大限', ...around });
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '流年', ...around });
     }
   }
 }
