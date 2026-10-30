@@ -122,14 +122,14 @@ const yearStemOf = (year) => GAN[(year - 4 + 100) % 10];
 const yearBranchOf = (year) => ZHI[(year - 4 + 120) % 12];
 /**
  * 看大限、流年那一层时，排盘库那一层的运限对象（流曜、四化）：取命主 2 到 80 岁间随机一年（流曜随流年干支变，多试几次就能遇到）。
- * 返回 { 大限: scope, 流年: scope }，排盘库没有 horoscope() 时为空。
+ * 返回 { 大限: scope, 小限: scope, 流年: scope }，排盘库没有 horoscope() 时为空。
  */
 const flowScopesOf = (horoscope) => {
   if (typeof horoscope?.horoscope !== 'function') return {};
   const birthYear = Number(String(horoscope.solarDate ?? '').split('-')[0]) || 1980;
   try {
     const h = horoscope.horoscope(`${birthYear + pickInt(2, 80)}-${pad(pickInt(1, 12))}-${pad(pickInt(1, 28))} 12:00`);
-    return { 大限: h?.decadal ?? null, 流年: h?.yearly ?? null };
+    return { 大限: h?.decadal ?? null, 小限: h?.age ?? null, 流年: h?.yearly ?? null };
   } catch {
     return {};
   }
@@ -209,6 +209,7 @@ function* ziweiContexts(count) {
       yield ziweiPalaceContextOf(palace, { gender: genderLabel, patterns: palace.name === '命宫' ? patterns : [], ...around });
       // 古籍弹层还能切到「当前大限 / 今年流年」：任何一宫都可能是那一层的命宫；带该层的流曜与四化
       yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '大限', ...around, flow: ziweiFlowOf(scopes.大限, palace, around.surround) });
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '小限', ...around, flow: ziweiFlowOf(scopes.小限, palace, around.surround) });
       yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '流年', ...around, flow: ziweiFlowOf(scopes.流年, palace, around.surround) });
     }
   }
@@ -260,7 +261,7 @@ const MODULES = {
 };
 /** 程序暂不支持、注定匹配不上的条件：说明原因。 */
 const unsupportedReason = (module, cond) => {
-  if (module === 'ziwei' && cond.limit && !['本命', '大限', '流年'].includes(cond.limit)) return `程序的古籍弹层只有本命盘、当前大限、今年流年三层，还没有「${cond.limit}」的上下文`;
+  if (module === 'ziwei' && cond.limit && !['本命', '大限', '小限', '流年'].includes(cond.limit)) return `程序的古籍弹层只有本命盘、当前大限、今年小限、今年流年四层，还没有「${cond.limit}」的上下文`;
   if (module === 'liuyao') {
     const pending = toArray(cond.topic).filter((name) => LIUYAO_TOPIC_PENDING.includes(name));
     if (pending.length && pending.length === toArray(cond.topic).length) return `问事类别「${pending.join('、')}」程序还没有`;
