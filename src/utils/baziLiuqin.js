@@ -168,10 +168,23 @@ const amountOf = (pillars, scores, element) => {
     light: score < AMOUNT.light,
     has: score >= AMOUNT.has,
     heavy: score >= AMOUNT.heavy,
-    // 伏：地支藏着、天干不透；见：天干透出。
+    // 伏：地支藏着、天干不透。
     hidden: score > 0 && !stems.length,
-    stem: stems.length > 0,
   };
+};
+
+const ZHI_CHONG = { 子: '午', 午: '子', 丑: '未', 未: '丑', 寅: '申', 申: '寅', 卯: '酉', 酉: '卯', 辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳' };
+const holds = (pillar, element) => (pillar.hiddenGanDetails ?? []).some((detail) => GAN_WUXING[detail.gan] === element);
+
+/**
+ * 财星够不够得着印（任注「财星坏印」与「财印相隔」之别）：财透干；或印透干而坐下藏财；
+ * 或藏财之支与藏印之支紧贴相冲。三样都没有，就是财印相隔。
+ */
+const caiMeetsYinOf = (pillars, cai, yin) => {
+  if (!cai || !yin) return false;
+  if (pillars.some((pillar) => pillar.key !== 'day' && GAN_WUXING[pillar.gan] === cai)) return true;
+  if (pillars.some((pillar) => pillar.key !== 'day' && GAN_WUXING[pillar.gan] === yin && holds(pillar, cai))) return true;
+  return pillars.some((a) => pillars.some((b) => adjacent(a.key, b.key) && ZHI_CHONG[a.zhi] === b.zhi && holds(a, cai) && holds(b, yin)));
 };
 
 /**
@@ -206,8 +219,9 @@ const QI_RULES = [
   { when: ({ bi, cai, shi, yin }) => bi.heavy && cai.light && shi.has && yin.has, tone: 'bad', cond: '劫刃重，财星轻，有食伤而逢枭印', verdict: '妻有凶险', original: '主妻遭凶死' },
   { when: ({ bi, cai, guan }) => cai.light && guan.none && bi.heavy, tone: 'bad', cond: '财神轻而无官，比劫多', verdict: '克妻', original: '主克妻' },
   { when: ({ body, bi, cai }) => cai.heavy && body === 'weak' && bi.light, tone: 'bad', cond: '财神重而身弱，无比劫', verdict: '克妻', original: '主克妻' },
-  // 「见财星」指财星透出（与「微伏财」相对）：任注「甲子 丙寅 戊寅 己未」杀旺用印，财藏年支，「喜其财印相隔，生生不悖」，夫妇齐眉。
-  { when: ({ guan, cai, yongRole }) => guan.heavy && yongRole === '印' && cai.has && cai.stem, tone: 'bad', cond: '官杀旺而用印，见财星', verdict: '妻宫不美、有刑克', original: '主妻陋而克' },
+  // 「见财星」要财星够得着印（坏印）：财透干，或印干坐下藏财，或藏财之支紧贴冲印之支；财印相隔的不算
+  // （任注「甲子 丙寅 戊寅 己未」杀旺用印，财藏年支，「喜其财印相隔，生生不悖」，夫妇齐眉）。
+  { when: ({ guan, cai, yongRole, caiMeetsYin }) => guan.heavy && yongRole === '印' && cai.has && caiMeetsYin, tone: 'bad', cond: '官杀旺而用印，见财星', verdict: '妻宫不美、有刑克', original: '主妻陋而克' },
   { when: ({ cai, guan, shi, yin }) => cai.faint && guan.heavy && shi.none && yin.has, tone: 'bad', cond: '财星微，官杀旺，无食伤，有印绶', verdict: '妻多病弱', original: '主妻有弱病' },
 ];
 
@@ -366,6 +380,7 @@ export const analyzeLiuqin = (chart, strength, { special = null } = {}) => {
     cai: amountOf(pillars, scores, roleElement('财')),
     guan: amountOf(pillars, scores, roleElement('官杀')),
     yongRole: basis.roles[basis.favorable[0]?.element] ?? null,
+    caiMeetsYin: caiMeetsYinOf(pillars, roleElement('财'), roleElement('印')),
     // 火炎土燥（见 ZAO_RULE）：日干不是壬癸，水 0 分，无辰、丑湿土，火重、土也不轻。
     zao: !['壬', '癸'].includes(byKey.day?.gan) && !((scores.水 ?? 0) > 0) && !pillars.some((pillar) => pillar.zhi === '辰' || pillar.zhi === '丑')
       && (scores.火 ?? 0) >= AMOUNT.heavy && (scores.土 ?? 0) >= ZAO_EARTH,
