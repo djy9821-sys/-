@@ -65,18 +65,38 @@ export const juOfZhi = (zhi, zhis = []) => {
   return found ? { ...found, others: found.members.filter((member) => member !== zhi) } : null;
 };
 
+const CONTROLS = { 木: '土', 火: '金', 土: '水', 金: '木', 水: '火' };
+
+/**
+ * 大运的盖头、截脚（《滴天髓·岁运》任注）：运「以地支为重，要天干不背」。
+ * - 截脚：天干是喜，地支是忌而克天干（喜木运遇甲申、乙酉），「支不载干，则十年皆否」，整步运按忌论。
+ * - 盖头：地支是喜，天干是忌而克地支（喜木运遇庚寅、辛卯），「虽有十分之吉，亦减其半」，仍是喜忌参半。
+ * 地支与原局会局的，按局的五行看克不克。
+ */
+const coverOf = (gan, zhi) => {
+  if (gan.tone === 'good' && zhi.tone === 'bad' && CONTROLS[zhi.element] === gan.element) {
+    return { kind: '截脚', text: `截脚：地支${zhi.element}克天干${gan.element}，任注「支不载干，十年皆否」，整步运按忌论` };
+  }
+  if (gan.tone === 'bad' && zhi.tone === 'good' && CONTROLS[gan.element] === zhi.element) {
+    return { kind: '盖头', text: `盖头：天干${gan.element}克地支${zhi.element}，任注「虽有十分之吉，亦减其半」` };
+  }
+  return null;
+};
+
 /**
  * 某柱天干、地支对日主的喜忌。
  * @param {object} item 大运或流年（gan、zhi）
  * @param {object} strength analyzeStrength 的结果
- * @param {{ zhis?: string[] }} [options] 与之会局的地支（原局四支，流年再加大运支）；地支凑齐会局的按局的五行论
+ * @param {{ zhis?: string[], daYun?: boolean }} [options] 与之会局的地支（原局四支，流年再加大运支）；地支凑齐会局的按局的五行论。
+ *   daYun 为真时看盖头、截脚（见 coverOf），截脚的整步运按忌论。
  */
-export const describeFavor = (item, strength, { zhis = [] } = {}) => {
+export const describeFavor = (item, strength, { zhis = [], daYun = false } = {}) => {
   if (!item?.gan || !strength) return null;
   const gan = elementToneOf(GAN_WUXING[item.gan], strength);
   const ju = juOfZhi(item.zhi, zhis);
   const zhi = ju ? { ...elementToneOf(ju.element, strength), ju } : elementToneOf(ZHI_WUXING[item.zhi], strength);
-  return { gan, zhi, overall: overallTone(gan, zhi) };
+  const cover = daYun ? coverOf(gan, zhi) : null;
+  return { gan, zhi, cover, overall: cover?.kind === '截脚' ? 'bad' : overallTone(gan, zhi) };
 };
 
 const natalZhisOf = (chart) => (chart?.pillars ?? []).map((pillar) => pillar.zhi).filter(Boolean);
@@ -112,9 +132,19 @@ export const getLiuNianMarks = (liuNian, { chart, daYun = null, strength = null 
 };
 
 /** 大运的喜忌（地支与原局会局的按局论）。 */
-export const getDaYunMarks = (daYun, { strength = null, chart = null } = {}) => ({ favor: describeFavor(daYun, strength, { zhis: natalZhisOf(chart) }) });
+export const getDaYunMarks = (daYun, { strength = null, chart = null } = {}) => ({ favor: describeFavor(daYun, strength, { zhis: natalZhisOf(chart), daYun: true }) });
 
 const TONE_TEXT = { good: '喜', bad: '忌', neutral: '平' };
+
+/** 大运喜忌一句话：「天干丙火喜（印） · 地支子水忌（官杀）；截脚：……」。 */
+export const describeDaYunFavor = (daYun, favor) => {
+  if (!daYun || !favor) return '';
+  const parts = [
+    `天干${daYun.gan}${favor.gan.element}${TONE_TEXT[favor.gan.tone]}（${favor.gan.role}）`,
+    `${zhiFavorText(daYun.zhi, favor.zhi)}${TONE_TEXT[favor.zhi.tone]}（${favor.zhi.role}）`,
+  ];
+  return `${parts.join(' · ')}${favor.cover ? `；${favor.cover.text}` : ''}`;
+};
 
 /** 一句话说明：「丙午流年：冲太岁 · 天干丙火喜（印）· 地支午火忌（食伤）」 */
 export const describeYearMarks = (liuNian, marks) => {
