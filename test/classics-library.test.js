@@ -241,7 +241,7 @@ test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算�
   const ctx = ziweiPalaceContextOf(palace, { gender: 'female' });
   assert.deepEqual(ctx, {
     module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], jia: [], meet: ['紫微', '七杀', '文曲', '天巫', '天官'], palace: ['命宫', '身宫'], branches: ['亥'],
-    brightness: ['旺', '平'], mutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女', yearGan: null, yearZhi: null, borrowedStars: [], empty: [],
+    brightness: ['旺', '平'], mutagen: ['权', '忌'], meetMutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女', yearGan: null, yearZhi: null, borrowedStars: [], empty: [],
     flowStars: [], flowMutagens: [], flow: [], natalStars: ['紫微', '七杀', '文曲', '天巫', '天官'], natalMeet: ['紫微', '七杀', '文曲', '天巫', '天官'], natalMutagens: ['权', '忌'],
   });
   assert.deepEqual(ziweiPalaceContextOf({ name: '交友', earthlyBranch: '辰', majorStars: [] }, { gender: '男' }).palace, ['仆役']);
@@ -642,4 +642,23 @@ test('八字六亲：写了 liuqin 的条件只在「六亲宫星」那一亲下
   assert.deepEqual(baziLiuqinHits(lib, ctx, '朋友'), []);
   assert.deepEqual(baziLiuqinHits(lib, { module: 'ziwei' }, '夫妻'), []);
   assert.deepEqual(baziLiuqinHits(lib, ctx, '夫妻', { limit: 1 }).length, 1);
+});
+
+test('紫微：四化的「几化同宫」与「三方四正见某化」（mutagenAll / meetMutagen / meetMutagenAll）', () => {
+  const star = (name, mutagen = '') => ({ name, brightness: '', mutagen });
+  const ming = { name: '命宫', earthlyBranch: '丑', index: 11, majorStars: [star('太阳', '科'), star('太阴')], minorStars: [star('禄存')], adjectiveStars: [] };
+  const wealth = { name: '财帛', earthlyBranch: '酉', index: 7, majorStars: [star('天同', '禄')], minorStars: [], adjectiveStars: [] };
+  const career = { name: '官禄', earthlyBranch: '巳', index: 3, majorStars: [star('天机', '权')], minorStars: [], adjectiveStars: [] };
+  const travel = { name: '迁移', earthlyBranch: '未', index: 5, majorStars: [star('巨门', '忌')], minorStars: [], adjectiveStars: [] };
+  const ctx = ziweiPalaceContextOf(ming, { surround: [travel, wealth, career] });
+  assert.deepEqual(ctx.mutagen, ['科']);
+  assert.deepEqual(ctx.meetMutagen, ['科', '忌', '禄', '权']);
+  // 科权禄拱：三化都在命宫三方四正。
+  assert.deepEqual(conditionMatches({ module: 'ziwei', palace: '命宫', meetMutagenAll: ['科', '权', '禄'] }, ctx), [{ key: 'palace', value: '命宫' }, { key: 'meetMutagen', value: '科、权、禄' }]);
+  assert.deepEqual(conditionMatches({ module: 'ziwei', meetMutagen: '权' }, ctx), [{ key: 'meetMutagen', value: '权' }]);
+  // 本宫只有化科：几化同宫的不成，三方四正的才成。
+  assert.equal(conditionMatches({ module: 'ziwei', mutagenAll: ['科', '禄'] }, ctx), null);
+  assert.deepEqual(conditionMatches({ module: 'ziwei', mutagenAll: ['科', '禄'] }, ziweiContextOf({ stars: ['太阳'], mutagens: ['科', '禄'] })), [{ key: 'mutagen', value: '科、禄' }]);
+  // 没有三方四正时，meetMutagen 只看本宫。
+  assert.deepEqual(ziweiPalaceContextOf(ming, {}).meetMutagen, ['科']);
 });
