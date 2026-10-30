@@ -151,7 +151,7 @@ export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, 
                 </p>
             )}
 
-            <ClassicsPanel ctx={ctx} subject={limitInfo ? `${activeLayer}命宫的星曜` : '这个宫的星曜'} testId="ziwei-classics-panel" entryTestId="ziwei-classic-entry" className="mt-3 space-y-3" />
+            <ClassicsPanel ctx={ctx} subject={limitInfo ? `${activeLayer}命宫星曜及论${activeLayer}` : '这个宫的星曜'} testId="ziwei-classics-panel" entryTestId="ziwei-classic-entry" className="mt-3 space-y-3" />
         </div>
     );
 }
