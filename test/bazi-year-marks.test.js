@@ -7,7 +7,7 @@ import { judgeBaziPattern } from '../src/utils/baziPattern.js';
 import { buildShenshaContext, getShensha } from '../src/utils/baziShensha.js';
 import * as yearMarks from '../src/utils/baziYearMarks.js';
 
-const { describeTaiSui, describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks, juOfZhi } = yearMarks;
+const { describeDaYunFavor, describeTaiSui, describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks, juOfZhi } = yearMarks;
 
 const NOW = new Date('2026-10-26T10:00:00');
 // 1998-01-02 辰时男：丁丑 壬子 己酉 戊辰
@@ -56,6 +56,23 @@ test('大运喜忌与岁运反吟', () => {
   assert.equal(daYun.favor.overall, 'good');
   const marks = getLiuNianMarks(liuNianOf('壬子'), { chart, daYun: { ganZhi: '丙午', gan: '丙', zhi: '午' }, strength });
   assert.ok(marks.labels.includes('岁运反吟'));
+});
+
+test('大运以地支为重：截脚整步运按忌论，盖头吉凶减半（《滴天髓·岁运》任注）', () => {
+  // 丁丑 壬子 己酉 戊辰：喜土火，忌木水。
+  const wuYin = getDaYunMarks({ gan: '戊', zhi: '寅' }, { strength, chart });
+  assert.equal(wuYin.favor.cover.kind, '截脚', '戊土喜而寅木忌、木克土');
+  assert.equal(wuYin.favor.overall, 'bad', '「支不载干，则十年皆否」');
+  assert.equal(describeDaYunFavor({ gan: '戊', zhi: '寅' }, wuYin.favor),
+    '天干戊土喜（比劫） · 地支寅木忌（官杀）；截脚：地支木克天干土，任注「支不载干，十年皆否」，整步运按忌论');
+  const jiaXu = getDaYunMarks({ gan: '甲', zhi: '戌' }, { strength, chart });
+  assert.equal(jiaXu.favor.cover.kind, '盖头', '甲木忌而戌土喜、木克土');
+  assert.equal(jiaXu.favor.overall, 'mixed', '「虽有十分之吉，亦减其半」');
+  assert.equal(getDaYunMarks({ gan: '丙', zhi: '午' }, { strength, chart }).favor.cover, null);
+  // 流年以天干为重，不论盖头截脚。
+  const year = getLiuNianMarks(liuNianOf('戊寅'), { chart, strength });
+  assert.equal(year.favor.cover, null);
+  assert.equal(year.favor.overall, 'mixed');
 });
 
 test('运、年的地支与原局凑齐三会方、三合局的，按局的五行论喜忌（《滴天髓·岁运》任注「支全金局」「支类西方」）', () => {
