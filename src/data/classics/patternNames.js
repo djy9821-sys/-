@@ -24,6 +24,8 @@ export const BAZI_PROGRAM_PATTERNS = Object.freeze([
   '从财格', '从杀格', '从儿格', '从势格', '从强格',
   ...ZHUAN_WANG,
   ...HUA_QI,
+  // 《滴天髓·形象》两气成象（程序只认日主去生的木火、火土、土金三种，名字带「（木火相生）」一类括注）
+  '两气成象',
 ]);
 
 /**
