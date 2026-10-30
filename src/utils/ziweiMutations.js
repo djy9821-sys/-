@@ -16,7 +16,8 @@ export const MUTAGEN_LAYER_META = Object.freeze([
   Object.freeze({ key: 'hourly', label: '时', name: '流时', layerColor: '#078f9d' }),
 ]);
 
-// iztro 默认采用《紫微斗数全书》的十干四化表。
+// 排盘库（iztro）默认的十干四化：九干与《紫微斗数全书》「安禄权科忌四星变化诀」相同；壬干全书作「壬梁紫府武」（天府化科），
+// 这里与今人排盘一致用左辅化科（界面上注明）。
 export const MUTAGEN_STAR_MAP = Object.freeze({
   '甲': { lu: '廉贞', quan: '破军', ke: '武曲', ji: '太阳' },
   '乙': { lu: '天机', quan: '天梁', ke: '紫微', ji: '太阴' },
