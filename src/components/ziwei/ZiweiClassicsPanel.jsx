@@ -3,7 +3,7 @@
  * 从古籍库里找出相关条目（如《紫微斗数全书》诸星问答论里这颗星怎么说）。界面在 common/ClassicsPanel.jsx。
  */
 import React, { useMemo, useState } from 'react';
-import { ziweiNeighborsOf, ziweiPalaceContextOf } from '../../data/classics/index.js';
+import { ziweiBorrowedStarsOf, ziweiNeighborsOf, ziweiOppositeOf, ziweiPalaceContextOf, ziweiSurroundOf } from '../../data/classics/index.js';
 import ClassicsPanel from '../common/ClassicsPanel.jsx';
 
 /** 按命盘习惯的顺序列宫：命宫起，逆行到父母。 */
@@ -45,11 +45,14 @@ export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, 
         : picked.focusedIndex === focusedIndex && picked.index !== null ? picked.index : defaultIndex;
     const palace = palaces.find((item) => item.index === selectedIndex) ?? null;
     const isMing = !limitInfo && palace?.name === '命宫';
+    // 空宫借对宫的主星一起找（排盘习惯「无正曜借对宫论」），命中说明里注「借对宫」。
+    const opposite = ziweiOppositeOf(palaces, palace);
     const ctx = useMemo(
-        () => ziweiPalaceContextOf(palace, { gender, limit: activeLayer, patterns: isMing ? patterns : EMPTY, neighbors: ziweiNeighborsOf(palaces, palace) }),
-        [palaces, palace, gender, activeLayer, isMing, patterns],
+        () => ziweiPalaceContextOf(palace, { gender, limit: activeLayer, patterns: isMing ? patterns : EMPTY, neighbors: ziweiNeighborsOf(palaces, palace), opposite, surround: ziweiSurroundOf(palaces, palace) }),
+        [palaces, palace, gender, activeLayer, isMing, patterns, opposite],
     );
     const stars = palace ? [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])] : [];
+    const borrowed = ziweiBorrowedStarsOf(palace, opposite);
 
     return (
         <div data-testid="ziwei-classics">
@@ -105,6 +108,14 @@ export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, 
                             </span>
                         ))
                         : <span>宫内无星（空宫）</span>}
+                    {borrowed.length > 0 && (
+                        <span className="inline-flex items-center gap-1" data-testid="ziwei-classics-borrowed">
+                            <span className="text-[#81776b]">无主星，借对宫{palaceLabel(opposite?.name)}</span>
+                            {borrowed.map((name) => (
+                                <span key={name} className="inline-flex items-center rounded border border-dashed border-[#cbbfac] px-1.5 leading-5 text-[#655d54]">{name}</span>
+                            ))}
+                        </span>
+                    )}
                     {isMing && patterns.length > 0 && (
                         <span className="inline-flex items-center gap-1" data-testid="ziwei-classics-patterns">
                             <span className="text-[#81776b]">格局</span>
