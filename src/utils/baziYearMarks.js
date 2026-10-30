@@ -75,7 +75,7 @@ const CONTROLS = { 木: '土', 火: '金', 土: '水', 金: '木', 水: '火' };
  */
 const coverOf = (gan, zhi) => {
   if (gan.tone === 'good' && zhi.tone === 'bad' && CONTROLS[zhi.element] === gan.element) {
-    return { kind: '截脚', text: `截脚：地支${zhi.element}克天干${gan.element}，任注「支不载干，十年皆否」，整步运按忌论` };
+    return { kind: '截脚', text: `截脚：地支${zhi.element}克天干${gan.element}，任注「支不载干，则十年皆否」，整步运按忌论` };
   }
   if (gan.tone === 'bad' && zhi.tone === 'good' && CONTROLS[gan.element] === zhi.element) {
     return { kind: '盖头', text: `盖头：天干${gan.element}克地支${zhi.element}，任注「虽有十分之吉，亦减其半」` };
