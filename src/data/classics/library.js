@@ -21,7 +21,7 @@ import { CLASSICS, cite } from '../classics.js';
 import { patternNamesOf, ziweiPatternNamesOf } from './patternNames.js';
 import { liuyaoTopicNamesOf } from './topicNames.js';
 import { ENTRY_STATUS, ZIWEI_PALACE_ALIASES, chaptersOf, sectionOfEntry } from './schema.js';
-import { readerNotesOf } from './editorial.js';
+import { displayTextOf, readerNotesOf } from './editorial.js';
 
 export { patternNamesOf, ziweiPatternNamesOf, readerNotesOf };
 
@@ -86,6 +86,10 @@ export const buildLibrary = (docs) => {
       const reader = readerNotesOf(entry);
       entries.push({
         ...entry,
+        // 私用区字符（底本里电脑无法显示的字）换成缺字符号「□」，见 editorial.js。
+        title: displayTextOf(entry.title),
+        original: displayTextOf(entry.original),
+        vernacular: displayTextOf(entry.vernacular),
         doubts: toArray(entry.doubts),
         tags: toArray(entry.tags),
         applies: toArray(entry.applies),
