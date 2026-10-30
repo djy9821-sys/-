@@ -16,7 +16,8 @@
  * - 兄弟：先看任注「官轻伤重，比劫生伤……必遭兄弟之累」，不合时「不论提纲之喜忌，全凭日主之爱憎」——看比劫是喜是忌。
  * 用神、喜神取「五行与旺衰」一节的喜用第一、二位；认出从、化、专旺的，按此格论喜忌（与大运流年同一口径）。
  * 用神有力：透干或作某支本气，五行分数（日干不计）不少于 1.5；受制：克它的五行分数不少于 3 且是它的两倍以上，
- * 又没有通关（生用神者）、没有制伏（克那一行者）。各条只列结构与古法的看法，不断具体人事。
+ * 又没有通关（生用神者）、没有制伏（克那一行者）——制水的土只算燥土（戊透干、未戌本气），辰丑己湿土不算
+ *（任注「丑乃湿土，能泄火不能止水」，己亥 丙子 乙丑 壬午「克妻无子」）。各条只列结构与古法的看法，不断具体人事。
  */
 import { findRelations } from './baziRelations.js';
 import { elementToneOf, favorBasisOf } from './baziStrength.js';
@@ -191,6 +192,11 @@ const caiMeetsYinOf = (pillars, cai, yin) => {
  * 用神（或喜神）的成色：不现、受制、有力、力薄。
  * @returns {{ element: string, state: 'absent'|'restrained'|'strong'|'weak', tone: 'good'|'bad'|'neutral', text: string }|null}
  */
+/** 止得住水的土：戊透干每位 1 分，未、戌作本气 1 分（月支 2 分）；辰丑湿土、己土不算（任注「丑乃湿土，能泄火不能止水」）。 */
+const dryEarthScore = (pillars) => pillars.reduce((sum, pillar) => sum
+  + (pillar.key !== 'day' && pillar.gan === '戊' ? 1 : 0)
+  + (['未', '戌'].includes(pillar.zhi) ? (pillar.key === 'month' ? 2 : 1) : 0), 0);
+
 const godStateOf = (pillars, scores, element) => {
   if (!element) return null;
   const score = scores?.[element] ?? 0;
@@ -202,8 +208,11 @@ const godStateOf = (pillars, scores, element) => {
   const tong = GENERATED_BY[element];
   const zhi = CONTROLLED_BY[ke];
   const keScore = scores?.[ke] ?? 0;
-  if (keScore >= AMOUNT.heavy && keScore >= 2 * score && (scores?.[tong] ?? 0) < AMOUNT.light && (scores?.[zhi] ?? 0) < AMOUNT.light) {
-    return { element, state: 'restrained', tone: 'bad', text: `${element}${where ? `（${where}）` : ''}受${ke}重克，无${tong}通关、无${zhi}制伏` };
+  // 制伏水的土只算燥土：戊透干、未戌作本气（任注「丑乃湿土，能泄火不能止水」「己土不能为力」）。
+  const zhiScore = ke === '水' ? dryEarthScore(pillars) : (scores?.[zhi] ?? 0);
+  if (keScore >= AMOUNT.heavy && keScore >= 2 * score && (scores?.[tong] ?? 0) < AMOUNT.light && zhiScore < AMOUNT.light) {
+    const zhiNote = ke === '水' && (scores?.[zhi] ?? 0) >= AMOUNT.light ? '湿土止不住水' : `无${zhi}制伏`;
+    return { element, state: 'restrained', tone: 'bad', text: `${element}${where ? `（${where}）` : ''}受${ke}重克，无${tong}通关、${zhiNote}` };
   }
   if (score >= AMOUNT.light && (stems.length || mains.length)) return { element, state: 'strong', tone: 'good', text: `${element}${where}，有力` };
   return { element, state: 'weak', tone: 'neutral', text: `${element}${where ? `${where}，` : ''}力薄` };
