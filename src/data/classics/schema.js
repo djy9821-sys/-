@@ -32,6 +32,8 @@ export const ZIWEI_STARS = Object.freeze([
 ]);
 /** 「夹」能写的名字：星名，加上四化（写成「化禄」等）。 */
 export const ZIWEI_JIA_NAMES = Object.freeze([...ZIWEI_STARS, ...ZIWEI_MUTAGENS.map((name) => `化${name}`)]);
+/** 运限层的流曜（排盘库的叫法）：流年的流昌、流曲……，大限的运昌、运曲……。 */
+export const ZIWEI_FLOW_STARS = Object.freeze(['流昌', '流曲', '流魁', '流钺', '流禄', '流羊', '流陀', '流马', '流鸾', '流喜', '运昌', '运曲', '运魁', '运钺', '运禄', '运羊', '运陀', '运马', '运鸾', '运喜']);
 export const LIUYAO_SIX_RELATIVES = Object.freeze(['父母', '兄弟', '子孙', '妻财', '官鬼']);
 export const LIUYAO_SIX_GODS = Object.freeze(['青龙', '朱雀', '勾陈', '螣蛇', '白虎', '玄武']);
 export const LIUYAO_RELATIONS = Object.freeze(['六冲', '六合']);
@@ -56,6 +58,10 @@ export const APPLIES_KEYS = Object.freeze({
     mutagen: ZIWEI_MUTAGENS,
     pattern: ZIWEI_PATTERN_VOCAB,
     limit: ['本命', '大限', '流年', '流月', '流日'],
+    // 运限层飞到本宫或三方四正的流曜，按排盘库的叫法写（「擎羊重逢流羊」写 limit: "流年", star: "擎羊", flow: "流羊"）：flow 任一颗，flowAll 几颗都要有。
+    // 条件里一写 flow，同条件的 star / meet 就只算本命的星（否则流羊本身也算擎羊，分不出「重逢」）。
+    flow: ZIWEI_FLOW_STARS,
+    flowAll: ZIWEI_FLOW_STARS,
     // 宫里没有主星（「命无正曜」「本宫无正曜」「左右单守」）；有主星的宫不命中。
     empty: ['无正曜'],
     // 生年干支（排盘库按农历年）：「壬甲生人」写 yearGan: ["壬", "甲"]，「寅午戌生人」写 yearZhi: ["寅", "午", "戌"]。
@@ -169,6 +175,12 @@ const checkApplies = (applies, where, errors, dirModule = null) => {
       }
       if (key === 'meetAll' && (!Array.isArray(value) || new Set(value).size < 2)) {
         errors.push(`${at}.meetAll: 要写两颗以上不同的星（三方四正里几颗都要有）；只要一颗星用 meet`);
+      }
+      if (key === 'flowAll' && (!Array.isArray(value) || new Set(value).size < 2)) {
+        errors.push(`${at}.flowAll: 要写两颗以上不同的流曜（几颗都要有）；只要一颗用 flow`);
+      }
+      if ((key === 'flow' || key === 'flowAll') && !['大限', '流年'].includes(cond.limit)) {
+        errors.push(`${at}.${key}: 流曜只在大限、流年层有，这条要同时写 limit: "大限" 或 "流年"`);
       }
       if (key === 'jia' && (!Array.isArray(value) || value.length !== 2)) {
         errors.push(`${at}.jia: 要写左右两邻各一颗，共两个名字，如 ["文昌", "文曲"]；四化写「化禄」「化权」`);
