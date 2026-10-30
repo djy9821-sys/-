@@ -47,6 +47,7 @@ test('三项打分：己土生子月不得令，月令是财（日主囚）减 0
   assert.equal(result.tiaoHou.element, '火');
   assert.deepEqual(result.tiaoHou.stems, ['丙', '甲', '戊']);
   assert.equal(result.tiaoHou.source, '《穷通宝鉴》·三冬己土');
+  assert.equal(result.tiaoHou.presenceText, '原局：丙无；甲无；戊透时干、藏于辰');
 
   // 财（水）最重：取比劫帮身，用神土；火生土为喜，调候也宜火。
   assert.equal(result.basis, '身弱财重，取比劫帮身，印次之');
