@@ -21,6 +21,7 @@ import {
   buildLibrary,
   conditionMatches,
   liuyaoReadingContextOf,
+  ziweiNatalOf,
   ziweiNeighborsOf,
   ziweiOppositeOf,
   ziweiPalaceContextOf,
@@ -112,8 +113,58 @@ const targetedBaziContext = (cond) => {
 };
 
 // ---------- 紫微 ----------
-/** 紫微没有好的定向造盘办法：没命中的条件再多排几倍的盘重试。 */
+/** 紫微没有按星造盘的办法：没命中的条件先按条件里的性别、生年干支定向排盘重试，再多排几倍的盘重试。 */
 const ZIWEI_RETRY_FACTOR = 4;
+const ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+const yearStemOf = (year) => GAN[(year - 4 + 100) % 10];
+const yearBranchOf = (year) => ZHI[(year - 4 + 120) % 12];
+/**
+ * 按条件定向排一张紫微盘，返回它的一个宫的上下文：生年干支、性别照条件挑（出生日取农历年不会跨年的月份），
+ * 宫取条件写的宫（没写就随机），层取条件的运限（没写就本命）。星曜、地支没法定向，靠多试几次。
+ */
+const targetedZiweiContext = (cond) => {
+  const stems = toArray(cond.yearGan ?? cond.yearGans);
+  const branches = toArray(cond.yearZhi ?? cond.yearZhis);
+  const years = [];
+  for (let year = 1930; year <= 2029; year += 1) {
+    if ((!stems.length || stems.includes(yearStemOf(year))) && (!branches.length || branches.includes(yearBranchOf(year)))) years.push(year);
+  }
+  const year = years.length ? pickOne(years) : pickInt(1930, 2029);
+  const gender = cond.gender === '男' ? 'male' : cond.gender === '女' ? 'female' : (random() < 0.5 ? 'male' : 'female');
+  // 左辅右弼按农历月安、文昌文曲按时辰安：条件点了这几颗星又点了地支的，直接把月份、时辰挑到那一支（农历输入，月份不会错位）。
+  const stars = [...toArray(cond.star), ...toArray(cond.stars), ...toArray(cond.allStars)];
+  const palaceBranch = toArray(cond.branches).length ? pickOne(toArray(cond.branches)) : null;
+  const at = palaceBranch ? (ZHI.indexOf(palaceBranch) - 2 + 12) % 12 : null; // 从寅起算的宫序
+  let month = pickInt(1, 12);
+  let timeIndex = pickInt(0, 11);
+  if (at !== null) {
+    if (stars.includes('右弼')) month = ((8 - at + 12) % 12) + 1;
+    else if (stars.includes('左辅')) month = ((at - 2 + 12) % 12) + 1;
+    if (stars.includes('文昌')) timeIndex = (8 - at + 12) % 12;
+    else if (stars.includes('文曲')) timeIndex = (at - 2 + 12) % 12;
+    // 条件写的是命宫在某支：命宫 = 寅起数到生月，再逆数到生时，时辰挑到让命宫落在那一支（昌曲已占用时辰的除外）
+    else if (toArray(cond.palace).includes('命宫')) timeIndex = (month - 1 - at + 24) % 12;
+  }
+  const horoscope = createZiweiHoroscope({
+    calendarType: 'lunar',
+    birthDate: `${year}-${pad(month)}-${pad(pickInt(1, 28))}`,
+    timeIndex,
+    gender,
+  });
+  // 格局按命宫三方四正判，只在命宫的上下文里出现：格局条件一律取命宫
+  const wanted = [...toArray(cond.palace), ...(cond.pattern ? ['命宫'] : [])].map((name) => (name === '身宫' ? horoscope.palaces.find((item) => item.isBodyPalace)?.name : name)).filter(Boolean);
+  const palace = (wanted.length ? horoscope.palaces.find((item) => wanted.includes(item.name)) : null) ?? pickOne(horoscope.palaces);
+  const patterns = palace.name === '命宫' ? [...analyzeZiweiPatterns(horoscope), ...analyzeZiweiStructures(horoscope)].map((item) => item.name) : [];
+  return ziweiPalaceContextOf(palace, {
+    gender: gender === 'male' ? '男' : '女',
+    limit: cond.limit && cond.limit !== '本命' ? cond.limit : '本命',
+    patterns,
+    neighbors: ziweiNeighborsOf(horoscope.palaces, palace),
+    opposite: ziweiOppositeOf(horoscope.palaces, palace),
+    surround: ziweiSurroundOf(horoscope.palaces, palace),
+    natal: ziweiNatalOf(horoscope),
+  });
+};
 function* ziweiContexts(count) {
   for (let i = 0; i < count; i += 1) {
     const gender = random() < 0.5 ? 'male' : 'female';
@@ -131,6 +182,7 @@ function* ziweiContexts(count) {
         neighbors: ziweiNeighborsOf(horoscope.palaces, palace),
         opposite: ziweiOppositeOf(horoscope.palaces, palace),
         surround: ziweiSurroundOf(horoscope.palaces, palace),
+        natal: ziweiNatalOf(horoscope),
       };
       yield ziweiPalaceContextOf(palace, { gender: genderLabel, patterns: palace.name === '命宫' ? patterns : [], ...around });
       // 古籍弹层还能切到「当前大限 / 今年流年」：任何一宫都可能是那一层的命宫
@@ -181,7 +233,7 @@ const targetedLiuyaoContext = (cond) => {
 // ---------- 主流程 ----------
 const MODULES = {
   bazi: { generate: () => baziContexts(SAMPLES), retry: targetedBaziContext, retries: (cond) => (cond.pattern ? 300 : RETRIES) },
-  ziwei: { generate: () => ziweiContexts(Math.ceil(SAMPLES / 2)), more: () => ziweiContexts(Math.ceil(SAMPLES / 2) * ZIWEI_RETRY_FACTOR) },
+  ziwei: { generate: () => ziweiContexts(Math.ceil(SAMPLES / 2)), retry: targetedZiweiContext, retries: () => RETRIES * 5, more: () => ziweiContexts(Math.ceil(SAMPLES / 2) * ZIWEI_RETRY_FACTOR) },
   liuyao: { generate: () => liuyaoContexts(SAMPLES * 3), retry: targetedLiuyaoContext, retries: () => RETRIES },
 };
 /** 程序暂不支持、注定匹配不上的条件：说明原因。 */
