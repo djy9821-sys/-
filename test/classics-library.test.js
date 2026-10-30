@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 import {
   BAZI_LIUQIN, baziContextOf, baziGlossarySeeds, baziLiuqinHits, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
-  patternNamesOf, pickLimitHits, searchGlossary, termsIn, ziweiBorrowedStarsOf, ziweiContextOf, ziweiDoujunIndex, ziweiDoujunPalace, ziweiFlowOf, ziweiFlowStarName, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiMeetStarsOf, ziweiNatalOf, ziweiNeighborsOf,
+  patternNamesOf, pickLifeHits, pickLimitHits, searchGlossary, termsIn, ziweiBorrowedStarsOf, ziweiContextOf, ziweiDoujunIndex, ziweiDoujunPalace, ziweiFlowOf, ziweiFlowStarName, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLifeStarsOf, ziweiLimitPalaceHits, ziweiMeetStarsOf, ziweiNatalOf, ziweiNeighborsOf,
   ziweiOppositeOf, ziweiPalaceContextOf, ziweiPalaceHits, ziweiSurroundOf,
 } from '../src/data/classics/library.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
@@ -741,4 +741,35 @@ test('紫微：格局成立的条目排在「某宫某星会某星」前面；�
   }]);
   const baziCtx = { module: 'bazi', pattern: ['正官格'], dayGan: ['甲'], monthZhi: ['寅'] };
   assert.deepEqual(matchEntries(bazi, baziCtx).map(({ entry }) => entry.id), ['ziping.w.002', 'ziping.w.001']);
+});
+
+test('话术附命宫身宫原文：格局条目最多占一半，命宫每颗主星至少留一条按它命中的，其余按相关度补', () => {
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.l.001', title: '七杀会陀', original: '甲', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', star: '七杀', meet: '陀罗' }] },
+      { id: 'ziwei.l.002', title: '日月夹财', original: '乙', status: 'translated', applies: [{ module: 'ziwei', pattern: '日月夹财格' }] },
+      { id: 'ziwei.l.003', title: '辅弼拱主', original: '丙', status: 'translated', applies: [{ module: 'ziwei', pattern: '辅弼拱主格' }] },
+      { id: 'ziwei.l.004', title: '君臣庆会', original: '丁', status: 'translated', applies: [{ module: 'ziwei', pattern: '君臣庆会格' }] },
+      { id: 'ziwei.l.005', title: '七杀守命', original: '戊', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', star: '七杀' }] },
+      { id: 'ziwei.l.006', title: '紫微守命', original: '己', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', star: '紫微' }] },
+      { id: 'ziwei.l.007', title: '紫微七杀', original: '庚', status: 'translated', applies: [{ module: 'ziwei', allStars: ['紫微', '七杀'] }] },
+    ],
+  }]);
+  const ming = { index: 9, name: '命宫', earthlyBranch: '亥', isBodyPalace: true, majorStars: [{ name: '紫微' }, { name: '七杀' }] };
+  const palaces = [ming, { index: 3, name: '迁移', earthlyBranch: '巳', majorStars: [{ name: '天府' }], minorStars: [{ name: '陀罗' }] }];
+  const hits = ziweiLifePalaceHits(lib, palaces, { patterns: ['日月夹财格', '辅弼拱主格', '君臣庆会格'] });
+  // 按相关度：三条格局在前，紫微的条目被挤到第四以后。
+  assert.deepEqual(hits.map(({ entry }) => entry.id), ['ziwei.l.002', 'ziwei.l.003', 'ziwei.l.004', 'ziwei.l.001', 'ziwei.l.005', 'ziwei.l.006', 'ziwei.l.007']);
+  // 挑四条：紫微、七杀各先占一条（各取最相关的），格局最多两条，次序仍按相关度。
+  assert.deepEqual(pickLifeHits(hits, 4, { stars: ['紫微', '七杀'] }).map(({ entry }) => entry.id), ['ziwei.l.002', 'ziwei.l.003', 'ziwei.l.001', 'ziwei.l.006']);
+  // 格局上限可调；不给主星就只限格局条数。
+  assert.deepEqual(pickLifeHits(hits, 4, { stars: ['紫微', '七杀'], maxPatterns: 1 }).map(({ entry }) => entry.id), ['ziwei.l.002', 'ziwei.l.001', 'ziwei.l.005', 'ziwei.l.006']);
+  assert.deepEqual(pickLifeHits(hits, 3).map(({ entry }) => entry.id), ['ziwei.l.002', 'ziwei.l.003', 'ziwei.l.001']);
+  assert.deepEqual(pickLifeHits(null, 3), []);
+  // 命宫身宫主星：身宫同宫只算一次；空宫借对宫主星。
+  assert.deepEqual(ziweiLifeStarsOf(palaces), ['紫微', '七杀']);
+  const empty = [{ index: 0, name: '命宫', earthlyBranch: '寅', majorStars: [] }, { index: 6, name: '迁移', earthlyBranch: '申', majorStars: [{ name: '太阳' }, { name: '巨门' }] }, { index: 2, name: '夫妻', earthlyBranch: '辰', isBodyPalace: true, majorStars: [{ name: '天相' }] }];
+  assert.deepEqual(ziweiLifeStarsOf(empty), ['太阳', '巨门', '天相']);
+  assert.deepEqual(ziweiLifeStarsOf(null), []);
 });
