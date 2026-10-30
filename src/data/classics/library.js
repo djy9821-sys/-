@@ -63,6 +63,12 @@ export const KEY_WEIGHT = Object.freeze({
   gender: 3, movingLines: 3,
 });
 
+/**
+ * 紫微另算：格局是把一张盘几宫几星合起来才成立的断语（科明暗禄、日月并明一千张盘难见一张），
+ * 比「某宫某星会某星」更专门，一条成立就该排在前面；八字的格局（正官格……）八分之一的盘都有，仍按通用分量。
+ */
+const ZIWEI_KEY_WEIGHT = Object.freeze({ ...KEY_WEIGHT, pattern: 25 });
+
 /** 一个键列了几种取值：只写一颗星的条目比一口气列十颗星的更专门。 */
 const breadthFactor = (count) => (count <= 1 ? 1 : count <= 3 ? 0.8 : count <= 6 ? 0.6 : 0.4);
 
@@ -193,11 +199,14 @@ const annotateBorrowed = (matched, ctx) => {
  * 一个命中条件的分量：命中的每个键按 KEY_WEIGHT 计，该键列的取值越多打得越轻（「任一」列得越多越泛）；
  * allStars、meetAll 是几颗都要在，星越多越专门，不打折。
  */
-const conditionWeight = (cond, matched) => matched.reduce((sum, { key }) => {
-  const name = Object.keys(cond).find((item) => (SINGULAR[item] ?? item) === key);
-  const factor = NO_BREADTH.has(name) ? 1 : breadthFactor(toArray(cond[name]).length);
-  return sum + (KEY_WEIGHT[key] ?? 5) * factor;
-}, 0);
+const conditionWeight = (cond, matched) => {
+  const weights = cond.module === 'ziwei' ? ZIWEI_KEY_WEIGHT : KEY_WEIGHT;
+  return matched.reduce((sum, { key }) => {
+    const name = Object.keys(cond).find((item) => (SINGULAR[item] ?? item) === key);
+    const factor = NO_BREADTH.has(name) ? 1 : breadthFactor(toArray(cond[name]).length);
+    return sum + (weights[key] ?? 5) * factor;
+  }, 0);
+};
 
 /** 能编成机器条件的条件数（只写 note 的不算）。 */
 const machineConditionCount = (applies) => applies
