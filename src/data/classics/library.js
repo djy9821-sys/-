@@ -21,8 +21,9 @@ import { CLASSICS, cite } from '../classics.js';
 import { patternNamesOf, ziweiPatternNamesOf } from './patternNames.js';
 import { liuyaoTopicNamesOf } from './topicNames.js';
 import { ENTRY_STATUS, ZIWEI_PALACE_ALIASES, chaptersOf, sectionOfEntry } from './schema.js';
+import { readerNotesOf } from './editorial.js';
 
-export { patternNamesOf, ziweiPatternNamesOf };
+export { patternNamesOf, ziweiPatternNamesOf, readerNotesOf };
 
 /** 复数键 → 单数键（allStars 也查上下文的 star，只是要几颗都在）。 */
 const SINGULAR = Object.freeze({ stars: 'star', allStars: 'star', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram' });
@@ -81,6 +82,8 @@ export const buildLibrary = (docs) => {
       if (!entry || typeof entry !== 'object') return;
       // 一个文件录了几篇时（section 用「、」列出各篇），每条归到自己那一篇，出处只写这一篇。
       const section = sectionOfEntry(entry, doc, chapters) ?? doc.section ?? '';
+      // 界面上的「注」「存疑」只给读者看的（录入过程、底本页码数据里照留，见 editorial.js）。
+      const reader = readerNotesOf(entry);
       entries.push({
         ...entry,
         doubts: toArray(entry.doubts),
@@ -89,6 +92,8 @@ export const buildLibrary = (docs) => {
         ...docInfo,
         section,
         source: cite(doc.classic, section),
+        readerNotes: reader.notes,
+        readerDoubts: reader.doubts,
       });
       const stat = (books[book] ??= { classic: doc.classic, book, total: 0, draft: 0, translated: 0, reviewed: 0 });
       stat.total += 1;
@@ -508,6 +513,8 @@ export const searchGlossary = (glossary, text, { module = null, limit = 20 } = {
     .filter((entry) => (module ? entry.module === module || entry.module === 'common' : true))
     .filter((entry) => entry.term.includes(needle) || entry.aliases.some((alias) => alias.includes(needle)) || (entry.brief ?? '').includes(needle))
     .sort((a, b) => MODULE_RANK(a.module, module) - MODULE_RANK(b.module, module) || a.term.localeCompare(b.term, 'zh'))
+    // 指定了模块时，本模块与通用词典都有的同一条（如「纳音」）只留本模块那条；不指定模块时各模块的都列。
+    .filter((entry, index, list) => !module || list.findIndex((other) => other.id === entry.id) === index)
     .slice(0, limit);
 };
 
