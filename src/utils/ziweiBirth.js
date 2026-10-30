@@ -1,5 +1,6 @@
 import { astro, data as iztroData, star as iztroStar, util as iztroUtil } from 'iztro';
 import { Solar } from 'lunar-javascript';
+import './ziweiBrightness.js'; // 星曜庙旺按《紫微斗数全书》改正三格（见该文件）
 
 const YANG_STEMS = new Set(['甲', '丙', '戊', '庚', '壬']);
 const GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
