@@ -45,7 +45,7 @@
  * （非留集 365 → 373、134 → 131；留集 146 → 154、64 → 59），用神第一位非留集不变、留集 45 → 46。
  * 不处理从格、化格等特殊格局（极端时只做提示）。
  */
-import { tiaoHouOf } from '../data/tiaohou.js';
+import { describeTiaoHouPresence, tiaoHouOf, tiaoHouPresenceOf } from '../data/tiaohou.js';
 
 const GAN_WUXING = { 甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水' };
 const WUXING = ['木', '火', '土', '金', '水'];
@@ -208,6 +208,14 @@ const scoreOf = (chart, dayWuxing) => {
     roots: roots.map((item) => ({ ...item, points: round2(item.points) })),
     stems,
   };
+};
+
+/** 调候用神，连同调候诸神在原局透、藏、无（presence、presenceText）。 */
+const tiaoHouOfChart = (chart, monthZhi) => {
+  const base = tiaoHouOf(chart.dayMaster.gan, monthZhi);
+  if (!base) return null;
+  const presence = tiaoHouPresenceOf(chart.pillars, base.stems);
+  return { ...base, presence, presenceText: describeTiaoHouPresence(presence) };
 };
 
 /** 寒暖调候为急的月令：冬月与正月寒，宜火；夏月燥，宜水。 */
@@ -384,7 +392,7 @@ export const analyzeStrength = (chart) => {
     .filter((pillar) => pillar.key !== 'day' && support.has(pillar.ganWuxing))
     .map((pillar) => ({ name: pillar.name, gan: pillar.gan, role: roles[pillar.ganWuxing] }));
 
-  const tiaoHou = tiaoHouOf(chart.dayMaster.gan, byKey.month?.zhi ?? '');
+  const tiaoHou = tiaoHouOfChart(chart, byKey.month?.zhi ?? '');
   const leansStrong = band === '偏强' || band === '极强' || (band === '中和' && score.total >= STRENGTH_BOUNDS.lean);
   const usable = usableElementsOf(chart, { strong: leansStrong, scores });
   const touCounts = {};
