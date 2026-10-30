@@ -395,6 +395,16 @@ test('运限层的流曜与四化：流羊算擎羊、运昌算文昌，落在�
   assert.deepEqual(matchEntries(chongfeng, ziweiPalaceContextOf(withYang[6], { limit: '本命' })), []);
   // 不传 scope 就只按本命星曜：流羊、流昌都不算。
   assert.deepEqual(ziweiLimitPalaceHits(lib, palaces, 6, '流年').map(({ entry }) => entry.id), []);
+  // 小限层（排盘库的 age）：没有流曜，只带该层四化；专讲运限的篇章认「二限」「岁限」。
+  const xiaoxian = buildLibrary([{ classic: 'ziwei', section: '论二限太岁吉凶', edition: '测试', entries: [
+    { id: 'ziwei.k.001', title: '二限', original: '甲', status: 'translated', applies: [{ module: 'ziwei', limit: '小限' }] },
+    { id: 'ziwei.k.002', title: '小限化忌', original: '乙', status: 'translated', applies: [{ module: 'ziwei', limit: '小限', star: '七杀', mutagen: '忌' }] },
+    { id: 'ziwei.k.003', title: '大限', original: '丙', status: 'translated', applies: [{ module: 'ziwei', limit: '大限' }] },
+  ] }]);
+  const ageHits = ziweiLimitPalaceHits(xiaoxian, palaces, 6, '小限', { scope: { mutagen: ['天同', '天机', '文昌', '七杀'] } });
+  assert.deepEqual(ageHits.map(({ entry }) => entry.id), ['ziwei.k.002', 'ziwei.k.001']);
+  assert.equal(ageHits[0].reason, '运限·小限，星曜·七杀，四化·忌（小限）');
+  assert.equal(pickLimitHits(ageHits, 1, '小限')[0].entry.id, 'ziwei.k.002');
 });
 
 test('运势提示词取条：前 n 条里没有专讲运限的，就把最后一条换成专讲运限的（先挑论大限、论流年篇章里的）', () => {
