@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { CHARACTER_PROMPT_TAIL, CHARACTER_PROMPT_TEMPLATE, MARRIAGE_PROMPT_TEMPLATE, WEALTH_PROMPT_TEMPLATE, generateChartDataPrompt, natalYearText } from '../src/utils/aiPrompts.js';
+import { CHARACTER_PROMPT_TAIL, CHARACTER_PROMPT_TEMPLATE, MARRIAGE_PROMPT_TEMPLATE, WEALTH_PROMPT_TEMPLATE, generateChartDataPrompt, natalYearText, patternsText } from '../src/utils/aiPrompts.js';
 import { createZiweiHoroscope } from '../src/utils/ziweiBirth.js';
+import { analyzeZiweiPatterns, analyzeZiweiStructures } from '../src/utils/ziweiPatterns.js';
 
 /** 「正本清源、按古籍批命」：话术模板里不许再有贴标签、骂人、风水改运那一套。 */
 const FORBIDDEN = /鉴渣|渣男|渣女|鉴茶|绿茶|毒舌|骂|婊|捞女|巨婴|出轨|播种机|打分|评级|风水|改运|Ayawawa/;
@@ -47,4 +48,22 @@ test('命盘十二宫数据：每宫一行，列主星、四化，没有渣男�
   assert.match(text, /田宅\(戊寅\)\*\*：无主星（借对宫子女·申：太阳\(得地，化禄\)、巨门\(庙\)）/);
   assert.doesNotMatch(text, /渣/);
   assert.equal(generateChartDataPrompt(null), '--- 命盘十二宫数据 ---\n数据获取失败\n');
+});
+
+test('命盘数据带「程序认出的格局」：格名附原书出处与那一句，星系观察注明不等同吉格，没认出的写明不代表无格', () => {
+  // 1950-2-1 子时男：命安丑、日巳月酉，程序认出日月并明格（见 ziwei-patterns.test.js）。
+  const horoscope = createZiweiHoroscope({ calendarType: 'solar', birthDate: '1950-02-01', timeIndex: 0, gender: 'male' });
+  const patterns = [...analyzeZiweiPatterns(horoscope), ...analyzeZiweiStructures(horoscope)];
+  assert.ok(patterns.some((item) => item.name === '日月并明格'));
+  const text = generateChartDataPrompt(horoscope, { gender: 'male', patterns });
+  const line = text.split('\n').find((item) => item.includes('程序认出的格局'));
+  assert.match(line, /^- 程序认出的格局：/);
+  assert.match(line, /日月并明格（《紫微斗数全书》卷三·论诸星同垣；原书：定贵局「日月并明：见前批注」；前批注：日巳月酉，丑宫命步蟾宫。）/);
+  // 不传 patterns 就没有这一行（旧调用不变）；传空数组写明没认出、不代表无格。
+  assert.doesNotMatch(generateChartDataPrompt(horoscope, { gender: 'male' }), /程序认出的格局/);
+  assert.match(generateChartDataPrompt(horoscope, { gender: 'male', patterns: [] }), /- 程序认出的格局：未认出已收录的格（[^）]*不代表别无格局）\n/);
+  assert.equal(
+    patternsText([{ name: '杀破狼星系', category: 'star-system' }, { name: '机月同梁格', source: { title: '甲', rule: '乙' } }, { name: '甲格' }]),
+    '程序认出的格局：杀破狼星系（星系观察，不等同古典吉格）；机月同梁格（甲；原书：乙）；甲格',
+  );
 });
