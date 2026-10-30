@@ -76,6 +76,11 @@ test('常用功能里的古籍原文：默认看命宫，列出宫中星曜与�
   const layer = modal.getByRole('group', { name: '看哪一层' });
   await layer.getByRole('button', { name: '当前大限' }).click();
   await expect(modal.getByTestId('ziwei-classics-limit')).toContainText(/当前大限（.+限 · 虚岁\d+-\d+/);
+  // 今年小限：说明虚岁与小限干支；今年流年：带该层流曜（流羊、流曲……），命中说明注「（流年）」。
+  await layer.getByRole('button', { name: '今年小限' }).click();
+  await expect(modal.getByTestId('ziwei-classics-limit')).toContainText(/\d{4} 年小限（虚岁 \d+，[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]）：命宫在本命盘的/);
+  await layer.getByRole('button', { name: '今年流年' }).click();
+  await expect(modal.getByTestId('ziwei-classics-limit')).toContainText(/\d{4} 年流年：命宫在本命盘的/);
   await layer.getByRole('button', { name: '本命盘' }).click();
   await expect(palacePicker.getByRole('button', { name: /^命宫/ })).toBeVisible();
 
