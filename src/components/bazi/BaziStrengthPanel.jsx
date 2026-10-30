@@ -99,7 +99,7 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster, 
                     <Check ok={score.di > 0} label="得地" detail={rootGroups.length ? `${rootGroups.map((group) => `${group.label}（${group.roles.join('、')}）`).join('、')}，共 ${points(score.di)}` : '年、日、时支没有比劫或印的根气（月支算在得令里）'} />
                     <Check ok={score.shi > 0} label="得势" detail={score.stems.length ? `${score.stems.map((item) => `${stemLabel(item.name)}${item.gan}（${item.role}）`).join('、')}，共 ${points(score.shi)}` : '年、月、时干没有比劫或印相帮'} />
                     {score.hourEstimate > 0 && <Check mark="≈" label="时辰不详" detail={`时柱按平均 ${points(score.hourEstimate)}估`} />}
-                    {strength.tiaoHou && <Check mark={strength.tiaoHou.element} label="调候" detail={`${strength.tiaoHou.text}${strength.tiaoHou.season ? `；${strength.tiaoHou.season}` : ''}。出处${strength.tiaoHou.source}`} />}
+                    {strength.tiaoHou && <Check mark={strength.tiaoHou.element} label="调候" detail={`${strength.tiaoHou.text}${strength.tiaoHou.season ? `；${strength.tiaoHou.season}` : ''}。${strength.tiaoHou.presenceText ? `${strength.tiaoHou.presenceText}。` : ''}出处${strength.tiaoHou.source}`} />}
                 </ul>
                 {strength.hint && <p className="mt-2 rounded-lg bg-[#b06a1f]/[0.08] px-2.5 py-1.5 text-xs text-[#7f4b12]">{strength.hint}</p>}
             </div>
