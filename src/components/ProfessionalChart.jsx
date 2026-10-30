@@ -2019,7 +2019,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                         <span aria-hidden="true" />
                         <strong>如何看具体关系</strong>
                         <p>再点击盘中的 {info.code} 字母或箭头，可查看起宫、宫干、目标星与实际落宫。</p>
-                        <small>当前采用《紫微斗数全书》十干四化（iztro 默认）；不同流派配置可能不同。</small>
+                        <small>十干四化：九干同《紫微斗数全书》，壬干依今人排盘作左辅化科（全书原文「壬梁紫府武」作天府化科）；不同流派配置可能不同。</small>
                     </footer>
                 </aside>
             );
@@ -2065,7 +2065,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     <footer>
                         <span aria-hidden="true" />
                         <strong>当前四化表</strong>
-                        <p>《紫微斗数全书》十干四化（iztro 默认）</p>
+                        <p>九干同《紫微斗数全书》十干四化，壬干用左辅化科（全书原文作天府）</p>
                         <small>不同流派的四化表可能不同；当前显示的是本项目采用的固定算法口径。</small>
                     </footer>
                 </aside>
@@ -2149,7 +2149,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     <span aria-hidden="true" />
                     <strong>{meaning.title}</strong>
                     <p>{meaning.detail}</p>
-                    <small>当前箭头采用《紫微斗数全书》十干四化（iztro 默认）；不同流派可能不同。单条飞化只表示结构关系，不宜单独下吉凶结论。</small>
+                    <small>当前箭头按十干四化：九干同《紫微斗数全书》，壬干左辅化科（全书原文作天府）；不同流派可能不同。单条飞化只表示结构关系，不宜单独下吉凶结论。</small>
                 </footer>
             </aside>
         );
@@ -2212,7 +2212,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 <div><dt>身宫地支</dt><dd>{horoscope.earthlyBranchOfBodyPalace || '-'}宫</dd></div>
                                 <div className="is-pending"><dt>子斗</dt><dd>尚未接入经过校验的算法</dd></div>
                             </dl>
-                            <p className="wenmo-center-detail-note">安星依据《紫微斗数全书》安星诀：安命身、定五行局、起紫微天府、十四主星与辅佐煞曜、长生博士将前岁前十二神、大限小限；十干四化取《全书》「甲廉破武阳」歌诀（庚：阳武阴同，壬：梁紫左武）。年柱以立春为界，闰月十五以后按下月安命，晚子时见上方说明。</p>
+                            <p className="wenmo-center-detail-note">安星依据《紫微斗数全书》安星诀：安命身、定五行局、起紫微天府、十四主星与辅佐煞曜、长生博士将前岁前十二神、大限小限；十干四化取《全书》「甲廉破武阳」歌诀（庚：阳武阴同）；惟壬干全书作「梁紫府武」，本程序依今人排盘用「梁紫左武」。年柱以立春为界，闰月十五以后按下月安命，晚子时见上方说明。</p>
                         </section>
 
                         <section>
