@@ -47,12 +47,17 @@ export const APPLIES_KEYS = Object.freeze({
     allStars: ZIWEI_STARS,
     // 两颗星（或化禄、化权、化科、化忌）分坐本宫左右两邻（「昌曲夹命」「羊陀夹忌」「科权禄夹」）。
     jia: ZIWEI_JIA_NAMES,
+    // 本宫连三方四正（对宫、两个三合宫）里有这颗星（「会」「拱」「照」「朝」）：meet 任一颗，meetAll 几颗都要有。
+    meet: ZIWEI_STARS,
+    meetAll: ZIWEI_STARS,
     palace: ZIWEI_PALACES,
     branches: ZHI,
     brightness: ZIWEI_BRIGHTNESS,
     mutagen: ZIWEI_MUTAGENS,
     pattern: ZIWEI_PATTERN_VOCAB,
     limit: ['本命', '大限', '流年', '流月', '流日'],
+    // 宫里没有主星（「命无正曜」「本宫无正曜」「左右单守」）；有主星的宫不命中。
+    empty: ['无正曜'],
   }),
   bazi: Object.freeze({
     dayGan: GAN,
@@ -156,6 +161,9 @@ const checkApplies = (applies, where, errors, dirModule = null) => {
       if (values.length === 0) errors.push(`${at}.${key}: 不能为空数组`);
       if (key === 'allStars' && (!Array.isArray(value) || new Set(value).size < 2)) {
         errors.push(`${at}.allStars: 要写两颗以上不同的星（几颗都要在同一宫）；只要一颗星用 star`);
+      }
+      if (key === 'meetAll' && (!Array.isArray(value) || new Set(value).size < 2)) {
+        errors.push(`${at}.meetAll: 要写两颗以上不同的星（三方四正里几颗都要有）；只要一颗星用 meet`);
       }
       if (key === 'jia' && (!Array.isArray(value) || value.length !== 2)) {
         errors.push(`${at}.jia: 要写左右两邻各一颗，共两个名字，如 ["文昌", "文曲"]；四化写「化禄」「化权」`);
