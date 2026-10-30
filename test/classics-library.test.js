@@ -662,3 +662,26 @@ test('紫微：四化的「几化同宫」与「三方四正见某化」（mutag
   // 没有三方四正时，meetMutagen 只看本宫。
   assert.deepEqual(ziweiPalaceContextOf(ming, {}).meetMutagen, ['科']);
 });
+
+test('紫微：格局成立的条目排在「某宫某星会某星」前面；八字的格局条目仍按通用分量', () => {
+  const ziwei = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.w.001', title: '武曲会羊', original: '甲', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', star: '武曲', meet: '擎羊' }] },
+      { id: 'ziwei.w.002', title: '科明暗禄', original: '乙', status: 'translated', applies: [{ module: 'ziwei', pattern: '科明暗禄格' }] },
+      { id: 'ziwei.w.003', title: '武曲守命', original: '丙', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', star: '武曲' }] },
+    ],
+  }]);
+  const ctx = ziweiContextOf({ stars: ['武曲'], meet: ['擎羊'], palace: '命宫', patterns: ['科明暗禄格'] });
+  assert.deepEqual(matchEntries(ziwei, ctx).map(({ entry }) => entry.id), ['ziwei.w.002', 'ziwei.w.001', 'ziwei.w.003']);
+  // 八字：日干 + 月令（穷通宝鉴调候，一百二十分之一的盘）仍排在只凭格局命中的条目前面。
+  const bazi = buildLibrary([{
+    classic: 'ziping', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziping.w.001', title: '正官格', original: '甲', status: 'translated', applies: [{ module: 'bazi', pattern: '正官格' }] },
+      { id: 'ziping.w.002', title: '甲木寅月', original: '乙', status: 'translated', applies: [{ module: 'bazi', dayGan: '甲', monthZhi: '寅' }] },
+    ],
+  }]);
+  const baziCtx = { module: 'bazi', pattern: ['正官格'], dayGan: ['甲'], monthZhi: ['寅'] };
+  assert.deepEqual(matchEntries(bazi, baziCtx).map(({ entry }) => entry.id), ['ziping.w.002', 'ziping.w.001']);
+});
