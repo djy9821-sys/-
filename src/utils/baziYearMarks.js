@@ -2,6 +2,7 @@
  * 大运、流年的标注：太岁（值、冲、刑、害、破）、岁运并临、与日柱的伏吟反吟，
  * 以及天干地支对日主的喜忌，用于大运时间轴与流年按钮上的小标记。
  */
+import { LunarUtil } from 'lunar-javascript';
 import { getZhiPairKinds, isTianKeDiChong } from './baziRelations.js';
 import { elementToneOf } from './baziStrength.js';
 
@@ -67,6 +68,19 @@ export const juOfZhi = (zhi, zhis = []) => {
 
 const CONTROLS = { 木: '土', 火: '金', 土: '水', 金: '木', 水: '火' };
 
+const KU_ZHI = '辰戌丑未';
+
+/**
+ * 运干坐库：大运地支是辰戌丑未，库里又藏着天干的同类（甲辰、壬辰、辛丑、癸丑、丙戌、庚戌、乙未、丁未），
+ * 这一库随天干论五行，整步运按天干的五行看。任注：「癸丑北方湿土，亦作水论」「壬辰水生库根」
+ * 「乙未运冲破金局，木得蟠根」「甲辰运木又生火」。只论大运；流年不这样看。
+ * @returns {string|null} 库里通根的那个藏干（如癸丑的「癸」），不是坐库返回 null
+ */
+export const kuRootOf = (gan, zhi) => {
+  if (!KU_ZHI.includes(zhi ?? '') || !GAN_WUXING[gan]) return null;
+  return (LunarUtil.ZHI_HIDE_GAN[zhi] ?? []).find((hidden) => GAN_WUXING[hidden] === GAN_WUXING[gan]) ?? null;
+};
+
 /**
  * 大运的盖头、截脚（《滴天髓·岁运》任注）：运「以地支为重，要天干不背」。
  * - 截脚：天干是喜，地支是忌而克天干（喜木运遇甲申、乙酉），「支不载干，则十年皆否」，整步运按忌论。
@@ -88,23 +102,28 @@ const coverOf = (gan, zhi) => {
  * @param {object} item 大运或流年（gan、zhi）
  * @param {object} strength analyzeStrength 的结果
  * @param {{ zhis?: string[], daYun?: boolean }} [options] 与之会局的地支（原局四支，流年再加大运支）；地支凑齐会局的按局的五行论。
- *   daYun 为真时看盖头、截脚（见 coverOf），截脚的整步运按忌论。
+ *   daYun 为真时看盖头、截脚（见 coverOf），截脚的整步运按忌论；运干坐库的，地支随天干论（见 kuRootOf）。
  */
 export const describeFavor = (item, strength, { zhis = [], daYun = false } = {}) => {
   if (!item?.gan || !strength) return null;
   const gan = elementToneOf(GAN_WUXING[item.gan], strength);
   const ju = juOfZhi(item.zhi, zhis);
-  const zhi = ju ? { ...elementToneOf(ju.element, strength), ju } : elementToneOf(ZHI_WUXING[item.zhi], strength);
+  const kuRoot = !ju && daYun ? kuRootOf(item.gan, item.zhi) : null;
+  const zhi = ju ? { ...elementToneOf(ju.element, strength), ju }
+    : kuRoot ? { ...elementToneOf(GAN_WUXING[item.gan], strength), kuRoot }
+      : elementToneOf(ZHI_WUXING[item.zhi], strength);
   const cover = daYun ? coverOf(gan, zhi) : null;
   return { gan, zhi, cover, overall: cover?.kind === '截脚' ? 'bad' : overallTone(gan, zhi) };
 };
 
 const natalZhisOf = (chart) => (chart?.pillars ?? []).map((pillar) => pillar.zhi).filter(Boolean);
 
-/** 地支喜忌的说法（后面接「喜」「忌」或「为喜用」）：会局的写明会成什么局，按局的五行论。 */
-export const zhiFavorText = (zhi, favorZhi) => (favorZhi?.ju
-  ? `地支${zhi}会成${favorZhi.ju.name}，${favorZhi.element}`
-  : `地支${zhi}${favorZhi?.element ?? ''}`);
+/** 地支喜忌的说法（后面接「喜」「忌」或「为喜用」）：会局的写明会成什么局，按局的五行论；运干坐库的写明随天干。 */
+export const zhiFavorText = (zhi, favorZhi) => {
+  if (favorZhi?.ju) return `地支${zhi}会成${favorZhi.ju.name}，${favorZhi.element}`;
+  if (favorZhi?.kuRoot) return `地支${zhi}（库藏${favorZhi.kuRoot}，随天干作${favorZhi.element}）`;
+  return `地支${zhi}${favorZhi?.element ?? ''}`;
+};
 
 /**
  * @param {object} liuNian 流年

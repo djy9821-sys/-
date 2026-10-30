@@ -120,7 +120,8 @@ const FAVOR_WORD = { good: '喜', bad: '忌', neutral: '平' };
 const daYunFavorShort = (item, favor) => {
   if (!favor) return '';
   const cover = favor.cover ? `（${favor.cover.kind}，${favor.cover.kind === '截脚' ? '整步运按忌' : '吉减其半'}）` : '';
-  return `；喜忌：天干${item.gan}${favor.gan.element}${FAVOR_WORD[favor.gan.tone]}，地支${item.zhi}${favor.zhi.element}${FAVOR_WORD[favor.zhi.tone]}${cover}`;
+  const zhi = favor.zhi.kuRoot ? `地支${item.zhi}（库藏${favor.zhi.kuRoot}，随天干作${favor.zhi.element}）` : `地支${item.zhi}${favor.zhi.element}`;
+  return `；喜忌：天干${item.gan}${favor.gan.element}${FAVOR_WORD[favor.gan.tone]}，${zhi}${FAVOR_WORD[favor.zhi.tone]}${cover}`;
 };
 
 const daYunLines = (chart, selectedDaYun, favorBasis = null) => {
@@ -128,7 +129,7 @@ const daYunLines = (chart, selectedDaYun, favorBasis = null) => {
   const lines = [
     `- ${yun.forward ? '顺排' : '逆排'}，出生后 ${yun.startYear} 年 ${yun.startMonth} 个月 ${yun.startDay} 天起运，交运日 ${yun.startSolar.split(' ')[0]}`,
   ];
-  if (favorBasis) lines.push(`- 各步喜忌按${favorBasis.source === 'special' ? `${favorBasis.specialName.replace(/^疑似/, '')}论` : '「旺衰参考」一节的扶抑喜忌'}；大运以地支为重，运干喜而运支忌又克运干的（截脚）整步运按忌（《滴天髓·岁运》任注）`);
+  if (favorBasis) lines.push(`- 各步喜忌按${favorBasis.source === 'special' ? `${favorBasis.specialName.replace(/^疑似/, '')}论` : '「旺衰参考」一节的扶抑喜忌'}；大运以地支为重，运干喜而运支忌又克运干的（截脚）整步运按忌（《滴天髓·岁运》任注）；运干坐库（癸丑、壬辰、乙未之类，库里藏着天干的同类）的，地支随天干论（任注「癸丑北方湿土，亦作水论」）`);
   // 只列到百岁左右，足够分析使用。运支与原局凑齐三会方、三合局的注明（程序的大运喜忌按局的五行论）。
   const natalZhis = chart.pillars.map((pillar) => pillar.zhi).filter(Boolean);
   yun.dayun.filter((item) => item.startAge < 100).forEach((item) => {

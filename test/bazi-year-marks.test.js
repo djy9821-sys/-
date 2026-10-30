@@ -7,7 +7,7 @@ import { judgeBaziPattern } from '../src/utils/baziPattern.js';
 import { buildShenshaContext, getShensha } from '../src/utils/baziShensha.js';
 import * as yearMarks from '../src/utils/baziYearMarks.js';
 
-const { describeDaYunFavor, describeTaiSui, describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks, juOfZhi } = yearMarks;
+const { describeDaYunFavor, describeTaiSui, describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks, juOfZhi, kuRootOf } = yearMarks;
 
 const NOW = new Date('2026-10-26T10:00:00');
 // 1998-01-02 辰时男：丁丑 壬子 己酉 戊辰
@@ -73,6 +73,28 @@ test('大运以地支为重：截脚整步运按忌论，盖头吉凶减半（�
   const year = getLiuNianMarks(liuNianOf('戊寅'), { chart, strength });
   assert.equal(year.favor.cover, null);
   assert.equal(year.favor.overall, 'mixed');
+});
+
+test('运干坐库：大运地支是辰戌丑未又藏着天干同类的，随天干论五行（任注「癸丑北方湿土，亦作水论」「壬辰水生库根」）；流年不论', () => {
+  assert.equal(kuRootOf('癸', '丑'), '癸');
+  assert.equal(kuRootOf('壬', '辰'), '癸');
+  assert.equal(kuRootOf('甲', '辰'), '乙');
+  assert.equal(kuRootOf('乙', '未'), '乙');
+  assert.equal(kuRootOf('丙', '戌'), '丁');
+  assert.equal(kuRootOf('庚', '辰'), null, '辰不藏金');
+  assert.equal(kuRootOf('戊', '寅'), null, '寅不是库');
+  // 丁丑 壬子 己酉 戊辰：喜土火，忌木水。
+  const guiChou = getDaYunMarks({ gan: '癸', zhi: '丑' }, { strength, chart });
+  assert.equal(guiChou.favor.zhi.element, '水');
+  assert.equal(guiChou.favor.zhi.kuRoot, '癸');
+  assert.equal(guiChou.favor.cover, null, '丑随天干作水，不是截脚');
+  assert.equal(guiChou.favor.overall, 'bad');
+  assert.equal(describeDaYunFavor({ gan: '癸', zhi: '丑' }, guiChou.favor), '天干癸水忌（财） · 地支丑（库藏癸，随天干作水）忌（财）');
+  assert.equal(getDaYunMarks({ gan: '庚', zhi: '辰' }, { strength, chart }).favor.zhi.element, '土');
+  // 流年照常按地支本气论。
+  const year = getLiuNianMarks(liuNianOf('癸丑'), { chart, strength });
+  assert.equal(year.favor.zhi.element, '土');
+  assert.equal(year.favor.zhi.kuRoot, undefined);
 });
 
 test('运、年的地支与原局凑齐三会方、三合局的，按局的五行论喜忌（《滴天髓·岁运》任注「支全金局」「支类西方」）', () => {
