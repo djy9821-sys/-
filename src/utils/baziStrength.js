@@ -11,11 +11,15 @@
  *   （月支已算在得令里），合计最多 3 分。根所在的支被紧贴的一支冲克（子冲午、酉冲卯、申冲寅、亥冲巳，
  *   任注「卯酉紧冲日禄」「冲去禄神，其根已拔」），这一支的根打六折；二不冲一（午子午）不算；
  * - 得势：年、月、时干每见一个比劫或印 0.5 分；
+ * - 会局：四支会成比劫的三合或三会局（亥卯未、寅卯辰之类）另加 0.5 分，会成印局的 0.25 分——局全的旺势不是逐支相加算得出的
+ *   （任注「亥卯未全，木势旺盛」「支全寅卯辰，东方一气」）；
  * - 时辰不详时，时柱按平均 0.4 分估。
  * 合计 0.5 分及以下极弱、2 分及以下偏弱、2.5 分以下中和、4 分以下偏强，4 分及以上极强。
  *
  * 喜用按「扶抑」取用（子平与《滴天髓》通行取法），透干或在地支作本气、确实有力的五行排前。透干而地支无根的字不算有力
- * （任注「年月两干，土金无根，置之不用」「时上庚金无根为忌」），坐下本气生它的（庚坐辰，任注「辰土归垣，庚金得载」）、
+ * （任注「年月两干，土金无根，置之不用」「时上庚金无根为忌」），坐下本气生它的（庚坐辰，任注「辰土归垣，庚金得载」；
+ * 未、戌是燥土，载不住金——「未乃南方燥土……非生金之土，故辛金之君无能为矣」，只有日主自己是土、通根在这一支的才算，
+ * 「未土通根有余，足以用辛金制杀」）、
  * 生它的五行力量在 3 分以上的（有源，杀重透印之类）、身旺时的食伤（日主生它）除外：
  * - 身弱：看食伤、财、官杀哪一方最重（透干的字每个另加半分：元神透出，力量更显）——财重取比劫帮身；
  *   食伤重取印制伤生身；官杀重取印化杀，印无力而食伤有力时取食伤制杀（任注「庚金并透，通根砍伐……
@@ -24,7 +28,9 @@
  *   印在比劫两倍以上而财星、食伤都无力的是「母多灭子」，顺母之性，取比劫帮身）；
  *   比劫多取官杀制劫（官杀无力就取食伤泄秀；3.3 分以上「太旺」的，官杀逆其旺势，先取食伤泄秀）；
  *   旺极（4 分及以上）先取食伤泄秀；
- * - 中和：任注没有不取用神的，2.15 分及以上按偏旺取，以下按偏弱取（取用思路里写明「中和略偏旺／弱」）。
+ * - 中和：任注没有不取用神的，2.15 分及以上按偏旺取，以下按偏弱取（取用思路里写明「中和略偏旺／弱」）；
+ *   官杀两透有力而食伤又透出的是「克泄交加」（「天干两杀通根辰支，年干乙木……正克泄交加」，取羊刃帮身），2.15 分以上也按偏弱取，
+ *   只有官杀两透而无食伤的仍可「身旺用官」（「此以丁火为源头……身旺用官」）。
  * 调候按《穷通宝鉴》各月论的取用先后（src/data/tiaohou.js）查日干与月令：主用神的五行附在喜用末尾。
  * 寒暖调候为急的除外：冬月（亥子丑）与正月（寅）调候宜火、夏月（巳午未）调候宜水，而这一火、水在原局有力（透干或作本气）
  * 又在地支有根时，取为第一。任注《寒暖》：「寒虽甚，要暖有气也」（甲申 丙子 庚辰 戊寅，丙火以寅为根，用火）；
@@ -43,6 +49,8 @@
  * 其后补「身旺印多，官星透出有力，足以用官」：非留集用神第一位一致 124 → 128，留集 44 → 45，岁运一致、相反的造数不变。
  * 再补「太旺宜泄」「母多灭子，顺母之性」（任注《衰旺》「五行颠倒之真机」）：岁运一致 511 → 527、相反 198 → 190
  * （非留集 365 → 373、134 → 131；留集 146 → 154、64 → 59），用神第一位非留集不变、留集 45 → 46。
+ * 再补会局加分、燥土不载金、克泄交加按偏弱取（与格局的「墓库支随旺极之势」同一批）：全部 510 造旺衰一致 139 → 144；
+ * 用神第一位一致 175 → 176、相反 31 → 30、不中 20 → 18（留集相反 12 → 11）；岁运一致 553 → 560、相反 206 → 201。
  * 不处理从格、化格等特殊格局（极端时只做提示）。
  */
 import { describeTiaoHouPresence, tiaoHouOf, tiaoHouPresenceOf } from '../data/tiaohou.js';
@@ -77,7 +85,16 @@ export const STRENGTH_SCORE = Object.freeze({
   unknownHour: 0.4,
   /** 根所在的支被紧贴的一支冲克时打的折扣。 */
   chong: 0.6,
+  /** 四支会成日主本气的三合、三会局（「亥卯未全，木势旺盛」「支全寅卯辰，东方一气」）另加的分；会成印局的减半。 */
+  ju: 0.5,
 });
+/** 三合局与三会方：四支齐全时按局的五行另加一笔。 */
+const SAN_HE_JU = [
+  { zhis: ['亥', '卯', '未'], wuxing: '木', kind: '三合' }, { zhis: ['寅', '午', '戌'], wuxing: '火', kind: '三合' },
+  { zhis: ['巳', '酉', '丑'], wuxing: '金', kind: '三合' }, { zhis: ['申', '子', '辰'], wuxing: '水', kind: '三合' },
+  { zhis: ['寅', '卯', '辰'], wuxing: '木', kind: '三会' }, { zhis: ['巳', '午', '未'], wuxing: '火', kind: '三会' },
+  { zhis: ['申', '酉', '戌'], wuxing: '金', kind: '三会' }, { zhis: ['亥', '子', '丑'], wuxing: '水', kind: '三会' },
+];
 
 /**
  * 旺衰分档的分界：合计 ≤ extremeWeak 极弱，≤ weak 偏弱，< strong 中和，< extremeStrong 偏强，其余极强；
@@ -190,6 +207,12 @@ const scoreOf = (chart, dayWuxing) => {
     });
   });
   const di = Math.min(roots.reduce((sum, item) => sum + item.points, 0), STRENGTH_SCORE.diCap);
+  // 会局：四支会成日主本气的三合、三会局，旺势不是逐支相加算得出的（任注「亥卯未全，木势旺盛」「支全寅卯辰，东方一气」），另加一笔；印局减半。
+  const zhis = chart.pillars.map((pillar) => pillar.zhi).filter(Boolean);
+  const juMatch = SAN_HE_JU.find((item) => supportRole(item.wuxing) && item.zhis.every((zhi) => zhis.includes(zhi)));
+  const ju = juMatch
+    ? { zhis: juMatch.zhis.join(''), kind: juMatch.kind, element: juMatch.wuxing, role: supportRole(juMatch.wuxing), points: STRENGTH_SCORE.ju * (supportRole(juMatch.wuxing) === '印' ? STRENGTH_SCORE.yinRoot : 1) }
+    : null;
 
   const stems = chart.pillars
     .filter((pillar) => pillar.key !== 'day' && pillar.gan && supportRole(pillar.ganWuxing))
@@ -198,11 +221,12 @@ const scoreOf = (chart, dayWuxing) => {
   const hourEstimate = chart.pillars.some((pillar) => pillar.key === 'time' && !pillar.gan) ? STRENGTH_SCORE.unknownHour : 0;
 
   return {
-    total: round2(ling + (xiuQiu?.points ?? 0) + di + shi + hourEstimate),
+    total: round2(ling + (xiuQiu?.points ?? 0) + di + (ju?.points ?? 0) + shi + hourEstimate),
     ling,
     lingYuqi: yuqi ? { zhi: month.zhi, gan: yuqi.gan } : null,
     xiuQiu,
     di: round2(di),
+    ju,
     shi: round2(shi),
     hourEstimate,
     roots: roots.map((item) => ({ ...item, points: round2(item.points) })),
@@ -230,6 +254,8 @@ const rootedElementsOf = (chart) => new Set(chart.pillars.flatMap((pillar) => (p
 
 /** 透干的字地支无根，但生它的五行在原局力量这么多以上（有源，如杀重透印、杀印相生），仍算有力。 */
 const SOURCE_SCORE = 3;
+/** 燥土：未、戌。土生金只认辰、丑湿土（任注「未戌燥土」不能生金）。 */
+const DRY_EARTH = new Set(['未', '戌']);
 
 /**
  * 有力：某一支的本气；或透在年、月、时干而有根——在地支藏干里，或坐下本气生它（「庚金得载」），
@@ -238,9 +264,12 @@ const SOURCE_SCORE = 3;
 const usableElementsOf = (chart, { strong = false, scores = {} } = {}) => {
   const rooted = rootedElementsOf(chart);
   const dayWuxing = chart.dayMaster.wuxing;
+  // 坐下本气生它：庚坐辰「辰土归垣，庚金得载」。但未、戌是燥土，载不住金（任注「未乃南方燥土，木之库根，非生金之土，
+  // 故辛金之君无能为矣」「亥卯未全……金气虚脱」）；只有日主自己是土、通根在这一支的（「未土通根有余，足以用辛金制杀」），辛金才算有载。
   const carried = (pillar) => {
     const main = pillar.hiddenGanDetails?.[0];
-    return Boolean(main && GENERATES[GAN_WUXING[main.gan]] === pillar.ganWuxing);
+    if (!main || GENERATES[GAN_WUXING[main.gan]] !== pillar.ganWuxing) return false;
+    return pillar.ganWuxing !== '金' || !DRY_EARTH.has(pillar.zhi) || dayWuxing === '土';
   };
   return new Set(chart.pillars.flatMap((pillar) => [
     pillar.key !== 'day' && pillar.gan && (rooted.has(pillar.ganWuxing) || carried(pillar) || (scores[GENERATED_BY[pillar.ganWuxing]] ?? 0) >= SOURCE_SCORE
@@ -263,7 +292,10 @@ const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts 
   const byScoreDesc = (elements) => [...elements].sort((a, b) => scores[b] - scores[a]);
 
   if (band === '中和') {
-    const leanStrong = total >= STRENGTH_BOUNDS.lean;
+    // 中和而官杀两透有力、食伤又透出的（「天干两杀通根辰支，年干乙木……正克泄交加」），克泄交加，按偏弱一边取（任注取羊刃帮身）；
+    // 只有官杀两透而无食伤泄身的，仍可「身旺用官」（「此以丁火为源头……身旺用官」）。
+    const shaHeavy = (touCounts[officer] ?? 0) >= 2 && usable.has(officer) && (touCounts[output] ?? 0) >= 1;
+    const leanStrong = total >= STRENGTH_BOUNDS.lean && !shaHeavy;
     const leaned = supportAndRestrain({ band: leanStrong ? '偏强' : '偏弱', total, scores, dayWuxing, usable, touCounts });
     return { ...leaned, basis: `日主中和略偏${leanStrong ? '旺' : '弱'}，${leaned.basis}` };
   }
