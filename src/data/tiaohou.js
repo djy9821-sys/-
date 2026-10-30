@@ -96,3 +96,21 @@ export const tiaoHouOf = (dayGan, monthZhi) => {
     source: cite(TIAOHOU_SOURCE.classic, section),
   };
 };
+
+/**
+ * 调候诸神在原局的有无：《穷通宝鉴》论高低全看用神透、藏、无（「丙甲两透，科甲显荣」「丙藏甲透，异路功名」）。
+ * 透只看年、月、时干（日干是日主自己）；藏看四支的藏干（本气、中气、余气都算）。
+ * @param pillars 排盘的四柱（时辰不详时时柱没有干支，跳过）
+ * @returns {{ gan, tou: string[], cang: string[] }[]} tou 如「时干」，cang 如「辰」
+ */
+export const tiaoHouPresenceOf = (pillars, stems) => stems.map((gan) => ({
+  gan,
+  tou: pillars.filter((pillar) => pillar.key !== 'day' && pillar.gan === gan).map((pillar) => pillar.name.replace('柱', '干')),
+  cang: pillars.filter((pillar) => (pillar.hiddenGanDetails ?? []).some((detail) => detail.gan === gan)).map((pillar) => pillar.zhi),
+}));
+
+/** 「原局：丙无；甲无；戊透时干、藏于辰」 */
+export const describeTiaoHouPresence = (presence) => `原局：${presence.map(({ gan, tou, cang }) => {
+  if (!tou.length && !cang.length) return `${gan}无`;
+  return [tou.length ? `${gan}透${tou.join('、')}` : gan, cang.length ? `藏于${cang.join('、')}` : ''].filter(Boolean).join(tou.length ? '、' : '');
+}).join('；')}`;
