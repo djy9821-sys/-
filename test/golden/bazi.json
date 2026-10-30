@@ -1302,8 +1302,10 @@
       },
       "chengBai": {
         "group": "印格",
-        "verdict": "待详辨",
-        "success": [],
+        "verdict": "成",
+        "success": [
+          "身印两旺而用食伤泄气"
+        ],
         "failure": [],
         "flaw": [],
         "rescue": []
