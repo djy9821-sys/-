@@ -235,6 +235,7 @@ test('两气成象：天干地支只有日主与食伤两行、各占一半，�
   assert.deepEqual(godsOf(muHuo.judge.special.favorable), ['火食伤', '木比劫']);
   assert.deepEqual(godsOf(muHuo.judge.special.unfavorable), ['水印', '金官杀']);
   assert.match(muHuo.judge.special.basis, /^天干与地支本气只有木、火两行（4 比 4），两气成象；日主甲木是生的一方，以火（食伤）秀气为用。$/);
+  assert.equal(muHuo.judge.special.caveat, '两气成象不是从、化，象不破就按此论（任注「象不可破也」）');
   assert.equal(judgeByPillars('丙午 戊戌 丙午 戊戌').judge.special.name, '两气成象（火土相生）');
   assert.equal(judgeByPillars('戊戌 辛酉 戊戌 辛酉').judge.special.name, '两气成象（土金相生）');
   // 印局不作此论：「丁卯 乙巳 丁卯 乙巳：日主是火……木从火势，格成炎上」仍是专旺。
