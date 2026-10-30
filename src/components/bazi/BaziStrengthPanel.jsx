@@ -84,7 +84,7 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster, 
                 </div>
                 <div className="mt-3" data-testid="bazi-strength-score">
                     <div className="flex items-baseline justify-between gap-2 text-[11px] text-[#81776b]">
-                        <span>旺衰打分（得令 + 得地 + 得势）</span>
+                        <span>旺衰打分（得令 + 得地 + 得势{score.ju ? ' + 会局' : ''}{score.hourEstimate > 0 ? ' + 时辰估分' : ''}）</span>
                         <b className="text-sm tabular-nums text-[#3b342e]">{points(score.total)}</b>
                     </div>
                     <div className="relative mt-1 h-2.5 overflow-hidden rounded-full bg-[#d9cfbf]" role="img" aria-label={`旺衰打分 ${points(score.total)}，满刻度 ${SCALE_MAX} 分`}>
