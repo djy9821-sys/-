@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 import {
   BAZI_LIUQIN, baziContextOf, baziGlossarySeeds, baziLiuqinHits, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
-  patternNamesOf, searchGlossary, termsIn, ziweiContextOf, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiNeighborsOf, ziweiPalaceContextOf,
+  patternNamesOf, pickLimitHits, searchGlossary, termsIn, ziweiBorrowedStarsOf, ziweiContextOf, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiMeetStarsOf, ziweiNeighborsOf,
+  ziweiOppositeOf, ziweiPalaceContextOf, ziweiPalaceHits, ziweiSurroundOf,
 } from '../src/data/classics/library.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
@@ -239,8 +240,8 @@ test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算�
   };
   const ctx = ziweiPalaceContextOf(palace, { gender: 'female' });
   assert.deepEqual(ctx, {
-    module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], jia: [], palace: ['命宫', '身宫'], branches: ['亥'],
-    brightness: ['旺', '平'], mutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女',
+    module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], jia: [], meet: ['紫微', '七杀', '文曲', '天巫', '天官'], palace: ['命宫', '身宫'], branches: ['亥'],
+    brightness: ['旺', '平'], mutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女', borrowedStars: [], empty: [],
   });
   assert.deepEqual(ziweiPalaceContextOf({ name: '交友', earthlyBranch: '辰', majorStars: [] }, { gender: '男' }).palace, ['仆役']);
   assert.equal(ziweiPalaceContextOf(null), null);
@@ -279,6 +280,164 @@ test('紫微提示词用：命宫与身宫星曜的命中去重合并（身宫�
   assert.deepEqual(ziweiLifePalaceHits(lib, [other, same]).map(({ entry }) => entry.id), ['ziwei.l.003', 'ziwei.l.001', 'ziwei.l.004']);
   assert.deepEqual(ziweiLifePalaceHits(lib, []), []);
   assert.deepEqual(ziweiLifePalaceHits(null, [ming]), []);
+});
+
+test('紫微提示词用：按宫名取几个宫的命中（夫妻、福德……），别名「夫妻宫」也认，身宫与命宫同宫只算一次', () => {
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.p.001', title: '天相守夫妻', original: '甲', status: 'translated', applies: [{ module: 'ziwei', star: '天相', palace: '夫妻' }] },
+      { id: 'ziwei.p.002', title: '天相', original: '乙', status: 'translated', applies: [{ module: 'ziwei', star: '天相' }] },
+      { id: 'ziwei.p.003', title: '紫微守福德', original: '丙', status: 'translated', applies: [{ module: 'ziwei', star: '紫微', palace: '福德' }] },
+      { id: 'ziwei.p.004', title: '天机', original: '丁', status: 'translated', applies: [{ module: 'ziwei', star: '天机' }] },
+    ],
+  }]);
+  const ming = { index: 0, name: '命宫', earthlyBranch: '寅', isBodyPalace: true, majorStars: [{ name: '天机' }] };
+  const fuqi = { index: 10, name: '夫妻', earthlyBranch: '子', majorStars: [{ name: '天相' }] };
+  const fude = { index: 2, name: '福德', earthlyBranch: '辰', majorStars: [{ name: '紫微' }] };
+  const palaces = [ming, fuqi, fude];
+  // 夫妻宫：带宫位条件的「天相守夫妻」排前，泛论天相的也命中；福德宫的紫微不算进来。
+  assert.deepEqual(ziweiPalaceHits(lib, palaces, ['夫妻']).map(({ entry }) => entry.id), ['ziwei.p.001', 'ziwei.p.002']);
+  assert.deepEqual(ziweiPalaceHits(lib, palaces, ['夫妻宫']).map(({ entry }) => entry.id), ['ziwei.p.001', 'ziwei.p.002']);
+  assert.deepEqual(ziweiPalaceHits(lib, palaces, ['福德']).map(({ entry }) => entry.id), ['ziwei.p.003']);
+  // 命宫与身宫同宫：只算一次，不重复。
+  assert.deepEqual(ziweiPalaceHits(lib, palaces, ['命宫', '身宫']).map(({ entry }) => entry.id), ['ziwei.p.004']);
+  assert.deepEqual(ziweiPalaceHits(lib, palaces, ['田宅']), []);
+  assert.deepEqual(ziweiPalaceHits(lib, palaces, null), []);
+});
+
+test('紫微提示词用：大限、流年命宫所落的本命宫，按宫中星曜加专讲该运限的条目取命中', () => {
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.x.001', title: '大限通论', original: '甲', status: 'translated', applies: [{ module: 'ziwei', limit: '大限' }] },
+      { id: 'ziwei.x.002', title: '流年太岁', original: '乙', status: 'translated', applies: [{ module: 'ziwei', limit: '流年', palace: '命宫' }] },
+      { id: 'ziwei.x.003', title: '七杀', original: '丙', status: 'translated', applies: [{ module: 'ziwei', star: '七杀' }] },
+      { id: 'ziwei.x.004', title: '大限逢七杀', original: '丁', status: 'translated', applies: [{ module: 'ziwei', limit: '大限', star: '七杀' }] },
+    ],
+  }]);
+  const ming = { index: 0, name: '命宫', earthlyBranch: '寅', majorStars: [{ name: '紫微' }] };
+  const fuqi = { index: 2, name: '夫妻', earthlyBranch: '辰', majorStars: [{ name: '七杀' }] };
+  const palaces = [ming, { index: 1, name: '兄弟', earthlyBranch: '卯', majorStars: [] }, fuqi];
+  // 大限命宫落在本命夫妻宫（七杀）：大限以所落宫的星曜论，泛论七杀的、专讲大限逢七杀的、大限通论都命中；
+  // 星曜条件更专门，排在只讲「大限」的通论前面；专讲流年的不算。
+  assert.deepEqual(ziweiLimitPalaceHits(lib, palaces, 2, '大限').map(({ entry }) => entry.id), ['ziwei.x.004', 'ziwei.x.003', 'ziwei.x.001']);
+  // 流年命宫落在本命命宫：专讲流年太岁在命宫的命中；大限的不算。
+  assert.deepEqual(ziweiLimitPalaceHits(lib, palaces, 0, '流年').map(({ entry }) => entry.id), ['ziwei.x.002']);
+  assert.deepEqual(ziweiLimitPalaceHits(lib, palaces, 9, '大限'), []);
+  assert.deepEqual(ziweiLimitPalaceHits(null, palaces, 0, '流年'), []);
+});
+
+test('运势提示词取条：前 n 条里没有专讲运限的，就把最后一条换成专讲运限的（先挑论大限、论流年篇章里的）', () => {
+  const hit = (id, keys, section = '测试') => ({ entry: { id, section }, matched: keys.map((key) => ({ key, value: 'x' })) });
+  const star = (id) => hit(id, ['palace', 'star']);
+  const limit = (id, section) => hit(id, ['limit'], section);
+  assert.deepEqual(pickLimitHits([star('a'), star('b'), star('c'), limit('d'), star('e')], 3).map((item) => item.entry.id), ['a', 'b', 'd']);
+  // 定杂局的一句话定义排在前，但论流年太岁那篇才是专讲流年的：先挑它
+  const mixed = [star('a'), star('b'), star('c'), limit('d', '定杂局'), limit('e', '论流年太岁吉凶星杀'), limit('f', '论大限十年祸福何如')];
+  assert.deepEqual(pickLimitHits(mixed, 3, '流年').map((item) => item.entry.id), ['a', 'b', 'e']);
+  assert.deepEqual(pickLimitHits(mixed, 3, '大限').map((item) => item.entry.id), ['a', 'b', 'f']);
+  assert.deepEqual(pickLimitHits(mixed, 3).map((item) => item.entry.id), ['a', 'b', 'd']);
+  // 前几条里已有专讲运限的，照常取
+  assert.deepEqual(pickLimitHits([star('a'), hit('b', ['limit', 'star']), star('c'), limit('d')], 3).map((item) => item.entry.id), ['a', 'b', 'c']);
+  // 没有专讲运限的、或命中不够 n 条，照常取
+  assert.deepEqual(pickLimitHits([star('a'), star('b'), star('c'), star('d')], 3).map((item) => item.entry.id), ['a', 'b', 'c']);
+  assert.deepEqual(pickLimitHits([star('a'), star('b')], 3).map((item) => item.entry.id), ['a', 'b']);
+  assert.deepEqual(pickLimitHits(null, 3), []);
+});
+
+test('空宫借对宫：对宫按地支相冲找；没有主星的宫把对宫主星算进匹配，命中说明注「借对宫」；对宫也空的不借', () => {
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.b.001', title: '太阳守田宅', original: '甲', status: 'translated', applies: [{ module: 'ziwei', star: '太阳', palace: '田宅' }] },
+      { id: 'ziwei.b.002', title: '巨门', original: '乙', status: 'translated', applies: [{ module: 'ziwei', star: '巨门' }] },
+      { id: 'ziwei.b.003', title: '文昌', original: '丙', status: 'translated', applies: [{ module: 'ziwei', star: '文昌' }] },
+      { id: 'ziwei.b.004', title: '日巨同宫', original: '丁', status: 'translated', applies: [{ module: 'ziwei', allStars: ['太阳', '巨门'] }] },
+    ],
+  }]);
+  const tianzhai = { index: 0, name: '田宅', earthlyBranch: '寅', majorStars: [], minorStars: [{ name: '文昌', brightness: '得' }] };
+  const zinv = { index: 6, name: '子女', earthlyBranch: '申', majorStars: [{ name: '太阳', brightness: '得', mutagen: '禄' }, { name: '巨门', brightness: '庙' }] };
+  const fude = { index: 11, name: '福德', earthlyBranch: '丑', majorStars: [] };
+  const caibo = { index: 5, name: '财帛', earthlyBranch: '未', majorStars: [] };
+  const palaces = [tianzhai, zinv, fude, caibo];
+  assert.equal(ziweiOppositeOf(palaces, tianzhai), zinv);
+  assert.equal(ziweiOppositeOf(palaces, zinv), tianzhai);
+  assert.equal(ziweiOppositeOf(palaces, { index: 3, earthlyBranch: '巳' }), null);
+  // 没有地支时按宫序隔六位
+  assert.equal(ziweiOppositeOf(palaces, { index: 6 }), tianzhai);
+  assert.deepEqual(ziweiBorrowedStarsOf(tianzhai, zinv), ['太阳', '巨门']);
+  assert.deepEqual(ziweiBorrowedStarsOf(zinv, tianzhai), []);
+  assert.deepEqual(ziweiBorrowedStarsOf(fude, caibo), []);
+  assert.deepEqual(ziweiBorrowedStarsOf(tianzhai, null), []);
+  const ctx = ziweiPalaceContextOf(tianzhai, { opposite: zinv });
+  assert.deepEqual(ctx.star, ['文昌', '太阳', '巨门']);
+  assert.deepEqual(ctx.borrowedStars, ['太阳', '巨门']);
+  // 借了星也还是空宫：「命无正曜」「左右单守」这类条目（empty: 无正曜）只在没有主星的宫命中
+  assert.deepEqual(ctx.empty, ['无正曜']);
+  assert.deepEqual(ziweiPalaceContextOf(zinv).empty, []);
+  const emptyLib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.e.001', title: '命无正曜', original: '甲', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', empty: '无正曜' }] },
+      { id: 'ziwei.e.002', title: '左辅单守', original: '乙', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', star: '左辅', empty: '无正曜' }] },
+    ],
+  }]);
+  const emptyMing = { index: 0, name: '命宫', earthlyBranch: '寅', majorStars: [], minorStars: [{ name: '左辅' }] };
+  const fullMing = { index: 0, name: '命宫', earthlyBranch: '寅', majorStars: [{ name: '紫微' }], minorStars: [{ name: '左辅' }] };
+  const emptyHits = matchEntries(emptyLib, ziweiPalaceContextOf(emptyMing));
+  assert.deepEqual(emptyHits.map(({ entry }) => entry.id), ['ziwei.e.002', 'ziwei.e.001']);
+  assert.equal(emptyHits[1].reason, '宫位·命宫，宫内·无正曜');
+  assert.deepEqual(matchEntries(emptyLib, ziweiPalaceContextOf(fullMing)), []);
+  // 借来的星只借名字：庙旺、四化仍只算这一宫自己星的
+  assert.deepEqual(ctx.brightness, ['得']);
+  assert.deepEqual(ctx.mutagen, []);
+  const hits = ziweiPalaceHits(lib, palaces, ['田宅']);
+  // 星曜 + 宫位的排最前；只凭星曜命中的（借来的太阳巨门、自己的文昌、日巨同宫）同分，按 id 排
+  assert.deepEqual(hits.map(({ entry }) => entry.id), ['ziwei.b.001', 'ziwei.b.002', 'ziwei.b.003', 'ziwei.b.004']);
+  assert.equal(hits.find(({ entry }) => entry.id === 'ziwei.b.001').reason, '星曜·太阳（借对宫），宫位·田宅');
+  assert.equal(hits.find(({ entry }) => entry.id === 'ziwei.b.004').reason, '星曜·太阳、巨门（借对宫）');
+  assert.equal(hits.find(({ entry }) => entry.id === 'ziwei.b.003').reason, '星曜·文昌');
+  // 不传对宫就不借
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(tianzhai)).map(({ entry }) => entry.id), ['ziwei.b.003']);
+});
+
+test('三方四正：对宫与两个三合宫；「会」「拱」「照」的条件 meet（任一）、meetAll（都在）看本宫连三方四正的主星辅星', () => {
+  const palaceAt = (index, branch, name, majorStars = [], minorStars = []) => ({ index, earthlyBranch: branch, name, majorStars: majorStars.map((n) => ({ name: n })), minorStars: minorStars.map((n) => ({ name: n })), adjectiveStars: [{ name: '天巫' }] });
+  const branches = ['寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子', '丑'];
+  const palaces = branches.map((branch, index) => palaceAt(index, branch, `宫${index}`));
+  // 命宫在子：对宫午、三合申辰
+  const ming = palaceAt(10, '子', '命宫', ['太阴'], ['文曲']);
+  palaces[10] = ming;
+  palaces[4] = palaceAt(4, '午', '迁移', ['天同'], ['禄存']);
+  palaces[6] = palaceAt(6, '申', '官禄', ['天机', '天梁'], ['文昌']);
+  palaces[2] = palaceAt(2, '辰', '财帛', [], ['擎羊']);
+  assert.deepEqual(ziweiSurroundOf(palaces, ming).map((palace) => palace.earthlyBranch), ['午', '申', '辰']);
+  assert.deepEqual(ziweiSurroundOf(palaces, { index: 10 }).map((palace) => palace.earthlyBranch).sort(), ['午', '申', '辰'].sort());
+  assert.deepEqual(ziweiSurroundOf(null, ming), []);
+  // 三方四正里只数主星、辅星，杂曜不算
+  assert.deepEqual(ziweiMeetStarsOf(ziweiSurroundOf(palaces, ming)), ['天同', '禄存', '天机', '天梁', '文昌', '擎羊']);
+  const ctx = ziweiPalaceContextOf(ming, { surround: ziweiSurroundOf(palaces, ming) });
+  assert.deepEqual(ctx.star, ['太阴', '文曲', '天巫']);
+  assert.deepEqual(ctx.meet, ['太阴', '文曲', '天巫', '天同', '禄存', '天机', '天梁', '文昌', '擎羊']);
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.m.001', title: '昌曲会命', original: '甲', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', meet: ['文昌', '文曲'] }] },
+      { id: 'ziwei.m.002', title: '机梁会太阴', original: '乙', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', star: '太阴', meetAll: ['天机', '天梁'] }] },
+      { id: 'ziwei.m.003', title: '府相朝垣', original: '丙', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', meetAll: ['天府', '天相'] }] },
+      { id: 'ziwei.m.004', title: '太阴同宫文昌', original: '丁', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', allStars: ['太阴', '文昌'] }] },
+    ],
+  }]);
+  const hits = matchEntries(lib, ctx);
+  // 文昌在官禄（三方）：按 meet 命中；同宫条件 allStars 不算；府相不在三方不命中
+  assert.deepEqual(hits.map(({ entry }) => entry.id), ['ziwei.m.002', 'ziwei.m.001']);
+  assert.equal(hits[0].reason, '宫位·命宫，星曜·太阴，三方四正·天机、天梁');
+  assert.equal(hits[1].reason, '宫位·命宫，三方四正·文昌');
+  // 不传三方四正时只算本宫的星：文曲在本宫仍算「会」，机梁就不算了
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(ming)).map(({ entry }) => entry.id), ['ziwei.m.001']);
+  // ziweiPalaceHits 自动带三方四正
+  assert.deepEqual(ziweiPalaceHits(lib, palaces, ['命宫']).map(({ entry }) => entry.id), ['ziwei.m.002', 'ziwei.m.001']);
 });
 
 test('排序与筛选：条件更具体的在前，同样具体时已审 > 待审 > 仅原文；可按状态过滤与限制条数', () => {
