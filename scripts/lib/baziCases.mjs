@@ -174,7 +174,8 @@ export const evaluateBaziCase = (entry) => {
   const strength = analyzeStrength(chart);
   const judge = judgeBaziPattern(chart, strength);
   const special = judge.special?.name ?? null;
-  const programClass = special ? (STRONG_SPECIALS.test(special) ? '旺' : '弱') : strengthClassOf(strength.band);
+  // 两气成象只定喜忌，旺衰照打分；从、化、专旺按格论旺弱。
+  const programClass = special && judge.special?.kind !== 'liangqi' ? (STRONG_SPECIALS.test(special) ? '旺' : '弱') : strengthClassOf(strength.band);
   const expected = entry.expected ?? {};
   const checks = {};
   // 化气格的旺衰说的是化神，不比日主旺衰。
