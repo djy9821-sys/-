@@ -14,18 +14,19 @@ const starLabel = (star) => `${star.name}${star.brightness || ''}${star.mutagen 
 
 const EMPTY = Object.freeze([]);
 
-/** 看哪一层：本命盘的各宫，或此刻所行大限、流年的命宫（古籍里写「大限逢……」「流年……」的条目只在这两层出现）。 */
+/** 看哪一层：本命盘的各宫，或此刻所行大限、小限、流年的命宫（古籍里写「大限逢……」「二限……」「流年……」的条目只在这几层出现）。 */
 const LAYERS = Object.freeze([
     { value: '本命', label: '本命盘' },
     { value: '大限', label: '当前大限' },
+    { value: '小限', label: '今年小限' },
     { value: '流年', label: '今年流年' },
 ]);
-const LAYER_KEYS = Object.freeze({ 大限: 'decadal', 流年: 'yearly' });
+const LAYER_KEYS = Object.freeze({ 大限: 'decadal', 小限: 'age', 流年: 'yearly' });
 
 /**
- * @param {{ palaces?: object[], focusedIndex?: number|null, gender?: string|null, patterns?: string[], limits?: { decadal?: { index: number, label: string, scope?: object|null }|null, yearly?: { index: number, label: string, scope?: object|null }|null }, natal?: { yearGan?: string|null, yearZhi?: string|null }|null }} props
+ * @param {{ palaces?: object[], focusedIndex?: number|null, gender?: string|null, patterns?: string[], limits?: { decadal?: { index: number, label: string, scope?: object|null }|null, age?: { index: number, label: string, scope?: object|null }|null, yearly?: { index: number, label: string, scope?: object|null }|null }, natal?: { yearGan?: string|null, yearZhi?: string|null }|null }} props
  *   patterns：程序认出的格局名（按命宫三方四正判的），只在看本命盘的命宫时算进匹配条件。
- *   limits：此刻所行大限、流年的命宫在哪一宫（宫的 index）与说明，scope 是排盘库该层的运限对象（带流曜与四化，流羊算擎羊、运昌算文昌一起找）；不传则只看本命盘。
+ *   limits：此刻所行大限、小限（age）、流年的命宫在哪一宫（宫的 index）与说明，scope 是排盘库该层的运限对象（带流曜与四化，流羊算擎羊、运昌算文昌一起找；小限只有四化）；不传则只看本命盘。
  *   natal：生年干支（ziweiNatalOf），给「壬甲生人」这类条件用。
  */
 export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, gender = null, patterns = EMPTY, limits = null, natal = null }) {
