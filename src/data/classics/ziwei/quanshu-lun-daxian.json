@@ -16,6 +16,19 @@
         {
           "module": "ziwei",
           "limit": "大限"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "stars": [
+            "擎羊",
+            "陀罗",
+            "火星",
+            "铃星",
+            "地空",
+            "地劫"
+          ],
+          "note": "小限巡逢凶杀任一颗，与大限陷地逢煞并论"
         }
       ],
       "tags": [
@@ -125,6 +138,10 @@
         },
         {
           "module": "ziwei",
+          "limit": "小限"
+        },
+        {
+          "module": "ziwei",
           "limit": "流年"
         }
       ],
@@ -179,6 +196,10 @@
         {
           "module": "ziwei",
           "limit": "大限"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限"
         }
       ],
       "tags": [
