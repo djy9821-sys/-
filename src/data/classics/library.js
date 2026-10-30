@@ -20,22 +20,24 @@
 import { CLASSICS, cite } from '../classics.js';
 import { patternNamesOf, ziweiPatternNamesOf } from './patternNames.js';
 import { liuyaoTopicNamesOf } from './topicNames.js';
-import { ENTRY_STATUS, ZIWEI_PALACE_ALIASES, chaptersOf, sectionOfEntry } from './schema.js';
+import { ENTRY_STATUS, ZIWEI_MUTAGENS, ZIWEI_PALACE_ALIASES, ZIWEI_STARS, chaptersOf, sectionOfEntry } from './schema.js';
 import { displayTextOf, readerNotesOf } from './editorial.js';
 
 export { patternNamesOf, ziweiPatternNamesOf, readerNotesOf };
 
 /** 复数键 → 单数键（allStars 也查上下文的 star，只是要几颗都在）。 */
-const SINGULAR = Object.freeze({ stars: 'star', allStars: 'star', meetAll: 'meet', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram', yearGans: 'yearGan', yearZhis: 'yearZhi' });
+const SINGULAR = Object.freeze({ stars: 'star', allStars: 'star', meetAll: 'meet', flowAll: 'flow', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram', yearGans: 'yearGan', yearZhis: 'yearZhi' });
 /** 要「全都在」的键。 */
-const ALL_OF = new Set(['allStars', 'meetAll']);
+const ALL_OF = new Set(['allStars', 'meetAll', 'flowAll']);
 /** 列的取值是一组、不按「任一」打折的键。 */
-const NO_BREADTH = new Set(['allStars', 'meetAll', 'jia']);
+const NO_BREADTH = new Set(['allStars', 'meetAll', 'flowAll', 'jia']);
+/** 条件里写了流曜（flow / flowAll）时，同条件的星曜键只看本命的星：上下文里 star → natalStars、meet → natalMeet。 */
+const NATAL_SOURCE = Object.freeze({ star: 'natalStars', meet: 'natalMeet' });
 
 /** 条件键的中文名，给界面写「为什么匹配到这条」。 */
 export const CONDITION_LABELS = Object.freeze({
   pattern: '格局', tenGod: '十神', shensha: '神煞', dayGan: '日干', monthZhi: '月令', season: '季节', strength: '旺衰', relation: '合冲刑害',
-  star: '星曜', jia: '夹', meet: '三方四正', palace: '宫位', branches: '地支', brightness: '庙旺', mutagen: '四化', limit: '运限', empty: '宫内', yearGan: '年干', yearZhi: '年支',
+  star: '星曜', jia: '夹', meet: '三方四正', flow: '流曜', palace: '宫位', branches: '地支', brightness: '庙旺', mutagen: '四化', limit: '运限', empty: '宫内', yearGan: '年干', yearZhi: '年支',
   hexagram: '卦', line: '爻', sixRelative: '六亲', sixGod: '六神', topic: '问事', movingLines: '动爻', gender: '性别', liuqin: '六亲',
 });
 
@@ -53,7 +55,7 @@ export const STATUS_LABELS = Object.freeze({ reviewed: '白话已校', translate
 export const KEY_WEIGHT = Object.freeze({
   pattern: 10, star: 10, jia: 10, hexagram: 10,
   limit: 9,
-  dayGan: 8, monthZhi: 8, topic: 8, meet: 8,
+  dayGan: 8, monthZhi: 8, topic: 8, meet: 8, flow: 8,
   mutagen: 7, shensha: 7, sixRelative: 7, empty: 7,
   season: 6, palace: 6, branches: 6, line: 6, relation: 6, liuqin: 6,
   strength: 5, sixGod: 5, yearGan: 5, yearZhi: 5,
@@ -129,10 +131,13 @@ export const conditionMatches = (cond, ctx) => {
   if (cond.module !== ctx.module) return null;
   const keys = Object.keys(cond).filter((key) => key !== 'module' && key !== 'note');
   if (keys.length === 0) return null;
+  // 写了流曜的条件，星曜键只看本命的星（流羊不再兼算擎羊），「擎羊重逢流羊」才分得出两颗。
+  const natalOnly = 'flow' in cond || 'flowAll' in cond;
   const matched = [];
   for (const key of keys) {
     const ctxKey = SINGULAR[key] ?? key;
-    const ctxValues = toArray(ctx[ctxKey]).map((value) => normalizeValue(ctxKey, String(value)));
+    const source = natalOnly && NATAL_SOURCE[ctxKey] && ctx[NATAL_SOURCE[ctxKey]] !== undefined ? ctx[NATAL_SOURCE[ctxKey]] : ctx[ctxKey];
+    const ctxValues = toArray(source).map((value) => normalizeValue(ctxKey, String(value)));
     if (ctxValues.length === 0) return null;
     const wanted = toArray(cond[key]).map((value) => normalizeValue(ctxKey, String(value)));
     if (ALL_OF.has(key)) {
@@ -155,13 +160,33 @@ export const conditionMatches = (cond, ctx) => {
 
 const reasonOf = (matched) => matched.map(({ key, value }) => `${CONDITION_LABELS[key] ?? key}·${value}`).join('，');
 
-/** 命中的星是空宫借来的对宫星时，说明里注明「（借对宫）」，读者知道原文说的星不在这一宫里。 */
+/**
+ * 命中的星是空宫借来的对宫星时，说明里注明「（借对宫）」，读者知道原文说的星不在这一宫里；
+ * 命中的星、四化是运限层的流曜（流羊、运昌……）、运限四化时，注明「（流年）」「（大限）」，与本命的分开看。
+ */
 const annotateBorrowed = (matched, ctx) => {
   const borrowed = toArray(ctx?.borrowedStars);
-  if (!borrowed.length) return matched;
-  return matched.map((item) => (item.key === 'star' && String(item.value).split('、').some((name) => borrowed.includes(name))
-    ? { ...item, value: `${item.value}（借对宫）` }
-    : item));
+  const flow = toArray(ctx?.flowStars);
+  const flowMutagens = toArray(ctx?.flowMutagens);
+  const natalMutagens = toArray(ctx?.natalMutagens);
+  if (!borrowed.length && !flow.length && !flowMutagens.length) return matched;
+  const tag = ctx?.limit && ctx.limit !== '本命' ? `（${ctx.limit}）` : '（运限）';
+  // 逐颗星注：本命也有这颗星的不注（「七杀、擎羊（流年）」只注流来的那颗）；本宫的星看本宫，三方四正的看本宫连三方四正。
+  const mark = (name, list, natal, suffix) => (list.includes(name) && !natal.includes(name) ? `${name}${suffix}` : name);
+  return matched.map((item) => {
+    const names = String(item.value).split('、');
+    if (item.key === 'star' && names.some((name) => borrowed.includes(name))) return { ...item, value: `${item.value}（借对宫）` };
+    if (item.key === 'star' || item.key === 'meet') {
+      const natal = toArray(item.key === 'star' ? ctx?.natalStars : ctx?.natalMeet);
+      const value = names.map((name) => mark(name, flow, natal, tag)).join('、');
+      return value === item.value ? item : { ...item, value };
+    }
+    if (item.key === 'mutagen') {
+      const value = names.map((name) => mark(name, flowMutagens, natalMutagens, tag)).join('、');
+      return value === item.value ? item : { ...item, value };
+    }
+    return item;
+  });
 };
 
 /**
@@ -323,26 +348,74 @@ export const baziLiuqinHits = (library, ctx, liuqin, options = {}) => {
  *   palace 可以给多个（身宫与命宫同宫时给 ['命宫', '身宫']）；meet：三方四正（对宫与两个三合宫）里的星，本宫的星会自动并进去；
  *   borrowedStars：空宫借的对宫主星；empty：宫里没有主星；yearGan / yearZhi：生年干支（《全书》「壬甲生人」「寅午戌生人」的条件用）。
  */
-export const ziweiContextOf = ({ stars = [], jia = [], meet = [], palace = null, branches = [], brightness = [], mutagens = [], patterns = [], limit = null, gender = null, borrowedStars = [], empty = false, yearGan = null, yearZhi = null } = {}) => ({
-  module: 'ziwei',
-  star: unique([...stars, ...borrowedStars]),
-  // 宫里没有主星（空宫）时为「无正曜」，给「命无正曜」「左右单守」这类条目用；借了对宫的星也还是空宫。
-  empty: empty ? ['无正曜'] : [],
-  jia: unique(jia),
-  // 本宫连三方四正（对宫与两个三合宫）里的星，给「会」「拱」「照」「朝」的条件（meet 任一颗、meetAll 几颗都在）用。
-  meet: unique([...stars, ...meet]),
-  palace: unique(toArray(palace).map((name) => ZIWEI_PALACE_ALIASES[name] ?? name)),
-  branches: unique(branches),
-  brightness: unique(brightness),
-  mutagen: unique(mutagens),
-  pattern: unique(toArray(patterns).flatMap(ziweiPatternNamesOf)),
-  limit,
-  gender,
-  yearGan: yearGan || null,
-  yearZhi: yearZhi || null,
-  // 空宫借来的对宫主星（也算进 star），命中说明里注「（借对宫）」。
-  borrowedStars: unique(borrowedStars),
-});
+export const ziweiContextOf = ({ stars = [], jia = [], meet = [], palace = null, branches = [], brightness = [], mutagens = [], patterns = [], limit = null, gender = null, borrowedStars = [], empty = false, yearGan = null, yearZhi = null, flow = null } = {}) => {
+  const flowStars = unique(toArray(flow?.stars));
+  const flowMeet = unique(toArray(flow?.meet));
+  const flowMutagens = unique(toArray(flow?.mutagens));
+  const flowNames = unique([...toArray(flow?.names), ...toArray(flow?.meetNames)]);
+  return {
+    module: 'ziwei',
+    // 本宫的星：本命的星、空宫借的对宫主星、运限层飞到这一宫的流曜（流羊算擎羊、运昌算文昌……）。
+    star: unique([...stars, ...borrowedStars, ...flowStars]),
+    // 宫里没有主星（空宫）时为「无正曜」，给「命无正曜」「左右单守」这类条目用；借了对宫的星也还是空宫。
+    empty: empty ? ['无正曜'] : [],
+    jia: unique(jia),
+    // 本宫连三方四正（对宫与两个三合宫）里的星，给「会」「拱」「照」「朝」的条件（meet 任一颗、meetAll 几颗都在）用。
+    meet: unique([...stars, ...meet, ...flowStars, ...flowMeet]),
+    palace: unique(toArray(palace).map((name) => ZIWEI_PALACE_ALIASES[name] ?? name)),
+    branches: unique(branches),
+    brightness: unique(brightness),
+    // 生年四化，运限层再加该层四化落在本宫的（流年化忌之类）。
+    mutagen: unique([...mutagens, ...flowMutagens]),
+    pattern: unique(toArray(patterns).flatMap(ziweiPatternNamesOf)),
+    limit,
+    gender,
+    yearGan: yearGan || null,
+    yearZhi: yearZhi || null,
+    // 空宫借来的对宫主星（也算进 star），命中说明里注「（借对宫）」。
+    borrowedStars: unique(borrowedStars),
+    // 运限层的流曜与四化（也算进 star / meet / mutagen），命中说明里注「（流年）」「（大限）」。
+    flowStars: unique([...flowStars, ...flowMeet]),
+    flowMutagens,
+    // 流曜按排盘库的叫法（流羊、运昌……），给点名流曜的条件（flow / flowAll）用；本宫与三方四正的都算。
+    flow: flowNames,
+    natalStars: unique([...stars, ...borrowedStars]),
+    natalMeet: unique([...stars, ...borrowedStars, ...meet]),
+    natalMutagens: unique(mutagens),
+  };
+};
+
+/** 运限层的流曜名对回本命星名：流羊、运羊都是擎羊，流昌、运昌都是文昌……；年解这类本就是杂曜名的照用。 */
+const FLOW_STAR_NAMES = Object.freeze({ 昌: '文昌', 曲: '文曲', 魁: '天魁', 钺: '天钺', 禄: '禄存', 羊: '擎羊', 陀: '陀罗', 马: '天马', 鸾: '红鸾', 喜: '天喜' });
+export const ziweiFlowStarName = (name) => {
+  const text = String(name ?? '').trim();
+  const match = text.match(/^[流运](.)$/);
+  if (match) return FLOW_STAR_NAMES[match[1]] ?? null;
+  return text && ZIWEI_STARS.includes(text) ? text : null;
+};
+
+/**
+ * 运限层（排盘库 horoscope().decadal / yearly：stars 按宫 index 列流曜，mutagen 列该层禄权科忌四星）飞到某一宫及其三方四正的流曜与四化：
+ * { stars：落在这一宫的流曜（对回本命星名），meet：落在三方四正的，mutagens：这一宫本命星被该层四化到的「禄」「权」「科」「忌」 }。
+ * @param {{ stars?: object[][], mutagen?: string[] }|null} scope
+ * @param {object|null} palace 这一宫（iztro 宫对象，用 index）
+ * @param {object[]|null} [surround] 三方四正的宫（ziweiSurroundOf）
+ */
+export const ziweiFlowOf = (scope, palace, surround = null) => {
+  if (!scope || !palace) return null;
+  const rawAt = (index) => (Array.isArray(scope.stars?.[index]) ? scope.stars[index] : []).map((star) => star?.name).filter(Boolean);
+  const namesAt = (index) => rawAt(index).map(ziweiFlowStarName).filter(Boolean);
+  const natalNames = [...(palace.majorStars ?? []), ...(palace.minorStars ?? [])].map((star) => star?.name).filter(Boolean);
+  const mutagens = (Array.isArray(scope.mutagen) ? scope.mutagen : []).map((star, i) => (natalNames.includes(star) ? ZIWEI_MUTAGENS[i] : null)).filter(Boolean);
+  return {
+    stars: unique(namesAt(palace.index)),
+    meet: unique((surround ?? []).flatMap((item) => namesAt(item?.index))),
+    mutagens: unique(mutagens),
+    // 排盘库原名（流羊、运昌……），本宫的与三方四正的分开给。
+    names: unique(rawAt(palace.index)),
+    meetNames: unique((surround ?? []).flatMap((item) => rawAt(item?.index))),
+  };
+};
 
 /**
  * 排盘结果里的生年干支（排盘库按农历年给年柱）：{ yearGan, yearZhi }；读不到时两项为 null。
@@ -425,7 +498,7 @@ export const ziweiMeetStarsOf = (surround) => unique((surround ?? []).flatMap((p
  *   surround：三方四正的宫（ziweiSurroundOf），给「会」「拱」「照」的条件（meet / meetAll）用，不传就只算本宫的星；
  *   natal：生年干支（ziweiNatalOf），给「壬甲生人」「寅午戌生人」的条件用，不传就不判
  */
-export const ziweiPalaceContextOf = (palace, { gender = null, limit = '本命', patterns = [], neighbors = null, opposite = null, surround = null, natal = null } = {}) => {
+export const ziweiPalaceContextOf = (palace, { gender = null, limit = '本命', patterns = [], neighbors = null, opposite = null, surround = null, natal = null, flow = null } = {}) => {
   if (!palace) return null;
   const starList = [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])].filter((star) => star?.name);
   const palaceNames = [palace.name, palace.isBodyPalace ? '身宫' : null];
@@ -444,6 +517,7 @@ export const ziweiPalaceContextOf = (palace, { gender = null, limit = '本命', 
     gender: gender === 'female' || gender === '女' ? '女' : gender === 'male' || gender === '男' ? '男' : null,
     yearGan: natal?.yearGan ?? null,
     yearZhi: natal?.yearZhi ?? null,
+    flow: limit && limit !== '本命' ? flow : null,
   });
 };
 
@@ -512,10 +586,12 @@ export const ziweiPalaceHits = (library, palaces, palaceNames, { gender = null, 
  * @param {number} index 那一宫在十二宫数组里的下标（运限上下文 fortune.decadal.index / fortune.yearly.index）
  * @param {'大限'|'流年'} limit
  */
-export const ziweiLimitPalaceHits = (library, palaces, index, limit, { gender = null, natal = null } = {}) => {
+export const ziweiLimitPalaceHits = (library, palaces, index, limit, { gender = null, natal = null, scope = null } = {}) => {
   const palace = Array.isArray(palaces) ? (palaces.find((item) => item?.index === index) ?? palaces[index] ?? null) : null;
   if (!library || !palace || !limit) return [];
-  const ctx = ziweiPalaceContextOf(palace, { gender, natal, limit, neighbors: ziweiNeighborsOf(palaces, palace), opposite: ziweiOppositeOf(palaces, palace), surround: ziweiSurroundOf(palaces, palace) });
+  const surround = ziweiSurroundOf(palaces, palace);
+  // scope：排盘库该层的运限对象（fortune.decadal / fortune.yearly），有就把流曜（流羊、运昌……）与该层四化一起算。
+  const ctx = ziweiPalaceContextOf(palace, { gender, natal, limit, neighbors: ziweiNeighborsOf(palaces, palace), opposite: ziweiOppositeOf(palaces, palace), surround, flow: ziweiFlowOf(scope, palace, surround) });
   return matchEntries(library, ctx);
 };
 
