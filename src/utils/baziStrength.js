@@ -23,7 +23,8 @@
  * 生它的五行力量在 3 分以上的（有源，杀重透印之类）、身旺时的食伤（日主生它）除外：
  * - 身弱：看食伤、财、官杀哪一方最重（透干的字每个另加半分：元神透出，力量更显）——财重取比劫帮身；
  *   食伤重取印制伤生身；官杀重取印化杀，印无力而食伤有力时取食伤制杀（任注「庚金并透，通根砍伐……
- *   更妙丙火独透，制杀扶身」：地支土气虽略多，并透的庚金才是病）；
+ *   更妙丙火独透，制杀扶身」：地支土气虽略多，并透的庚金才是病），食伤也重（3 分以上）的是克泄交加，先取比劫帮身
+ *   （「金寒水冷，过于泄气，全赖酉时扶身……用神必在酉金」「日主三面受敌……全赖午火旺刃当权为用」）；
  * - 身旺：看印、比劫哪一方多——印多取财破印（财星有力，官星又透出有力、不比印重的，身旺足以用官；
  *   印在比劫两倍以上而财星、食伤都无力的是「母多灭子」，顺母之性，取比劫帮身）；
  *   比劫多取官杀制劫（官杀无力就取食伤泄秀；3.3 分以上「太旺」的，官杀逆其旺势，先取食伤泄秀）；
@@ -34,7 +35,9 @@
  * 调候按《穷通宝鉴》各月论的取用先后（src/data/tiaohou.js）查日干与月令：主用神的五行附在喜用末尾。
  * 寒暖调候为急的除外：冬月（亥子丑）与正月（寅）调候宜火、夏月（巳午未）调候宜水，而这一火、水在原局有力（透干或作本气）
  * 又在地支有根时，取为第一。任注《寒暖》：「寒虽甚，要暖有气也」（甲申 丙子 庚辰 戊寅，丙火以寅为根，用火）；
- * 「寒甚而暖无气，反以无暖为美」（己酉 丙子 庚辰 甲申，丙火无根，不用）。
+ * 「寒甚而暖无气，反以无暖为美」（己酉 丙子 庚辰 甲申，丙火无根，不用）。调候为急也有让位于扶抑的时候：身弱而调候的是官杀、
+ * 官杀已在 3 分以上的，杀重身轻，火只是暖局（「天干丁火不过取其敌寒解冻，非用丁火也……凡冬金喜火，取其暖局之意，非作用神也」）；
+ * 身旺比劫多而官杀当令、扶抑正取官杀制劫的，调候的食伤不急（「午火真神得用」，庚申 壬午 辛酉 癸巳 用火，壬癸反嫌其「覆之」）。
  *
  * 喜忌按用神定（用、喜、忌、仇、闲）：取定用神（喜用第一位）后，用神与生用神者（喜神）为喜；克用神者（忌神）、
  * 用神所克者（仇神，即生忌神者）为忌；用神所生者为闲神，扶抑本就取它的仍列喜用。
@@ -51,6 +54,8 @@
  * （非留集 365 → 373、134 → 131；留集 146 → 154、64 → 59），用神第一位非留集不变、留集 45 → 46。
  * 再补会局加分、燥土不载金、克泄交加按偏弱取（与格局的「墓库支随旺极之势」同一批）：全部 510 造旺衰一致 139 → 144；
  * 用神第一位一致 175 → 176、相反 31 → 30、不中 20 → 18（留集相反 12 → 11）；岁运一致 553 → 560、相反 206 → 201。
+ * 再补调候让位于扶抑的两条与克泄交加先取比劫：用神第一位一致 176 → 180、相反 30 → 26（留集 46 → 47、相反 11 → 10）；
+ * 岁运一致 560 → 568、相反 201 → 195。
  * 不处理从格、化格等特殊格局（极端时只做提示）。
  */
 import { describeTiaoHouPresence, tiaoHouOf, tiaoHouPresenceOf } from '../data/tiaohou.js';
@@ -66,6 +71,8 @@ const MONTH_FACTOR = 2;
 const KU_MONTHS = new Set(['辰', '戌', '丑', '未']);
 /** 身弱时找病，透干的字每个另加的分（见文件头）。 */
 const TOU_WEIGHT = 0.5;
+/** 身弱官杀重而印无力时，食伤的力量（含透干加的分）到这么多算「克泄交加」，先取比劫帮身而不取食伤制杀。 */
+const XIE_HEAVY_SCORE = 3;
 const PILLAR_ORDER = ['year', 'month', 'day', 'time'];
 /** 六冲里五行相克的四对：键是被冲克的一支，值是冲它的一支（子水冲午火、酉金冲卯木、申金冲寅木、亥水冲巳火）。 */
 const CHONG_BY = { 午: '子', 卯: '酉', 寅: '申', 巳: '亥' };
@@ -242,6 +249,8 @@ const tiaoHouOfChart = (chart, monthZhi) => {
   return { ...base, presence, presenceText: describeTiaoHouPresence(presence) };
 };
 
+/** 身弱时调候的官杀力量到这么多，算杀重身轻，调候让位于扶抑（见 analyzeStrength 里的注）。 */
+const URGENT_SHA_SCORE = 3;
 /** 寒暖调候为急的月令：冬月与正月寒，宜火；夏月燥，宜水。 */
 const URGENT_TIAOHOU = Object.freeze({
   亥: { element: '火', label: '冬月寒冷' }, 子: { element: '火', label: '冬月寒冷' }, 丑: { element: '火', label: '冬月寒冷' },
@@ -309,7 +318,12 @@ const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts 
       favorable = [dayWuxing, yin];
       basis = '身弱财重，取比劫帮身，印次之';
     } else if (heaviest === officer) {
-      if (!usable.has(yin) && usable.has(output)) {
+      if (!usable.has(yin) && usable.has(output) && weightOf(output) >= XIE_HEAVY_SCORE) {
+        // 官杀重、印无力而食伤也重：克泄交加，再取食伤制杀便泄得更狠，先以比劫帮身（任注「金寒水冷，过于泄气，全赖酉时扶身……
+        // 天干丁火不过取其敌寒解冻，非用丁火也。用神必在酉金」；「月时两透壬水，日主三面受敌……全赖午火旺刃当权为用，更喜戌之燥土，制水会火」）。
+        favorable = [dayWuxing, output, yin];
+        basis = '身弱官杀重，印星无力，食伤又重，克泄交加，取比劫帮身，食伤制杀次之';
+      } else if (!usable.has(yin) && usable.has(output)) {
         favorable = [output, yin, dayWuxing];
         basis = '身弱官杀重，印星无力，取食伤制杀';
       } else {
@@ -437,7 +451,14 @@ export const analyzeStrength = (chart) => {
   let urgent = null;
   if (tiaoHou) {
     const element = tiaoHou.element;
-    urgent = URGENT_TIAOHOU[byKey.month?.zhi]?.element === element && usable.has(element) && rootedElementsOf(chart).has(element)
+    // 调候为急也有让位于扶抑的时候（任注）：身弱而调候的那一行是官杀、官杀力量已在 3 分以上的，杀重身轻，火只是暖局——
+    // 「天干丁火不过取其敌寒解冻，非用丁火也……凡冬金喜火，取其暖局之意，非作用神也」（丁巳 壬子 辛巳 丁酉，用酉金）、
+    // 「月时两透壬水，日主三面受敌……全赖午火旺刃当权为用」（庚戌 壬午 丙子 壬辰）；身旺比劫多而官杀当令、扶抑正取官杀制劫的，
+    // 调候的食伤不急，「午火真神得用」（庚申 壬午 辛酉 癸巳，用火不用壬癸）。
+    const officer = CONTROLLED_BY[dayWuxing];
+    const shaHeavyWeak = element === officer && !leansStrong && scores[officer] >= URGENT_SHA_SCORE;
+    const zhenShenDeYong = element === GENERATES[dayWuxing] && leansStrong && fuYi.favorable[0] === officer && monthMain && GAN_WUXING[monthMain.gan] === officer;
+    urgent = URGENT_TIAOHOU[byKey.month?.zhi]?.element === element && usable.has(element) && rootedElementsOf(chart).has(element) && !shaHeavyWeak && !zhenShenDeYong
       ? URGENT_TIAOHOU[byKey.month.zhi] : null;
     if (urgent) favorable = [element, ...favorable.filter((item) => item !== element)];
     else if (!favorable.includes(element)) favorable = [...favorable, element];
