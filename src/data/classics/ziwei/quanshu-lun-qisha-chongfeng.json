@@ -26,11 +26,14 @@
         {
           "module": "ziwei",
           "limit": "大限",
-          "star": "七杀"
+          "star": "七杀",
+          "note": "太岁二限临此地：大限逢七杀"
         },
         {
           "module": "ziwei",
-          "note": "小限"
+          "limit": "小限",
+          "star": "七杀",
+          "note": "太岁二限临此地：小限逢七杀"
         }
       ],
       "tags": [
