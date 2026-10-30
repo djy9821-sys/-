@@ -456,6 +456,7 @@ export const detectSpecialPattern = (chart, strength, summary) => {
   // 「全局不见官杀」：天干、地支本气与寅申巳亥所藏的中气里没有官杀；辰戌丑未杂气里一点官杀余气不算（费中堂造未中乙木，任注仍作稼穑）。
   const guanShaVisible = stems.some((stem) => ROLE_OF[stem.shiShen] === '官杀')
     || summary.hidden.some((item) => ROLE_OF[item.shiShen] === '官杀' && (item.rank === 0 || !ZA_QI_MONTHS.has(item.zhi)));
+  const zaQiGuanSha = !guanShaVisible && summary.hidden.some((item) => ROLE_OF[item.shiShen] === '官杀');
   const juWang = juOfDay && !guanShaVisible && !caiWangTiGang;
   // 干支一气：天干全是印比、四支本气（会局、六合化后）也全是印比，「斯真格象」，打分不到极强也作旺极。
   const yiQiWang = stems.every((stem) => ['比劫', '印'].includes(ROLE_OF[stem.shiShen])) && [...benqiRoles].every((role) => role === '比劫' || role === '印');
@@ -475,7 +476,7 @@ export const detectSpecialPattern = (chart, strength, summary) => {
       return withRoleGods({
         name: `疑似${ZHUAN_WANG[dayWuxing]}（专旺）`,
         kind: 'zhuanwang',
-        basis: `日主${dayGan}${dayWuxing}${level}，四支本气都是印比，比劫成势且全局不见官杀${xieXiu ? '；食伤透干有根，旺势有处吐秀' : ''}。`,
+        basis: `日主${dayGan}${dayWuxing}${level}，四支本气都是印比，比劫成势且全局不见官杀${zaQiGuanSha ? '（杂气里一点官杀余气不计）' : ''}${xieXiu ? '；食伤透干有根，旺势有处吐秀' : ''}。`,
         note: '专旺格顺其旺势为吉，喜比劫、印与食伤引化，最忌官杀逆势。是否成格请结合月令与会局人工确认。',
       }, strength.roles, wangGodsOf('zhuanwang', roleShare, { xieXiu }));
     }
