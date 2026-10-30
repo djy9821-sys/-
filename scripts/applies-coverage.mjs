@@ -136,8 +136,30 @@ const flowScopesOf = (horoscope) => {
 };
 
 /**
+ * 程序格局各一张已知成立的命例（公历、时辰序、性别；与 test/ziwei-patterns.test.js 的命例同源，少见的格局是穷举找的）：
+ * 写了 pattern 的条件按格局造不出盘，随机盘又未必碰得上（贪火相逢、明珠出海几千张才一张），重试时直接排这张。
+ */
+const ZIWEI_PATTERN_EXAMPLES = Object.freeze({
+  三奇加会: ['1995-1-1', 0, 'female'], 杀破狼星系: ['1995-1-1', 0, 'female'], 机月同梁格: ['1990-1-4', 11, 'female'], 石中隐玉格: ['1990-1-4', 11, 'female'],
+  七杀朝斗格: ['1988-1-6', 4, 'female'], 紫府朝垣格: ['1988-1-6', 4, 'female'], 财与囚仇格: ['1998-1-2', 4, 'female'], 府相朝垣格: ['1968-2-17', 0, 'female'],
+  生不逢时格: ['1968-2-17', 0, 'female'], 马落空亡格: ['1968-2-17', 0, 'female'], 日月同临格: ['1945-6-6', 4, 'male'], 日月并明格: ['1950-2-1', 0, 'male'],
+  日月夹财格: ['1966-2-19', 3, 'male'], 金灿光辉格: ['2007-12-25', 6, 'male'], 日月夹命格: ['1994-4-14', 3, 'female'], 君臣庆会格: ['2000-5-21', 10, 'male'],
+  坐贵向贵格: ['1942-1-19', 11, 'female'], 财禄夹马格: ['1973-4-8', 5, 'male'], 月生沧海格: ['1978-10-15', 1, 'male'], 一生孤贫格: ['1978-10-15', 1, 'male'],
+  两重华盖格: ['1999-8-2', 1, 'female'], 君子在野格: ['1952-10-23', 2, 'female'], 明禄暗禄格: ['1986-3-10', 10, 'female'], 禄逢两杀格: ['1986-3-10', 10, 'female'],
+  科明暗禄格: ['1954-2-19', 3, 'female'], 极居卯酉格: ['1993-2-20', 11, 'male'], 权禄生逢格: ['2007-4-20', 4, 'male'], 巨机居卯格: ['1956-9-5', 6, 'male'],
+  羊刃入庙格: ['1937-8-1', 0, 'male'], 善荫朝纲格: ['1971-1-12', 9, 'female'], 明珠出海格: ['2019-7-15', 0, 'male'], 刑囚夹印格: ['2012-4-20', 7, 'female'],
+  辅弼拱主格: ['1944-11-10', 9, 'female'], 日月照璧格: ['2011-7-18', 3, 'female'], 阳梁昌禄格: ['1951-3-6', 11, 'female'], 日出扶桑格: ['1963-1-24', 2, 'female'],
+  月朗天门格: ['1963-1-24', 2, 'female'], 武曲守垣格: ['1971-11-27', 8, 'female'], 贪火相逢格: ['2001-5-15', 7, 'male'], 极向离明格: ['2014-8-20', 2, 'male'],
+});
+const ziweiPatternExampleOf = (pattern) => {
+  const name = toArray(pattern).map((item) => String(item).replace(/格$/, '')).find((bare) => ZIWEI_PATTERN_EXAMPLES[bare] || ZIWEI_PATTERN_EXAMPLES[`${bare}格`]);
+  return name ? ZIWEI_PATTERN_EXAMPLES[name] ?? ZIWEI_PATTERN_EXAMPLES[`${name}格`] : null;
+};
+
+/**
  * 按条件定向排一张紫微盘，返回它的一个宫的上下文：生年干支、性别照条件挑（出生日取农历年不会跨年的月份），
- * 宫取条件写的宫（没写就随机），层取条件的运限（没写就本命）。星曜、地支没法定向，靠多试几次。
+ * 宫取条件写的宫（没写就随机），层取条件的运限（没写就本命）。星曜、地支没法定向，靠多试几次；
+ * 写了格局的条件先排该格局的已知命例（随机盘碰不上的格局也能试到）。
  */
 const targetedZiweiContext = (cond) => {
   const stems = toArray(cond.yearGan ?? cond.yearGans);
@@ -147,14 +169,26 @@ const targetedZiweiContext = (cond) => {
     if ((!stems.length || stems.includes(yearStemOf(year))) && (!branches.length || branches.includes(yearBranchOf(year)))) years.push(year);
   }
   const year = years.length ? pickOne(years) : pickInt(1930, 2029);
-  const gender = cond.gender === '男' ? 'male' : cond.gender === '女' ? 'female' : (random() < 0.5 ? 'male' : 'female');
+  let gender = cond.gender === '男' ? 'male' : cond.gender === '女' ? 'female' : (random() < 0.5 ? 'male' : 'female');
   // 左辅右弼按农历月安、文昌文曲按时辰安：条件点了这几颗星又点了地支的，直接把月份、时辰挑到那一支（农历输入，月份不会错位）。
   const stars = [...toArray(cond.star), ...toArray(cond.stars), ...toArray(cond.allStars)];
+  const jia = toArray(cond.jia);
+  // 辅弼夹、昌曲夹只夹得住丑未两宫（左辅右弼、文昌文曲各从辰戌对走，宫序相加恒为十）：三月（寅时）生左辅午右弼申夹未，九月（申时）生左辅子右弼寅夹丑。
+  const flankedAt = jia.includes('左辅') && jia.includes('右弼') ? pickOne([[3, 5], [9, 11]])
+    : jia.includes('文昌') && jia.includes('文曲') ? pickOne([[2, 5], [8, 11]]) : null;
   const palaceBranch = toArray(cond.branches).length ? pickOne(toArray(cond.branches)) : null;
-  const at = palaceBranch ? (ZHI.indexOf(palaceBranch) - 2 + 12) % 12 : null; // 从寅起算的宫序
+  const at = palaceBranch ? (ZHI.indexOf(palaceBranch) - 2 + 12) % 12 : (flankedAt ? flankedAt[1] : null); // 从寅起算的宫序
   let month = pickInt(1, 12);
   let timeIndex = pickInt(0, 11);
-  if (at !== null) {
+  if (flankedAt && at === flankedAt[1]) {
+    if (jia.includes('左辅')) {
+      month = flankedAt[0];
+      if (toArray(cond.palace).includes('命宫')) timeIndex = (month - 1 - at + 24) % 12;
+    } else {
+      timeIndex = flankedAt[0];
+      if (toArray(cond.palace).includes('命宫')) month = ((at + timeIndex) % 12) + 1;
+    }
+  } else if (at !== null) {
     if (stars.includes('右弼')) month = ((8 - at + 12) % 12) + 1;
     else if (stars.includes('左辅')) month = ((at - 2 + 12) % 12) + 1;
     if (stars.includes('文昌')) timeIndex = (8 - at + 12) % 12;
@@ -162,12 +196,16 @@ const targetedZiweiContext = (cond) => {
     // 条件写的是命宫在某支：命宫 = 寅起数到生月，再逆数到生时，时辰挑到让命宫落在那一支（昌曲已占用时辰的除外）
     else if (toArray(cond.palace).includes('命宫')) timeIndex = (month - 1 - at + 24) % 12;
   }
-  const horoscope = createZiweiHoroscope({
-    calendarType: 'lunar',
-    birthDate: `${year}-${pad(month)}-${pad(pickInt(1, 28))}`,
-    timeIndex,
-    gender,
-  });
+  const example = cond.pattern && random() < 0.5 ? ziweiPatternExampleOf(cond.pattern) : null;
+  const horoscope = example
+    ? createZiweiHoroscope({ calendarType: 'solar', birthDate: example[0], timeIndex: example[1], gender: example[2] })
+    : createZiweiHoroscope({
+      calendarType: 'lunar',
+      birthDate: `${year}-${pad(month)}-${pad(pickInt(1, 28))}`,
+      timeIndex,
+      gender,
+    });
+  if (example) gender = example[2];
   // 格局按命宫三方四正判，只在命宫的上下文里出现：格局条件一律取命宫
   const wanted = [...toArray(cond.palace), ...(cond.pattern ? ['命宫'] : [])].map((name) => (name === '身宫' ? horoscope.palaces.find((item) => item.isBodyPalace)?.name : name)).filter(Boolean);
   const palace = (wanted.length ? horoscope.palaces.find((item) => wanted.includes(item.name)) : null) ?? pickOne(horoscope.palaces);
