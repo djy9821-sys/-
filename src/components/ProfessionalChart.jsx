@@ -40,7 +40,7 @@ import {
 import { buildBaziChart } from '../utils/baziChart';
 import ZiweiClassicsPanel from './ziwei/ZiweiClassicsPanel.jsx';
 import { useClassicsLibrary } from './common/useClassicsLibrary.js';
-import { pickLimitHits, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiNatalOf, ziweiPalaceHits } from '../data/classics/index.js';
+import { pickLimitHits, ziweiDoujunPalace, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiNatalOf, ziweiPalaceHits } from '../data/classics/index.js';
 import GlossaryPanel from './common/GlossaryPanel.jsx';
 import { classicsPromptSection } from '../utils/classicsPrompt.js';
 import { Sparkles, Coffee, Save, Archive, Calendar, Printer } from "lucide-react";
@@ -507,10 +507,12 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
             // 这一层的命宫落在本命盘的哪一宫（变量不叫 natal：natal 是外面的生年干支，之前在这里被遮住，运限层就判不了「壬甲生人」）。
             const natalPalace = Number.isInteger(scope?.index) ? (palaces.find((palace) => palace?.index === scope.index) ?? palaces[scope.index] ?? null) : null;
             if (!natalPalace) return null;
+            // 流年层另算斗君（流年正月所在的本命宫），「斗君过度在某宫」的条目靠它判。
+            const doujun = key === 'yearly' ? ziweiDoujunPalace(horoscope, palaces, scope.index) : null;
             // 带上该层的流曜与四化（scope），流羊流陀、流昌流曲这类条件才算得到。
-            const hits = ziweiLimitPalaceHits(classicsData.library, palaces, scope.index, limit, { gender: basicInfo.gender, natal, scope });
+            const hits = ziweiLimitPalaceHits(classicsData.library, palaces, scope.index, limit, { gender: basicInfo.gender, natal, scope, doujun: doujun?.name ?? null });
             // 最多三条，其中至少一条是专讲这层运限的，其余按所落宫的星曜取。
-            return classicsPromptSection(pickLimitHits(hits, 3, limit), { title: `【古籍原文（${label}命宫：本命${natalPalace.name}·${natalPalace.earthlyBranch}宫，及论${limit}的条目）】`, subject: `${label}`, limit: 3, total: hits.length });
+            return classicsPromptSection(pickLimitHits(hits, 3, limit), { title: `【古籍原文（${label}命宫：本命${natalPalace.name}·${natalPalace.earthlyBranch}宫${doujun ? `，斗君在本命${doujun.name}·${doujun.earthlyBranch}宫` : ''}，及论${limit}的条目）】`, subject: `${label}`, limit: 3, total: hits.length });
         }).filter(Boolean);
         return [withClassics(text), ...extra].join('\n\n');
     };
@@ -636,7 +638,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     const classicsLimits = {
         decadal: currentDaxianPalace ? { index: currentDaxianPalace.index, label: `当前大限（${formatDaxian(currentDaxianPalace)}）`, scope: currentHoroscope?.decadal ?? null } : null,
         age: Number.isInteger(currentHoroscope?.age?.index) ? { index: currentHoroscope.age.index, label: `${currentFlowYear} 年小限（虚岁 ${virtualAge}，${currentHoroscope.age.heavenlyStem ?? ''}${currentHoroscope.age.earthlyBranch ?? ''}）`, scope: currentHoroscope.age } : null,
-        yearly: Number.isInteger(currentHoroscope?.yearly?.index) ? { index: currentHoroscope.yearly.index, label: `${currentFlowYear} 年流年`, scope: currentHoroscope.yearly } : null,
+        yearly: Number.isInteger(currentHoroscope?.yearly?.index) ? { index: currentHoroscope.yearly.index, label: `${currentFlowYear} 年流年`, scope: currentHoroscope.yearly, doujun: ziweiDoujunPalace(horoscope, palaces, currentHoroscope.yearly.index) } : null,
     };
     // 时间轴手动选到的各层干支：选到某一天后与「当前运势」同一口径（getZiweiFortune：流年立春换年、流月农历月、晚子时按命盘流派）。
     const timelineFortune = useMemo(
