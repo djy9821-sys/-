@@ -40,7 +40,7 @@ import {
 import { buildBaziChart } from '../utils/baziChart';
 import ZiweiClassicsPanel from './ziwei/ZiweiClassicsPanel.jsx';
 import { useClassicsLibrary } from './common/useClassicsLibrary.js';
-import { pickLimitHits, ziweiDoujunPalace, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiNatalOf, ziweiPalaceHits } from '../data/classics/index.js';
+import { pickLifeHits, pickLimitHits, ziweiDoujunPalace, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLifeStarsOf, ziweiLimitPalaceHits, ziweiNatalOf, ziweiPalaceHits } from '../data/classics/index.js';
 import GlossaryPanel from './common/GlossaryPanel.jsx';
 import { classicsPromptSection } from '../utils/classicsPrompt.js';
 import { Sparkles, Coffee, Save, Archive, Calendar, Printer } from "lucide-react";
@@ -481,7 +481,8 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     const classicsPromptText = useMemo(() => {
         if (!classicsData?.library || palaces.length === 0) return null;
         const hits = ziweiLifePalaceHits(classicsData.library, palaces, { gender: basicInfo.gender, patterns: patternNames, natal });
-        return classicsPromptSection(hits, { title: '【古籍原文（命宫、身宫星曜）】', subject: '命宫身宫星曜', limit: 4 });
+        // 四条里格局条目最多两条，命宫身宫每颗主星至少一条按它命中的，AI 既看到格又看到主星的原文（见 pickLifeHits）。
+        return classicsPromptSection(pickLifeHits(hits, 4, { stars: ziweiLifeStarsOf(palaces) }), { title: '【古籍原文（命宫、身宫星曜）】', subject: '命宫身宫星曜', limit: 4, total: hits.length });
     }, [classicsData, palaces, basicInfo.gender, patternNames, natal]);
     const withClassics = (text) => (text && classicsPromptText ? `${text}\n\n${classicsPromptText}` : text);
     // 性情婚恋、姻缘、财运三种话术各附相关几个宫的原文（命宫身宫之外再附夫妻、福德、财帛、官禄），让 AI 照原书说。
