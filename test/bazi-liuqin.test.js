@@ -129,8 +129,8 @@ test('火炎土燥先断子息艰难（男女命同），水气稍有或土不�
   assert.equal(notZao.tone, 'good');
 });
 
-test('「见财星」要财星透出；印重的杀印相生不作「女多子少」', () => {
-  // 甲子 丙寅 戊寅 己未：杀旺用丙火印，财藏年支子水（任注「喜其财印相隔，生生不悖」，夫妇齐眉，生六子皆登科第）。
+test('「见财星」要财星够得着印，财印相隔的不算；印重的杀印相生不作「女多子少」', () => {
+  // 甲子 丙寅 戊寅 己未：杀旺用丙火印，财藏年支子水，既不透干、不在印下，也不冲印（任注「喜其财印相隔，生生不悖」，夫妇齐眉，生六子皆登科第）。
   const liuqin = liuqinOf(chartByPillars('甲子 丙寅 戊寅 己未'));
   const wife = itemOf(liuqin, 'spouse');
   assert.equal(wife.ren.rule, null);
@@ -139,6 +139,10 @@ test('「见财星」要财星透出；印重的杀印相生不作「女多子�
   assert.equal(children.ren.rule, null);
   assert.equal(children.tone, 'good');
   assert.match(children.verdict, /^任注「凡八字之用神即是子星」：用神火透月干丙/);
+  // 庚午 辛巳 乙酉 壬午：财土不透，但时干壬水印坐午、午中藏己土财——印下有财，仍算「见财星」。
+  assert.equal(itemOf(liuqinOf(chartByPillars('庚午 辛巳 乙酉 壬午')), 'spouse').ren.rule?.cond, '官杀旺而用印，见财星');
+  // 乙亥 辛巳 甲子 庚午：财土藏巳午，巳冲亥、午冲子，藏财之支紧贴冲印之支，也算。
+  assert.equal(itemOf(liuqinOf(chartByPillars('乙亥 辛巳 甲子 庚午')), 'spouse').ren.rule?.cond, '官杀旺而用印，见财星');
 });
 
 test('兄弟：身旺比劫重、官轻伤重，比劫又去生伤，主兄弟之累', () => {
