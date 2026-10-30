@@ -67,10 +67,11 @@ export default function GlossaryPanel({ module, seedTerms = [], subject = '这�
     const needle = query.trim();
     const results = useMemo(() => (glossary && needle ? searchGlossary(glossary, needle, { module, limit: 30 }) : []), [glossary, needle, module]);
     const pickedEntry = useMemo(() => (glossary && picked ? lookupTerm(glossary, picked, { module }) : null), [glossary, picked, module]);
+    // 本模块与通用词典都有的同一条（如「纳音」）只列本模块那条（排序后本模块在前）。
     const browse = useMemo(() => (glossary
-        ? glossary.entries
+        ? uniqueEntries(glossary.entries
             .filter((entry) => entry.module === module || entry.module === 'common')
-            .sort((a, b) => (a.module === b.module ? a.term.localeCompare(b.term, 'zh') : a.module === module ? -1 : 1))
+            .sort((a, b) => (a.module === b.module ? a.term.localeCompare(b.term, 'zh') : a.module === module ? -1 : 1)))
         : []), [glossary, module]);
 
     const pick = (term) => {
