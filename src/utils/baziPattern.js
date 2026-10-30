@@ -462,6 +462,7 @@ export const detectSpecialPattern = (chart, strength, summary) => {
         kind: 'liangqi',
         basis: `天干与地支本气只有${dayWuxing}、${output}两行（${counts[dayWuxing]} 比 ${counts[output]}），两气成象；日主${dayGan}${dayWuxing}是生的一方，以${output}（食伤）秀气为用。`,
         note: '任注「凡两气成象者，要日主去生，或食或伤，谓英华秀发，多致富贵；所不足者，运破局，不免于祸」。旺衰仍按打分看，喜忌按此象论。',
+        caveat: '两气成象不是从、化，象不破就按此论（任注「象不可破也」）',
       }, strength.roles, { favorable: ['食伤', '比劫'], unfavorable: ['印', '官杀'], basis: '两气成象而日主去生，取食伤秀气为用，比劫助之；印克食伤、官杀克身都是破局（任注「运破局，不免于祸」）' });
     }
   }
