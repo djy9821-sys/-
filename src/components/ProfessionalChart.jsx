@@ -40,7 +40,7 @@ import {
 import { buildBaziChart } from '../utils/baziChart';
 import ZiweiClassicsPanel from './ziwei/ZiweiClassicsPanel.jsx';
 import { useClassicsLibrary } from './common/useClassicsLibrary.js';
-import { pickLimitHits, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiPalaceHits } from '../data/classics/index.js';
+import { pickLimitHits, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiNatalOf, ziweiPalaceHits } from '../data/classics/index.js';
 import GlossaryPanel from './common/GlossaryPanel.jsx';
 import { classicsPromptSection } from '../utils/classicsPrompt.js';
 import { Sparkles, Coffee, Save, Archive, Calendar, Printer } from "lucide-react";
@@ -476,11 +476,13 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     );
     // 程序认出的格局名（三奇加会、机月同梁格……），古籍匹配时算进命宫的上下文。
     const patternNames = useMemo(() => patternEntries.map((pattern) => pattern.name), [patternEntries]);
+    // 生年干支（排盘库按农历年），给古籍里「壬甲生人」「寅午戌生人」这类条件用。
+    const natal = useMemo(() => ziweiNatalOf(horoscope), [horoscope]);
     const classicsPromptText = useMemo(() => {
         if (!classicsData?.library || palaces.length === 0) return null;
-        const hits = ziweiLifePalaceHits(classicsData.library, palaces, { gender: basicInfo.gender, patterns: patternNames });
+        const hits = ziweiLifePalaceHits(classicsData.library, palaces, { gender: basicInfo.gender, patterns: patternNames, natal });
         return classicsPromptSection(hits, { title: '【古籍原文（命宫、身宫星曜）】', subject: '命宫身宫星曜', limit: 4 });
-    }, [classicsData, palaces, basicInfo.gender, patternNames]);
+    }, [classicsData, palaces, basicInfo.gender, patternNames, natal]);
     const withClassics = (text) => (text && classicsPromptText ? `${text}\n\n${classicsPromptText}` : text);
     // 性情婚恋、姻缘、财运三种话术各附相关几个宫的原文（命宫身宫之外再附夫妻、福德、财帛、官禄），让 AI 照原书说。
     const PROMPT_CLASSICS_PALACES = {
@@ -491,7 +493,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     const withClassicsFor = (text, type) => {
         if (!text || !classicsData?.library || palaces.length === 0) return text;
         const extra = (PROMPT_CLASSICS_PALACES[type] ?? []).map((names) => {
-            const hits = ziweiPalaceHits(classicsData.library, palaces, names, { gender: basicInfo.gender });
+            const hits = ziweiPalaceHits(classicsData.library, palaces, names, { gender: basicInfo.gender, natal });
             return classicsPromptSection(hits, { title: `【古籍原文（${names.join('、')}宫星曜）】`, subject: `${names.join('、')}宫星曜`, limit: 3 });
         }).filter(Boolean);
         return [withClassics(text), ...extra].join('\n\n');
@@ -503,7 +505,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
             const scope = fortuneContext.fortune[key];
             const natal = Number.isInteger(scope?.index) ? (palaces.find((palace) => palace?.index === scope.index) ?? palaces[scope.index] ?? null) : null;
             if (!natal) return null;
-            const hits = ziweiLimitPalaceHits(classicsData.library, palaces, scope.index, limit, { gender: basicInfo.gender });
+            const hits = ziweiLimitPalaceHits(classicsData.library, palaces, scope.index, limit, { gender: basicInfo.gender, natal });
             // 最多三条，其中至少一条是专讲这层运限的，其余按所落宫的星曜取。
             return classicsPromptSection(pickLimitHits(hits, 3, limit), { title: `【古籍原文（${label}命宫：本命${natal.name}·${natal.earthlyBranch}宫，及论${limit}的条目）】`, subject: `${label}`, limit: 3, total: hits.length });
         }).filter(Boolean);
@@ -3130,7 +3132,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 </h2>
                                 <p>选一个宫，看古籍里怎么说宫中的星曜；原文逐字照录公版古籍，白话另译并标注审核状态</p>
                             </header>
-                            <ZiweiClassicsPanel palaces={palaces} focusedIndex={focusedIndex} gender={basicInfo.gender} patterns={patternNames} limits={classicsLimits} />
+                            <ZiweiClassicsPanel palaces={palaces} focusedIndex={focusedIndex} gender={basicInfo.gender} patterns={patternNames} limits={classicsLimits} natal={natal} />
                         </div>
 
                         <footer className="wenmo-pattern-actions wenmo-pattern-actions--single">
