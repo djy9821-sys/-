@@ -347,7 +347,15 @@
         {
           "module": "ziwei",
           "gender": "女",
-          "palace": "夫妻"
+          "palace": "夫妻",
+          "note": "首句论女命三方四正逢杀、杀在夫妻宫"
+        },
+        {
+          "module": "ziwei",
+          "gender": "女",
+          "palace": "夫妻",
+          "empty": "无正曜",
+          "note": "末句：夫妻宫没有主星，主生离克害"
         }
       ],
       "tags": [
