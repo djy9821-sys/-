@@ -139,11 +139,11 @@
           "module": "ziwei",
           "gender": "女",
           "palace": "命宫",
-          "stars": [
-            "禄存",
-            "天府",
-            "天相"
-          ],
+          "star": "禄存"
+        },
+        {
+          "module": "ziwei",
+          "gender": "女",
           "pattern": "府相朝垣格"
         }
       ],
