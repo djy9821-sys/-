@@ -15,11 +15,12 @@
       "applies": [
         {
           "module": "ziwei",
-          "stars": [
-            "紫微",
+          "star": "紫微",
+          "meet": [
             "左辅",
             "右弼"
-          ]
+          ],
+          "note": "紫微以辅弼为佐贰：同宫或三方四正见左辅、右弼任一颗"
         }
       ],
       "tags": [
@@ -96,14 +97,20 @@
       "applies": [
         {
           "module": "ziwei",
-          "stars": [
-            "廉贞",
-            "文曲"
-          ],
+          "star": "廉贞",
           "branches": [
             "巳",
             "午"
-          ]
+          ],
+          "note": "巳午火位，廉贞火居焉"
+        },
+        {
+          "module": "ziwei",
+          "star": "文曲",
+          "branches": [
+            "午"
+          ],
+          "note": "星垣论谓午火旺照、文曲水入庙；与卷三庙旺表（文曲陷寅午戌）不同，照录"
         }
       ],
       "tags": [
@@ -123,14 +130,19 @@
       "applies": [
         {
           "module": "ziwei",
-          "stars": [
-            "武曲",
-            "擎羊"
-          ],
+          "star": "武曲",
           "branches": [
-            "申",
+            "申"
+          ],
+          "note": "武曲居申而好生"
+        },
+        {
+          "module": "ziwei",
+          "star": "擎羊",
+          "branches": [
             "酉"
-          ]
+          ],
+          "note": "擎羊在酉而用杀"
         }
       ],
       "tags": [
@@ -152,14 +164,20 @@
       "applies": [
         {
           "module": "ziwei",
-          "stars": [
-            "破军",
-            "文曲"
+          "star": "文曲",
+          "branches": [
+            "亥"
           ],
+          "note": "亥水属文曲之要地"
+        },
+        {
+          "module": "ziwei",
+          "star": "破军",
           "branches": [
             "亥",
             "子"
-          ]
+          ],
+          "note": "亥水属破军之要地；破军水于子旺之乡"
         }
       ],
       "tags": [
