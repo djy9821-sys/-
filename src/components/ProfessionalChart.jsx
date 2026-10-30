@@ -1841,7 +1841,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     const handleGeneratePrompt = async (type) => {
         try {
             let prompt = '';
-            const chartData = generateChartDataPrompt(horoscope, { gender: basicInfo.gender });
+            const chartData = generateChartDataPrompt(horoscope, { gender: basicInfo.gender, patterns: patternEntries });
             const basicInfoData = `\n**--- 命主基本信息 (用于推算大限流年) ---**\n- **姓名**：${basicInfo.name || '未填写'}\n- **性别**：${basicInfo.gender === 'male' ? '男' : '女'}\n- **生辰**：${basicInfo.birthday}\n- **出生时辰**：${basicInfo.birthTime}\n`;
 
             if (type === 'character') {
@@ -1881,6 +1881,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     palaces,
                     getAllMutagenStarMaps(),
                     fortuneContext,
+                    { patterns: patternEntries },
                 ), fortuneContext);
 
                 if (!prompt) throw new Error(`无法生成${FORTUNE_LAYER_LABELS[type] || '运势'}话术`);
