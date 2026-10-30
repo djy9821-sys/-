@@ -3,7 +3,7 @@
  * 从古籍库里找出相关条目（如《紫微斗数全书》诸星问答论里这颗星怎么说）。界面在 common/ClassicsPanel.jsx。
  */
 import React, { useMemo, useState } from 'react';
-import { ziweiBorrowedStarsOf, ziweiNeighborsOf, ziweiOppositeOf, ziweiPalaceContextOf, ziweiSurroundOf } from '../../data/classics/index.js';
+import { ziweiBorrowedStarsOf, ziweiFlowOf, ziweiNeighborsOf, ziweiOppositeOf, ziweiPalaceContextOf, ziweiSurroundOf } from '../../data/classics/index.js';
 import ClassicsPanel from '../common/ClassicsPanel.jsx';
 
 /** 按命盘习惯的顺序列宫：命宫起，逆行到父母。 */
@@ -23,9 +23,9 @@ const LAYERS = Object.freeze([
 const LAYER_KEYS = Object.freeze({ 大限: 'decadal', 流年: 'yearly' });
 
 /**
- * @param {{ palaces?: object[], focusedIndex?: number|null, gender?: string|null, patterns?: string[], limits?: { decadal?: { index: number, label: string }|null, yearly?: { index: number, label: string }|null }, natal?: { yearGan?: string|null, yearZhi?: string|null }|null }} props
+ * @param {{ palaces?: object[], focusedIndex?: number|null, gender?: string|null, patterns?: string[], limits?: { decadal?: { index: number, label: string, scope?: object|null }|null, yearly?: { index: number, label: string, scope?: object|null }|null }, natal?: { yearGan?: string|null, yearZhi?: string|null }|null }} props
  *   patterns：程序认出的格局名（按命宫三方四正判的），只在看本命盘的命宫时算进匹配条件。
- *   limits：此刻所行大限、流年的命宫在哪一宫（宫的 index）与说明；不传则只看本命盘。
+ *   limits：此刻所行大限、流年的命宫在哪一宫（宫的 index）与说明，scope 是排盘库该层的运限对象（带流曜与四化，流羊算擎羊、运昌算文昌一起找）；不传则只看本命盘。
  *   natal：生年干支（ziweiNatalOf），给「壬甲生人」这类条件用。
  */
 export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, gender = null, patterns = EMPTY, limits = null, natal = null }) {
@@ -48,12 +48,20 @@ export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, 
     const isMing = !limitInfo && palace?.name === '命宫';
     // 空宫借对宫的主星一起找（排盘习惯「无正曜借对宫论」），命中说明里注「借对宫」。
     const opposite = ziweiOppositeOf(palaces, palace);
+    // 运限层：该层飞到这一宫及三方四正的流曜（流羊算擎羊、运昌算文昌……）与该层四化一起找，命中说明里注「（流年）」「（大限）」。
+    const flow = useMemo(
+        () => (limitInfo?.scope ? ziweiFlowOf(limitInfo.scope, palace, ziweiSurroundOf(palaces, palace)) : null),
+        [limitInfo, palace, palaces],
+    );
     const ctx = useMemo(
-        () => ziweiPalaceContextOf(palace, { gender, natal, limit: activeLayer, patterns: isMing ? patterns : EMPTY, neighbors: ziweiNeighborsOf(palaces, palace), opposite, surround: ziweiSurroundOf(palaces, palace) }),
-        [palaces, palace, gender, natal, activeLayer, isMing, patterns, opposite],
+        () => ziweiPalaceContextOf(palace, { gender, natal, limit: activeLayer, patterns: isMing ? patterns : EMPTY, neighbors: ziweiNeighborsOf(palaces, palace), opposite, surround: ziweiSurroundOf(palaces, palace), flow }),
+        [palaces, palace, gender, natal, activeLayer, isMing, patterns, opposite, flow],
     );
     const stars = palace ? [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])] : [];
     const borrowed = ziweiBorrowedStarsOf(palace, opposite);
+    // 面板上列出该层飞入本宫的流曜（原名）与四化，读者知道多出来的星从哪来。
+    const flowStarsHere = limitInfo?.scope && palace ? (limitInfo.scope.stars?.[palace.index] ?? []).map((star) => star?.name).filter(Boolean) : EMPTY;
+    const flowMutagensHere = flow?.mutagens ?? EMPTY;
 
     return (
         <div data-testid="ziwei-classics">
@@ -114,6 +122,17 @@ export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, 
                             <span className="text-[#81776b]">无主星，借对宫{palaceLabel(opposite?.name)}</span>
                             {borrowed.map((name) => (
                                 <span key={name} className="inline-flex items-center rounded border border-dashed border-[#cbbfac] px-1.5 leading-5 text-[#655d54]">{name}</span>
+                            ))}
+                        </span>
+                    )}
+                    {(flowStarsHere.length > 0 || flowMutagensHere.length > 0) && (
+                        <span className="inline-flex items-center gap-1" data-testid="ziwei-classics-flow">
+                            <span className="text-[#81776b]">{activeLayer}飞入</span>
+                            {flowStarsHere.map((name) => (
+                                <span key={name} className="inline-flex items-center rounded border border-dashed border-[#315f7d]/50 px-1.5 leading-5 text-[#2b4f68]">{name}</span>
+                            ))}
+                            {flowMutagensHere.map((name) => (
+                                <span key={`化${name}`} className="inline-flex items-center rounded border border-dashed border-[#315f7d]/50 px-1.5 leading-5 text-[#2b4f68]">{activeLayer}化{name}</span>
                             ))}
                         </span>
                     )}
