@@ -57,7 +57,8 @@ export const APPLIES_KEYS = Object.freeze({
     brightness: ZIWEI_BRIGHTNESS,
     mutagen: ZIWEI_MUTAGENS,
     pattern: ZIWEI_PATTERN_VOCAB,
-    limit: ['本命', '大限', '流年', '流月', '流日'],
+    // 看那一层时命中：大限、小限（排盘库的 age）、流年；流月、流日程序还没有上下文。
+    limit: ['本命', '大限', '小限', '流年', '流月', '流日'],
     // 运限层飞到本宫或三方四正的流曜，按排盘库的叫法写（「擎羊重逢流羊」写 limit: "流年", star: "擎羊", flow: "流羊"）：flow 任一颗，flowAll 几颗都要有。
     // 条件里一写 flow，同条件的 star / meet 就只算本命的星（否则流羊本身也算擎羊，分不出「重逢」）。
     flow: ZIWEI_FLOW_STARS,
@@ -180,7 +181,7 @@ const checkApplies = (applies, where, errors, dirModule = null) => {
         errors.push(`${at}.flowAll: 要写两颗以上不同的流曜（几颗都要有）；只要一颗用 flow`);
       }
       if ((key === 'flow' || key === 'flowAll') && !['大限', '流年'].includes(cond.limit)) {
-        errors.push(`${at}.${key}: 流曜只在大限、流年层有，这条要同时写 limit: "大限" 或 "流年"`);
+        errors.push(`${at}.${key}: 流曜只在大限、流年层有（小限没有流曜），这条要同时写 limit: "大限" 或 "流年"`);
       }
       if (key === 'jia' && (!Array.isArray(value) || value.length !== 2)) {
         errors.push(`${at}.jia: 要写左右两邻各一颗，共两个名字，如 ["文昌", "文曲"]；四化写「化禄」「化权」`);
