@@ -64,7 +64,7 @@ test('大运以地支为重：截脚整步运按忌论，盖头吉凶减半（�
   assert.equal(wuYin.favor.cover.kind, '截脚', '戊土喜而寅木忌、木克土');
   assert.equal(wuYin.favor.overall, 'bad', '「支不载干，则十年皆否」');
   assert.equal(describeDaYunFavor({ gan: '戊', zhi: '寅' }, wuYin.favor),
-    '天干戊土喜（比劫） · 地支寅木忌（官杀）；截脚：地支木克天干土，任注「支不载干，十年皆否」，整步运按忌论');
+    '天干戊土喜（比劫） · 地支寅木忌（官杀）；截脚：地支木克天干土，任注「支不载干，则十年皆否」，整步运按忌论');
   const jiaXu = getDaYunMarks({ gan: '甲', zhi: '戌' }, { strength, chart });
   assert.equal(jiaXu.favor.cover.kind, '盖头', '甲木忌而戌土喜、木克土');
   assert.equal(jiaXu.favor.overall, 'mixed', '「虽有十分之吉，亦减其半」');
