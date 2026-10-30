@@ -70,6 +70,8 @@ export const APPLIES_KEYS = Object.freeze({
     flowAll: ZIWEI_FLOW_STARS,
     // 宫里没有主星（「命无正曜」「本宫无正曜」「左右单守」）；有主星的宫不命中。
     empty: ['无正曜'],
+    // 流年斗君（卷一安流年斗君诀：太岁宫起正月逆数至生月，再从生月起子时顺数至生时）落在本命哪一宫（「斗君过度在妻宫」写 doujun: "夫妻"），须同写 limit: "流年"。
+    doujun: ZIWEI_PALACES,
     // 生年干支（排盘库按农历年）：「壬甲生人」写 yearGan: ["壬", "甲"]，「寅午戌生人」写 yearZhi: ["寅", "午", "戌"]。
     yearGan: GAN,
     yearGans: GAN,
@@ -194,6 +196,9 @@ const checkApplies = (applies, where, errors, dirModule = null) => {
       if ((key === 'flow' || key === 'flowAll') && !['大限', '流年'].includes(cond.limit)) {
         errors.push(`${at}.${key}: 流曜只在大限、流年层有（小限没有流曜），这条要同时写 limit: "大限" 或 "流年"`);
       }
+      if (key === 'doujun' && cond.limit !== '流年') {
+        errors.push(`${at}.doujun: 斗君是流年的正月起处，这条要同时写 limit: "流年"`);
+      }
       if (key === 'jia' && (!Array.isArray(value) || value.length !== 2)) {
         errors.push(`${at}.jia: 要写左右两邻各一颗，共两个名字，如 ["文昌", "文曲"]；四化写「化禄」「化权」`);
       }
@@ -202,7 +207,7 @@ const checkApplies = (applies, where, errors, dirModule = null) => {
           if (!isNonEmptyString(item)) errors.push(`${at}.${key}: 必须是非空字符串`);
           return;
         }
-        const normalized = key === 'palace' ? (ZIWEI_PALACE_ALIASES[item] ?? item) : item;
+        const normalized = key === 'palace' || key === 'doujun' ? (ZIWEI_PALACE_ALIASES[item] ?? item) : item;
         if (range.includes(normalized)) return;
         if (NAME_KEYS[key]) {
           errors.push(`${at}.${key}: 「${item}」不是程序认得的${NAME_KEYS[key]}，写了永远匹配不上；改用下列名字之一，或改写成星曜、十神、月令、卦名等条件，实在编不出就只写 note（可用：${range.join('、')}）`);
