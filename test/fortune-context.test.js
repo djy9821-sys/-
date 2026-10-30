@@ -112,6 +112,8 @@ test('四个“今”运势入口自动填充当前运限', () => {
     // 传了程序认出的格局（哪怕一个没认出）就在【基本信息】里写一行，AI 论「本命盘格局」时有据。
     const withPatterns = generateFortunePromptText(type, context.selection, context.activeStems, BASIC_INFO, horoscope, horoscope.palaces, {}, context, { patterns: [{ name: '机月同梁格', source: { title: '甲', rule: '乙' } }] });
     assert.match(withPatterns, /【基本信息】\n[\s\S]*?\n程序认出的格局：机月同梁格（甲；原书：乙）\n\n【/);
+    // 小限一行：干支、落在本命哪一宫、该层四化（《全书》论运限多以大小二限并举）。
+    assert.match(prompt, /虚岁：\d+岁\n小限：[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]，命宫落点：本命[^（]+（[^）]+），四化：禄-[^、]+、权-[^、]+、科-[^、]+、忌-[^\n]+\n\n/);
     assert.match(prompt, /【大限盘】/);
     assert.match(prompt, new RegExp(`【${context.fortune[type].name}盘】`));
     assert.match(prompt, /十二宫叠盘/);
