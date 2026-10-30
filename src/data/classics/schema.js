@@ -58,6 +58,11 @@ export const APPLIES_KEYS = Object.freeze({
     limit: ['本命', '大限', '流年', '流月', '流日'],
     // 宫里没有主星（「命无正曜」「本宫无正曜」「左右单守」）；有主星的宫不命中。
     empty: ['无正曜'],
+    // 生年干支（排盘库按农历年）：「壬甲生人」写 yearGan: ["壬", "甲"]，「寅午戌生人」写 yearZhi: ["寅", "午", "戌"]。
+    yearGan: GAN,
+    yearGans: GAN,
+    yearZhi: ZHI,
+    yearZhis: ZHI,
   }),
   bazi: Object.freeze({
     dayGan: GAN,
