@@ -26,7 +26,7 @@ import { displayTextOf, readerNotesOf } from './editorial.js';
 export { patternNamesOf, ziweiPatternNamesOf, readerNotesOf };
 
 /** 复数键 → 单数键（allStars 也查上下文的 star，只是要几颗都在）。 */
-const SINGULAR = Object.freeze({ stars: 'star', allStars: 'star', meetAll: 'meet', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram' });
+const SINGULAR = Object.freeze({ stars: 'star', allStars: 'star', meetAll: 'meet', tenGods: 'tenGod', dayGans: 'dayGan', monthZhis: 'monthZhi', hexagrams: 'hexagram', yearGans: 'yearGan', yearZhis: 'yearZhi' });
 /** 要「全都在」的键。 */
 const ALL_OF = new Set(['allStars', 'meetAll']);
 /** 列的取值是一组、不按「任一」打折的键。 */
@@ -35,7 +35,7 @@ const NO_BREADTH = new Set(['allStars', 'meetAll', 'jia']);
 /** 条件键的中文名，给界面写「为什么匹配到这条」。 */
 export const CONDITION_LABELS = Object.freeze({
   pattern: '格局', tenGod: '十神', shensha: '神煞', dayGan: '日干', monthZhi: '月令', season: '季节', strength: '旺衰', relation: '合冲刑害',
-  star: '星曜', jia: '夹', meet: '三方四正', palace: '宫位', branches: '地支', brightness: '庙旺', mutagen: '四化', limit: '运限', empty: '宫内',
+  star: '星曜', jia: '夹', meet: '三方四正', palace: '宫位', branches: '地支', brightness: '庙旺', mutagen: '四化', limit: '运限', empty: '宫内', yearGan: '年干', yearZhi: '年支',
   hexagram: '卦', line: '爻', sixRelative: '六亲', sixGod: '六神', topic: '问事', movingLines: '动爻', gender: '性别', liuqin: '六亲',
 });
 
@@ -56,7 +56,7 @@ export const KEY_WEIGHT = Object.freeze({
   dayGan: 8, monthZhi: 8, topic: 8, meet: 8,
   mutagen: 7, shensha: 7, sixRelative: 7, empty: 7,
   season: 6, palace: 6, branches: 6, line: 6, relation: 6, liuqin: 6,
-  strength: 5, sixGod: 5,
+  strength: 5, sixGod: 5, yearGan: 5, yearZhi: 5,
   brightness: 4, tenGod: 4,
   gender: 3, movingLines: 3,
 });
@@ -319,11 +319,11 @@ export const baziLiuqinHits = (library, ctx, liuqin, options = {}) => {
 
 /**
  * 紫微上下文：传入当前关心的星曜与宫位即可（匹配引擎本身不依赖 iztro）。
- * @param {{ stars?: string[], jia?: string[], meet?: string[], palace?: string|string[], branches?: string[], brightness?: string[], mutagens?: string[], patterns?: string[], limit?: string, gender?: string, borrowedStars?: string[], empty?: boolean }} input
+ * @param {{ stars?: string[], jia?: string[], meet?: string[], palace?: string|string[], branches?: string[], brightness?: string[], mutagens?: string[], patterns?: string[], limit?: string, gender?: string, borrowedStars?: string[], empty?: boolean, yearGan?: string|null, yearZhi?: string|null }} input
  *   palace 可以给多个（身宫与命宫同宫时给 ['命宫', '身宫']）；meet：三方四正（对宫与两个三合宫）里的星，本宫的星会自动并进去；
- *   borrowedStars：空宫借的对宫主星；empty：宫里没有主星。
+ *   borrowedStars：空宫借的对宫主星；empty：宫里没有主星；yearGan / yearZhi：生年干支（《全书》「壬甲生人」「寅午戌生人」的条件用）。
  */
-export const ziweiContextOf = ({ stars = [], jia = [], meet = [], palace = null, branches = [], brightness = [], mutagens = [], patterns = [], limit = null, gender = null, borrowedStars = [], empty = false } = {}) => ({
+export const ziweiContextOf = ({ stars = [], jia = [], meet = [], palace = null, branches = [], brightness = [], mutagens = [], patterns = [], limit = null, gender = null, borrowedStars = [], empty = false, yearGan = null, yearZhi = null } = {}) => ({
   module: 'ziwei',
   star: unique([...stars, ...borrowedStars]),
   // 宫里没有主星（空宫）时为「无正曜」，给「命无正曜」「左右单守」这类条目用；借了对宫的星也还是空宫。
@@ -338,9 +338,23 @@ export const ziweiContextOf = ({ stars = [], jia = [], meet = [], palace = null,
   pattern: unique(toArray(patterns).flatMap(ziweiPatternNamesOf)),
   limit,
   gender,
+  yearGan: yearGan || null,
+  yearZhi: yearZhi || null,
   // 空宫借来的对宫主星（也算进 star），命中说明里注「（借对宫）」。
   borrowedStars: unique(borrowedStars),
 });
+
+/**
+ * 排盘结果里的生年干支（排盘库按农历年给年柱）：{ yearGan, yearZhi }；读不到时两项为 null。
+ * @param {object} horoscope iztro 排盘结果（rawDates.chineseDate.yearly 或 chineseDate 字符串）
+ */
+export const ziweiNatalOf = (horoscope) => {
+  const yearly = horoscope?.rawDates?.chineseDate?.yearly;
+  const ganzhi = Array.isArray(yearly) && yearly.length === 2
+    ? yearly.join('')
+    : (typeof horoscope?.chineseDate === 'string' ? horoscope.chineseDate.trim().split(/\s+/)[0] : '') || '';
+  return { yearGan: ganzhi[0] ?? null, yearZhi: ganzhi[1] ?? null };
+};
 
 /** 四化标记转成登记名：iztro 给「禄权科忌」，也兼容「化禄」写法。 */
 const mutagenNameOf = (mutagen) => (mutagen ? String(mutagen).replace(/^化/, '') : null);
@@ -404,13 +418,14 @@ export const ziweiMeetStarsOf = (surround) => unique((surround ?? []).flatMap((p
  * 从排盘结果里的一个宫（iztro 的 palace：name、earthlyBranch、isBodyPalace、majorStars、minorStars、adjectiveStars）生成上下文。
  * 宫里所有星曜（主星、辅星、杂曜）都算，庙旺与四化取自各星自带的 brightness / mutagen。
  * @param {object} palace iztro 宫对象
- * @param {{ gender?: 'male'|'female'|'男'|'女'|null, limit?: string, patterns?: string[], neighbors?: object[]|null, opposite?: object|null, surround?: object[]|null }} [options]
+ * @param {{ gender?: 'male'|'female'|'男'|'女'|null, limit?: string, patterns?: string[], neighbors?: object[]|null, opposite?: object|null, surround?: object[]|null, natal?: { yearGan?: string|null, yearZhi?: string|null }|null }} [options]
  *   性别、运限层（默认本命）；patterns：程序认出的格局名（按命宫三方四正判的，调用方只在命宫传）；
  *   neighbors：左右两邻的宫（ziweiNeighborsOf），给「夹」的条件用，不传就不判夹；
  *   opposite：对宫（ziweiOppositeOf），这一宫没有主星时借对宫主星一起找（命中说明注「借对宫」），不传就不借；
- *   surround：三方四正的宫（ziweiSurroundOf），给「会」「拱」「照」的条件（meet / meetAll）用，不传就只算本宫的星
+ *   surround：三方四正的宫（ziweiSurroundOf），给「会」「拱」「照」的条件（meet / meetAll）用，不传就只算本宫的星；
+ *   natal：生年干支（ziweiNatalOf），给「壬甲生人」「寅午戌生人」的条件用，不传就不判
  */
-export const ziweiPalaceContextOf = (palace, { gender = null, limit = '本命', patterns = [], neighbors = null, opposite = null, surround = null } = {}) => {
+export const ziweiPalaceContextOf = (palace, { gender = null, limit = '本命', patterns = [], neighbors = null, opposite = null, surround = null, natal = null } = {}) => {
   if (!palace) return null;
   const starList = [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])].filter((star) => star?.name);
   const palaceNames = [palace.name, palace.isBodyPalace ? '身宫' : null];
@@ -427,6 +442,8 @@ export const ziweiPalaceContextOf = (palace, { gender = null, limit = '本命', 
     patterns,
     limit,
     gender: gender === 'female' || gender === '女' ? '女' : gender === 'male' || gender === '男' ? '男' : null,
+    yearGan: natal?.yearGan ?? null,
+    yearZhi: natal?.yearZhi ?? null,
   });
 };
 
@@ -470,16 +487,16 @@ export const liuyaoReadingContextOf = (reading, judge = null) => {
  * @param {object} library buildLibrary 的结果
  * @param {object[]} palaces iztro 的十二宫
  * @param {string[]} palaceNames 宫名（命宫、身宫、夫妻、福德……；「夫妻宫」「交友」这类别名也认）；身宫与命宫同宫时只算一次
- * @param {{ gender?: string, patterns?: string[] }} [options] patterns：程序认出的格局名，算进命宫的上下文
+ * @param {{ gender?: string, patterns?: string[], natal?: object|null }} [options] patterns：程序认出的格局名，算进命宫的上下文；natal：生年干支（ziweiNatalOf）
  */
-export const ziweiPalaceHits = (library, palaces, palaceNames, { gender = null, patterns = [] } = {}) => {
+export const ziweiPalaceHits = (library, palaces, palaceNames, { gender = null, patterns = [], natal = null } = {}) => {
   if (!library || !Array.isArray(palaces) || !Array.isArray(palaceNames)) return [];
   const wanted = unique(palaceNames.map((name) => ZIWEI_PALACE_ALIASES[name] ?? name));
   const targets = unique(wanted.flatMap((name) => palaces.filter((palace) => (name === '身宫' ? palace?.isBodyPalace : palace?.name === name))));
   const seen = new Set();
   const hits = [];
   targets.forEach((palace) => {
-    const ctx = ziweiPalaceContextOf(palace, { gender, patterns: palace.name === '命宫' ? patterns : [], neighbors: ziweiNeighborsOf(palaces, palace), opposite: ziweiOppositeOf(palaces, palace), surround: ziweiSurroundOf(palaces, palace) });
+    const ctx = ziweiPalaceContextOf(palace, { gender, natal, patterns: palace.name === '命宫' ? patterns : [], neighbors: ziweiNeighborsOf(palaces, palace), opposite: ziweiOppositeOf(palaces, palace), surround: ziweiSurroundOf(palaces, palace) });
     matchEntries(library, ctx).forEach((hit) => {
       if (seen.has(hit.entry.id)) return;
       seen.add(hit.entry.id);
@@ -495,10 +512,10 @@ export const ziweiPalaceHits = (library, palaces, palaceNames, { gender = null, 
  * @param {number} index 那一宫在十二宫数组里的下标（运限上下文 fortune.decadal.index / fortune.yearly.index）
  * @param {'大限'|'流年'} limit
  */
-export const ziweiLimitPalaceHits = (library, palaces, index, limit, { gender = null } = {}) => {
+export const ziweiLimitPalaceHits = (library, palaces, index, limit, { gender = null, natal = null } = {}) => {
   const palace = Array.isArray(palaces) ? (palaces.find((item) => item?.index === index) ?? palaces[index] ?? null) : null;
   if (!library || !palace || !limit) return [];
-  const ctx = ziweiPalaceContextOf(palace, { gender, limit, neighbors: ziweiNeighborsOf(palaces, palace), opposite: ziweiOppositeOf(palaces, palace), surround: ziweiSurroundOf(palaces, palace) });
+  const ctx = ziweiPalaceContextOf(palace, { gender, natal, limit, neighbors: ziweiNeighborsOf(palaces, palace), opposite: ziweiOppositeOf(palaces, palace), surround: ziweiSurroundOf(palaces, palace) });
   return matchEntries(library, ctx);
 };
 
