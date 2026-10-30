@@ -19,6 +19,20 @@ export default function FullBaguaExperience({ onFist, onClose }) {
     return () => cleanup?.();
   }, []);
 
+  // 手势页铺满全屏，打开期间锁住页面滚动，离开时恢复。
+  // 不能写在样式表里：按需加载的样式离开后不会卸下，整个网站都会滚不动。
+  useEffect(() => {
+    const { documentElement, body } = document;
+    const previousHtml = documentElement.style.overflow;
+    const previousBody = body.style.overflow;
+    documentElement.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    return () => {
+      documentElement.style.overflow = previousHtml;
+      body.style.overflow = previousBody;
+    };
+  }, []);
+
   return (
     <div ref={containerRef} className="full-bagua-experience w-full h-full absolute inset-0 z-0">
       <video id="camera" autoPlay muted playsInline aria-hidden="true" style={{ position: 'fixed', left: '-9999px', width: '960px', height: '540px' }}></video>
@@ -54,11 +68,7 @@ export default function FullBaguaExperience({ onFist, onClose }) {
         </p>
         
         {onClose && (
-          <button 
-            type="button" 
-            onClick={onClose}
-            className="absolute top-4 left-4 p-2 text-white/50 hover:text-white"
-          >
+          <button type="button" onClick={onClose} className="gate__back">
             返回 <small>BACK</small>
           </button>
         )}

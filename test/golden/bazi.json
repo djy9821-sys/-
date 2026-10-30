@@ -51,31 +51,30 @@
         "deLing": true,
         "favorable": [
           {
-            "element": "土",
-            "role": "印",
-            "tiaoHou": false
+            "element": "水",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": true
           },
           {
             "element": "金",
             "role": "比劫",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
           }
         ],
         "unfavorable": [
           {
+            "element": "土",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": false
+          },
+          {
             "element": "火",
             "role": "官杀",
-            "tiaoHou": false
-          },
-          {
-            "element": "水",
-            "role": "食伤",
-            "tiaoHou": false
-          },
-          {
-            "element": "木",
-            "role": "财",
-            "tiaoHou": false
+            "tiaoHou": true,
+            "usable": true
           }
         ]
       },
@@ -118,6 +117,14 @@
             "note": "配偶宫见正官：伴侣端正有分寸，看重名分与规矩。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "羊刃格",
+        "verdict": "待详辨",
+        "success": [],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -173,31 +180,36 @@
         "deLing": false,
         "favorable": [
           {
-            "element": "火",
-            "role": "官杀",
-            "tiaoHou": true
-          },
-          {
             "element": "土",
             "role": "印",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
           },
           {
             "element": "金",
             "role": "比劫",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": false
+          },
+          {
+            "element": "火",
+            "role": "官杀",
+            "tiaoHou": false,
+            "usable": true
           }
         ],
         "unfavorable": [
           {
             "element": "木",
             "role": "财",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
           },
           {
             "element": "水",
             "role": "食伤",
-            "tiaoHou": false
+            "tiaoHou": true,
+            "usable": true
           }
         ]
       },
@@ -249,6 +261,17 @@
             "note": "配偶宫见偏财：伴侣大方活络，人缘与财路都广。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "伤官格",
+        "verdict": "成",
+        "success": [
+          "伤官佩印",
+          "伤官非金水而见官（金水伤官例外）"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -304,31 +327,36 @@
         "deLing": false,
         "favorable": [
           {
-            "element": "火",
-            "role": "比劫",
-            "tiaoHou": true
-          },
-          {
             "element": "木",
             "role": "印",
-            "tiaoHou": false
+            "tiaoHou": true,
+            "usable": true
+          },
+          {
+            "element": "火",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "水",
+            "role": "官杀",
+            "tiaoHou": false,
+            "usable": true
           }
         ],
         "unfavorable": [
           {
-            "element": "水",
-            "role": "官杀",
-            "tiaoHou": false
-          },
-          {
             "element": "金",
             "role": "财",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
           },
           {
             "element": "土",
             "role": "食伤",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
           }
         ]
       },
@@ -359,6 +387,16 @@
             "note": "配偶宫见偏财：伴侣大方活络，人缘与财路都广。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "七杀格",
+        "verdict": "成",
+        "success": [
+          "煞用印化（论偏官）"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -417,31 +455,36 @@
         "deLing": false,
         "favorable": [
           {
-            "element": "火",
-            "role": "比劫",
-            "tiaoHou": true
-          },
-          {
             "element": "木",
             "role": "印",
-            "tiaoHou": false
-          }
-        ],
-        "unfavorable": [
+            "tiaoHou": false,
+            "usable": true
+          },
           {
-            "element": "土",
-            "role": "食伤",
-            "tiaoHou": false
+            "element": "火",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": true
           },
           {
             "element": "水",
             "role": "官杀",
-            "tiaoHou": false
-          },
+            "tiaoHou": true,
+            "usable": false
+          }
+        ],
+        "unfavorable": [
           {
             "element": "金",
             "role": "财",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "土",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": true
           }
         ]
       },
@@ -479,6 +522,16 @@
             "note": "配偶宫见食神：伴侣随和爱生活，家庭气氛多轻松。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "伤官格",
+        "verdict": "成",
+        "success": [
+          "伤官佩印"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -539,29 +592,34 @@
           {
             "element": "木",
             "role": "印",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
           },
           {
             "element": "火",
             "role": "比劫",
-            "tiaoHou": false
-          }
-        ],
-        "unfavorable": [
-          {
-            "element": "土",
-            "role": "食伤",
-            "tiaoHou": false
-          },
-          {
-            "element": "金",
-            "role": "财",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
           },
           {
             "element": "水",
             "role": "官杀",
-            "tiaoHou": false
+            "tiaoHou": true,
+            "usable": false
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "金",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "土",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": true
           }
         ]
       },
@@ -585,6 +643,16 @@
             "note": "配偶宫见食神：伴侣随和爱生活，家庭气氛多轻松。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "食神格",
+        "verdict": "成",
+        "success": [
+          "食神生财"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -646,31 +714,30 @@
         "deLing": false,
         "favorable": [
           {
-            "element": "金",
-            "role": "印",
-            "tiaoHou": false
-          },
-          {
             "element": "水",
             "role": "比劫",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "金",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": false
           }
         ],
         "unfavorable": [
           {
-            "element": "火",
-            "role": "财",
-            "tiaoHou": false
-          },
-          {
-            "element": "木",
-            "role": "食伤",
-            "tiaoHou": false
-          },
-          {
             "element": "土",
             "role": "官杀",
-            "tiaoHou": false
+            "tiaoHou": true,
+            "usable": false
+          },
+          {
+            "element": "火",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
           }
         ]
       },
@@ -701,6 +768,19 @@
             "note": "配偶宫见正财：伴侣务实稳重，重视家庭与积蓄。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "伤官格",
+        "verdict": "成中有败",
+        "success": [
+          "伤官生财",
+          "伤官佩印"
+        ],
+        "failure": [],
+        "flaw": [
+          "伤官生财，而财又逢合"
+        ],
+        "rescue": []
       }
     }
   },
@@ -759,29 +839,34 @@
           {
             "element": "水",
             "role": "印",
-            "tiaoHou": true
+            "tiaoHou": true,
+            "usable": true
           },
           {
             "element": "木",
             "role": "比劫",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": false
+          },
+          {
+            "element": "金",
+            "role": "官杀",
+            "tiaoHou": false,
+            "usable": true
           }
         ],
         "unfavorable": [
           {
-            "element": "金",
-            "role": "官杀",
-            "tiaoHou": false
+            "element": "土",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
           },
           {
             "element": "火",
             "role": "食伤",
-            "tiaoHou": false
-          },
-          {
-            "element": "土",
-            "role": "财",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
           }
         ]
       },
@@ -798,8 +883,34 @@
         "special": {
           "name": "疑似从杀格",
           "kind": "cong",
-          "basis": "日主乙木同党仅占 10%，地支无根、天干无印，官杀占 40% 独旺。",
-          "note": "从格以顺从旺势为用，喜忌与常法相反：扶身反而不利。是否真从还要看是否有微根、印星是否被制，请人工确认。"
+          "basis": "日主乙木地支无比劫之根，只有子中癸一点印气，天干无印比相帮，官杀占 40% 独旺。",
+          "note": "从格以顺从旺势为用，喜忌与常法相反：扶身反而不利。是否真从还要看是否有微根、印星是否被制，请人工确认。",
+          "favorable": [
+            {
+              "element": "土",
+              "label": "财"
+            },
+            {
+              "element": "金",
+              "label": "官杀"
+            }
+          ],
+          "unfavorable": [
+            {
+              "element": "火",
+              "label": "食伤"
+            },
+            {
+              "element": "水",
+              "label": "印"
+            },
+            {
+              "element": "木",
+              "label": "比劫"
+            }
+          ],
+          "godsBasis": "从杀以财星生杀为用（任注「用土以从之」），官杀次之；食伤制杀、印比扶身，都会破格",
+          "godsText": "喜土（财）、金（官杀）；忌火（食伤）、水（印）、木（比劫）"
         },
         "traits": [
           {
@@ -831,6 +942,18 @@
             "note": "配偶宫见七杀：伴侣有魄力、脾气直，彼此需要留出空间。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "正官格",
+        "verdict": "败",
+        "success": [
+          "官逢财印，又无刑冲破害，官格成也"
+        ],
+        "failure": [
+          "杂煞"
+        ],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -889,29 +1012,34 @@
           {
             "element": "水",
             "role": "官杀",
-            "tiaoHou": true
+            "tiaoHou": true,
+            "usable": true
           },
           {
             "element": "木",
             "role": "印",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": false
           },
           {
-            "element": "火",
-            "role": "比劫",
-            "tiaoHou": false
+            "element": "金",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
           }
         ],
         "unfavorable": [
           {
-            "element": "金",
-            "role": "财",
-            "tiaoHou": false
-          },
-          {
             "element": "土",
             "role": "食伤",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "火",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": true
           }
         ]
       },
@@ -933,6 +1061,16 @@
             "note": "配偶宫见食神：伴侣随和爱生活，家庭气氛多轻松。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "建禄月劫",
+        "verdict": "成",
+        "success": [
+          "透财而逢食伤"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -983,36 +1121,35 @@
         ]
       },
       "strength": {
-        "band": "偏强",
+        "band": "极强",
         "ratio": 0.6239,
         "deLing": true,
         "favorable": [
           {
-            "element": "金",
-            "role": "食伤",
-            "tiaoHou": false
+            "element": "木",
+            "role": "官杀",
+            "tiaoHou": true,
+            "usable": true
           },
           {
             "element": "水",
             "role": "财",
-            "tiaoHou": false
-          },
-          {
-            "element": "木",
-            "role": "官杀",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
           }
         ],
         "unfavorable": [
           {
-            "element": "火",
-            "role": "印",
-            "tiaoHou": false
+            "element": "金",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": false
           },
           {
             "element": "土",
             "role": "比劫",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
           }
         ]
       },
@@ -1032,7 +1169,7 @@
             "key": "bijie-zhengcai",
             "name": "比劫争财",
             "tone": "caution",
-            "basis": "比劫占 41%，日主偏强，财星透于年柱癸。",
+            "basis": "比劫占 41%，日主极强，财星透于年柱癸。",
             "note": "合伙、借贷、担保宜谨慎；有官杀制比劫或食伤通关则可缓解。"
           },
           {
@@ -1043,6 +1180,16 @@
             "note": "配偶宫见比肩：伴侣性格与自己相近，相处像朋友，也容易各执己见。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "财格",
+        "verdict": "败",
+        "success": [],
+        "failure": [
+          "财轻比重"
+        ],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -1097,8 +1244,40 @@
         "band": "中和",
         "ratio": 0.5588,
         "deLing": true,
-        "favorable": [],
-        "unfavorable": []
+        "favorable": [
+          {
+            "element": "木",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "火",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": false
+          },
+          {
+            "element": "水",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": false
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "金",
+            "role": "印",
+            "tiaoHou": true,
+            "usable": true
+          },
+          {
+            "element": "土",
+            "role": "官杀",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ]
       },
       "pattern": {
         "pattern": {
@@ -1120,6 +1299,14 @@
             "note": "配偶宫见偏印：伴侣想法独特、有点距离感，适合各有天地。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "印格",
+        "verdict": "待详辨",
+        "success": [],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -1177,17 +1364,43 @@
         ]
       },
       "strength": {
-        "band": "中和",
+        "band": "偏强",
         "ratio": 0.5556,
         "deLing": true,
         "favorable": [
           {
+            "element": "木",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "火",
+            "role": "官杀",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
             "element": "水",
             "role": "食伤",
-            "tiaoHou": true
+            "tiaoHou": true,
+            "usable": false
           }
         ],
-        "unfavorable": []
+        "unfavorable": [
+          {
+            "element": "金",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": false
+          },
+          {
+            "element": "土",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ]
       },
       "pattern": {
         "pattern": {
@@ -1202,6 +1415,13 @@
         "special": null,
         "traits": [
           {
+            "key": "yinzhong-shenqiang",
+            "name": "印重身强",
+            "tone": "caution",
+            "basis": "印星占 56%，日主偏强。",
+            "note": "想得多做得少、依赖性强；喜财星破印，宜多动手实践。"
+          },
+          {
             "key": "rizuo",
             "name": "日坐偏印",
             "tone": "neutral",
@@ -1209,6 +1429,14 @@
             "note": "配偶宫见偏印：伴侣想法独特、有点距离感，适合各有天地。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "印格",
+        "verdict": "待详辨",
+        "success": [],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   },
@@ -1259,36 +1487,41 @@
         ]
       },
       "strength": {
-        "band": "偏弱",
+        "band": "中和",
         "ratio": 0.3419,
         "deLing": false,
         "favorable": [
           {
-            "element": "木",
-            "role": "印",
-            "tiaoHou": false
-          },
-          {
-            "element": "火",
-            "role": "比劫",
-            "tiaoHou": false
-          }
-        ],
-        "unfavorable": [
-          {
             "element": "金",
             "role": "财",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
           },
           {
             "element": "土",
             "role": "食伤",
-            "tiaoHou": false
+            "tiaoHou": false,
+            "usable": true
           },
           {
             "element": "水",
             "role": "官杀",
-            "tiaoHou": false
+            "tiaoHou": true,
+            "usable": false
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "火",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "木",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": true
           }
         ]
       },
@@ -1305,13 +1538,6 @@
         "special": null,
         "traits": [
           {
-            "key": "yinxing-hushen",
-            "name": "印星护身",
-            "tone": "good",
-            "basis": "日主偏弱，印星见于月柱甲。",
-            "note": "身弱得印，学习与长辈助力是主要依靠。"
-          },
-          {
             "key": "rizuo",
             "name": "日坐劫财",
             "tone": "neutral",
@@ -1319,6 +1545,14 @@
             "note": "配偶宫见劫财：伴侣有主见、重义气，钱财上宜分清界限。"
           }
         ]
+      },
+      "chengBai": {
+        "group": "财格",
+        "verdict": "待详辨",
+        "success": [],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
       }
     }
   }

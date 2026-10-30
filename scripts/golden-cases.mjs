@@ -62,6 +62,9 @@ export const summarizeBazi = (input) => {
     },
     strength: { band: strength.band, ratio: Number(strength.ratio.toFixed(4)), deLing: strength.deLing, favorable: strength.favorable, unfavorable: strength.unfavorable },
     pattern: { pattern: pattern.pattern, special: pattern.special, traits: pattern.traits },
+    chengBai: pattern.chengBai
+      ? { group: pattern.chengBai.group, verdict: pattern.chengBai.verdict, success: pattern.chengBai.success.map((item) => item.quote), failure: pattern.chengBai.failure.map((item) => item.quote), flaw: pattern.chengBai.flaw.map((item) => item.quote), rescue: pattern.chengBai.rescue.map((item) => item.quote) }
+      : null,
   };
 };
 

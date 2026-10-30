@@ -1,18 +1,22 @@
 import { astro } from 'iztro';
+import './ziweiBrightness.js'; // 星曜庙旺按《紫微斗数全书》改正三格（见该文件）
 
 // Helper to check if a star is in a list
 const hasStar = (stars, name) => stars.some(s => s.name === name);
 const hasBrightness = (stars, name, levels) => stars.some(s => s.name === name && levels.includes(s.brightness));
+// iztro 的宫名除「命宫」外不带「宫」字（官禄、财帛、迁移、田宅）；两种写法都认，否则三方宫位永远找不到。
+const palaceOf = (horoscope, name) => horoscope.palaces.find((p) => p.name === name || `${p.name}宫` === name) ?? null;
+// 按本地日期写（UTC 日期在东八区早上 8 点前会差一天）。
+const localDateText = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
 // Scoring Rules for each Type
 const SCORING_RULES = {
     'leader': (horoscope) => {
         let score = 0;
-        const ming = horoscope.palaces.find(p => p.name === '命宫');
-        console.log("Scoring Leader:", ming.majorStars.map(s => s.name));
-        const guan = horoscope.palaces.find(p => p.name === '官禄宫');
-        const cai = horoscope.palaces.find(p => p.name === '财帛宫');
-        const qian = horoscope.palaces.find(p => p.name === '迁移宫');
+        const ming = palaceOf(horoscope, '命宫');
+        const guan = palaceOf(horoscope, '官禄宫');
+        const cai = palaceOf(horoscope, '财帛宫');
+        const qian = palaceOf(horoscope, '迁移宫');
 
         // 1. Major Stars (Emperor Vibe)
         if (ming && hasStar(ming.majorStars, '紫微')) score += 20;
@@ -42,8 +46,8 @@ const SCORING_RULES = {
     },
     'iq': (horoscope) => {
         let score = 0;
-        const ming = horoscope.palaces.find(p => p.name === '命宫');
-        const guan = horoscope.palaces.find(p => p.name === '官禄宫');
+        const ming = palaceOf(horoscope, '命宫');
+        const guan = palaceOf(horoscope, '官禄宫');
 
         // 1. Major Stars (Intelligence)
         if (ming && hasStar(ming.majorStars, '天机')) score += 20;
@@ -59,7 +63,7 @@ const SCORING_RULES = {
         const sanFang = [];
         if (ming) sanFang.push(...ming.minorStars);
         if (guan) sanFang.push(...guan.minorStars);
-        const cai = horoscope.palaces.find(p => p.name === '财帛宫');
+        const cai = palaceOf(horoscope, '财帛宫');
         if (cai) sanFang.push(...cai.minorStars);
 
         if (hasStar(sanFang, '文昌')) score += 15;
@@ -70,7 +74,7 @@ const SCORING_RULES = {
     },
     'sport': (horoscope) => {
         let score = 0;
-        const ming = horoscope.palaces.find(p => p.name === '命宫');
+        const ming = palaceOf(horoscope, '命宫');
 
         // 1. Major Stars (Action/Power)
         if (ming && hasStar(ming.majorStars, '七杀')) score += 20;
@@ -90,9 +94,9 @@ const SCORING_RULES = {
     },
     'wealth': (horoscope) => {
         let score = 0;
-        const ming = horoscope.palaces.find(p => p.name === '命宫');
-        const cai = horoscope.palaces.find(p => p.name === '财帛宫');
-        const tian = horoscope.palaces.find(p => p.name === '田宅宫');
+        const ming = palaceOf(horoscope, '命宫');
+        const cai = palaceOf(horoscope, '财帛宫');
+        const tian = palaceOf(horoscope, '田宅宫');
 
         // 1. Major Stars (Wealth)
         if (ming && hasStar(ming.majorStars, '武曲')) score += 20;
@@ -117,9 +121,11 @@ const SCORING_RULES = {
     }
 };
 
-export const findBestConceptionDates = async (type, limit = 3) => {
+/** 按类型给一张命盘打分（测试也用）。 */
+export const scoreBabyChart = (type, horoscope) => (SCORING_RULES[type] || SCORING_RULES.leader)(horoscope);
+
+export const findBestConceptionDates = async (type, limit = 3, today = new Date()) => {
     const results = [];
-    const today = new Date();
     // Scan next 180 days for Conception
     // Conception Date + 280 days = Birth Date
 
@@ -135,16 +141,14 @@ export const findBestConceptionDates = async (type, limit = 3) => {
         const birthDate = new Date(conceptionDate);
         birthDate.setDate(conceptionDate.getDate() + 280);
 
-        const dateStr = birthDate.toISOString().split('T')[0];
+        const dateStr = localDateText(birthDate);
 
         // Check 12 hours (0, 2, 4 ... 22)
         for (let h = 0; h < 24; h += 2) {
             try {
                 const horoscope = astro.bySolar(dateStr, h / 2, '男', true, 'zh-CN'); // Assume Male for pattern check (patterns are mostly gender neutral for these archetypes)
 
-                const scorer = SCORING_RULES[type] || SCORING_RULES['leader'];
-                const { score, desc } = scorer(horoscope);
-                // console.log(`Date: ${dateStr}, Score: ${score}`);
+                const { score, desc } = scoreBabyChart(type, horoscope);
 
                 // Calculate Rating (1-5 Stars) based on raw score
                 // Raw score typically 20-60 for good charts.
@@ -159,7 +163,7 @@ export const findBestConceptionDates = async (type, limit = 3) => {
                 // Always push, then sort later.
                 if (score > 0) {
                     results.push({
-                        date: conceptionDate.toISOString().split('T')[0],
+                        date: localDateText(conceptionDate),
                         timeIndex: h / 2, // 0-11
                         timeRange: TIME_RANGES[h / 2],
                         score,

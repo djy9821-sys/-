@@ -1,0 +1,197 @@
+{
+  "classic": "ziwei",
+  "volume": "卷一",
+  "section": "定杂局",
+  "edition": "公版古籍《紫微斗数全书》（明万历潘希尹辑刻本、四库提要存目本，参校维基文库、ctext.org 公版文本）",
+  "contributor": "antigravity",
+  "entries": [
+    {
+      "id": "ziwei.quanshu.dingzaju.001",
+      "title": "定杂局·风云际会",
+      "original": "风云际会：身命虽弱，二限逢禄马是也。",
+      "vernacular": "风云际会：身宫、命宫虽弱，大限、小限却遇到禄马，就是此格。",
+      "notes": "本命平常，限步逢禄马交驰，机运一至，平步登青云。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "stars": [
+            "禄存",
+            "天马"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "note": "小限逢禄马"
+        }
+      ],
+      "tags": [
+        "定杂局",
+        "大限",
+        "小限",
+        "禄存",
+        "天马",
+        "风云际会"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingzaju.002",
+      "title": "定杂局·锦上添花",
+      "original": "锦上添花：谓限破恶星，而行吉地是也。",
+      "vernacular": "锦上添花：运限出现「限破恶星」，而又行到吉地，就是此格。",
+      "notes": "运限逢吉曜得地，制化凶恶，主喜气重重、锦上添花。",
+      "doubts": [
+        "「限破恶星」断读未定，白话保留，不补作破除恶星或有恶星。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限"
+        }
+      ],
+      "tags": [
+        "定杂局",
+        "大限",
+        "锦上添花"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingzaju.003",
+      "title": "定杂局·禄衰马困",
+      "original": "禄衰马困：限逢七杀，禄马空亡是也。",
+      "vernacular": "禄衰马困：运限遇到七杀，禄马落入空亡，就是此格。",
+      "notes": "七杀本主杀伐动荡，更值禄存天马逢空，财绝马疲，主困顿败亡。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "stars": [
+            "七杀",
+            "天马"
+          ]
+        }
+      ],
+      "tags": [
+        "定杂局",
+        "大限",
+        "七杀",
+        "天马",
+        "禄衰马困"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingzaju.004",
+      "title": "定杂局·衣锦还乡",
+      "original": "衣锦还乡：少年不遂，四十后行墓运是也。",
+      "vernacular": "衣锦还乡：年轻时不如意，四十岁后行到墓运，就是此格。",
+      "notes": "大器晚成之局。早年艰难，中年后行至四墓库之运，聚财发达，荣归故里。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ]
+        }
+      ],
+      "tags": [
+        "定杂局",
+        "大限",
+        "墓运",
+        "衣锦还乡"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingzaju.005",
+      "title": "定杂局·步数无依",
+      "original": "步数无依：前限接后限，连绵不分是也。",
+      "vernacular": "步数无依：前一运限接着后一运限，连续不断，分不开来，就是此格。",
+      "notes": "大小限运连环见凶煞恶宿，运限蹭蹬，如行泥淖。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限"
+        }
+      ],
+      "tags": [
+        "定杂局",
+        "大限",
+        "步数无依"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingzaju.006",
+      "title": "定杂局·水上驾星",
+      "original": "水上驾星：一年好，一年不好是也。",
+      "vernacular": "水上驾星：指一年过得好，接着一年又过得不好。",
+      "notes": "水上驾星：流年岁限吉凶交杂，一年好一年歹，成败反覆。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "流年"
+        }
+      ],
+      "tags": [
+        "定杂局",
+        "流年",
+        "水上驾星"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingzaju.007",
+      "title": "定杂局·吉凶相伴",
+      "original": "吉凶相伴：命有主星，限前则发，限衰不发是也。",
+      "vernacular": "吉凶相伴：命宫有主星，限前便发达，运限衰弱就不发达，就是此格。",
+      "notes": "命局中平，全仗岁限之衰旺，发不耐久，吉凶相随。",
+      "doubts": [
+        "「限前」所指未明，白话保留原词，不改作「限旺」。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限"
+        }
+      ],
+      "tags": [
+        "定杂局",
+        "大限",
+        "吉凶相伴"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingzaju.008",
+      "title": "定杂局·枯木逢春",
+      "original": "枯木逢春：谓命衰限好是也。",
+      "vernacular": "枯木逢春：指命局虽衰弱，行到的运限却好。",
+      "notes": "命虽偏枯，得善限生发，枯木重荣，晚景骤发。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限"
+        }
+      ],
+      "tags": [
+        "定杂局",
+        "大限",
+        "枯木逢春"
+      ],
+      "status": "translated"
+    }
+  ]
+}

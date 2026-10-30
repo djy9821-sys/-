@@ -39,6 +39,7 @@ export const buildBaziRecord = (form, chart, { name, group = 'self', note = '' }
     note: note.trim(),
     data: {
       daySect: form.daySect,
+      yearBoundary: form.yearBoundary === 'chunjie' ? 'chunjie' : 'lichun',
       timeMode: exact ? 'exact' : unknown ? 'unknown' : 'shichen',
       clockTime: exact ? form.clockTime : '',
       placeProvince: exact ? form.placeProvince ?? '' : '',
@@ -84,6 +85,7 @@ export const recordToBaziForm = (record) => {
     hourIndex,
     gender: record.gender,
     daySect: data.daySect === 1 ? 1 : 2,
+    yearBoundary: data.yearBoundary === 'chunjie' ? 'chunjie' : 'lichun',
     timeMode: unknown ? 'unknown' : exact ? 'exact' : 'shichen',
     clockTime: exact ? data.clockTime : '',
     placeProvince: exact && typeof data.placeProvince === 'string' ? data.placeProvince : '',
@@ -100,7 +102,7 @@ export const baziChartSignature = (record) => {
   const form = recordToBaziForm(record);
   if (!form) return '';
   return [
-    form.calendarType, form.year, form.month, form.day, form.hourIndex, form.gender, form.daySect,
+    form.calendarType, form.year, form.month, form.day, form.hourIndex, form.gender, form.daySect, form.yearBoundary,
     form.timeMode, form.clockTime, form.longitude, form.timezone, form.applyTrueSolar, form.applyDst,
   ].join('|');
 };

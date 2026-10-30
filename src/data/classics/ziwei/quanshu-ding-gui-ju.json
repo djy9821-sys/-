@@ -1,0 +1,604 @@
+{
+  "classic": "ziwei",
+  "volume": "卷一",
+  "section": "定贵局",
+  "edition": "公版古籍《紫微斗数全书》（明万历潘希尹辑刻本、四库提要存目本，参校维基文库、ctext.org 公版文本）",
+  "contributor": "antigravity",
+  "entries": [
+    {
+      "id": "ziwei.quanshu.dingguiju.001",
+      "title": "定贵局·日月夹命",
+      "original": "日月夹命：不坐空亡，遇逢本宫有吉星是也。",
+      "vernacular": "日月夹命：命宫不落空亡，本宫又遇到吉星，就是此格。",
+      "notes": "如命在丑，日居寅，月居子，太阳太阴相夹命宫，主一生富贵荣显。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "日月夹命格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "日月夹命",
+        "太阳",
+        "太阴"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.002",
+      "title": "定贵局·日出扶桑",
+      "original": "日出扶桑：日在卯守命是也，守官禄宫亦然。",
+      "vernacular": "日出扶桑格：太阳在卯宫坐守命宫即是此格，若坐守官禄宫也是如此。",
+      "notes": "程序内置「日出扶桑格」。太阳在卯宫旭日东升，又称日照雷门格。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "日出扶桑格"
+        },
+        {
+          "module": "ziwei",
+          "palace": "官禄",
+          "branches": [
+            "卯"
+          ],
+          "star": "太阳"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "日出扶桑格",
+        "太阳",
+        "日照雷门"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.003",
+      "title": "定贵局·月朗天门",
+      "original": "月落亥宫：月在亥守命是也，又名月朗天门。",
+      "vernacular": "月朗天门格（月落亥宫）：太阴在亥宫坐守命宫即是此格，又称月朗天门格。",
+      "notes": "程序内置「月朗天门格」。太阴在亥为庙旺，夜生人尤佳，主大贵登庸。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "月朗天门格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "月朗天门格",
+        "太阴",
+        "月落亥宫"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.004",
+      "title": "定贵局·月生沧海",
+      "original": "月生沧海：月在子宫守田宅是也。",
+      "vernacular": "月生沧海格：太阴在子宫坐守田宅宫即是此格。",
+      "notes": "太阴在子宫庙旺（水澄桂萼），守田宅宫主不动产丰隆、家业殷实。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "月生沧海格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "月生沧海",
+        "太阴",
+        "田宅"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.005",
+      "title": "定贵局·辅弼拱主",
+      "original": "辅弼拱主：紫微守命，二星来拱是也，夹之亦然。",
+      "vernacular": "辅弼拱主：紫微坐守命宫，左辅、右弼来拱照，就是此格；两星来夹也是如此。",
+      "notes": "紫微为帝曜，得左辅右弼相拱或相夹，君臣得佐，主一生显达、贵人多助。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "辅弼拱主格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "辅弼拱主",
+        "紫微",
+        "左辅",
+        "右弼"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.006",
+      "title": "定贵局·君臣庆会",
+      "original": "君臣庆会：紫微左右同守命是也，更会相武阴妙上。",
+      "vernacular": "君臣庆会：紫微与左辅、右弼同守命宫，就是此格；再会天相、武曲、太阴更好。",
+      "notes": "紫微遇辅弼同宫，君臣相庆，更得财官之星同聚，为上品贵格。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "君臣庆会格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "君臣庆会",
+        "紫微",
+        "左辅",
+        "右弼"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.007",
+      "title": "定贵局·财印夹禄",
+      "original": "财印夹禄：禄守命，梁相来夹是也，入财亦然。",
+      "vernacular": "财印夹禄：禄存坐守命宫，天梁、天相来夹，就是此格；进入财帛宫也是如此。",
+      "notes": "禄存居中，得印星天相与荫星天梁夹扶，既富且贵，官禄亨通。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "财印夹禄：禄存守命而天梁、天相来夹。按安星法梁相相邻，夹不了第三宫，程序不判"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "财印夹禄",
+        "禄存",
+        "天梁",
+        "天相"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.008",
+      "title": "定贵局·禄马佩印",
+      "original": "禄马佩印：马前有禄，印星同宫是也。",
+      "vernacular": "禄马佩印格：天马前位有禄存，且与天相印星同宫即是此格。",
+      "notes": "天马逢禄为禄马交驰，更配天相印曜，主威权赫奕、名利双收。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "allStars": [
+            "天马",
+            "天相"
+          ]
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "禄马佩印",
+        "天马",
+        "禄存",
+        "天相"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.009",
+      "title": "定贵局·坐贵向贵",
+      "original": "坐贵向贵：谓魁钺在命，迭相坐拱是也。",
+      "vernacular": "坐贵向贵：天魁、天钺在命宫，一星坐守，另一星拱照，就是此格。",
+      "notes": "天乙贵人与玉堂贵人一坐命宫一居迁移对宫，主文章冠世、出入遇贵。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "坐贵向贵格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "坐贵向贵",
+        "天魁",
+        "天钺"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.010",
+      "title": "定贵局·马头带剑",
+      "original": "马头带剑：谓马有刃是也，不是居午格。",
+      "vernacular": "马头带剑：指天马有刃，并不是指坐在午宫的格局。",
+      "notes": "斗数论马头带剑有二说：一为擎羊居午守命逢吉化，主镇守边疆；二为天马逢擎羊，带煞之骏马，多主武贵或奔波历险。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "马头带剑：天马逢擎羊。按安星法天马只在寅申巳亥，擎羊不入寅申巳亥，两星不能同宫，此格不能成立，程序不判"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "马头带剑",
+        "天马",
+        "擎羊"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.011",
+      "title": "定贵局·七杀朝斗",
+      "original": "七杀朝斗：见前批注。",
+      "vernacular": "七杀朝斗格：其具体格局参阅前面的批注说明。",
+      "notes": "程序内置「七杀朝斗格」。七杀在寅、申、子、午宫坐命，对宫紫微微朝，主为国家栋梁、掌大权。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "七杀朝斗格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "七杀朝斗格",
+        "七杀"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.012",
+      "title": "定贵局·日月并明",
+      "original": "日月并明：见前批注。",
+      "vernacular": "日月并明格：其具体格局参阅前面的批注说明。",
+      "notes": "日居巳官禄，月居酉财帛，命坐丑宫，日月并明照命；或太阳居卯、太阴居亥，皆为日月并明。程序尚未内置同名格局，按星曜与宫位匹配。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "丑"
+          ],
+          "stars": [
+            "太阳",
+            "太阴"
+          ]
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "日月并明",
+        "太阳",
+        "太阴"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.013",
+      "title": "定贵局·明珠出海",
+      "original": "明珠出海：见前批注。",
+      "vernacular": "明珠出海格：其具体格局参阅前面的批注说明。",
+      "notes": "程序内置「明珠出海格」。安命未宫，太阳在卯、太阴在亥三合拱照，主才华横溢、出人头地。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "明珠出海格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "明珠出海格",
+        "太阳",
+        "太阴"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.014",
+      "title": "定贵局·日月同临",
+      "original": "日月同临：见前批注。",
+      "vernacular": "日月同临格：其具体格局参阅前面的批注说明。",
+      "notes": "程序内置「日月同临格」。太阳太阴同在丑宫或未宫坐守命宫或三方会照，主富贵兼济。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "日月同临格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "日月同临格",
+        "太阳",
+        "太阴"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.015",
+      "title": "定贵局·刑囚夹印",
+      "original": "刑囚夹印：天刑廉贞同临身命，主武勇之人。",
+      "vernacular": "刑囚夹印格：天刑与廉贞同临身命宫，主人性格威武刚勇。",
+      "notes": "廉贞为囚星，天相为印星，擎羊或天刑为刑星，相遇主武勇刚烈，须防刑杖伤残。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "刑囚夹印格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "刑囚夹印",
+        "廉贞",
+        "天刑"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.016",
+      "title": "定贵局·科权禄拱",
+      "original": "科权禄拱：见前批注。",
+      "vernacular": "科权禄拱：请参看前面所写的批注。",
+      "notes": "程序内置「三奇加会格」。化科、化权、化禄在命宫三方四正拱照，极为显贵。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "三奇加会"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "三奇加会",
+        "科权禄拱",
+        "三奇嘉会"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.017",
+      "title": "定贵局·贪火相逢",
+      "original": "贪火相逢：谓二星守命，同居庙旺是也。",
+      "vernacular": "贪火相逢：贪狼、火星坐守命宫，同处庙旺，就是此格。",
+      "notes": "火贪格，主名振诸邦、暴发横发，武职显赫。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "贪火相逢格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "贪火相逢",
+        "火贪格",
+        "贪狼",
+        "火星"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.018",
+      "title": "定贵局·武曲守垣",
+      "original": "武曲守垣：武守命卯宫是也，余不是。",
+      "vernacular": "武曲守垣：指武曲坐守命宫，而命宫在卯；其他情况都不算。",
+      "notes": "程序内置「武曲守垣格」。武曲守命卯宫（与七杀同宫），主威名赫奕。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "武曲守垣格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "武曲守垣格",
+        "武曲"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.019",
+      "title": "定贵局·府相朝垣",
+      "original": "府相朝垣：见前批注。",
+      "vernacular": "府相朝垣格：其具体格局参阅前面的批注说明。",
+      "notes": "程序内置「府相朝垣格」。天府与天相在三方朝拱命宫，主食禄千钟、衣禄丰足。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "府相朝垣格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "府相朝垣格",
+        "天府",
+        "天相"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.020",
+      "title": "定贵局·紫府朝垣",
+      "original": "紫府朝垣：见前批注。",
+      "vernacular": "紫府朝垣格：其具体格局参阅前面的批注说明。",
+      "notes": "程序内置「紫府朝垣格」。紫微与天府在三合或对宫朝照命宫，主一生富贵福厚。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "紫府朝垣格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "紫府朝垣格",
+        "紫微",
+        "天府"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.021",
+      "title": "定贵局·文星暗拱",
+      "original": "文星暗拱：见前批注。",
+      "vernacular": "文星暗拱格：其具体格局参阅前面的批注说明。",
+      "notes": "文昌、文曲在三合或六合暗拱命宫，主为人博学多才、文章扬名。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "文昌",
+            "文曲"
+          ]
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "文星暗拱",
+        "文昌",
+        "文曲"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.022",
+      "title": "定贵局·权禄生逢",
+      "original": "权禄生逢：二星守命庙旺是也，陷不是。",
+      "vernacular": "权禄生逢：权禄二星坐守命宫而处于庙旺，就是此格；落陷就不算。",
+      "notes": "生年权禄同在命宫庙旺之地，财官俱全，主出将入相。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "权禄生逢格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "权禄生逢",
+        "化权",
+        "化禄"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.023",
+      "title": "定贵局·羊刃入庙",
+      "original": "羊刃入庙：辰戌丑未守命遇吉是也。",
+      "vernacular": "羊刃入庙：羊刃在辰、戌、丑、未坐守命宫，又遇到吉星，就是此格。",
+      "notes": "擎羊在辰戌丑未为庙旺，凶煞化为威权，主威权压众。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "羊刃入庙格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "羊刃入庙",
+        "擎羊"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.024",
+      "title": "定贵局·巨机居卯",
+      "original": "巨机居卯：见前批注。",
+      "vernacular": "巨机居卯格：其具体格局参阅前面的批注说明。",
+      "notes": "程序内置「巨机居卯格」。巨门天机在卯宫同守命宫，主富贵荣华、位至公卿。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "巨机居卯格"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "巨机居卯格",
+        "巨门",
+        "天机"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.025",
+      "title": "定贵局·明禄暗禄",
+      "original": "明禄暗禄：见前批注。",
+      "vernacular": "明禄暗禄格：其具体格局参阅前面的批注说明。",
+      "notes": "命宫有禄存或化禄坐守，而地支六合宫位又有禄星暗合（如命在亥有化禄，寅宫有禄存暗合），主贵显发福。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "禄存"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "明禄暗禄",
+        "禄存",
+        "化禄"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.026",
+      "title": "定贵局·科明暗禄",
+      "original": "科明暗禄：见前批注。",
+      "vernacular": "科明暗禄格：其具体格局参阅前面的批注说明。",
+      "notes": "化科坐守命宫，而六合宫位有禄存或化禄暗合，主文章盖世、暗中得禄。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "mutagen": "科"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "科明暗禄",
+        "化科",
+        "禄存"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingguiju.027",
+      "title": "定贵局·金舆扶驾",
+      "original": "金舆扶驾：紫微守命，前后有日月来夹是也。",
+      "vernacular": "金舆扶驾：紫微坐守命宫，前后两宫有太阳、太阴来夹，就是此格。",
+      "notes": "紫微帝座居中，前后有日辉月华如金舆相从相夹，大富大贵之象。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "金舆扶驾：紫微守命而日月前后来夹。按安星法太阳不与紫微相邻，此格不能成立，程序不判"
+        }
+      ],
+      "tags": [
+        "定贵局",
+        "金舆扶驾",
+        "紫微",
+        "太阳",
+        "太阴"
+      ],
+      "status": "translated"
+    }
+  ]
+}

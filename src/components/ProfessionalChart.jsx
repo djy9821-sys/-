@@ -1,6 +1,5 @@
 
 import React, { useMemo } from 'react';
-import { astro } from 'iztro';
 import {
     AI_PROMPT_TEMPLATE,
     FEMALE_PROMPT_TEMPLATE,
@@ -13,11 +12,14 @@ import {
 import { findBestConceptionDates } from '../utils/babySelector';
 import { track } from '../utils/analytics';
 import {
+    birthLunarYearOf,
     buildCurrentFortuneContext,
+    flowYearOf,
     FORTUNE_HOUR_OPTIONS,
     FORTUNE_LAYER_LABELS,
     getLunarMonthDays,
     getLunarMonthOptions,
+    getTimelineFortune,
 } from '../utils/fortuneContext';
 import {
     MUTAGEN_META,
@@ -29,13 +31,18 @@ import {
     getAllMutagenStarMaps,
     groupSelfMutationsByBranch,
 } from '../utils/ziweiMutations';
-import { createZiweiHoroscope, getYinYangGenderLabel } from '../utils/ziweiBirth';
+import { createZiweiHoroscope, getYinYangGenderLabel, getZiweiFortune } from '../utils/ziweiBirth';
 import {
     analyzeZiweiPatterns,
     analyzeZiweiStructures,
     formatZiweiPatternReport,
 } from '../utils/ziweiPatterns';
 import { buildBaziChart } from '../utils/baziChart';
+import ZiweiClassicsPanel from './ziwei/ZiweiClassicsPanel.jsx';
+import { useClassicsLibrary } from './common/useClassicsLibrary.js';
+import { ziweiGlossarySeeds, ziweiLifePalaceHits } from '../data/classics/index.js';
+import GlossaryPanel from './common/GlossaryPanel.jsx';
+import { classicsPromptSection } from '../utils/classicsPrompt.js';
 import { Sparkles, Coffee, Save, Archive, Calendar, Printer } from "lucide-react";
 import wechatPayImg from '../assets/wechat_pay.jpg';
 import alipayImg from '../assets/alipay.jpg';
@@ -140,6 +147,7 @@ const getFlyPalaceShortName = (name = '') => FLY_PALACE_SHORT_NAMES[name] || Str
 
 // Helper: Get Year Stem (0-9 index)
 const getYearStemIndex = (year) => (year - 4) % 10;
+const NO_STEMS = Object.freeze({});
 
 function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, onQuickChart, onShareLink = null }) {
     const palaces = useMemo(() => {
@@ -198,6 +206,12 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     const [promptPreview, setPromptPreview] = React.useState(null);
     const [showPatternAnalysis, setShowPatternAnalysis] = React.useState(false);
     const [selectedPatternId, setSelectedPatternId] = React.useState(null);
+    // 古籍原文：按当前高亮的宫查古籍库（可在弹层里换宫）
+    const [showClassics, setShowClassics] = React.useState(false);
+    const classicsDialogRef = React.useRef(null);
+    // 术语词典：先列当前高亮的宫里出现的术语
+    const [showGlossary, setShowGlossary] = React.useState(false);
+    const glossaryDialogRef = React.useRef(null);
     const [mobileChartMode, setMobileChartMode] = React.useState('professional');
     const patternDialogRef = React.useRef(null);
     // State for Partner Modal (Conception Planner)
@@ -221,6 +235,10 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         if (focusedIndex === null) return null;
         return palaces.find((palace) => palace.index === focusedIndex) || palaces[focusedIndex] || null;
     }, [focusedIndex, palaces]);
+
+    // 古籍库里与命宫、身宫星曜（及程序认出的格局）相关的条目：附进各类 AI 话术（古籍库按需加载，没加载完就先不附；
+    // 话术文本在下面认出格局之后再算）。
+    const { data: classicsData } = useClassicsLibrary('ziwei', { enabled: palaces.length > 0 });
 
     React.useEffect(() => {
         if (focusedIndex !== null || palaces.length === 0) return;
@@ -273,6 +291,50 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [showPatternAnalysis]);
+
+    React.useEffect(() => {
+        if (!showClassics) return undefined;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        const focusFrame = window.requestAnimationFrame(() => {
+            classicsDialogRef.current?.querySelector('[data-classics-focus]')?.focus();
+        });
+        const handleKeyDown = (event) => {
+            if (event.key !== 'Escape') return;
+            setShowClassics(false);
+            window.requestAnimationFrame(() => commonMenuButtonRef.current?.focus());
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.cancelAnimationFrame(focusFrame);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [showClassics]);
+
+    React.useEffect(() => {
+        if (!showGlossary) return undefined;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        const focusFrame = window.requestAnimationFrame(() => {
+            glossaryDialogRef.current?.querySelector('[data-glossary-focus]')?.focus();
+        });
+        const handleKeyDown = (event) => {
+            if (event.key !== 'Escape') return;
+            setShowGlossary(false);
+            window.requestAnimationFrame(() => commonMenuButtonRef.current?.focus());
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.cancelAnimationFrame(focusFrame);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [showGlossary]);
 
     const palaceRelationship = useMemo(() => {
         if (!focusedPalace) return null;
@@ -382,16 +444,21 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         () => [...palaces].sort((a, b) => a.decadal.range[0] - b.decadal.range[0]),
         [palaces],
     );
-    const birthYear = Number(String(horoscope.solarDate || basicInfo.birthday || '').slice(0, 4)) || new Date().getFullYear();
+    // 出生年按农历年：虚岁、大限岁数都按农历年算，元旦到春节之间出生的人按公历年排会让时间轴整体错一年。
+    const birthYear = birthLunarYearOf(horoscope)
+        || Number(String(basicInfo.birthday || '').slice(0, 4))
+        || new Date().getFullYear();
     const currentYear = new Date().getFullYear();
     const currentHoroscope = useMemo(() => {
         try {
-            return horoscope.horoscope(new Date());
+            return getZiweiFortune(horoscope, new Date());
         } catch (error) {
             console.error('Unable to read current horoscope:', error);
             return null;
         }
     }, [horoscope]);
+    // 「今年」的流年按立春换年（与运限一致）：元旦到立春之间仍标上一年。
+    const currentFlowYear = currentHoroscope ? flowYearOf(currentHoroscope, currentYear) : currentYear;
     const virtualAge = currentHoroscope?.age?.nominalAge ?? (currentYear - birthYear + 1);
     const currentDaxianPalace = (currentHoroscope?.decadal?.name === '大限'
         ? palaces.find((palace) => palace.index === currentHoroscope?.decadal?.index)
@@ -407,6 +474,14 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         () => [...patternResults, ...structureResults],
         [patternResults, structureResults],
     );
+    // 程序认出的格局名（三奇加会、机月同梁格……），古籍匹配时算进命宫的上下文。
+    const patternNames = useMemo(() => patternEntries.map((pattern) => pattern.name), [patternEntries]);
+    const classicsPromptText = useMemo(() => {
+        if (!classicsData?.library || palaces.length === 0) return null;
+        const hits = ziweiLifePalaceHits(classicsData.library, palaces, { gender: basicInfo.gender, patterns: patternNames });
+        return classicsPromptSection(hits, { title: '【古籍原文（命宫、身宫星曜）】', subject: '命宫身宫星曜', limit: 4 });
+    }, [classicsData, palaces, basicInfo.gender, patternNames]);
+    const withClassics = (text) => (text && classicsPromptText ? `${text}\n\n${classicsPromptText}` : text);
     const selectedPattern = patternEntries.find((pattern) => pattern.id === selectedPatternId)
         || patternEntries[0]
         || null;
@@ -524,10 +599,22 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         const endYear = birthYear + endAge - 1;
         return `${palace.decadal.heavenlyStem}${palace.decadal.earthlyBranch}限 · 虚岁${startAge}-${endAge} · ${startYear}-${endYear}`;
     };
+    // 古籍弹层可切到「当前大限 / 今年流年」：那一层的命宫在本命盘的哪一宫。
+    const classicsLimits = {
+        decadal: currentDaxianPalace ? { index: currentDaxianPalace.index, label: `当前大限（${formatDaxian(currentDaxianPalace)}）` } : null,
+        yearly: Number.isInteger(currentHoroscope?.yearly?.index) ? { index: currentHoroscope.yearly.index, label: `${currentFlowYear} 年流年` } : null,
+    };
+    // 时间轴手动选到的各层干支：选到某一天后与「当前运势」同一口径（getZiweiFortune：流年立春换年、流月农历月、晚子时按命盘流派）。
+    const timelineFortune = useMemo(
+        () => (currentFortuneContext ? null : getTimelineFortune(horoscope, selection)),
+        [horoscope, selection, currentFortuneContext],
+    );
+    const activeStems = currentFortuneContext?.activeStems ?? timelineFortune?.stems ?? NO_STEMS;
+    const timelineNotes = timelineFortune?.notes ?? [];
     const currentViewLabel = currentFortuneContext
-        ? `公历${currentFortuneContext.solarDate} · ${FORTUNE_LAYER_LABELS[currentFortuneContext.type] || '运限'}`
+        ? `公历${currentFortuneContext.solarDate} · ${FORTUNE_LAYER_LABELS[currentFortuneContext.type] || '运限'}${currentFortuneContext.dayBoundaryNote ? `（${currentFortuneContext.dayBoundaryNote}）` : ''}`
         : selection.year
-            ? `${selection.year}流年${selection.month ? ` · ${selection.isLeapMonth ? '闰' : ''}${selection.month}月` : ''}${selection.day ? ` · ${selection.day}日` : ''}${selection.hour !== null ? ` · ${FORTUNE_HOUR_OPTIONS.find((item) => item.index === selection.hour)?.name || '流时'}` : ''}`
+            ? `${selection.year}流年${selection.month ? ` · ${selection.isLeapMonth ? '闰' : ''}${selection.month}月` : ''}${selection.day ? ` · ${selection.day}日` : ''}${selection.hour !== null ? ` · ${FORTUNE_HOUR_OPTIONS.find((item) => item.index === selection.hour)?.name || '流时'}` : ''}${timelineNotes.length ? `（${timelineNotes.join('；')}）` : ''}`
             : selection.daxianIndex !== null
                 ? `大限：${formatDaxian(selectedDaxianPalace)}`
                 : '本命盘（尚未选择流年、流月、流日或流时）';
@@ -536,76 +623,6 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         setShowAiMenu(false);
         setMenuView('main');
     };
-
-    // Helper to calculate stems (extracted for reuse)
-    const calculateActiveStems = (sel, horo, info) => {
-        if (!horo) return {};
-        const stems = {};
-
-        // 1. Origin (Ben)
-        if (horo.chineseDate) {
-            if (typeof horo.chineseDate === 'string') {
-                stems.origin = horo.chineseDate.split(' ')[0][0];
-            } else if (horo.chineseDate.yearly) {
-                stems.origin = horo.chineseDate.yearly[0];
-            }
-        }
-
-        // 2. Decadal (Xian)
-        if (sel.daxianIndex !== null) {
-            const decadalPalace = horo.palaces.find((palace) => palace.index === sel.daxianIndex)
-                || horo.palaces[sel.daxianIndex];
-            if (decadalPalace) stems.decadal = decadalPalace.heavenlyStem;
-        }
-
-        // 3. Yearly (Nian)
-        let yearStemIndex = null;
-        if (sel.year) {
-            yearStemIndex = getYearStemIndex(sel.year);
-            stems.yearly = HEAVENLY_STEMS[yearStemIndex];
-        }
-
-        // 4. Monthly (Yue)
-        if (yearStemIndex !== null && sel.month) {
-            const startStem = (yearStemIndex % 5) * 2 + 2;
-            const monthStemIndex = (startStem + (sel.month - 1)) % 10;
-            stems.monthly = HEAVENLY_STEMS[monthStemIndex];
-        }
-
-        // 5. Daily & 6. Hourly
-        if (sel.year && sel.month && sel.day) {
-            try {
-                const tempHoroscope = astro.byLunar(
-                    `${sel.lunarYear || sel.year}-${sel.month}-${sel.day}`,
-                    sel.hour ?? 0,
-                    info.gender === 'male' ? '男' : '女',
-                    Boolean(sel.isLeapMonth),
-                    true
-                );
-
-                if (tempHoroscope && tempHoroscope.chineseDate) {
-                    const rawChineseDate = tempHoroscope.rawDates?.chineseDate;
-                    const parts = typeof tempHoroscope.chineseDate === 'string'
-                        ? tempHoroscope.chineseDate.trim().split(/\s+/)
-                        : [];
-
-                    stems.daily = rawChineseDate?.daily?.[0] || parts[2]?.[0];
-                    if (sel.hour !== null) {
-                        stems.hourly = rawChineseDate?.hourly?.[0] || parts[3]?.[0];
-                    }
-                }
-            } catch (e) {
-                console.error("Error calculating daily/hourly stems:", e);
-            }
-        }
-        return stems;
-    };
-
-    // Memoize active stems for UI rendering
-    const activeStems = useMemo(() => {
-        if (currentFortuneContext) return currentFortuneContext.activeStems;
-        return calculateActiveStems(selection, horoscope, basicInfo);
-    }, [horoscope, selection, basicInfo, currentFortuneContext]);
 
     // Helper to get Si Hua for a star from active stems
     const getActiveSiHua = (starName) => getActiveMutagenBadges({
@@ -709,14 +726,8 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
 
         // 2. Liu Nian (Flow Year)
         // Formula: Ages where (Age - 1 + BirthBranchIndex) % 12 === PalaceBranchIndex
-        // We need Birth Branch Index.
-        // Try to get from horoscope.chineseDate.yearly[1] or calculate from solar year.
-        let birthBranchIndex = 0;
-        if (basicInfo.birthday) {
-            const birthYear = new Date(basicInfo.birthday).getFullYear();
-            // 1984=0(Rat), 1990=6(Horse). (Year-4)%12
-            birthBranchIndex = (birthYear - 4) % 12;
-        }
+        // 虚岁 1 岁那年的流年地支：按出生农历年（与虚岁、大限、时间轴同一口径；元旦到春节出生的人不能按公历年）。
+        const birthBranchIndex = ((birthYear - 4) % 12 + 12) % 12;
         const palaceBranchIndex = BRANCH_ORDER.indexOf(palace.earthlyBranch);
 
         // Generate Liu Nian ages (e.g., 1 to 100)
@@ -1613,6 +1624,8 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
             setShowChartSettings(false);
             setShowAiMenu(false);
             setShowPatternAnalysis(false);
+            setShowClassics(false);
+            setShowGlossary(false);
         }
         setShowCommonMenu((visible) => !visible);
     };
@@ -1636,6 +1649,34 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         setShowPatternAnalysis(false);
         window.requestAnimationFrame(() => commonMenuButtonRef.current?.focus());
     };
+
+    const openClassics = () => {
+        setSelectedMutationInfo(null);
+        setShowCommonMenu(false);
+        setPromptPreview(null);
+        setShowPatternAnalysis(false);
+        setShowClassics(true);
+    };
+
+    const closeClassics = () => {
+        setShowClassics(false);
+        window.requestAnimationFrame(() => commonMenuButtonRef.current?.focus());
+    };
+
+    const openGlossary = () => {
+        setSelectedMutationInfo(null);
+        setShowCommonMenu(false);
+        setPromptPreview(null);
+        setShowPatternAnalysis(false);
+        setShowClassics(false);
+        setShowGlossary(true);
+    };
+
+    const closeGlossary = () => {
+        setShowGlossary(false);
+        window.requestAnimationFrame(() => commonMenuButtonRef.current?.focus());
+    };
+    const glossarySeeds = useMemo(() => ziweiGlossarySeeds(focusedPalace), [focusedPalace]);
 
     const copyPatternAnalysis = async (feedback = false) => {
         const report = formatZiweiPatternReport(patternResults, structureResults);
@@ -1776,11 +1817,11 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
 
             if (type === 'scumbag') {
                 const template = basicInfo.gender === 'female' ? FEMALE_PROMPT_TEMPLATE : AI_PROMPT_TEMPLATE;
-                prompt = `${template}\n${basicInfoData}\n${scumbagData}`;
+                prompt = withClassics(`${template}\n${basicInfoData}\n${scumbagData}`);
             } else if (type === 'marriage') {
-                prompt = `${MARRIAGE_PROMPT_TEMPLATE}\n${basicInfoData}\n${scumbagData}`;
+                prompt = withClassics(`${MARRIAGE_PROMPT_TEMPLATE}\n${basicInfoData}\n${scumbagData}`);
             } else if (type === 'wealth') {
-                prompt = `${WEALTH_PROMPT_TEMPLATE}\n${basicInfoData}\n${scumbagData}`;
+                prompt = withClassics(`${WEALTH_PROMPT_TEMPLATE}\n${basicInfoData}\n${scumbagData}`);
             } else if (['yearly', 'monthly', 'daily', 'hourly'].includes(type)) {
                 const fortuneContext = buildCurrentFortuneContext({
                     horoscope,
@@ -1803,7 +1844,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     hourly: targetIndex >= 3,
                 });
 
-                prompt = generateFortunePromptText(
+                prompt = withClassics(generateFortunePromptText(
                     type,
                     fortuneContext.selection,
                     fortuneContext.activeStems,
@@ -1812,7 +1853,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     palaces,
                     getAllMutagenStarMaps(),
                     fortuneContext,
-                );
+                ));
 
                 if (!prompt) throw new Error(`无法生成${FORTUNE_LAYER_LABELS[type] || '运势'}话术`);
 
@@ -1978,7 +2019,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                         <span aria-hidden="true" />
                         <strong>如何看具体关系</strong>
                         <p>再点击盘中的 {info.code} 字母或箭头，可查看起宫、宫干、目标星与实际落宫。</p>
-                        <small>当前采用《紫微斗数全书》十干四化（iztro 默认）；不同流派配置可能不同。</small>
+                        <small>十干四化：九干同《紫微斗数全书》，壬干依今人排盘作左辅化科（全书原文「壬梁紫府武」作天府化科）；不同流派配置可能不同。</small>
                     </footer>
                 </aside>
             );
@@ -2024,7 +2065,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     <footer>
                         <span aria-hidden="true" />
                         <strong>当前四化表</strong>
-                        <p>《紫微斗数全书》十干四化（iztro 默认）</p>
+                        <p>九干同《紫微斗数全书》十干四化，壬干用左辅化科（全书原文作天府）</p>
                         <small>不同流派的四化表可能不同；当前显示的是本项目采用的固定算法口径。</small>
                     </footer>
                 </aside>
@@ -2108,7 +2149,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     <span aria-hidden="true" />
                     <strong>{meaning.title}</strong>
                     <p>{meaning.detail}</p>
-                    <small>当前箭头采用《紫微斗数全书》十干四化（iztro 默认）；不同流派可能不同。单条飞化只表示结构关系，不宜单独下吉凶结论。</small>
+                    <small>当前箭头按十干四化：九干同《紫微斗数全书》，壬干左辅化科（全书原文作天府）；不同流派可能不同。单条飞化只表示结构关系，不宜单独下吉凶结论。</small>
                 </footer>
             </aside>
         );
@@ -2171,7 +2212,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 <div><dt>身宫地支</dt><dd>{horoscope.earthlyBranchOfBodyPalace || '-'}宫</dd></div>
                                 <div className="is-pending"><dt>子斗</dt><dd>尚未接入经过校验的算法</dd></div>
                             </dl>
-                            <p className="wenmo-center-detail-note">安星依据《紫微斗数全书》安星诀：安命身、定五行局、起紫微天府、十四主星与辅佐煞曜、长生博士将前岁前十二神、大限小限；十干四化取《全书》「甲廉破武阳」歌诀（庚：阳武阴同，壬：梁紫左武）。年柱以立春为界，闰月十五以后按下月安命，晚子时见上方说明。</p>
+                            <p className="wenmo-center-detail-note">安星依据《紫微斗数全书》安星诀：安命身、定五行局、起紫微天府、十四主星与辅佐煞曜、长生博士将前岁前十二神、大限小限；十干四化取《全书》「甲廉破武阳」歌诀（庚：阳武阴同）；惟壬干全书作「梁紫府武」，本程序依今人排盘用「梁紫左武」。年柱以立春为界，闰月十五以后按下月安命，晚子时见上方说明。</p>
                         </section>
 
                         <section>
@@ -2554,7 +2595,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 <button
                                     key={year}
                                     type="button"
-                                    className={`wenmo-luck-cell ${selection.year === year ? 'is-active' : ''} ${year === currentYear ? 'is-current' : ''}`}
+                                    className={`wenmo-luck-cell ${selection.year === year ? 'is-active' : ''} ${year === currentFlowYear ? 'is-current' : ''}`}
                                     aria-pressed={selection.year === year}
                                     aria-label={`选择${year}流年`}
                                     onClick={() => handleTimelineYear(year)}
@@ -2649,6 +2690,8 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                         >
                             <button type="button" onClick={openAiFromCommonMenu}>AI 分析</button>
                             <button type="button" onClick={openPatternAnalysis}>格局分析</button>
+                            <button type="button" onClick={openClassics}>古籍原文</button>
+                            <button type="button" onClick={openGlossary}>术语词典</button>
                             <button
                                 type="button"
                                 aria-pressed={compactStarView}
@@ -2950,10 +2993,14 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                         className="wenmo-pattern-card"
                                         data-testid="ziwei-pattern-result"
                                         data-fortune={pattern.fortune}
+                                        data-group={pattern.group || undefined}
                                         aria-pressed={selectedPattern?.id === pattern.id}
                                         onClick={() => setSelectedPatternId(pattern.id)}
                                     >
-                                        <span>{pattern.scopeLabel} · {pattern.name}</span>
+                                        <span>
+                                            {pattern.scopeLabel} · {pattern.name}
+                                            {pattern.group && <small>《全书》{pattern.group}</small>}
+                                        </span>
                                         <b>{pattern.fortuneLabel}</b>
                                     </button>
                                 )) : (
@@ -3030,6 +3077,70 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                             <button type="button" onClick={() => copyPatternAnalysis(true)}>反馈问题建议</button>
                             <button type="button" aria-label="分享格局分析" onClick={sharePatternAnalysis}>⇧</button>
                             <button type="button" onClick={closePatternAnalysis}>关闭</button>
+                        </footer>
+                    </section>
+                </div>
+            )}
+
+            {showClassics && (
+                <div
+                    className="wenmo-pattern-modal chart-modal"
+                    data-testid="ziwei-classics-modal"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) closeClassics();
+                    }}
+                >
+                    <section
+                        ref={classicsDialogRef}
+                        className="wenmo-pattern-sheet"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="wenmo-classics-title"
+                    >
+                        <div className="wenmo-pattern-paper">
+                            <header>
+                                <h2 id="wenmo-classics-title" tabIndex="-1" data-classics-focus>
+                                    古籍原文 <small>beta</small>
+                                </h2>
+                                <p>选一个宫，看古籍里怎么说宫中的星曜；原文逐字照录公版古籍，白话另译并标注审核状态</p>
+                            </header>
+                            <ZiweiClassicsPanel palaces={palaces} focusedIndex={focusedIndex} gender={basicInfo.gender} patterns={patternNames} limits={classicsLimits} />
+                        </div>
+
+                        <footer className="wenmo-pattern-actions wenmo-pattern-actions--single">
+                            <button type="button" onClick={closeClassics}>关闭</button>
+                        </footer>
+                    </section>
+                </div>
+            )}
+
+            {showGlossary && (
+                <div
+                    className="wenmo-pattern-modal chart-modal"
+                    data-testid="ziwei-glossary-modal"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) closeGlossary();
+                    }}
+                >
+                    <section
+                        ref={glossaryDialogRef}
+                        className="wenmo-pattern-sheet"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="wenmo-glossary-title"
+                    >
+                        <div className="wenmo-pattern-paper">
+                            <header>
+                                <h2 id="wenmo-glossary-title" tabIndex="-1" data-glossary-focus>
+                                    术语词典 <small>beta</small>
+                                </h2>
+                                <p>看不懂的名词在这里查：先列当前宫里出现的星曜与四化，也能搜任何术语</p>
+                            </header>
+                            <GlossaryPanel module="ziwei" seedTerms={glossarySeeds} subject={focusedPalace ? `${focusedPalace.name === '仆役' ? '交友' : focusedPalace.name}宫` : '这张盘'} testId="ziwei-glossary" className="mt-3 space-y-3" />
+                        </div>
+
+                        <footer className="wenmo-pattern-actions wenmo-pattern-actions--single">
+                            <button type="button" onClick={closeGlossary}>关闭</button>
                         </footer>
                     </section>
                 </div>

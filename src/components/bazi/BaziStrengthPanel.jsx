@@ -27,9 +27,30 @@ const Check = ({ ok, label, detail, mark = null }) => (
     </li>
 );
 
-export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster }) {
+// 旺衰打分的刻度：0–5 分，2 分及以下偏弱、2.5 分及以上偏强。
+const SCALE_MAX = 5;
+const scalePercent = (value) => `${(Math.min(Math.max(value, 0), SCALE_MAX) / SCALE_MAX) * 100}%`;
+const points = (value) => `${Math.round(value * 100) / 100} 分`;
+const branchLabel = (name = '') => name.replace('柱', '支');
+const stemLabel = (name = '') => name.replace('柱', '干');
+
+/** 得地的根按地支归在一起：日支午（比劫、印）0.75 分。 */
+const rootGroupsOf = (roots = []) => {
+    const groups = new Map();
+    roots.forEach((root) => {
+        const group = groups.get(root.key) ?? { key: root.key, label: `${branchLabel(root.name)}${root.zhi}${root.chong ? `（逢${root.chong}冲，打六折）` : ''}`, roles: [], points: 0 };
+        if (!group.roles.includes(root.role)) group.roles.push(root.role);
+        group.points += root.points;
+        groups.set(root.key, group);
+    });
+    return [...groups.values()];
+};
+
+export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster, special = null }) {
     const supportPercent = Math.round(strength.ratio * 100);
     const roleOf = (element) => strength.roles[element];
+    const { score } = strength;
+    const rootGroups = rootGroupsOf(score.roots);
 
     return (
         <div className="mt-4 space-y-4">
@@ -50,7 +71,7 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster }
                     ))}
                 </div>
                 <p className="mt-2 text-[11px] leading-5 text-[#81776b]">
-                    表层 8 字计数：{WUXING_ORDER.map((element) => `${element}${surfaceCounts[element] ?? 0}`).join(' ')}
+                    表层 8 字计数：{WUXING_ORDER.map((element) => `${element}${surfaceCounts[element] ?? 0}`).join(' ')}；帮身的比劫与印合占 {supportPercent}%
                 </p>
             </div>
 
@@ -61,27 +82,29 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster }
                     </p>
                     <span className={`rounded-full px-3 py-1 text-sm font-bold ${BAND_STYLES[strength.band]}`}>{strength.band}</span>
                 </div>
-                <div className="mt-3">
-                    <div className="flex justify-between text-[11px] text-[#81776b]">
-                        <span>同党（比劫 + 印）{supportPercent}%</span>
-                        <span>异党（食伤 + 财 + 官杀）{100 - supportPercent}%</span>
+                <div className="mt-3" data-testid="bazi-strength-score">
+                    <div className="flex items-baseline justify-between gap-2 text-[11px] text-[#81776b]">
+                        <span>旺衰打分（得令 + 得地 + 得势）</span>
+                        <b className="text-sm tabular-nums text-[#3b342e]">{points(score.total)}</b>
                     </div>
-                    <div className="relative mt-1 h-2.5 overflow-hidden rounded-full bg-[#d9cfbf]">
-                        <span className="absolute inset-y-0 left-0 bg-[#a33b30]/70" style={{ width: `${supportPercent}%` }} aria-hidden="true" />
-                        <span className="absolute inset-y-0 w-px bg-[#3b342e]/40" style={{ left: '45%' }} aria-hidden="true" />
-                        <span className="absolute inset-y-0 w-px bg-[#3b342e]/40" style={{ left: '60%' }} aria-hidden="true" />
+                    <div className="relative mt-1 h-2.5 overflow-hidden rounded-full bg-[#d9cfbf]" role="img" aria-label={`旺衰打分 ${points(score.total)}，满刻度 ${SCALE_MAX} 分`}>
+                        <span className="absolute inset-y-0 left-0 bg-[#a33b30]/70" style={{ width: scalePercent(score.total) }} aria-hidden="true" />
+                        <span className="absolute inset-y-0 w-px bg-[#3b342e]/40" style={{ left: scalePercent(2) }} aria-hidden="true" />
+                        <span className="absolute inset-y-0 w-px bg-[#3b342e]/40" style={{ left: scalePercent(2.5) }} aria-hidden="true" />
                     </div>
-                    <p className="mt-1 text-[11px] text-[#9b9185]">刻度：45% 以下偏弱，45%–60% 中和，60% 以上偏强</p>
+                    <p className="mt-1 text-[11px] leading-5 text-[#9b9185]">刻度：2 分及以下偏弱，2.5 分及以上偏强，其间中和；0.5 分及以下极弱，4 分及以上极强</p>
                 </div>
                 <ul className="mt-3 space-y-1.5">
-                    <Check ok={strength.deLing} label="得令" detail={strength.monthMain ? `月令本气 ${strength.monthMain.gan}（${strength.monthMain.role}）${strength.deLing ? '帮扶日主' : '不帮日主'}` : '—'} />
-                    <Check ok={strength.deDi.length > 0} label="得地" detail={strength.deDi.length ? strength.deDi.map((item) => `${item.name}${item.zhi}${item.tongGen ? '（通根）' : '（有印）'}`).join('、') : '地支中没有比劫或印的根气'} />
-                    <Check ok={strength.deShi.length > 0} label="得势" detail={strength.deShi.length ? strength.deShi.map((item) => `${item.name}${item.gan}（${item.role}）`).join('、') : '天干没有比劫或印相帮'} />
-                    {strength.tiaoHou && <Check mark={strength.tiaoHou.element} label="调候" detail={`${strength.tiaoHou.season}，宜见${strength.tiaoHou.element}`} />}
+                    <Check ok={score.ling + (score.xiuQiu?.points ?? 0) > 0} label="得令" detail={strength.monthMain ? `月令本气 ${strength.monthMain.gan}（${strength.monthMain.role}）${score.lingYuqi ? `不帮日主，但${score.lingYuqi.zhi}中藏${score.lingYuqi.gan}（比劫余气），${points(score.ling)}` : score.ling > 0 ? `帮扶日主，${points(score.ling)}` : '不帮日主，0 分'}${score.xiuQiu ? `；月令是${score.xiuQiu.role}，日主${score.xiuQiu.state}（旺相休囚死），${points(score.xiuQiu.points)}` : ''}` : '—'} />
+                    <Check ok={score.di > 0} label="得地" detail={rootGroups.length ? `${rootGroups.map((group) => `${group.label}（${group.roles.join('、')}）`).join('、')}，共 ${points(score.di)}` : '年、日、时支没有比劫或印的根气（月支算在得令里）'} />
+                    <Check ok={score.shi > 0} label="得势" detail={score.stems.length ? `${score.stems.map((item) => `${stemLabel(item.name)}${item.gan}（${item.role}）`).join('、')}，共 ${points(score.shi)}` : '年、月、时干没有比劫或印相帮'} />
+                    {score.hourEstimate > 0 && <Check mark="≈" label="时辰不详" detail={`时柱按平均 ${points(score.hourEstimate)}估`} />}
+                    {strength.tiaoHou && <Check mark={strength.tiaoHou.element} label="调候" detail={`${strength.tiaoHou.text}${strength.tiaoHou.season ? `；${strength.tiaoHou.season}` : ''}。${strength.tiaoHou.presenceText ? `${strength.tiaoHou.presenceText}。` : ''}出处${strength.tiaoHou.source}`} />}
                 </ul>
                 {strength.hint && <p className="mt-2 rounded-lg bg-[#b06a1f]/[0.08] px-2.5 py-1.5 text-xs text-[#7f4b12]">{strength.hint}</p>}
             </div>
 
+            {strength.basis && <p className="text-xs leading-5 text-[#514941]" data-testid="bazi-strength-basis"><b>取用思路</b>：{strength.basis}{strength.tiaoHouNote ? `；${strength.tiaoHouNote}` : ''}。</p>}
             <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                     <p className="text-xs font-bold text-[#245a52]">喜用参考</p>
@@ -100,8 +123,13 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster }
                     </div>
                 </div>
             </div>
+            {special?.godsText && (
+                <p className="rounded-lg border border-[#b06a1f]/35 bg-[#b06a1f]/[0.07] px-3 py-2 text-xs leading-5 text-[#7f4b12]" data-testid="bazi-strength-special">
+                    格局一节{special.name}：若成格，{special.godsText}，与上面按扶抑取的喜忌不同，以人工确认为准。
+                </p>
+            )}
             <p className="rounded-lg bg-[#e9dfcd]/55 px-3 py-2 text-[11px] leading-5 text-[#6f665d] sm:text-xs">
-                以上为程序按五行力量估算的参考：天干每字 1 分（日干不计），藏干按本气 1、中气 0.5、余气 0.3 计，月令加倍。从格、化格、专旺等特殊格局需要人工判断。
+                以上为程序估算的参考：五行力量按天干每字 1 分（日干不计）、藏干本气 1 / 中气 0.5 / 余气 0.3、月令加倍计；旺衰按得令、得地、得势三项打分（月令是财、官杀的减分，根被紧贴的一支冲克的打折），权重按《滴天髓阐微》任铁樵命造校准；先按扶抑取定用神（有力的排前，中和按略偏的一边取），再论喜忌：用神与生用神者为喜，克用神者、用神所克者为忌；调候附在后面。从格、化格、专旺等特殊格局需要人工判断。
             </p>
         </div>
     );

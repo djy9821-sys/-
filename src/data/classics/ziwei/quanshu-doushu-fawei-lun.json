@@ -1,0 +1,444 @@
+{
+  "classic": "ziwei",
+  "volume": "卷一",
+  "section": "斗数发微论",
+  "edition": "公版古籍《紫微斗数全书》（明万历潘希尹辑刻本、四库提要存目本，参校维基文库、ctext.org 公版文本）",
+  "contributor": "antigravity",
+  "entries": [
+    {
+      "id": "ziwei.quanshu.fawei.001",
+      "title": "斗数发微论·其一",
+      "original": "白玉蟾先生曰：观天斗数与五星不同，按此星辰与诸术大异。四正吉星定为贵，三方杀拱少为奇。",
+      "vernacular": "白玉蟾先生说：观天斗数与五星不同，所用星辰和其他术数也大不相同。四正有吉星，必定显贵；三方有杀星拱照，少有奇贵。",
+      "notes": "五星：指古代七政四余（十一星推命术）。四正：命宫、迁移宫、官禄宫、财帛宫。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫"
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "五星",
+        "四正"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.002",
+      "title": "斗数发微论·其二",
+      "original": "对照兮详凶详吉，合照兮观贱观荣。吉星入垣则为吉，凶星失地则为凶。",
+      "vernacular": "对照时要细看凶吉，合照时要看低贱或荣显。吉星入垣就是吉，凶星失地就是凶。",
+      "notes": "对照：指本宫与对宫相对相冲。合照：指三方三合宫位拱照。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "对照片照审吉凶"
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "对照",
+        "合照"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.003",
+      "title": "斗数发微论·其三",
+      "original": "命逢紫微非特寿而且荣，身遇杀星不但贫而且贱。",
+      "vernacular": "命宫逢紫微星不仅寿长而且显荣，身宫遇到七杀凶煞之星不但贫穷而且卑贱。",
+      "notes": "杀星：指七杀或诸煞曜。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "star": "紫微",
+          "palace": "命宫"
+        },
+        {
+          "module": "ziwei",
+          "star": "七杀",
+          "palace": "身宫"
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "紫微",
+        "杀星"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.004",
+      "title": "斗数发微论·其四",
+      "original": "左右会于紫府极品之尊，科权陷于凶乡功名蹭蹬。",
+      "vernacular": "左辅、右弼会合紫微、天府，能贵至最高品级；科权落在凶地，求取功名便不顺。",
+      "notes": "蹭蹬：指失意困顿、仕途受挫。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "stars": [
+            "左辅",
+            "右弼",
+            "紫微",
+            "天府"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "mutagen": "科"
+        },
+        {
+          "module": "ziwei",
+          "mutagen": "权"
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "左右紫府",
+        "科权"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.005",
+      "title": "斗数发微论·其五",
+      "original": "行限逢乎弱地未必为灾，立命会在强宫必能降福。",
+      "vernacular": "运限行到弱地，未必就有灾祸；命宫会合在强宫，必定能得到福气。",
+      "notes": "强宫弱地：强宫指庙旺吉宫，弱地指死绝陷空之地。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫"
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "行限",
+        "强宫"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.006",
+      "title": "斗数发微论·其六",
+      "original": "羊陀七杀限运莫逢，逢之定有刑伤。（劫空伤使在内合断）天哭丧门流年莫遇，遇之实防破害。",
+      "vernacular": "限运不要遇到擎羊、陀罗、七杀，遇到必有刑伤。（劫空伤使也一并论断。）流年不要遇到天哭、丧门，遇到须防破害。",
+      "notes": "伤使：指天伤星与天使星。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "stars": [
+            "擎羊",
+            "陀罗",
+            "七杀"
+          ],
+          "limit": "大限"
+        },
+        {
+          "module": "ziwei",
+          "star": "天哭",
+          "limit": "流年"
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "羊陀七杀",
+        "天哭丧门"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.007",
+      "title": "斗数发微论·其七",
+      "original": "南斗主限必生男，北斗加临先得女。",
+      "vernacular": "南斗星君主管运限多先生男，北斗星曜加临运限多先生女。",
+      "notes": "南斗主阳多主男，北斗主阴多主女。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "南北斗行限与生子息"
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "南斗",
+        "北斗"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.008",
+      "title": "斗数发微论·其八",
+      "original": "科星居于陷地，灯火辛勤。昌曲在于凶乡，林泉冷淡。",
+      "vernacular": "科星落在陷地，读书要在灯下辛勤苦读；文昌、文曲处于凶地，隐居生活冷清。",
+      "notes": "灯火辛勤：喻十年寒窗苦读却难得登第显荣。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "mutagen": "科"
+        },
+        {
+          "module": "ziwei",
+          "stars": [
+            "文昌",
+            "文曲"
+          ]
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "化科",
+        "昌曲"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.009",
+      "title": "斗数发微论·其九",
+      "original": "奸谋频设，紫微愧遇破军。淫奔大行，红鸾差逢贪宿。",
+      "vernacular": "紫微不幸遇到破军，便屡次设下奸谋；红鸾错遇贪狼，私奔淫乱之事便盛行。",
+      "notes": "红鸾差逢贪宿：红鸾为桃花星，贪狼为桃花主，相逢多主男女风流情动。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "stars": [
+            "紫微",
+            "破军"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "stars": [
+            "红鸾",
+            "贪狼"
+          ]
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "紫破",
+        "红鸾贪狼"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.010",
+      "title": "斗数发微论·其十",
+      "original": "命身相克，则心乱而不闲。玄媪三宫，则邪淫而耽酒。（即天姚星）",
+      "vernacular": "命宫、身宫相克，便心神纷乱，不能安闲；玄媪在三宫，便邪淫好酒。（就是天姚星。）",
+      "notes": "三宫：指顺数或逆数之夫妻宫。玄媪：即天姚星别名。",
+      "doubts": [
+        "「玄媪三宫」三宫古代或指夫妻宫（命一兄弟二夫妻三），或指福德宫，依注直译。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "star": "天姚",
+          "palace": "夫妻"
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "命身相克",
+        "天姚"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.011",
+      "title": "斗数发微论·其十一",
+      "original": "杀临三位，定然妻子不和。巨到二宫，必是兄弟无义。",
+      "vernacular": "杀星来到三位，必定与妻子不和；巨门来到二宫，兄弟之间必定没有情义。",
+      "notes": "三位：指夫妻宫。二宫：指兄弟宫。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "star": "七杀",
+          "palace": "夫妻"
+        },
+        {
+          "module": "ziwei",
+          "star": "巨门",
+          "palace": "兄弟"
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "夫妻宫",
+        "兄弟宫"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.012",
+      "title": "斗数发微论·其十二",
+      "original": "刑杀守子宫，子难奉老。诸凶照财帛，聚散无常。",
+      "vernacular": "刑杀坐守子女宫，子女难以奉养老人；各凶星照会财帛宫，钱财聚散不定。",
+      "notes": "子宫：指子女宫。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "子女",
+          "stars": [
+            "天刑",
+            "七杀"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "财帛"
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "子女宫",
+        "财帛宫"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.013",
+      "title": "斗数发微论·其十三",
+      "original": "羊陀守疾厄，眼目昏盲。火铃到迁移，长途寂寞。",
+      "vernacular": "擎羊、陀罗坐守疾厄宫，眼睛会昏暗失明；火星、铃星来到迁移宫，长途会孤寂。",
+      "notes": "长途寂寞：喻出外奔波艰辛、孤立无援。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "疾厄",
+          "stars": [
+            "擎羊",
+            "陀罗"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "迁移",
+          "stars": [
+            "火星",
+            "铃星"
+          ]
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "疾厄宫",
+        "迁移宫"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.014",
+      "title": "斗数发微论·其十四",
+      "original": "尊星列贱位，主人多劳。恶星应八宫，奴仆无助。",
+      "vernacular": "尊星落在低贱的位置，主有许多劳苦；恶星应在八宫，奴仆不能提供帮助。",
+      "notes": "贱位：指奴仆、疾厄等位。八宫：依命宫逆数第八位为奴仆宫（交友宫）。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "仆役"
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "尊星贱位",
+        "奴仆宫"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.015",
+      "title": "斗数发微论·其十五",
+      "original": "官禄遇紫府，富而且贵。田宅遇破军，先破后成。",
+      "vernacular": "官禄宫遇到紫微、天府，便富裕显贵；田宅宫遇到破军，先破败，后有所成就。",
+      "notes": "先破后成：破军司耗，居田宅往往先荡尽祖业而后自行置办。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "官禄",
+          "stars": [
+            "紫微",
+            "天府"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "田宅",
+          "star": "破军"
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "官禄宫",
+        "田宅宫"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.016",
+      "title": "斗数发微论·其十六",
+      "original": "福德遇空劫，奔走无力。相貌加刑杀，刑克难免。",
+      "vernacular": "福德宫遇到空劫，便奔波而没有力量；相貌宫又有刑杀，便难免受到刑克。",
+      "notes": "相貌：即相貌宫（父母宫）。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "福德",
+          "stars": [
+            "地空",
+            "地劫"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "父母",
+          "stars": [
+            "天刑",
+            "七杀"
+          ]
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "福德宫",
+        "相貌宫"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.fawei.017",
+      "title": "斗数发微论·其十七",
+      "original": "后学者执此推详，万无一失。",
+      "vernacular": "后来的学习者按这些话仔细推算，就不会有任何差错。",
+      "notes": "后学：指后世研习者。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "发微论结语"
+        }
+      ],
+      "tags": [
+        "斗数发微论",
+        "结语"
+      ],
+      "status": "translated"
+    }
+  ]
+}

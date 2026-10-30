@@ -1,5 +1,5 @@
 /**
- * 带生辰参数的八字链接：#/bazi?cal=s&d=1990-1-1&h=6&g=m…
+ * 带生辰参数的八字链接：#/bazi?cal=s&d=1990-1-1&h=6&g=m…（sect=1 晚子换日，yb=c 年柱按正月初一换年）
  * 打开即出盘，方便把命盘发给朋友或师傅，也方便自己换设备。
  * 链接里只有生辰与称呼，不含档案里的分组、备注。
  */
@@ -37,6 +37,7 @@ export const encodeBaziLink = (form, { name = '' } = {}) => {
     params.set('h', String(form.hourIndex ?? 6));
   }
   if (form.daySect === 1) params.set('sect', '1');
+  if (form.yearBoundary === 'chunjie') params.set('yb', 'c');
   const personName = (name || form.personName || '').trim().slice(0, NAME_LIMIT);
   if (personName) params.set('n', personName);
   return params.toString();
@@ -79,6 +80,7 @@ export const decodeBaziLink = (query) => {
     fromLink: true,
     data: {
       daySect: params.get('sect') === '1' ? 1 : 2,
+      yearBoundary: params.get('yb') === 'c' ? 'chunjie' : 'lichun',
       timeMode,
       clockTime: timeMode === 'exact' ? clock : '',
       placeProvince: timeMode === 'exact' ? (params.get('prov') ?? '') : '',
