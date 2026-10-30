@@ -140,7 +140,7 @@ export const favorBasisOf = (strength, special = null) => {
   if (!strength) return strength;
   if (!special?.favorable?.length) return { ...strength, source: 'fuyi' };
   const asRoles = (items = []) => items.map((item) => ({ element: item.element, role: item.label ?? item.role }));
-  return { ...strength, favorable: asRoles(special.favorable), unfavorable: asRoles(special.unfavorable), source: 'special', specialName: special.name };
+  return { ...strength, favorable: asRoles(special.favorable), unfavorable: asRoles(special.unfavorable), source: 'special', specialName: special.name, specialKind: special.kind ?? null };
 };
 
 /** 某个五行对日主是喜用（good）、忌神（bad）还是平（neutral）。 */
