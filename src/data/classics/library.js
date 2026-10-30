@@ -662,6 +662,51 @@ export const pickLimitHits = (hits, n, limit = null) => {
 /** 命宫与身宫（同宫时只算一次）星曜命中的条目：ziweiPalaceHits 的常用情形。 */
 export const ziweiLifePalaceHits = (library, palaces, options = {}) => ziweiPalaceHits(library, palaces, ['命宫', '身宫'], options);
 
+/** 命宫与身宫的主星名（身宫同在命宫时就是命宫的）；空宫按借来的对宫主星。给 pickLifeHits 用。 */
+export const ziweiLifeStarsOf = (palaces) => {
+  const list = Array.isArray(palaces) ? palaces : [];
+  const life = unique([list.find((palace) => palace?.name === '命宫'), list.find((palace) => palace?.isBodyPalace)]);
+  return unique(life.flatMap((palace) => {
+    const own = (palace.majorStars ?? []).map((star) => star?.name).filter(Boolean);
+    return own.length ? own : ziweiBorrowedStarsOf(palace, ziweiOppositeOf(list, palace));
+  }));
+};
+
+/** 只凭整张盘的条件（格局、宫名、性别、生年干支）命中、没点到星曜的条目：定局篇「日月夹财：武守命……」一类。 */
+const CHART_LEVEL_KEYS = new Set(['pattern', 'palace', 'gender', 'limit', 'yearGan', 'yearZhi']);
+const isPatternOnly = (hit) => (hit?.matched ?? []).some(({ key }) => key === 'pattern') && hit.matched.every(({ key }) => CHART_LEVEL_KEYS.has(key));
+/** 一条命中里按本宫星曜命中的星名（去掉「（借对宫）」「（流年）」一类注记）。 */
+const matchedStarNames = (hit) => (hit?.matched ?? []).filter(({ key }) => key === 'star').flatMap(({ value }) => String(value).split('、').map((name) => name.replace(/（[^）]*）/g, '')));
+
+/**
+ * 性情、姻缘等话术从命宫身宫的命中里取前 n 条：格局条目分量重（见 ZIWEI_KEY_WEIGHT），一张盘认出两三个格就能把几条都占满，
+ * AI 反而看不到命宫主星的原文。所以命宫每颗主星先各留一条按它命中的（取最相关的那条），格局条目最多占 maxPatterns 条，其余按相关度补满；
+ * 返回仍按原来的相关度次序。
+ * @param {object[]} hits ziweiLifePalaceHits 的结果（已排序）
+ * @param {number} n
+ * @param {{ stars?: string[], maxPatterns?: number }} [options] stars：命宫（身宫）的主星名，空宫借对宫的给借来的星；maxPatterns 默认一半
+ */
+export const pickLifeHits = (hits, n, { stars = [], maxPatterns = Math.ceil(n / 2) } = {}) => {
+  const list = Array.isArray(hits) ? hits : [];
+  const chosen = new Set();
+  toArray(stars).forEach((star) => {
+    if (chosen.size >= n) return;
+    const hit = list.find((item) => !chosen.has(item) && matchedStarNames(item).includes(star));
+    if (hit) chosen.add(hit);
+  });
+  let patterns = [...chosen].filter(isPatternOnly).length;
+  for (const hit of list) {
+    if (chosen.size >= n) break;
+    if (chosen.has(hit)) continue;
+    if (isPatternOnly(hit)) {
+      if (patterns >= maxPatterns) continue;
+      patterns += 1;
+    }
+    chosen.add(hit);
+  }
+  return list.filter((hit) => chosen.has(hit));
+};
+
 /* ---------- 术语词典 ---------- */
 
 /** 八字盘里出现的术语（给词典面板先列出来）：十神、格局、神煞、旺衰，再加几个基础词。 */
