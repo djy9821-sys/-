@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-import { MONTH_ZHI, TIAOHOU_TABLE, seasonNoteOf, tiaoHouOf, tiaoHouSectionOf } from '../src/data/tiaohou.js';
+import { MONTH_ZHI, TIAOHOU_TABLE, describeTiaoHouPresence, seasonNoteOf, tiaoHouOf, tiaoHouPresenceOf, tiaoHouSectionOf } from '../src/data/tiaohou.js';
 import { CLASSICS } from '../src/data/classics.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
@@ -115,6 +115,25 @@ test('tiaoHouOf 给出主次用神、五行、季节与出处', () => {
   assert.equal(seasonNoteOf('卯'), null);
   assert.equal(tiaoHouOf('甲', '天'), null);
   assert.equal(tiaoHouOf('X', '寅'), null);
+});
+
+test('调候诸神在原局的透、藏、无：透只看年月时干，藏看四支藏干；时辰不详的时柱跳过', () => {
+  // 庚午 甲申 丁巳（时辰不详）：丁火生申月，调候用甲，次取庚丙戊。
+  const chart = buildBaziChart({ calendarType: 'solar', year: 1990, month: 8, day: 20, gender: 'male', timeMode: 'unknown' });
+  assert.equal(chart.pillars.map((pillar) => pillar.ganZhi).join(' ').trim(), '庚午 甲申 丁巳');
+  const presence = tiaoHouPresenceOf(chart.pillars, ['甲', '庚', '丙', '戊', '癸']);
+  assert.deepEqual(presence, [
+    { gan: '甲', tou: ['月干'], cang: [] },
+    { gan: '庚', tou: ['年干'], cang: ['申', '巳'] },
+    { gan: '丙', tou: [], cang: ['巳'] },
+    { gan: '戊', tou: [], cang: ['申', '巳'] },
+    { gan: '癸', tou: [], cang: [] },
+  ]);
+  assert.equal(describeTiaoHouPresence(presence), '原局：甲透月干；庚透年干、藏于申、巳；丙藏于巳；戊藏于申、巳；癸无');
+  // 日干是日主自己，不算「透」。
+  assert.deepEqual(tiaoHouPresenceOf(chart.pillars, ['丁'])[0].tou, []);
+  const strength = analyzeStrength(chart);
+  assert.equal(strength.tiaoHou.presenceText, '原局：甲透月干；庚透年干、藏于申、巳；丙藏于巳；戊藏于申、巳');
 });
 
 test('旺衰喜用：调候主用神的五行附在喜用末尾（扶抑已取的不重复）；与用神相生的同列喜用，克用神或为用神所克的让位于用神；次用神只作说明', () => {
