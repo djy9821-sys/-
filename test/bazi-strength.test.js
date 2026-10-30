@@ -247,6 +247,7 @@ test('调候让位于扶抑：身弱而官杀重的冬金，火只是暖局；�
   // 丁火两透、巳巳为根（官杀 4 分），杀重身轻，不作调候为急；印无力而壬水又重（克泄交加），先取比劫金帮身。
   const xiong = analyzeStrength(chartByPillars('丁巳 壬子 辛巳 丁酉'));
   assert.doesNotMatch(xiong.tiaoHouNote, /调候为急/);
+  assert.match(xiong.tiaoHouNote, /^冬月寒冷本宜火，但身弱而火是官杀、已重，火只取其暖局之意.*不作用神，列为忌神$/);
   assert.equal(xiong.favorable[0].element, '金');
   assert.match(xiong.basis, /克泄交加，取比劫帮身/);
   // 「庚戌 壬午 丙子 壬辰：月时两透壬水，日主三面受敌……全赖午火旺刃当权为用，更喜戌之燥土」：夏月调候之水正是重杀，不急；比劫火第一、食伤土次之。
@@ -256,6 +257,7 @@ test('调候让位于扶抑：身弱而官杀重的冬金，火只是暖局；�
   // 「庚申 壬午 辛酉 癸巳：谓午火真神得用……更嫌壬癸覆之」：辛金比劫多，午火官杀当令，扶抑正取官杀制劫，壬癸不按夏月调候提前。
   const zhen = analyzeStrength(chartByPillars('庚申 壬午 辛酉 癸巳'));
   assert.doesNotMatch(zhen.tiaoHouNote, /调候为急/);
+  assert.match(zhen.tiaoHouNote, /^夏月炎燥本宜水，但比劫多而官杀当令，扶抑正取官杀制劫（任注「真神得用」），水泄身不急，列为忌神$/);
   assert.equal(zhen.favorable[0].element, '火');
   assert.ok(!elements(zhen.favorable).includes('水'), '壬癸不列喜用');
   // 官杀只一位、不重的冬金（甲申 丙子 庚辰 戊寅）照旧调候为急，见上一条。
