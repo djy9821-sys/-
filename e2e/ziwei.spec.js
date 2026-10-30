@@ -85,6 +85,13 @@ test('常用功能里的古籍原文：默认看命宫，列出宫中星曜与�
   await expect(stars).toContainText('天府得');
   await expect(modal.getByTestId('ziwei-classics-panel-summary')).toContainText('库内共');
 
+  // 空宫借对宫：田宅（寅）无主星，借对宫子女（申）的太阳、巨门一起找，命中说明注「借对宫」。
+  await palacePicker.getByRole('button', { name: /^田宅/ }).click();
+  await expect(stars).toContainText('田宅·寅宫');
+  await expect(modal.getByTestId('ziwei-classics-borrowed')).toContainText('借对宫子女');
+  await expect(modal.getByTestId('ziwei-classics-borrowed')).toContainText('太阳');
+  await expect(entries.filter({ hasText: '借对宫' }).first()).toBeVisible();
+
   await modal.getByRole('button', { name: '关闭' }).click();
   await expect(modal).toBeHidden();
 
@@ -99,12 +106,16 @@ test('常用功能里的古籍原文：默认看命宫，列出宫中星曜与�
   await glossaryModal.getByRole('button', { name: '关闭' }).click();
   await expect(glossaryModal).toBeHidden();
 
-  // AI 话术末尾附上命宫、身宫星曜的古籍原文（库已加载过，直接复制）。
+  // AI 话术（性情与婚恋）按《紫微斗数全书》写，末尾附上命宫身宫与夫妻宫、福德宫星曜的古籍原文（库已加载过，直接复制）。
   await page.getByRole('button', { name: '常用功能' }).click();
   await page.getByTestId('ziwei-common-menu').getByRole('button', { name: 'AI 分析' }).click();
-  await page.getByRole('button', { name: /一键鉴渣话术/ }).click();
+  await page.getByRole('button', { name: /性情与婚恋/ }).click();
   const prompt = await lastCopiedText(page);
+  expect(prompt).toContain('紫微斗数性情与婚恋分析');
+  expect(prompt).not.toMatch(/鉴渣|渣男|毒舌/);
   expect(prompt).toContain('【古籍原文（命宫、身宫星曜）】');
+  expect(prompt).toContain('【古籍原文（夫妻宫星曜）】');
+  expect(prompt).toMatch(/《紫微斗数全书》·卷二·论妻妾/);
   // 条目随支线录入增加：只断言附上了按紫微命中的条目（可能同时按宫位命中）。
   expect(prompt).toMatch(/- 《紫微斗数全书》[^\n]*（匹配：[^\n]*星曜·紫微[^\n]*）：/);
 });
