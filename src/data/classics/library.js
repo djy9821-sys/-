@@ -584,7 +584,7 @@ export const ziweiPalaceHits = (library, palaces, palaceNames, { gender = null, 
  * 紫微提示词用：此刻所行大限或流年的命宫（落在本命盘的某一宫）星曜命中的条目，连同古籍里专讲这一层运限的条目
  * （applies.limit 为「大限」「流年」，如《全书》卷三论大限十年祸福、论流年太岁吉凶星杀）。
  * @param {number} index 那一宫在十二宫数组里的下标（运限上下文 fortune.decadal.index / fortune.yearly.index）
- * @param {'大限'|'流年'} limit
+ * @param {'大限'|'小限'|'流年'} limit 小限（排盘库的 age）没有流曜，只带该层四化
  */
 export const ziweiLimitPalaceHits = (library, palaces, index, limit, { gender = null, natal = null, scope = null } = {}) => {
   const palace = Array.isArray(palaces) ? (palaces.find((item) => item?.index === index) ?? palaces[index] ?? null) : null;
@@ -596,15 +596,15 @@ export const ziweiLimitPalaceHits = (library, palaces, index, limit, { gender = 
 };
 
 const matchedLimit = (hit) => (hit?.matched ?? []).some(({ key }) => key === 'limit');
-/** 专讲运限的篇章（《全书》卷三论大限十年祸福、论二限太岁吉凶、论流年太岁吉凶星杀）：补那一条专讲运限的时先从这些篇里挑。 */
-const LIMIT_SECTIONS = Object.freeze({ 大限: /大限|二限|行限/, 流年: /流年|太岁|二限/ });
+/** 专讲运限的篇章（《全书》卷三论大限十年祸福、论二限太岁吉凶、论流年太岁吉凶星杀）：补那一条专讲运限的时先从这些篇里挑；小限层算二限、岁限的篇。 */
+const LIMIT_SECTIONS = Object.freeze({ 大限: /大限|二限|行限/, 小限: /小限|二限|岁限/, 流年: /流年|太岁|二限/ });
 
 /**
  * 运势提示词从运限层的命中里取前 n 条：按相关度取，但至少留一条专讲这层运限的（命中条件里有「运限」），
  * 免得全被所落宫的本命星曜条目占满；补的那条先挑论大限、论流年篇章里的，再挑别处（定杂局之类）的；没有专讲的就照常取。
  * @param {object[]} hits ziweiLimitPalaceHits 的结果（已排序）
  * @param {number} n
- * @param {'大限'|'流年'|null} [limit] 看的是哪一层，用来认专讲这一层的篇章
+ * @param {'大限'|'小限'|'流年'|null} [limit] 看的是哪一层，用来认专讲这一层的篇章
  */
 export const pickLimitHits = (hits, n, limit = null) => {
   const list = Array.isArray(hits) ? hits : [];
