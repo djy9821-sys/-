@@ -1,11 +1,11 @@
 
 import React, { useMemo } from 'react';
 import {
-    AI_PROMPT_TEMPLATE,
-    FEMALE_PROMPT_TEMPLATE,
+    CHARACTER_PROMPT_TAIL,
+    CHARACTER_PROMPT_TEMPLATE,
     WEALTH_PROMPT_TEMPLATE,
     MARRIAGE_PROMPT_TEMPLATE,
-    generateScumbagPrompt,
+    generateChartDataPrompt,
     generateFortunePromptText,
     generateBabyPrompt
 } from '../utils/aiPrompts';
@@ -40,7 +40,7 @@ import {
 import { buildBaziChart } from '../utils/baziChart';
 import ZiweiClassicsPanel from './ziwei/ZiweiClassicsPanel.jsx';
 import { useClassicsLibrary } from './common/useClassicsLibrary.js';
-import { ziweiGlossarySeeds, ziweiLifePalaceHits } from '../data/classics/index.js';
+import { pickLimitHits, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiPalaceHits } from '../data/classics/index.js';
 import GlossaryPanel from './common/GlossaryPanel.jsx';
 import { classicsPromptSection } from '../utils/classicsPrompt.js';
 import { Sparkles, Coffee, Save, Archive, Calendar, Printer } from "lucide-react";
@@ -482,6 +482,33 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         return classicsPromptSection(hits, { title: '【古籍原文（命宫、身宫星曜）】', subject: '命宫身宫星曜', limit: 4 });
     }, [classicsData, palaces, basicInfo.gender, patternNames]);
     const withClassics = (text) => (text && classicsPromptText ? `${text}\n\n${classicsPromptText}` : text);
+    // 性情婚恋、姻缘、财运三种话术各附相关几个宫的原文（命宫身宫之外再附夫妻、福德、财帛、官禄），让 AI 照原书说。
+    const PROMPT_CLASSICS_PALACES = {
+        character: [['夫妻'], ['福德']],
+        marriage: [['夫妻']],
+        wealth: [['财帛'], ['官禄']],
+    };
+    const withClassicsFor = (text, type) => {
+        if (!text || !classicsData?.library || palaces.length === 0) return text;
+        const extra = (PROMPT_CLASSICS_PALACES[type] ?? []).map((names) => {
+            const hits = ziweiPalaceHits(classicsData.library, palaces, names, { gender: basicInfo.gender });
+            return classicsPromptSection(hits, { title: `【古籍原文（${names.join('、')}宫星曜）】`, subject: `${names.join('、')}宫星曜`, limit: 3 });
+        }).filter(Boolean);
+        return [withClassics(text), ...extra].join('\n\n');
+    };
+    // 运势话术另附此刻大限、流年命宫（落在本命盘哪一宫）的原文，连同古籍里专讲大限、流年的条目。
+    const withClassicsForFortune = (text, fortuneContext) => {
+        if (!text || !classicsData?.library || palaces.length === 0 || !fortuneContext?.fortune) return withClassics(text);
+        const extra = [['decadal', '大限', '当前大限'], ['yearly', '流年', '今年流年']].map(([key, limit, label]) => {
+            const scope = fortuneContext.fortune[key];
+            const natal = Number.isInteger(scope?.index) ? (palaces.find((palace) => palace?.index === scope.index) ?? palaces[scope.index] ?? null) : null;
+            if (!natal) return null;
+            const hits = ziweiLimitPalaceHits(classicsData.library, palaces, scope.index, limit, { gender: basicInfo.gender });
+            // 最多三条，其中至少一条是专讲这层运限的，其余按所落宫的星曜取。
+            return classicsPromptSection(pickLimitHits(hits, 3, limit), { title: `【古籍原文（${label}命宫：本命${natal.name}·${natal.earthlyBranch}宫，及论${limit}的条目）】`, subject: `${label}`, limit: 3, total: hits.length });
+        }).filter(Boolean);
+        return [withClassics(text), ...extra].join('\n\n');
+    };
     const selectedPattern = patternEntries.find((pattern) => pattern.id === selectedPatternId)
         || patternEntries[0]
         || null;
@@ -1812,16 +1839,15 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     const handleGeneratePrompt = async (type) => {
         try {
             let prompt = '';
-            const scumbagData = generateScumbagPrompt(horoscope);
+            const chartData = generateChartDataPrompt(horoscope, { gender: basicInfo.gender });
             const basicInfoData = `\n**--- 命主基本信息 (用于推算大限流年) ---**\n- **姓名**：${basicInfo.name || '未填写'}\n- **性别**：${basicInfo.gender === 'male' ? '男' : '女'}\n- **生辰**：${basicInfo.birthday}\n- **出生时辰**：${basicInfo.birthTime}\n`;
 
-            if (type === 'scumbag') {
-                const template = basicInfo.gender === 'female' ? FEMALE_PROMPT_TEMPLATE : AI_PROMPT_TEMPLATE;
-                prompt = withClassics(`${template}\n${basicInfoData}\n${scumbagData}`);
+            if (type === 'character') {
+                prompt = `${withClassicsFor(`${CHARACTER_PROMPT_TEMPLATE}\n${basicInfoData}\n${chartData}`, type)}\n\n${CHARACTER_PROMPT_TAIL}`;
             } else if (type === 'marriage') {
-                prompt = withClassics(`${MARRIAGE_PROMPT_TEMPLATE}\n${basicInfoData}\n${scumbagData}`);
+                prompt = withClassicsFor(`${MARRIAGE_PROMPT_TEMPLATE}\n${basicInfoData}\n${chartData}`, type);
             } else if (type === 'wealth') {
-                prompt = withClassics(`${WEALTH_PROMPT_TEMPLATE}\n${basicInfoData}\n${scumbagData}`);
+                prompt = withClassicsFor(`${WEALTH_PROMPT_TEMPLATE}\n${basicInfoData}\n${chartData}`, type);
             } else if (['yearly', 'monthly', 'daily', 'hourly'].includes(type)) {
                 const fortuneContext = buildCurrentFortuneContext({
                     horoscope,
@@ -1844,7 +1870,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     hourly: targetIndex >= 3,
                 });
 
-                prompt = withClassics(generateFortunePromptText(
+                prompt = withClassicsForFortune(generateFortunePromptText(
                     type,
                     fortuneContext.selection,
                     fortuneContext.activeStems,
@@ -1853,7 +1879,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     palaces,
                     getAllMutagenStarMaps(),
                     fortuneContext,
-                ));
+                ), fortuneContext);
 
                 if (!prompt) throw new Error(`无法生成${FORTUNE_LAYER_LABELS[type] || '运势'}话术`);
 
@@ -2883,8 +2909,8 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                         <div className="max-h-[62vh] space-y-2 overflow-y-auto overscroll-contain md:max-h-none">
                         {menuView === 'main' && (
                             <>
-                                <button onClick={() => handleGeneratePrompt('scumbag')} className="w-full text-left px-4 py-3 rounded hover:bg-white/10 flex items-center gap-3 text-sm font-bold text-gray-200 border border-transparent hover:border-purple-500/30 transition-all">
-                                    <span className="text-xl">🕵️</span> 一键鉴渣话术
+                                <button onClick={() => handleGeneratePrompt('character')} className="w-full text-left px-4 py-3 rounded hover:bg-white/10 flex items-center gap-3 text-sm font-bold text-gray-200 border border-transparent hover:border-purple-500/30 transition-all">
+                                    <span className="text-xl">📜</span> 性情与婚恋
                                 </button>
                                 <button onClick={() => handleGeneratePrompt('marriage')} className="w-full text-left px-4 py-3 rounded hover:bg-white/10 flex items-center gap-3 text-sm font-bold text-pink-300 border border-transparent hover:border-pink-500/30 transition-all">
                                     <span className="text-xl">💍</span> 何时结婚
