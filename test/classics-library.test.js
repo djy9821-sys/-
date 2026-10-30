@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 import {
   BAZI_LIUQIN, baziContextOf, baziGlossarySeeds, baziLiuqinHits, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
-  patternNamesOf, pickLimitHits, searchGlossary, termsIn, ziweiBorrowedStarsOf, ziweiContextOf, ziweiFlowOf, ziweiFlowStarName, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiMeetStarsOf, ziweiNatalOf, ziweiNeighborsOf,
+  patternNamesOf, pickLimitHits, searchGlossary, termsIn, ziweiBorrowedStarsOf, ziweiContextOf, ziweiDoujunIndex, ziweiDoujunPalace, ziweiFlowOf, ziweiFlowStarName, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiMeetStarsOf, ziweiNatalOf, ziweiNeighborsOf,
   ziweiOppositeOf, ziweiPalaceContextOf, ziweiPalaceHits, ziweiSurroundOf,
 } from '../src/data/classics/library.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
@@ -12,6 +12,7 @@ import { analyzeStrength } from '../src/utils/baziStrength.js';
 import { judgeBaziPattern } from '../src/utils/baziPattern.js';
 import { findRelations } from '../src/utils/baziRelations.js';
 import { validateClassicsDoc } from '../src/data/classics/schema.js';
+import { createZiweiHoroscope } from '../src/utils/ziweiBirth.js';
 
 const files = loadDataFiles();
 const library = buildLibrary(files.classics);
@@ -241,7 +242,7 @@ test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算�
   const ctx = ziweiPalaceContextOf(palace, { gender: 'female' });
   assert.deepEqual(ctx, {
     module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], jia: [], meet: ['紫微', '七杀', '文曲', '天巫', '天官'], palace: ['命宫', '身宫'], branches: ['亥'],
-    brightness: ['旺', '平'], mutagen: ['权', '忌'], meetMutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女', yearGan: null, yearZhi: null, borrowedStars: [], empty: [],
+    brightness: ['旺', '平'], mutagen: ['权', '忌'], meetMutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女', yearGan: null, yearZhi: null, doujun: [], borrowedStars: [], empty: [],
     flowStars: [], flowMutagens: [], flow: [], natalStars: ['紫微', '七杀', '文曲', '天巫', '天官'], natalMeet: ['紫微', '七杀', '文曲', '天巫', '天官'], natalMutagens: ['权', '忌'],
   });
   assert.deepEqual(ziweiPalaceContextOf({ name: '交友', earthlyBranch: '辰', majorStars: [] }, { gender: '男' }).palace, ['仆役']);
@@ -327,6 +328,62 @@ test('紫微提示词用：大限、流年命宫所落的本命宫，按宫中�
   assert.deepEqual(ziweiLimitPalaceHits(lib, palaces, 0, '流年').map(({ entry }) => entry.id), ['ziwei.x.002']);
   assert.deepEqual(ziweiLimitPalaceHits(lib, palaces, 9, '大限'), []);
   assert.deepEqual(ziweiLimitPalaceHits(null, palaces, 0, '流年'), []);
+});
+
+test('流年斗君：太岁宫起正月逆数至生月、再从生月起子时顺数至生时（卷一安流年斗君诀），与排盘库流年正月的流月命宫一致；闰月生过十五按下月', () => {
+  // 1986-3-10 戌时女：农历二月初一生。2026 丙午年流年命宫（太岁宫）序 4：起正月逆数到二月得 3，再从子时顺数到戌时（10）→ 13 → 1，即本命夫妻宫（卯）。
+  const astro = createZiweiHoroscope({ calendarType: 'solar', birthDate: '1986-3-10', timeIndex: 10, gender: 'female' });
+  const flow = astro.horoscope('2026-2-20');
+  assert.equal(flow.yearly.index, 4);
+  assert.equal(ziweiDoujunIndex(astro, flow.yearly.index), 1);
+  // 2026-2-20 是正月初四：排盘库这天的流月命宫就是斗君所在。
+  assert.equal(ziweiDoujunIndex(astro, flow.yearly.index), flow.monthly.index);
+  const palace = ziweiDoujunPalace(astro, astro.palaces, flow.yearly.index);
+  assert.equal(palace.name, '夫妻');
+  assert.equal(palace.earthlyBranch, '卯');
+  // 闰五月生：十三按五月算，二十按六月算（与排盘库安命宫的闰月处理一致）。
+  const leapEarly = createZiweiHoroscope({ calendarType: 'solar', birthDate: '1990-7-5', timeIndex: 0, gender: 'male' });
+  const leapLate = createZiweiHoroscope({ calendarType: 'solar', birthDate: '1990-7-12', timeIndex: 0, gender: 'male' });
+  assert.deepEqual([leapEarly.rawDates.lunarDate.isLeap, leapEarly.rawDates.lunarDate.lunarDay, leapLate.rawDates.lunarDate.lunarDay], [true, 13, 20]);
+  assert.equal(ziweiDoujunIndex(leapEarly, 4), 0);
+  assert.equal(ziweiDoujunIndex(leapEarly, 4), leapEarly.horoscope('2026-2-20').monthly.index);
+  assert.equal(ziweiDoujunIndex(leapLate, 4), 11);
+  assert.equal(ziweiDoujunIndex(leapLate, 4), leapLate.horoscope('2026-2-20').monthly.index);
+  // 算不出就不给：没有排盘结果、没有流年宫序。
+  assert.equal(ziweiDoujunIndex(null, 4), null);
+  assert.equal(ziweiDoujunIndex(astro, undefined), null);
+  assert.equal(ziweiDoujunPalace(astro, astro.palaces, null), null);
+  assert.equal(ziweiDoujunPalace(astro, null, 4), null);
+});
+
+test('斗君条件（doujun）：只在流年层算进上下文，宫名别名统一，命中说明写「流年斗君（正月）」', () => {
+  const palace = { index: 0, name: '命宫', earthlyBranch: '寅', majorStars: [{ name: '紫微' }] };
+  assert.deepEqual(ziweiPalaceContextOf(palace, { limit: '流年', doujun: '奴仆' }).doujun, ['仆役']);
+  assert.deepEqual(ziweiPalaceContextOf(palace, { limit: '大限', doujun: '仆役' }).doujun, []);
+  assert.deepEqual(ziweiPalaceContextOf(palace, { doujun: '仆役' }).doujun, []);
+  assert.deepEqual(ziweiContextOf({ limit: '流年' }).doujun, []);
+  const ctx = ziweiPalaceContextOf(palace, { limit: '流年', doujun: '仆役' });
+  assert.deepEqual(conditionMatches({ module: 'ziwei', limit: '流年', doujun: '奴仆' }, ctx), [{ key: 'limit', value: '流年' }, { key: 'doujun', value: '仆役' }]);
+  assert.equal(conditionMatches({ module: 'ziwei', limit: '流年', doujun: '财帛' }, ctx), null);
+  assert.equal(conditionMatches({ module: 'ziwei', limit: '流年', doujun: '仆役' }, ziweiPalaceContextOf(palace, { limit: '流年' })), null);
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.d.001', title: '论奴仆·斗君', original: '甲', status: 'translated', applies: [{ module: 'ziwei', limit: '流年', doujun: '仆役', note: '斗君正月在此宫' }] },
+      { id: 'ziwei.d.002', title: '论财帛·斗君', original: '乙', status: 'translated', applies: [{ module: 'ziwei', limit: '流年', doujun: '财帛' }] },
+    ],
+  }]);
+  const palaces = [palace, { index: 1, name: '兄弟', earthlyBranch: '卯', majorStars: [] }];
+  const hits = ziweiLimitPalaceHits(lib, palaces, 0, '流年', { doujun: '仆役' });
+  assert.deepEqual(hits.map(({ entry, reason }) => [entry.id, reason]), [['ziwei.d.001', '运限·流年，流年斗君（正月）·仆役']]);
+  // 没传斗君（算不出）、看别的层：斗君条目不命中。
+  assert.deepEqual(ziweiLimitPalaceHits(lib, palaces, 0, '流年'), []);
+  assert.deepEqual(ziweiLimitPalaceHits(lib, palaces, 0, '大限', { doujun: '仆役' }), []);
+  // schema：doujun 要同写 limit: "流年"；宫名只认十二宫。
+  const doc = (applies) => ({ classic: 'ziwei', section: '测试', edition: '测试', entries: [{ id: 'ziwei.s.001', title: '甲', original: '甲', status: 'translated', applies }] });
+  assert.deepEqual(validateClassicsDoc(doc([{ module: 'ziwei', limit: '流年', doujun: '奴仆' }])).filter((e) => e.includes('doujun')), []);
+  assert.ok(validateClassicsDoc(doc([{ module: 'ziwei', doujun: '仆役' }])).some((e) => e.includes('doujun') && e.includes('流年')));
+  assert.ok(validateClassicsDoc(doc([{ module: 'ziwei', limit: '流年', doujun: '流年宫' }])).some((e) => e.includes('doujun')));
 });
 
 test('运限层的流曜与四化：流羊算擎羊、运昌算文昌，落在本宫算 star、落在三方四正算 meet，该层四化到本宫星算 mutagen；命中说明注「（流年）」，本命盘不算', () => {
