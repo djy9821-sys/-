@@ -91,7 +91,7 @@ test('疑似从格时，旺衰一节指向格局一节，格局一节附按此�
   // 乙卯 戊寅 癸卯 戊午：癸水无根，食伤独旺，疑似从儿格。
   const cong = buildBaziChart({ calendarType: 'solar', year: 1975, month: 2, day: 26, gender: 'male', hourIndex: 6 }, now);
   const text = buildBaziPrompt({ chart: cong, scope: 'natal', selections: {}, now });
-  assert.match(text, /未考虑从格、化格、专旺等特殊格局（本盘疑似从儿格，按此格论的喜忌见下一节）/);
+  assert.match(text, /扶抑的喜忌不计特殊格局，本盘疑似从儿格，按此格论的喜忌见下一节/);
   assert.ok(text.includes('- 若按从儿格论：喜火（财）、木（食伤）；忌金（印）、土（官杀）（'));
   assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now }).includes('按此格论'));
 });
