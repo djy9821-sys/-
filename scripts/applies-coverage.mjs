@@ -22,6 +22,7 @@ import {
   buildLibrary,
   conditionMatches,
   liuyaoReadingContextOf,
+  ziweiDoujunPalace,
   ziweiFlowOf,
   ziweiNatalOf,
   ziweiNeighborsOf,
@@ -134,6 +135,8 @@ const flowScopesOf = (horoscope) => {
     return {};
   }
 };
+/** 流年斗君所落本命宫名（流年层带上，「斗君过度在某宫」的条件才判得到）；没有流年对象时为 null。 */
+const doujunNameOf = (horoscope, yearly) => (Number.isInteger(yearly?.index) ? ziweiDoujunPalace(horoscope, horoscope.palaces, yearly.index)?.name ?? null : null);
 
 /**
  * 程序格局各一张已知成立的命例（公历、时辰序、性别；与 test/ziwei-patterns.test.js 的命例同源，少见的格局是穷举找的）：
@@ -212,6 +215,7 @@ const targetedZiweiContext = (cond) => {
   const patterns = palace.name === '命宫' ? [...analyzeZiweiPatterns(horoscope), ...analyzeZiweiStructures(horoscope)].map((item) => item.name) : [];
   const limit = cond.limit && cond.limit !== '本命' ? cond.limit : '本命';
   const surround = ziweiSurroundOf(horoscope.palaces, palace);
+  const scopes = limit === '本命' ? {} : flowScopesOf(horoscope);
   return ziweiPalaceContextOf(palace, {
     gender: gender === 'male' ? '男' : '女',
     limit,
@@ -220,8 +224,9 @@ const targetedZiweiContext = (cond) => {
     opposite: ziweiOppositeOf(horoscope.palaces, palace),
     surround,
     natal: ziweiNatalOf(horoscope),
-    // 运限层带该层的流曜与四化（流羊、运昌……），与界面、提示词一样
-    flow: limit === '本命' ? null : ziweiFlowOf(flowScopesOf(horoscope)[limit] ?? null, palace, surround),
+    // 运限层带该层的流曜与四化（流羊、运昌……），与界面、提示词一样；流年层再带斗君所落的宫
+    flow: limit === '本命' ? null : ziweiFlowOf(scopes[limit] ?? null, palace, surround),
+    doujun: limit === '流年' ? doujunNameOf(horoscope, scopes.流年) : null,
   });
 };
 function* ziweiContexts(count) {
@@ -248,7 +253,7 @@ function* ziweiContexts(count) {
       // 古籍弹层还能切到「当前大限 / 今年流年」：任何一宫都可能是那一层的命宫；带该层的流曜与四化
       yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '大限', ...around, flow: ziweiFlowOf(scopes.大限, palace, around.surround) });
       yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '小限', ...around, flow: ziweiFlowOf(scopes.小限, palace, around.surround) });
-      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '流年', ...around, flow: ziweiFlowOf(scopes.流年, palace, around.surround) });
+      yield ziweiPalaceContextOf(palace, { gender: genderLabel, limit: '流年', ...around, flow: ziweiFlowOf(scopes.流年, palace, around.surround), doujun: doujunNameOf(horoscope, scopes.流年) });
     }
   }
 }
