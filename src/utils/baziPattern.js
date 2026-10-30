@@ -69,6 +69,8 @@ const PATTERN_NAME = {
 const ZHUAN_WANG = { 木: '曲直格', 火: '炎上格', 土: '稼穑格', 金: '从革格', 水: '润下格' };
 /** 三合局之外同气的余气支：木局的辰（木余气）、火局的未、金局的戌、水局的丑；局齐全时这一支随局论。 */
 const YU_QI_ZHI = { 木: '辰', 火: '未', 金: '戌', 水: '丑' };
+/** 日主本气的墓库支：木库未、火库戌、金库丑、水库辰（土寄四季，不另算）。 */
+const KU_ZHI = { 木: '未', 火: '戌', 金: '丑', 水: '辰' };
 /** 地支六合所化：相邻两支六合而化神正是日主本气时，合住的那一支随化神论（任注「子丑化土，斯真格象，已成稼穑」）。 */
 const LIU_HE_HUA = Object.freeze(Object.fromEntries([['子', '丑', '土'], ['寅', '亥', '木'], ['卯', '戌', '火'], ['辰', '酉', '金'], ['巳', '申', '水'], ['午', '未', '土']]
   .flatMap(([a, b, element]) => [[a + b, element], [b + a, element]])));
@@ -311,11 +313,15 @@ export const determinePattern = (chart, summary = null) => {
  *   但「财旺提纲」——月支本气是财、财支不止一处——照任注「必先察财官之势……以财为用」，不作专旺。
  *   相邻两支六合而化神正是日主本气的，合住的那一支随化神论；天干全是印比、四支本气也全是印比的「斯真格象」，
  *   打分不到极强也作专旺（费中堂造「子丑化土……已成稼穑」）。
+ *   旺极（打分四分以上或同党八成以上）时，日主本气的墓库支（木库未、火库戌、金库丑、水库辰）也随旺势论
+ *   （「未乃南方燥土，木之库根」：癸卯 乙卯 甲寅 辛未，木旺极而辛金无能，疑似从强，以癸水为用与书相近）。
  *   专旺而食伤两透有根、或无印透出的，顺势以食伤吐秀为用（「化神者丙丁也」「取丁火食神秀气」），印克食伤为忌；
  *   食伤只透一位又有印透的仍以印比为用（「一点甲木枯浮，难泄水气」，大取金水）。
  *   「全局不见官杀」看天干、地支本气与寅申巳亥所藏中气，辰戌丑未杂气里一点官杀余气不算（费中堂造未中乙木仍作稼穑）。
  *   （这几条加入后，`node scripts/bazi-cases.mjs`：格局与书一致 28 → 31 造、漏判 15 → 12；喜用第一位一致 174 → 175、相反 32 → 31，留集不变；
- *   岁运一致 552 → 553、相反 205 → 206——多出的一造是母象篇「母众子孤」的癸卯 丙辰 甲寅 乙亥，书以水为忌，程序按专旺列水为喜。）
+ *   岁运一致 552 → 553、相反 205 → 206——多出的一造是母象篇「母众子孤」的癸卯 丙辰 甲寅 乙亥，书以水为忌，程序按专旺列水为喜。
+ *   再加墓库支随旺势、旺衰的会局加分后：格局一致 31 不变、多判 40 → 43（新多判的三造任注都作旺极论：癸未 丁巳 丙午 癸巳「暖之至寒无根」、
+ *   癸卯 乙卯 甲寅 辛未「辛金之君无能为」、庚寅 己卯 乙亥 癸未「成局干透一官星……用官则临绝地」），其余数字见 baziStrength.js 文件头。）
  *   打分的两条（从格与极强）要时辰已知。
  *   食伤有本气之根的是「太旺」，任注取食伤泄秀（「水太旺者……喜其寅木吐秀」），仍按扶抑。
  *   从强要「绝无一毫财星官杀之气」：天干官杀在地支有根（「乙木官星透露，盘根在未……本可为用」），
@@ -445,7 +451,11 @@ export const detectSpecialPattern = (chart, strength, summary) => {
   // 相邻两支六合而化神正是日主本气的（费中堂造「己未 丁丑 戊子 己未」，子丑化土），合住的那一支随化神论。
   const liuHeElementOf = (index) => [pillars[index - 1], pillars[index + 1]]
     .some((neighbor) => neighbor && LIU_HE_HUA[pillars[index].zhi + neighbor.zhi] === dayWuxing) ? dayWuxing : null;
-  const juElementOf = (zhi, index) => ju[zhi] ?? (juOfDay && YU_QI_ZHI[dayWuxing] === zhi ? dayWuxing : null) ?? liuHeElementOf(index);
+  // 旺极（打分四分以上或同党八成以上）时，日主本气的墓库支（木库未、火库戌、金库丑、水库辰）也随旺势论：任注「未乃南方燥土，木之库根」
+  //（癸卯 乙卯 甲寅 辛未，木旺极而辛金无能，以癸水为用）。
+  const scoreWang = (scored && score.total >= 4) || strength.ratio > 0.8;
+  const juElementOf = (zhi, index) => ju[zhi] ?? (juOfDay && YU_QI_ZHI[dayWuxing] === zhi ? dayWuxing : null) ?? liuHeElementOf(index)
+    ?? (scoreWang && KU_ZHI[dayWuxing] === zhi ? dayWuxing : null);
   const benqiRoles = new Set(pillars.map((pillar, index) => (juElementOf(pillar.zhi, index) ? strength.roles[juElementOf(pillar.zhi, index)] : ROLE_OF[pillar.hiddenGanDetails?.[0]?.shiShen])).filter(Boolean));
   // 旺极：打分到极强、同党占八成以上；或日主本气的三合、三会局齐全而全局不见官杀（任注「支全寅卯辰……曲直仁寿」「局成润下」，
   // 打分不到四分也作专旺：局全的旺势不是逐支相加算得出的）。
