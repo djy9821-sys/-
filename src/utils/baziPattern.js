@@ -67,6 +67,8 @@ const PATTERN_NAME = {
   正官: '正官格', 七杀: '七杀格', 正财: '正财格', 偏财: '偏财格', 正印: '正印格', 偏印: '偏印格', 食神: '食神格', 伤官: '伤官格',
 };
 const ZHUAN_WANG = { 木: '曲直格', 火: '炎上格', 土: '稼穑格', 金: '从革格', 水: '润下格' };
+/** 三合局之外同气的余气支：木局的辰（木余气）、火局的未、金局的戌、水局的丑；局齐全时这一支随局论。 */
+const YU_QI_ZHI = { 木: '辰', 火: '未', 金: '戌', 水: '丑' };
 /** 生我者：木 ← 水。 */
 const GENERATED_BY = { 木: '水', 火: '木', 土: '火', 金: '土', 水: '金' };
 /** 我生者：水 → 木。 */
@@ -93,7 +95,12 @@ const YIN_LIGHT = 20;
  * 从强「食伤运有印绶冲克」）：印轻则食伤泄秀亦可（「丙寅 甲午 丙午 癸巳」从其强势，「运逢木火土，财喜频增」），
  * 印不轻则食伤与印相战（「戊戌 丙辰 己巳 己巳」土旺极，「一交庚申……家业渐消」）。
  */
-const wangGodsOf = (kind, roleShare) => {
+const wangGodsOf = (kind, roleShare, { xieXiu = false } = {}) => {
+  // 专旺而食伤透干有根：旺极之势顺着食伤吐秀，以食伤为用、比劫生之，印克食伤、官杀逆势为忌
+  // （任注「木太旺者……喜其丙火吐秀」，壬运克火则凶）。
+  if (kind === 'zhuanwang' && xieXiu) {
+    return { favorable: ['食伤', '比劫'], unfavorable: ['印', '官杀'], basis: '专旺而食伤透干有根，顺其旺势以食伤吐秀为用，比劫生之；印克食伤、官杀逆势为忌' };
+  }
   const yinFirst = kind === 'congqiang' && roleShare['印'] > roleShare['比劫'];
   const yinLight = roleShare['印'] < YIN_LIGHT;
   const favorable = yinFirst ? ['印', '比劫'] : ['比劫', '印'];
@@ -296,6 +303,13 @@ export const determinePattern = (chart, summary = null) => {
  *   天干帮身至多两个（有印则只能是这一个，还要财星透出克印或财占三成），也作从论（「四柱皆财，其势必从」）。
  *   从哪一神：食伤、财、官杀里占得最多的一方到三成五为从儿、从财、从杀，否则为从势。
  * - 专旺、从强（「旺极者似X」）：打分到极强（或同党占八成以上），而且四支本气都是印比，不见食伤、财、官杀之根。
+ *   日主本气的三合、三会局齐全而全局不见官杀的（方局篇「支全寅卯辰，东方一气」「丁卯 甲辰 甲寅 乙亥……格名曲直仁寿」），
+ *   打分不到极强也作专旺，局外的同气余气支（火局的未、木局的辰……）随局论（「支全火局，木从火势，格成炎上」）；
+ *   但「财旺提纲」——月支本气是财、财支不止一处——照任注「必先察财官之势……以财为用」，不作专旺。
+ *   专旺而食伤两透有根、或无印透出的，顺势以食伤吐秀为用（「化神者丙丁也」「取丁火食神秀气」），印克食伤为忌；
+ *   食伤只透一位又有印透的仍以印比为用（「一点甲木枯浮，难泄水气」，大取金水）。
+ *   （这三条加入后，`node scripts/bazi-cases.mjs`：格局与书一致 28 → 30 造、漏判 15 → 13；喜用第一位、留集都不变；
+ *   岁运一致 552 → 553、相反 205 → 206——多出的一造是母象篇「母众子孤」的癸卯 丙辰 甲寅 乙亥，书以水为忌，程序按专旺列水为喜。）
  *   打分的两条（从格与极强）要时辰已知。
  *   食伤有本气之根的是「太旺」，任注取食伤泄秀（「水太旺者……喜其寅木吐秀」），仍按扶抑。
  *   从强要「绝无一毫财星官杀之气」：天干官杀在地支有根（「乙木官星透露，盘根在未……本可为用」），
@@ -419,8 +433,19 @@ export const detectSpecialPattern = (chart, strength, summary) => {
 
   // 地支会成三合、三会局的，按局的五行论（「亥卯未」木局里的未土不再算财根）：任注「此木局全，混一寅字，然四柱无金，
   // 其势从强」；「地支亥子丑，干透壬癸辛，局成润下」。
-  const benqiRoles = new Set(pillars.map((pillar) => (ju[pillar.zhi] ? strength.roles[ju[pillar.zhi]] : ROLE_OF[pillar.hiddenGanDetails?.[0]?.shiShen])).filter(Boolean));
-  const wangJi = (scored && score.total >= 4) || strength.ratio > 0.8;
+  // 日主本气的局齐全时（「支全寅卯辰，东方一气」「寅午戌全」），局外那一支若是本气的余气支（木局的辰、火局的未、金局的戌、水局的丑）
+  // 也随局论——任注炎上一造「丙寅 甲午 丙戌 乙未」，未是火之余气，仍作炎上。
+  const juOfDay = Object.values(ju).includes(dayWuxing);
+  const juElementOf = (zhi) => ju[zhi] ?? (juOfDay && YU_QI_ZHI[dayWuxing] === zhi ? dayWuxing : null);
+  const benqiRoles = new Set(pillars.map((pillar) => (juElementOf(pillar.zhi) ? strength.roles[juElementOf(pillar.zhi)] : ROLE_OF[pillar.hiddenGanDetails?.[0]?.shiShen])).filter(Boolean));
+  // 旺极：打分到极强、同党占八成以上；或日主本气的三合、三会局齐全而全局不见官杀（任注「支全寅卯辰……曲直仁寿」「局成润下」，
+  // 打分不到四分也作专旺：局全的旺势不是逐支相加算得出的）。
+  // 任注方局篇「不论成方成局，必先察财官之势。若财旺提纲，则以财为用」：月支本气是财、财的本气支又不止一处（「癸卯 丙辰 甲辰 丙寅」
+  // 辰辰财旺，身旺用财），局全也不作专旺；只一处财支的（「丁卯 甲辰 甲寅 乙亥」）仍是曲直仁寿。
+  const caiBranches = pillars.filter((pillar) => ROLE_OF[pillar.hiddenGanDetails?.[0]?.shiShen] === '财').length;
+  const caiWangTiGang = ROLE_OF[byKey.month?.hiddenGanDetails?.[0]?.shiShen] === '财' && caiBranches >= 2;
+  const juWang = juOfDay && roleCount['官杀'] === 0 && !caiWangTiGang;
+  const wangJi = (scored && score.total >= 4) || strength.ratio > 0.8 || juWang;
   // 从强「绝无一毫财星官杀之气」：天干官杀在地支有根，官星有力（「乙木官星透露，盘根在未，余气在辰，本可为用」）；
   // 食伤透干有根、又有财星透出，旺神有泄、食伤生财（「喜其甲丙并透……用神必是甲木」）：都按扶抑，不作专旺、从强。
   const rootedStemOf = (role) => stems.some((stem) => stem.key !== 'day' && ROLE_OF[stem.shiShen] === role && rootedGan(stem.gan));
@@ -430,12 +455,15 @@ export const detectSpecialPattern = (chart, strength, summary) => {
   if (wangJi && shunShi) {
     const level = score ? `帮身打分 ${Math.round(score.total * 100) / 100} 分` : `同党占 ${Math.round(strength.ratio * 100)}%`;
     if (roleCount['官杀'] === 0 && roleShare['比劫'] >= roleShare['印']) {
+      // 食伤透干有根才谈吐秀；印也透出而食伤只有一位的，印克食伤、食伤难为用（任注炎上一造戊土食神透而甲印亦透，仍用火），
+      // 食伤两透成势、或全局无印透出的，才顺势以食伤为用。
+      const xieXiu = rootedStemOf('食伤') && (summary.transparentRole('食伤').length >= 2 || !yinThrough);
       return withRoleGods({
         name: `疑似${ZHUAN_WANG[dayWuxing]}（专旺）`,
         kind: 'zhuanwang',
-        basis: `日主${dayGan}${dayWuxing}${level}，四支本气都是印比，比劫成势且全局不见官杀。`,
+        basis: `日主${dayGan}${dayWuxing}${level}，四支本气都是印比，比劫成势且全局不见官杀${xieXiu ? '；食伤透干有根，旺势有处吐秀' : ''}。`,
         note: '专旺格顺其旺势为吉，喜比劫、印与食伤引化，最忌官杀逆势。是否成格请结合月令与会局人工确认。',
-      }, strength.roles, wangGodsOf('zhuanwang', roleShare));
+      }, strength.roles, wangGodsOf('zhuanwang', roleShare, { xieXiu }));
     }
     return withRoleGods({
       name: '疑似从强格',
