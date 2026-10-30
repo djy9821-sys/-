@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 import {
   BAZI_LIUQIN, baziContextOf, baziGlossarySeeds, baziLiuqinHits, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
-  patternNamesOf, pickLimitHits, searchGlossary, termsIn, ziweiBorrowedStarsOf, ziweiContextOf, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiMeetStarsOf, ziweiNeighborsOf,
+  patternNamesOf, pickLimitHits, searchGlossary, termsIn, ziweiBorrowedStarsOf, ziweiContextOf, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiMeetStarsOf, ziweiNatalOf, ziweiNeighborsOf,
   ziweiOppositeOf, ziweiPalaceContextOf, ziweiPalaceHits, ziweiSurroundOf,
 } from '../src/data/classics/library.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
@@ -241,7 +241,7 @@ test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算�
   const ctx = ziweiPalaceContextOf(palace, { gender: 'female' });
   assert.deepEqual(ctx, {
     module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], jia: [], meet: ['紫微', '七杀', '文曲', '天巫', '天官'], palace: ['命宫', '身宫'], branches: ['亥'],
-    brightness: ['旺', '平'], mutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女', borrowedStars: [], empty: [],
+    brightness: ['旺', '平'], mutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女', yearGan: null, yearZhi: null, borrowedStars: [], empty: [],
   });
   assert.deepEqual(ziweiPalaceContextOf({ name: '交友', earthlyBranch: '辰', majorStars: [] }, { gender: '男' }).palace, ['仆役']);
   assert.equal(ziweiPalaceContextOf(null), null);
@@ -400,6 +400,34 @@ test('空宫借对宫：对宫按地支相冲找；没有主星的宫把对宫�
   assert.equal(hits.find(({ entry }) => entry.id === 'ziwei.b.003').reason, '星曜·文昌');
   // 不传对宫就不借
   assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(tianzhai)).map(({ entry }) => entry.id), ['ziwei.b.003']);
+});
+
+test('生年干支：「壬甲生人」「寅午戌生人」按排盘的年柱判；不传生年就不判这类条件', () => {
+  assert.deepEqual(ziweiNatalOf({ rawDates: { chineseDate: { yearly: ['庚', '午'] } } }), { yearGan: '庚', yearZhi: '午' });
+  assert.deepEqual(ziweiNatalOf({ chineseDate: '壬申 辛亥 甲子 丙寅' }), { yearGan: '壬', yearZhi: '申' });
+  assert.deepEqual(ziweiNatalOf(null), { yearGan: null, yearZhi: null });
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.y.001', title: '紫微男亥壬甲生人', original: '甲', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', branches: ['亥'], star: '紫微', gender: '男', yearGan: ['壬', '甲'] }] },
+      { id: 'ziwei.y.002', title: '贪狼坐长生火局生人', original: '乙', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', branches: ['寅'], star: '贪狼', yearZhi: ['寅', '午', '戌'] }] },
+      { id: 'ziwei.y.003', title: '紫微守命', original: '丙', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', star: '紫微' }] },
+    ],
+  }]);
+  const ming = { index: 9, name: '命宫', earthlyBranch: '亥', majorStars: [{ name: '紫微' }] };
+  // 壬年生的男命：专讲壬甲生人的排前（条件更多），泛论紫微守命的也在
+  const jia = matchEntries(lib, ziweiPalaceContextOf(ming, { gender: 'male', natal: { yearGan: '壬', yearZhi: '申' } }));
+  assert.deepEqual(jia.map(({ entry }) => entry.id), ['ziwei.y.001', 'ziwei.y.003']);
+  assert.equal(jia[0].reason, '宫位·命宫，地支·亥，星曜·紫微，性别·男，年干·壬');
+  // 庚年生的就只有泛论；不传生年也只有泛论（年干条件判不了就不算命中）
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(ming, { gender: 'male', natal: { yearGan: '庚', yearZhi: '午' } })).map(({ entry }) => entry.id), ['ziwei.y.003']);
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(ming, { gender: 'male' })).map(({ entry }) => entry.id), ['ziwei.y.003']);
+  const tanlang = { index: 0, name: '命宫', earthlyBranch: '寅', majorStars: [{ name: '贪狼' }] };
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(tanlang, { natal: { yearGan: '丙', yearZhi: '戌' } })).map(({ entry }) => entry.id), ['ziwei.y.002']);
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(tanlang, { natal: { yearGan: '丙', yearZhi: '子' } })), []);
+  // ziweiPalaceHits / ziweiLimitPalaceHits 的 natal 选项一路传到上下文
+  assert.deepEqual(ziweiPalaceHits(lib, [tanlang], ['命宫'], { natal: { yearZhi: '午' } }).map(({ entry }) => entry.id), ['ziwei.y.002']);
+  assert.deepEqual(ziweiPalaceHits(lib, [tanlang], ['命宫']), []);
 });
 
 test('三方四正：对宫与两个三合宫；「会」「拱」「照」的条件 meet（任一）、meetAll（都在）看本宫连三方四正的主星辅星', () => {
