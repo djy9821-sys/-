@@ -10,7 +10,7 @@ import { buildBaziChart } from '../../src/utils/baziChart.js';
 import { analyzeStrength } from '../../src/utils/baziStrength.js';
 import { judgeBaziPattern } from '../../src/utils/baziPattern.js';
 import { analyzeLiuqin } from '../../src/utils/baziLiuqin.js';
-import { juOfZhi } from '../../src/utils/baziYearMarks.js';
+import { juOfZhi, kuRootOf } from '../../src/utils/baziYearMarks.js';
 
 const GAN = '甲乙丙丁戊己庚辛壬癸';
 const ZHI = '子丑寅卯辰巳午未申酉戌亥';
@@ -106,11 +106,13 @@ export const useGodElement = (god, dayWuxing) => {
  * 原书点名的一步大运或一个流年，按程序的喜忌归成吉、凶、平：干支各算一票，喜多为吉、忌多为凶，相抵或不分喜忌为平；
  * 原书只说「丑运」「辛运」的只看这一个字。地支与原局凑齐三会方、三合局的，按局的五行算（与结果页的大运流年喜忌同一口径，见 juOfZhi）。
  * 大运天干喜、地支忌而克天干的是截脚（任注「支不载干，则十年皆否」），按凶论（与结果页 getDaYunMarks 同一口径）。
+ * 大运运干坐库（癸丑、壬辰、乙未、丙戌之类，库里藏着天干的同类）的，地支随天干论（kuRootOf，同结果页）。
  * @param {string[]} [natalZhis] 原局地支
  * @param {string} [kind] 大运或流年；截脚只论大运
  */
 export const yunVerdictOf = (ganZhi, favorable, unfavorable, natalZhis = [], kind = '大运') => {
-  const elements = [...ganZhi].map((char) => WUXING_OF_GAN[char] ?? juOfZhi(char, natalZhis)?.element ?? WUXING_OF_ZHI[char]);
+  const kuRoot = kind !== '流年' && ganZhi.length === 2 && !juOfZhi(ganZhi[1], natalZhis) ? kuRootOf(ganZhi[0], ganZhi[1]) : null;
+  const elements = [...ganZhi].map((char, index) => WUXING_OF_GAN[char] ?? juOfZhi(char, natalZhis)?.element ?? (index === 1 && kuRoot ? WUXING_OF_GAN[ganZhi[0]] : WUXING_OF_ZHI[char]));
   const tones = elements.map((element) => (favorable.includes(element) ? 1 : unfavorable.includes(element) ? -1 : 0));
   if (kind !== '流年' && ganZhi.length === 2 && tones[0] === 1 && tones[1] === -1 && CONTROLS[elements[1]] === elements[0]) return '凶';
   const sum = tones.reduce((total, tone) => total + tone, 0);
