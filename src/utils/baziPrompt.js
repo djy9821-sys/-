@@ -11,7 +11,7 @@ import { findRelations } from './baziRelations.js';
 import { getShensha, SHENSHA_SOURCES } from './baziShensha.js';
 import { cite } from '../data/classics.js';
 import { analyzeStrength, favorBasisOf } from './baziStrength.js';
-import { describeYearMarks, describeYearSummary, getLiuNianMarks, juOfZhi } from './baziYearMarks.js';
+import { describeDaYunFavor, describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks, juOfZhi } from './baziYearMarks.js';
 import { PROMPT_CLASSICS_LIMIT, classicsPromptLines } from './classicsPrompt.js';
 
 export { PROMPT_CLASSICS_LIMIT };
@@ -294,10 +294,13 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
     const marks = liuNian ? getLiuNianMarks(liuNian, { chart, daYun, strength: favorBasis }) : null;
     const yearMarks = liuNian ? describeYearMarks(liuNian, marks) : '';
     const yearSummary = liuNian ? describeYearSummary(liuNian, { chart, daYun, strength: favorBasis, marks }) : null;
+    // 大运以地支为重，截脚的整步运按忌论（见 getDaYunMarks）。
+    const daYunFavor = daYun && !isXiaoYun ? describeDaYunFavor(daYun, getDaYunMarks(daYun, { strength: favorBasis, chart }).favor) : '';
     sections.push([
       '【所选运限】',
       ...(favorBasis.source === 'special' ? [`- 运限喜忌按${favorBasis.specialName.replace(/^疑似/, '')}论（程序认出${favorBasis.specialName}；若不成格，以扶抑喜忌为准）`] : []),
       ...layers.map((layer) => layer.text),
+      ...(daYunFavor ? [`- 大运喜忌：${daYunFavor}`] : []),
       ...(yearMarks ? [`- 流年标注：${yearMarks}`] : []),
       ...(yearSummary ? [`- 流年提要（程序合成，供参考）：${yearSummary.headline}。${yearSummary.text}`] : []),
       ...(almanac ? [almanac] : []),
