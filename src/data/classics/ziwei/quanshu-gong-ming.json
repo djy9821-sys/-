@@ -548,6 +548,24 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "地空"
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "star": "地空",
+          "note": "太岁二限遇逢天空，有正曜加吉者平安"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "star": "地空",
+          "note": "二限遇逢天空"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "star": "地空",
+          "note": "二限遇逢天空"
         }
       ],
       "tags": [
