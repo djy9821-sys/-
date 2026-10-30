@@ -3,6 +3,7 @@ import {
   FORTUNE_LAYER_LABELS,
   formatFortuneTime,
 } from './fortuneContext.js';
+import { ziweiDoujunPalace } from '../data/classics/library.js';
 
 
 /**
@@ -309,6 +310,9 @@ export const generateFortunePromptText = (layerKey, selection, activeStems, basi
       prompt += `【${scopeName}盘】\n`;
       prompt += `干支：${scope.heavenlyStem}${scope.earthlyBranch}${decadalRange}\n`;
       prompt += `命宫落点：本命${natalPalace?.name || '未知宫'}（${natalPalace?.heavenlyStem || ''}${natalPalace?.earthlyBranch || ''}）\n`;
+      // 流年斗君：《全书》卷一安流年斗君诀所定的流年正月起处，古籍论流年常以「斗君过度在某宫」起论。
+      const doujun = scopeKey === 'yearly' ? ziweiDoujunPalace(horoscope, palaces, scope.index) : null;
+      if (doujun) prompt += `流年斗君（正月）：本命${doujun.name || '未知宫'}（${doujun.heavenlyStem || ''}${doujun.earthlyBranch || ''}）\n`;
       if (scopeMutagens.length >= 4) {
         prompt += `四化：禄-${scopeMutagens[0]}、权-${scopeMutagens[1]}、科-${scopeMutagens[2]}、忌-${scopeMutagens[3]}\n`;
       }
