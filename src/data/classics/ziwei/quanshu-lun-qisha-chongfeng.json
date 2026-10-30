@@ -16,10 +16,20 @@
         {
           "module": "ziwei",
           "limit": "流年",
-          "stars": [
+          "meetAll": [
             "七杀",
             "擎羊"
-          ]
+          ],
+          "note": "命中三合原有七杀守照，流年又遇擎羊冲照；流羊流陀程序未排，以本命擎羊代"
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "meetAll": [
+            "七杀",
+            "陀罗"
+          ],
+          "note": "同上，陀罗冲照"
         },
         {
           "module": "ziwei",
