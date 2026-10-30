@@ -122,7 +122,7 @@ test('四个“今”运势入口自动填充当前运限', () => {
     // 流年盘多一行流年斗君（卷一安流年斗君诀：太岁宫起正月逆至生月、生月起子时顺至生时），是流年正月所在的本命宫；别的层不写。
     const doujun = ziweiDoujunPalace(horoscope, horoscope.palaces, context.fortune.yearly.index);
     assert.ok(doujun?.name);
-    assert.match(prompt, new RegExp(`【流年盘】\n干支：[^\n]+\n命宫落点：[^\n]+\n流年斗君（正月）：本命${doujun.name}（${doujun.heavenlyStem}${doujun.earthlyBranch}）\n`));
+    assert.match(prompt, new RegExp(`【流年盘】\n干支：[^\n]+\n命宫落点：[^\n]+\n流年斗君（正月）：本命${doujun.name}（${doujun.heavenlyStem}${doujun.earthlyBranch}）；斗君逐月顺行一宫，各流月命宫即其所在\n`));
     assert.equal((prompt.match(/流年斗君/g) ?? []).length, 1);
   });
 });
