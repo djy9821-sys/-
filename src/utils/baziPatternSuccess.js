@@ -6,6 +6,8 @@
  *
  * 《子平真诠》没有给出的辅助判断（如伤官见官而有印、七杀用刃）注明出自哪一篇，
  * 凡书里没说的一律不判，交给「待详辨」。
+ * 原书只分身强、身弱：旺衰打分偏强、极强算身强，偏弱、极弱算身弱，中和的按「五行与旺衰」一节略偏的一边算
+ * （任注论庚申 壬午 辛酉 癸巳「午火真神得用」，中和略偏旺而壬癸制杀，七杀格成）。
  */
 import { cite } from '../data/classics.js';
 import { getGanPairKinds, getZhiPairKinds } from './baziRelations.js';
@@ -70,8 +72,11 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
   const { byKey, stems, roleShare, transparent, transparentRole } = summary;
   const dayGan = chart.dayMaster.gan;
   const dayWuxing = chart.dayMaster.wuxing;
-  const strong = strength.band === '偏强' || strength.band === '极强';
-  const weak = strength.band === '偏弱' || strength.band === '极弱';
+  // 原书只分身强、身弱：旺衰打到中和的，按「五行与旺衰」一节略偏的那一边算（取用思路里写明「中和略偏旺／弱」）。
+  const lean = strength.band === '中和' ? (/^日主中和略偏旺/.test(strength.basis ?? '') ? 'strong' : /^日主中和略偏弱/.test(strength.basis ?? '') ? 'weak' : null) : null;
+  const strong = strength.band === '偏强' || strength.band === '极强' || lean === 'strong';
+  const weak = strength.band === '偏弱' || strength.band === '极弱' || lean === 'weak';
+  const bandText = lean ? `中和略偏${lean === 'strong' ? '旺' : '弱'}` : strength.band;
   const month = byKey.month;
 
   const has = (shiShen) => transparent(shiShen).length > 0;
@@ -127,7 +132,7 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
     }
     case '财格': {
       if (has('正官')) add(success, `财生正官（${where('正官')}）。`, '财生官旺');
-      if (hasRole('食伤') && strong) add(success, `食伤（${whereRole('食伤')}）生财，日主${strength.band}。`, '财逢食生而身强带比');
+      if (hasRole('食伤') && strong) add(success, `食伤（${whereRole('食伤')}）生财，日主${bandText}。`, '财逢食生而身强带比');
       const jieHeavy = hasRole('比劫') && (roleShare['比劫'] ?? 0) > (roleShare['财'] ?? 0);
       if (jieHeavy) {
         add(failure, `比劫透于${whereRole('比劫')}，比劫 ${Math.round(roleShare['比劫'])}% 重于财 ${Math.round(roleShare['财'])}%。`, '财轻比重');
@@ -178,7 +183,7 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
     }
     case '七杀格': {
       const zhi = has('食神') || has('伤官');
-      if (strong && zhi) add(success, `身${strength.band}，食伤（${whereRole('食伤')}）制杀。`, '身强七煞逢制');
+      if (strong && zhi) add(success, `身${bandText}，食伤（${whereRole('食伤')}）制杀。`, '身强七煞逢制');
       if (hasRole('印')) add(success, `印星透于${whereRole('印')}，化杀生身。`, '煞用印化（论偏官）');
       if (hasRen) add(success, `日主坐刃（${REN[dayGan]}），刃杀相济。`, '煞用阳刃（论偏官）');
       if (hasRole('财') && !zhi) {
@@ -192,7 +197,7 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
     }
     case '伤官格': {
       if (hasRole('财') && !has('七杀')) add(success, `伤官生财（${whereRole('财')}）。`, '伤官生财');
-      if (hasRole('印') && weak) add(success, `身${strength.band}，印（${whereRole('印')}）制伤护身。`, '伤官佩印');
+      if (hasRole('印') && weak) add(success, `身${bandText}，印（${whereRole('印')}）制伤护身。`, '伤官佩印');
       if (has('七杀') && !hasRole('财')) add(success, `伤官驾杀（${where('七杀')}）而不见财。`, '伤官带煞而无财');
       if (has('正官')) {
         if (shangGuanJinShui) add(success, `金水伤官见官（${where('正官')}），原书所许。`, '伤官非金水而见官（金水伤官例外）');
