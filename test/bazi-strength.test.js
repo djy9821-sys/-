@@ -264,6 +264,44 @@ test('根所在的支被紧贴的一支冲克，这一支的根打六折（任�
   assert.equal(yearRoot.chong, null, '年支卯与月支午不冲');
 });
 
+test('会局：四支会成帮身的三合、三会局另加半分，印局减半（任注「亥卯未全，木势旺盛」）', () => {
+  // 辛未 辛卯 乙未 丁亥：亥卯未会成木局，木势旺盛，书作旺、「最喜时透丁火制煞为用」。逐支相加只 2.1 分中和，加会局半分到 2.6 偏强，取食伤火。
+  const bi = analyzeStrength(chartByPillars('辛未 辛卯 乙未 丁亥'));
+  assert.deepEqual(bi.score.ju, { zhis: '亥卯未', kind: '三合', element: '木', role: '比劫', points: STRENGTH_SCORE.ju });
+  assert.equal(bi.score.total, 2.6);
+  assert.equal(bi.band, '偏强');
+  assert.equal(bi.favorable[0].element, '火');
+  // 己亥 丙子 乙丑 壬午：亥子丑会成水局，是印局，只加四分之一。
+  const yin = analyzeStrength(chartByPillars('己亥 丙子 乙丑 壬午'));
+  assert.equal(yin.score.ju.kind, '三会');
+  assert.equal(yin.score.ju.role, '印');
+  assert.equal(yin.score.ju.points, STRENGTH_SCORE.ju * STRENGTH_SCORE.yinRoot);
+  // 会成的是异党的局不算（寅午戌火局于庚金是官杀）。
+  assert.equal(analyzeStrength(chartByPillars('丙戌 甲午 庚寅 丙子')).score.ju, null);
+});
+
+test('燥土不载金：未、戌坐下生金不算有力，日主是土而通根在这一支的除外（任注「未乃南方燥土……非生金之土」）', () => {
+  // 癸卯 乙卯 甲寅 辛未：「辛金之君无能为矣，当存君之子，以癸水为用」——辛坐未不算有力，扶抑不以金为先。
+  const jia = analyzeStrength(chartByPillars('癸卯 乙卯 甲寅 辛未'));
+  assert.notEqual(jia.favorable[0].element, '金');
+  assert.equal(jia.favorable.at(-1).element, '金', '无力的字排在最后');
+  // 癸卯 乙卯 己卯 辛未：「未土通根有余，足以用辛金制杀」——日主己土通根于未，辛金仍算有载，用金。
+  const ji = analyzeStrength(chartByPillars('癸卯 乙卯 己卯 辛未'));
+  assert.equal(ji.favorable[0].element, '金');
+});
+
+test('中和而克泄交加：官杀两透有力、食伤又透出的按偏弱取（任注「天干两杀通根辰支……正克泄交加」）；只两官无食伤的仍身旺用官', () => {
+  // 乙卯 戊子 壬辰 戊申：申子辰会局加半分到 2.45 中和，两戊通根辰、乙木透出，取印比帮身，不以官杀为用。
+  const sha = analyzeStrength(chartByPillars('乙卯 戊子 壬辰 戊申'));
+  assert.equal(sha.band, '中和');
+  assert.ok(sha.score.total >= STRENGTH_BOUNDS.lean, '分数本在 2.15 以上');
+  assert.match(sha.basis, /^日主中和略偏弱/);
+  assert.deepEqual(elements(sha.favorable.filter(({ tiaoHou }) => !tiaoHou)), ['金', '水'], '扶抑只取印比，官杀土只作调候附在末尾');
+  assert.match(sha.basis, /身弱官杀重，取印化杀生身/);
+  // 丁未 庚戌 庚辰 丙子：丙丁两透而无食伤透出，「身旺用官」，仍按偏旺取。
+  assert.match(analyzeStrength(chartByPillars('丁未 庚戌 庚辰 丙子')).basis, /^日主中和略偏旺/);
+});
+
 test('时辰不详：时柱按平均 0.4 分估', () => {
   const result = analyzeStrength(chartOf(1998, 1, 2, null, { timeMode: 'unknown' }));
   assert.equal(result.score.hourEstimate, STRENGTH_SCORE.unknownHour);
