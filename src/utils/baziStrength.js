@@ -25,7 +25,7 @@
  *   比劫多取官杀制劫（官杀无力就取食伤泄秀；3.3 分以上「太旺」的，官杀逆其旺势，先取食伤泄秀）；
  *   旺极（4 分及以上）先取食伤泄秀；
  * - 中和：任注没有不取用神的，2.15 分及以上按偏旺取，以下按偏弱取（取用思路里写明「中和略偏旺／弱」）。
- * 调候按《穷通宝鉴》调候用神表（src/data/tiaohou.js）查日干与月令：主用神的五行附在喜用末尾。
+ * 调候按《穷通宝鉴》各月论的取用先后（src/data/tiaohou.js）查日干与月令：主用神的五行附在喜用末尾。
  * 寒暖调候为急的除外：冬月（亥子丑）与正月（寅）调候宜火、夏月（巳午未）调候宜水，而这一火、水在原局有力（透干或作本气）
  * 又在地支有根时，取为第一。任注《寒暖》：「寒虽甚，要暖有气也」（甲申 丙子 庚辰 戊寅，丙火以寅为根，用火）；
  * 「寒甚而暖无气，反以无暖为美」（己酉 丙子 庚辰 甲申，丙火无根，不用）。
@@ -45,7 +45,7 @@
  * （非留集 365 → 373、134 → 131；留集 146 → 154、64 → 59），用神第一位非留集不变、留集 45 → 46。
  * 不处理从格、化格等特殊格局（极端时只做提示）。
  */
-import { tiaoHouOf } from '../data/tiaohou.js';
+import { describeTiaoHouPresence, tiaoHouOf, tiaoHouPresenceOf } from '../data/tiaohou.js';
 
 const GAN_WUXING = { 甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水' };
 const WUXING = ['木', '火', '土', '金', '水'];
@@ -208,6 +208,14 @@ const scoreOf = (chart, dayWuxing) => {
     roots: roots.map((item) => ({ ...item, points: round2(item.points) })),
     stems,
   };
+};
+
+/** 调候用神，连同调候诸神在原局透、藏、无（presence、presenceText）。 */
+const tiaoHouOfChart = (chart, monthZhi) => {
+  const base = tiaoHouOf(chart.dayMaster.gan, monthZhi);
+  if (!base) return null;
+  const presence = tiaoHouPresenceOf(chart.pillars, base.stems);
+  return { ...base, presence, presenceText: describeTiaoHouPresence(presence) };
 };
 
 /** 寒暖调候为急的月令：冬月与正月寒，宜火；夏月燥，宜水。 */
@@ -384,7 +392,7 @@ export const analyzeStrength = (chart) => {
     .filter((pillar) => pillar.key !== 'day' && support.has(pillar.ganWuxing))
     .map((pillar) => ({ name: pillar.name, gan: pillar.gan, role: roles[pillar.ganWuxing] }));
 
-  const tiaoHou = tiaoHouOf(chart.dayMaster.gan, byKey.month?.zhi ?? '');
+  const tiaoHou = tiaoHouOfChart(chart, byKey.month?.zhi ?? '');
   const leansStrong = band === '偏强' || band === '极强' || (band === '中和' && score.total >= STRENGTH_BOUNDS.lean);
   const usable = usableElementsOf(chart, { strong: leansStrong, scores });
   const touCounts = {};
