@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 import {
   BAZI_LIUQIN, baziContextOf, baziGlossarySeeds, baziLiuqinHits, buildGlossary, buildLibrary, conditionMatches, entriesOfClassic, entryById, liuyaoContextOf, lookupTerm, matchEntries,
-  patternNamesOf, pickLimitHits, searchGlossary, termsIn, ziweiBorrowedStarsOf, ziweiContextOf, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiMeetStarsOf, ziweiNatalOf, ziweiNeighborsOf,
+  patternNamesOf, pickLimitHits, searchGlossary, termsIn, ziweiBorrowedStarsOf, ziweiContextOf, ziweiFlowOf, ziweiFlowStarName, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLimitPalaceHits, ziweiMeetStarsOf, ziweiNatalOf, ziweiNeighborsOf,
   ziweiOppositeOf, ziweiPalaceContextOf, ziweiPalaceHits, ziweiSurroundOf,
 } from '../src/data/classics/library.js';
 import { buildBaziChart } from '../src/utils/baziChart.js';
@@ -242,6 +242,7 @@ test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算�
   assert.deepEqual(ctx, {
     module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], jia: [], meet: ['紫微', '七杀', '文曲', '天巫', '天官'], palace: ['命宫', '身宫'], branches: ['亥'],
     brightness: ['旺', '平'], mutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女', yearGan: null, yearZhi: null, borrowedStars: [], empty: [],
+    flowStars: [], flowMutagens: [], flow: [], natalStars: ['紫微', '七杀', '文曲', '天巫', '天官'], natalMeet: ['紫微', '七杀', '文曲', '天巫', '天官'], natalMutagens: ['权', '忌'],
   });
   assert.deepEqual(ziweiPalaceContextOf({ name: '交友', earthlyBranch: '辰', majorStars: [] }, { gender: '男' }).palace, ['仆役']);
   assert.equal(ziweiPalaceContextOf(null), null);
@@ -326,6 +327,74 @@ test('紫微提示词用：大限、流年命宫所落的本命宫，按宫中�
   assert.deepEqual(ziweiLimitPalaceHits(lib, palaces, 0, '流年').map(({ entry }) => entry.id), ['ziwei.x.002']);
   assert.deepEqual(ziweiLimitPalaceHits(lib, palaces, 9, '大限'), []);
   assert.deepEqual(ziweiLimitPalaceHits(null, palaces, 0, '流年'), []);
+});
+
+test('运限层的流曜与四化：流羊算擎羊、运昌算文昌，落在本宫算 star、落在三方四正算 meet，该层四化到本宫星算 mutagen；命中说明注「（流年）」，本命盘不算', () => {
+  assert.equal(ziweiFlowStarName('流羊'), '擎羊');
+  assert.equal(ziweiFlowStarName('运昌'), '文昌');
+  assert.equal(ziweiFlowStarName('流鸾'), '红鸾');
+  assert.equal(ziweiFlowStarName('年解'), '年解');
+  assert.equal(ziweiFlowStarName('流X'), null);
+  assert.equal(ziweiFlowStarName(''), null);
+  // 十二宫从寅起；命宫在申（index 6）坐七杀，三方四正是寅（0）、子（10）、辰（2）。
+  const palaces = ['寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '子', '丑'].map((branch, index) => ({ index, name: index === 6 ? '命宫' : `宫${index}`, earthlyBranch: branch, majorStars: index === 6 ? [{ name: '七杀' }] : index === 0 ? [{ name: '紫微' }, { name: '天府' }] : [], minorStars: [] }));
+  const scope = { stars: palaces.map(() => []), mutagen: ['天同', '天机', '文昌', '七杀'] };
+  scope.stars[6] = [{ name: '流昌' }];
+  scope.stars[0] = [{ name: '流羊' }, { name: '年解' }];
+  scope.stars[3] = [{ name: '流陀' }];
+  const palace = palaces[6];
+  const flow = ziweiFlowOf(scope, palace, ziweiSurroundOf(palaces, palace));
+  assert.deepEqual(flow, { stars: ['文昌'], meet: ['擎羊', '年解'], mutagens: ['忌'], names: ['流昌'], meetNames: ['流羊', '年解'] });
+  assert.equal(ziweiFlowOf(null, palace), null);
+  const ctx = ziweiPalaceContextOf(palace, { limit: '流年', surround: ziweiSurroundOf(palaces, palace), flow });
+  assert.deepEqual(ctx.star, ['七杀', '文昌']);
+  assert.deepEqual(ctx.meet, ['七杀', '紫微', '天府', '文昌', '擎羊', '年解']);
+  assert.deepEqual(ctx.mutagen, ['忌']);
+  assert.deepEqual(ctx.flow, ['流昌', '流羊', '年解']);
+  // 本命层不算流曜。
+  assert.deepEqual(ziweiPalaceContextOf(palace, { limit: '本命', flow }).star, ['七杀']);
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.f.001', title: '七杀重逢', original: '甲', status: 'translated', applies: [{ module: 'ziwei', limit: '流年', meetAll: ['七杀', '擎羊'] }] },
+      { id: 'ziwei.f.002', title: '流年昌曲', original: '乙', status: 'translated', applies: [{ module: 'ziwei', limit: '流年', stars: ['文昌', '文曲'] }] },
+      { id: 'ziwei.f.003', title: '七杀化忌', original: '丙', status: 'translated', applies: [{ module: 'ziwei', star: '七杀', mutagen: '忌' }] },
+    ],
+  }]);
+  const hits = ziweiLimitPalaceHits(lib, palaces, 6, '流年', { scope });
+  assert.deepEqual(hits.map(({ entry }) => entry.id).sort(), ['ziwei.f.001', 'ziwei.f.002', 'ziwei.f.003']);
+  const reasons = Object.fromEntries(hits.map(({ entry, reason }) => [entry.id, reason]));
+  assert.equal(reasons['ziwei.f.001'], '运限·流年，三方四正·七杀、擎羊（流年）');
+  assert.equal(reasons['ziwei.f.002'], '运限·流年，星曜·文昌（流年）');
+  assert.equal(reasons['ziwei.f.003'], '星曜·七杀，四化·忌（流年）');
+  // 三方四正本命就有文曲、流曲又飞到本宫：按本宫星算的注「（流年）」，按三方四正算的不注。
+  const withQu = palaces.map((item) => (item.index === 0 ? { ...item, minorStars: [{ name: '文曲' }] } : item));
+  const quHits = ziweiLimitPalaceHits(buildLibrary([{ classic: 'ziwei', section: '测试', edition: '测试', entries: [
+    { id: 'ziwei.g.001', title: '甲', original: '甲', status: 'translated', applies: [{ module: 'ziwei', limit: '流年', star: '文曲' }] },
+    { id: 'ziwei.g.002', title: '乙', original: '乙', status: 'translated', applies: [{ module: 'ziwei', limit: '流年', meet: '文曲' }] },
+  ] }]), withQu, 6, '流年', { scope: { ...scope, stars: scope.stars.map((list, i) => (i === 6 ? [...list, { name: '流曲' }] : list)) } });
+  assert.deepEqual(Object.fromEntries(quHits.map(({ entry, reason }) => [entry.id, reason])), { 'ziwei.g.001': '运限·流年，星曜·文曲（流年）', 'ziwei.g.002': '运限·流年，三方四正·文曲' });
+  // 点名流曜的条件（flow / flowAll）：同条件里的星曜键只看本命的星——「擎羊重逢流羊」要本命有擎羊、流年又飞来流羊。
+  const chongfeng = buildLibrary([{ classic: 'ziwei', section: '测试', edition: '测试', entries: [
+    { id: 'ziwei.h.001', title: '擎羊重逢流羊', original: '甲', status: 'translated', applies: [{ module: 'ziwei', limit: '流年', star: '擎羊', flow: '流羊' }] },
+    { id: 'ziwei.h.002', title: '流年羊陀并', original: '乙', status: 'translated', applies: [{ module: 'ziwei', limit: '流年', flowAll: ['流羊', '流陀'] }] },
+    { id: 'ziwei.h.003', title: '流昌入命', original: '丙', status: 'translated', applies: [{ module: 'ziwei', limit: '流年', palace: '命宫', flow: ['流昌', '流曲'] }] },
+  ] }]);
+  // 命宫（申）本命只有七杀，流羊在寅（三方）：只凭流羊不算「擎羊重逢」；流昌在命宫算流昌入命；流羊流陀分在寅、巳（巳不在三方四正）不并。
+  const onlyFlow = ziweiLimitPalaceHits(chongfeng, palaces, 6, '流年', { scope });
+  assert.deepEqual(onlyFlow.map(({ entry }) => entry.id), ['ziwei.h.003']);
+  assert.equal(onlyFlow[0].reason, '运限·流年，宫位·命宫，流曜·流昌');
+  // 本命命宫有擎羊、流羊又飞到三方：重逢成立；流陀也飞到三方（子）：羊陀并。
+  const withYang = palaces.map((item) => (item.index === 6 ? { ...item, minorStars: [{ name: '擎羊' }] } : item));
+  const scope2 = { ...scope, stars: scope.stars.map((list, i) => (i === 10 ? [{ name: '流陀' }] : list)) };
+  const both = ziweiLimitPalaceHits(chongfeng, withYang, 6, '流年', { scope: scope2 });
+  assert.deepEqual(both.map(({ entry }) => entry.id).sort(), ['ziwei.h.001', 'ziwei.h.002', 'ziwei.h.003']);
+  assert.equal(both.find(({ entry }) => entry.id === 'ziwei.h.001').reason, '运限·流年，星曜·擎羊，流曜·流羊');
+  assert.equal(both.find(({ entry }) => entry.id === 'ziwei.h.002').reason, '运限·流年，流曜·流羊、流陀');
+  // 本命盘不认流曜条件。
+  assert.deepEqual(matchEntries(chongfeng, ziweiPalaceContextOf(withYang[6], { limit: '本命' })), []);
+  // 不传 scope 就只按本命星曜：流羊、流昌都不算。
+  assert.deepEqual(ziweiLimitPalaceHits(lib, palaces, 6, '流年').map(({ entry }) => entry.id), []);
 });
 
 test('运势提示词取条：前 n 条里没有专讲运限的，就把最后一条换成专讲运限的（先挑论大限、论流年篇章里的）', () => {
