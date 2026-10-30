@@ -191,10 +191,28 @@ test('从格、专旺按《滴天髓阐微·衰旺》任注的「旺极」「衰
   assert.ok(muJu.judge.special.unfavorable.some(({ element }) => element === '金'), '「惟忌西方金运克破」');
   // 「地支亥子丑，干透壬癸辛，局成润下」：丑在北方水局里，不作官杀之根。
   assert.ok(['zhuanwang', 'congqiang'].includes(judgeByPillars('壬子 辛亥 癸丑 壬子').judge.special?.kind));
-  // 同是木局，帮身打分不到旺极、月干丁火透出的，任注「取丁火食神秀气，非前造从强论也」。
+  // 同是木局，月干时干丁火两透，任注「取丁火食神秀气，非前造从强论也」：局全作专旺，但食伤成势，以食伤吐秀为用、比劫生之，
+  // 印克食伤为忌（「壬申木火皆伤，破局」）；不作印比为用的从强。
   const xiuQi = judgeByPillars('甲寅 丁卯 乙未 丁亥');
-  assert.equal(xiuQi.judge.special, null);
+  assert.equal(xiuQi.judge.special.kind, 'zhuanwang');
+  assert.match(xiuQi.judge.special.basis, /食伤透干有根，旺势有处吐秀/);
+  assert.deepEqual(xiuQi.judge.special.favorable.map(({ element }) => element), ['火', '木']);
+  assert.deepEqual(xiuQi.judge.special.unfavorable.map(({ element }) => element), ['水', '金']);
   assert.equal(xiuQi.strength.favorable[0].element, '火');
+
+  // 方局篇：「支全寅卯辰，东方一气，化神者丙丁也」（打分不到四分也作专旺）；「丁卯 甲辰 甲寅 乙亥……格名曲直仁寿」；
+  // 「支全火局，木从火势，格成炎上」——寅午戌外的未是火之余气，随局论。
+  assert.equal(judgeByPillars('甲寅 丁卯 甲辰 丙寅').judge.special.name, '疑似曲直格（专旺）');
+  assert.equal(judgeByPillars('甲寅 丁卯 甲辰 丙寅').judge.special.favorable[0].element, '火', '「化神者丙丁也」，食伤两透以吐秀为用');
+  assert.equal(judgeByPillars('丁卯 甲辰 甲寅 乙亥').judge.special.name, '疑似曲直格（专旺）');
+  assert.equal(judgeByPillars('丙寅 甲午 丙戌 乙未').judge.special.name, '疑似炎上格（专旺）');
+  // 「癸卯 丙辰 甲辰 丙寅：此造财旺提纲，丙食生助，当以财星为用……不论成方成局，必先察财官之势」：辰辰财旺，局全也不作专旺。
+  const caiWang = judgeByPillars('癸卯 丙辰 甲辰 丙寅');
+  assert.equal(caiWang.judge.special, null);
+  // 食伤只透一位而印也透出的，仍按印比为用（「戊寅 丁巳 丙寅 甲午」书取火；「癸酉 甲子 癸亥 辛酉」「一点甲木枯浮，难泄水气」，大取金水）。
+  const kuFu = judgeByPillars('癸酉 甲子 癸亥 辛酉');
+  assert.equal(kuFu.judge.special.name, '疑似润下格（专旺）');
+  assert.deepEqual(kuFu.judge.special.favorable.slice(0, 2).map(({ element }) => element), ['水', '金']);
 });
 
 test('从格看地支、化气看化神得势：任注从象、化象、顺局诸造', () => {
