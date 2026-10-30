@@ -106,7 +106,8 @@ export default function BaziDatePicker({ chart, strength, now, personName = '', 
                 </div>
                 <p className="mt-1.5 text-[11px] leading-5 text-[#81776b]">{purposeInfo.hint}。</p>
                 <div className="mt-3 flex flex-wrap items-end gap-2">
-                    <div className="min-w-0 flex-1">
+                    {/* 日期框至少放得下完整日期；手机上放不下就把「30 天 / 60 天 / 90 天」挤到下一行。 */}
+                    <div className="min-w-[10.5rem] flex-1">
                         <label htmlFor={startId} className="block text-[11px] font-medium text-[#81776b]">从哪天开始看</label>
                         <input
                             id={startId}
