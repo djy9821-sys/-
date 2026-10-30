@@ -277,3 +277,22 @@ test('determinePattern 可单独调用', () => {
   const chart = buildBaziChart({ calendarType: 'solar', year: 1998, month: 1, day: 2, gender: 'male', hourIndex: 4 }, NOW);
   assert.equal(determinePattern(chart).name, '偏财格');
 });
+
+test('时辰不详只有三柱：五行缺失照实说「已知的六个字」，全缺时注明时柱未计', () => {
+  // 壬申 壬寅 庚辰（时辰不详）：六个字里不见火，寅中藏丙火。
+  const chart = buildBaziChart({ calendarType: 'solar', year: 1992, month: 3, day: 5, gender: 'female', timeMode: 'unknown' }, NOW);
+  assert.equal(ganZhiOf(chart).trim(), '壬申 壬寅 庚辰');
+  const strength = analyzeStrength(chart);
+  assert.equal(analyzeWuxingGap(chart, strength).text, '已知的六个字里不见火；寅中藏丙火');
+  // 甲子 丙子 癸卯（时辰不详）：土、金在三柱里藏干也没有。
+  const noEarth = buildBaziChart({ calendarType: 'solar', year: 1985, month: 1, day: 4, gender: 'male', timeMode: 'unknown' }, NOW);
+  assert.equal(ganZhiOf(noEarth).trim(), '甲子 丙子 癸卯');
+  assert.equal(analyzeWuxingGap(noEarth, analyzeStrength(noEarth)).text, '五行缺土、金（藏干里也没有；时柱不详，未计在内）');
+});
+
+test('五行俱全而最弱的正是日主那一行：说明「除日主本身外」（五行力量不计日干）', () => {
+  // 庚辰 乙酉 丙子（时辰不详）：火只有日主丙火自己，力量统计里是 0%。
+  const chart = buildBaziChart({ calendarType: 'solar', year: 2000, month: 9, day: 15, gender: 'male', timeMode: 'unknown' }, NOW);
+  assert.equal(ganZhiOf(chart).trim(), '庚辰 乙酉 丙子');
+  assert.equal(analyzeWuxingGap(chart, analyzeStrength(chart)).text, '五行俱全，除日主本身外火最弱（0%）');
+});
