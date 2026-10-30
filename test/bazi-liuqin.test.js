@@ -103,12 +103,12 @@ test('女命：「女命之夫星，即是用神；女命之子星，即是喜�
 });
 
 test('妻宫坐财只算正财、偏财（劫财是比劫），断语照任注原话「必得妻财」', () => {
-  // 甲寅 壬申 癸巳 癸亥：癸水坐巳，巳中本气丙火正财，财为喜用。
-  const zuoCai = itemOf(liuqinOf(chartByPillars('甲寅 壬申 癸巳 癸亥')), 'spouse');
+  // 己未 丁丑 壬午 庚戌：壬水坐午，午中本气丁火正财，财为喜用，午不逢冲。
+  const zuoCai = itemOf(liuqinOf(chartByPillars('己未 丁丑 壬午 庚戌')), 'spouse');
   assert.equal(zuoCai.palaces[0].shiShen, '正财');
   assert.equal(zuoCai.ren.text, '日主坐财，财为喜用，任注「必得妻财」');
-  // 壬子 癸丑 丙午 壬辰：丙火坐午，午中本气丁火是劫财，不是财；喜用而坐，只说妻宫坐喜神。
-  const zuoJie = itemOf(liuqinOf(chartByPillars('壬子 癸丑 丙午 壬辰')), 'spouse');
+  // 庚申 壬午 癸亥 甲寅：癸水坐亥，亥中本气壬水是劫财，不是财；喜用而坐，只说妻宫坐喜神。
+  const zuoJie = itemOf(liuqinOf(chartByPillars('庚申 壬午 癸亥 甲寅')), 'spouse');
   assert.equal(zuoJie.palaces[0].shiShen, '劫财');
   assert.equal(zuoJie.ren.text, '妻宫（日支）坐喜神，古法主妻贤有助');
 });
@@ -180,6 +180,17 @@ test('用神受制看制伏时，湿土止不住水（任注「丑乃湿土，�
   const children = itemOf(liuqin, 'children');
   assert.equal(children.tone, 'bad');
   assert.match(children.ren.text, /用神火（透月干丙，作时支午本气）受水重克，无木通关、湿土止不住水，古法看作子息艰难$/);
+});
+
+test('妻宫坐喜神却被克它的一支冲去，按克妻看；被它克的一支来冲不算（任注「巳亥逢冲」「酉金冲去卯木」）', () => {
+  // 甲寅 壬申 癸巳 癸亥「巳亥逢冲，群劫纷争，所以连克三妻」：日支巳火是财、是喜，被时支亥水冲去。
+  const chong = itemOf(liuqinOf(chartByPillars('甲寅 壬申 癸巳 癸亥')), 'spouse');
+  assert.equal(chong.tone, 'bad');
+  assert.match(chong.ren.text, /^妻宫（日支）虽坐喜神，却被水冲去/);
+  // 丁未 乙巳 丁酉 癸卯「最喜坐下酉金冲去卯木，生起癸水……得妻财万仞」：酉金克卯木，被冲去的是卯，妻宫照坐财论。
+  const you = itemOf(liuqinOf(chartByPillars('丁未 乙巳 丁酉 癸卯')), 'spouse');
+  assert.equal(you.tone, 'good');
+  assert.match(you.ren.text, /日主坐财，财为喜用/);
 });
 
 test('只合紧贴的天干：隔位的不算合住', () => {
