@@ -449,6 +449,8 @@ export const analyzeStrength = (chart) => {
   const { basis } = fuYi;
   let { favorable } = fuYi;
   let urgent = null;
+  /** 寒暖本该为急、却让位于扶抑的缘由（任注），写进调候说明。 */
+  let yielded = '';
   if (tiaoHou) {
     const element = tiaoHou.element;
     // 调候为急也有让位于扶抑的时候（任注）：身弱而调候的那一行是官杀、官杀力量已在 3 分以上的，杀重身轻，火只是暖局——
@@ -458,8 +460,13 @@ export const analyzeStrength = (chart) => {
     const officer = CONTROLLED_BY[dayWuxing];
     const shaHeavyWeak = element === officer && !leansStrong && scores[officer] >= URGENT_SHA_SCORE;
     const zhenShenDeYong = element === GENERATES[dayWuxing] && leansStrong && fuYi.favorable[0] === officer && monthMain && GAN_WUXING[monthMain.gan] === officer;
-    urgent = URGENT_TIAOHOU[byKey.month?.zhi]?.element === element && usable.has(element) && rootedElementsOf(chart).has(element) && !shaHeavyWeak && !zhenShenDeYong
-      ? URGENT_TIAOHOU[byKey.month.zhi] : null;
+    const couldUrge = URGENT_TIAOHOU[byKey.month?.zhi]?.element === element && usable.has(element) && rootedElementsOf(chart).has(element);
+    urgent = couldUrge && !shaHeavyWeak && !zhenShenDeYong ? URGENT_TIAOHOU[byKey.month.zhi] : null;
+    if (couldUrge && shaHeavyWeak) {
+      yielded = `${URGENT_TIAOHOU[byKey.month.zhi].label}本宜${element}，但身弱而${element}是官杀、已重，${element === '火'
+        ? '火只取其暖局之意（任注「凡冬金喜火，取其暖局之意，非作用神也」）' : '水只能解燥（任注「日主三面受敌……全赖午火旺刃当权为用」）'}，不作用神`;
+    }
+    else if (couldUrge && zhenShenDeYong) yielded = `${URGENT_TIAOHOU[byKey.month.zhi].label}本宜${element}，但比劫多而官杀当令，扶抑正取官杀制劫（任注「真神得用」），${element}泄身不急`;
     if (urgent) favorable = [element, ...favorable.filter((item) => item !== element)];
     else if (!favorable.includes(element)) favorable = [...favorable, element];
   }
@@ -472,6 +479,7 @@ export const analyzeStrength = (chart) => {
   if (tiaoHou) {
     const element = tiaoHou.element;
     if (urgent) tiaoHouNote = `${urgent.label}，调候为急：${element}有力有根，${fuYi.unfavorable.includes(element) ? `扶抑虽嫌${element}，仍` : ''}取${element}为先`;
+    else if (yielded) tiaoHouNote = `${yielded}${unfavorable.includes(element) ? '，列为忌神' : favorable.includes(element) ? '，只同列喜用' : ''}`;
     else if (yong === element || fuYi.favorable[0] === element) tiaoHouNote = `调候宜${element}，与扶抑取用一致`;
     else if (favorable.includes(element)) tiaoHouNote = `调候宜${element}，${element}${GENERATES[element] === yong ? '生用神' : '与用神相生'}，同列喜用`;
     else if (unfavorable.includes(element)) tiaoHouNote = `调候宜${element}，但${element}${CONTROLS[element] === yong ? '克用神' : '为用神所克'}，以用神为重，不作喜用`;
