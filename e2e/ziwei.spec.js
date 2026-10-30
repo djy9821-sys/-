@@ -81,6 +81,8 @@ test('常用功能里的古籍原文：默认看命宫，列出宫中星曜与�
   await expect(modal.getByTestId('ziwei-classics-limit')).toContainText(/\d{4} 年小限（虚岁 \d+，[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]）：命宫在本命盘的/);
   await layer.getByRole('button', { name: '今年流年' }).click();
   await expect(modal.getByTestId('ziwei-classics-limit')).toContainText(/\d{4} 年流年：命宫在本命盘的/);
+  // 流年层另标流年斗君（正月）所落的本命宫（《全书》卷一安流年斗君诀）。
+  await expect(modal.getByTestId('ziwei-classics-doujun')).toContainText(/^流年斗君（正月）在本命[^（]+（[子丑寅卯辰巳午未申酉戌亥]宫）。$/);
   await layer.getByRole('button', { name: '本命盘' }).click();
   await expect(palacePicker.getByRole('button', { name: /^命宫/ })).toBeVisible();
 
