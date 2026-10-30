@@ -138,7 +138,7 @@ const pickForTiming = (candidates) => {
 };
 
 /**
- * 用神两现（《增删卜易·两现章》）：古法舍静用动、舍休囚用旺相、舍空破用不空不破；野鹤占父近病「三重父母，当择其旺者而用之」。
+ * 用神两现（《增删卜易·两现章》）：古法舍静用动、舍休囚用旺相、舍空破用不空不破；野鹤占父近病「三重父母爻，当择其旺者而用之」。
  * 断成败时先取发动之爻，再取其中旺者；一样旺弱时取临世应、在上之爻。
  */
 const pickAmong = (candidates, time) => {
@@ -360,7 +360,7 @@ const sanHeFramesOf = (lines, time) => SAN_HE.map(({ zhis, element }) => {
  * 无力：化回头克、化绝、化破、化墓、入日墓；休囚而化退、临绝、逢空破、被日月动爻克。
  * 有力：旺相、临日月、化回头生、化进神、长生帝旺于日辰。都不沾的为寻常。
  * 动爻不论月破（野鹤《月破章》：动则能于伤爻，出月不破）。忌神被别的动爻所制（求财章「官爻发动亦堪求」、
- * 产妇章「兄鬼同动反为有救」），衰者无力，不衰的也降一等。
+ * 产妇章「倘若兄动克财，又宜鬼动制服兄爻」），衰者无力，不衰的也降一等。
  * @param controllers 克这一爻的其他动爻
  * @param role 'helper' 元神 / 'enemy' 忌神 / 其他
  */
@@ -443,7 +443,7 @@ const dynamicsOf = (yong, lines, time, { sonsBless = false, framed = new Set() }
         text = `${who}为元神${notes ? `，${notes}` : ''}，生用神`;
       }
     } else if (relation === 'controlled' && sonsBless && line.relative === '子孙') {
-      // 出行章「子孙克世者亦吉」，趋避章「子孙发动，不拘克世、生世、持世，俱以为吉」
+      // 出行章「子孙克世者亦吉」，趋避章「子孙若发动于卦中，不拘克世持世，俱以为吉」
       delta = 1;
       text = `${who}，子孙为福神，克世亦吉`;
     } else if (relation === 'controlled') {
@@ -564,7 +564,7 @@ const injuryOf = (line, clash) => {
 
 /**
  * 各类别在用神旺衰、动变、世应之外的专门断法，返回 { score, points, notices }。
- * 依据《增删卜易》各章原文；失物用通行的《黄金策》「失脱」之法与千金赋「失脱遇用神化墓」。
+ * 依据《增删卜易》各章原文；失物用通行的《黄金策》「失脱」之法与千金赋「墓多暧昧」（野鹤注：用神动而化墓，「失脱遇之，暗藏不见」）。
  */
 const TOPIC_RULES = Object.freeze({
   // 千金赋：占流年，以官为鬼，不宜官鬼持世；泽水困占例：世空而忌神动，出空遭伤。替别人问以那人的用神为主。
@@ -988,7 +988,7 @@ const TOPIC_RULES = Object.freeze({
     }
     return { score, points: notes.length ? [`婚姻（婚姻章）：${notes.join('；')}`] : [], notices: [] };
   },
-  // 失物：以妻财为用神；千金赋「失脱遇用神化墓，若藏不见」
+  // 失物：以妻财为用神；千金赋「墓多暧昧」，野鹤注用神动而化墓「失脱遇之，暗藏不见」
   lost: ({ lines, yong, time }) => {
     let score = 0;
     const notes = [];
