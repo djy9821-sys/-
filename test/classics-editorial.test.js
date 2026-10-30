@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 import { buildGlossary, buildLibrary, searchGlossary } from '../src/data/classics/library.js';
-import { readerNotesOf, readerSentenceOf, sentencesOf } from '../src/data/classics/editorial.js';
+import { MISSING_CHAR_NOTE, displayTextOf, readerNotesOf, readerSentenceOf, sentencesOf } from '../src/data/classics/editorial.js';
 
 const files = loadDataFiles();
 
@@ -75,4 +75,21 @@ test('术语词典：指定模块时，本模块与通用词典都有的同一�
   assert.deepEqual(inZiwei.map((entry) => entry.module), ['common']);
   const all = searchGlossary(glossary, '纳音').filter((entry) => entry.id === 'na-yin');
   assert.equal(all.length, 2);
+});
+
+test('底本里电脑无法显示的字（Unicode 私用区）显示成缺字符号「□」，存疑里说明一句', () => {
+  assert.equal(displayTextOf('此人聪\uE4DF特达'), '此人聪□特达');
+  assert.equal(displayTextOf('刑\uE10F子息'), '刑□子息');
+  assert.equal(displayTextOf(undefined), undefined);
+  assert.deepEqual(readerNotesOf({ original: '此人聪\uE4DF特达', vernacular: '人「聪\uE4DF特达」', notes: '「特达」指通达。' }), {
+    notes: '「特达」指通达。',
+    doubts: [MISSING_CHAR_NOTE],
+  });
+  const library = buildLibrary(files.classics);
+  const pua = /[\uE000-\uF8FF]/u;
+  const shown = (entry) => [entry.title, entry.original, entry.vernacular, entry.readerNotes, ...entry.readerDoubts].join('|');
+  assert.deepEqual(library.entries.filter((entry) => pua.test(shown(entry))).map((entry) => entry.id), []);
+  // 数据里原有私用区字符的条目，界面都带上这句说明
+  const raw = files.classics.flatMap(({ doc }) => doc?.entries ?? []).filter((entry) => pua.test(`${entry.original}${entry.vernacular ?? ''}`));
+  raw.forEach((entry) => assert.ok(library.byId.get(entry.id).readerDoubts.includes(MISSING_CHAR_NOTE), entry.id));
 });
