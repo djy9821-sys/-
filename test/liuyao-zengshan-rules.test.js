@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { buildLiuYaoPrompt, buildLiuYaoReading } from '../src/utils/liuyao.js';
 import { assessStrength, judgeLiuYao, liuyaoNeedsGender, LIUYAO_SUBJECTS, topicSubjectDefault } from '../src/utils/liuyaoJudge.js';
 import { buildLiuYaoRecord, describeLiuYaoRecord, LIUYAO_SUBJECT_LABELS, liuYaoRecordToInput } from '../src/utils/liuyaoRecord.js';
+import { HEXAGRAM_MAP } from '../src/utils/hexagramLogic.js';
 
 // 2026-10-26 13:47：戊戌月 癸酉日，旬空戌亥。
 const castAt = new Date(2026, 9, 26, 13, 47);
@@ -132,4 +133,108 @@ test('官司：子孙发动必不成非，官鬼持世定然有讼', () => {
   assert.match(allText(sons.judge), /子孙发动，必不成非/);
   const ghost = findCast({ topic: 'lawsuit' }, (reading) => reading.lines[reading.hexagram.shi - 1].relative === '官鬼' && !reading.movingPositions.length);
   assert.match(allText(ghost.judge), /官鬼持世，定然有讼/);
+});
+
+// 按《增删卜易》占例起卦：日期取月建、日辰与原书相同的一天正午（同 liuyao-cases.test.js）
+const HEX_BITS = Object.fromEntries(Object.entries(HEXAGRAM_MAP).map(([key, hexagram]) => [hexagram.name, [...key].reverse().map(Number)]));
+const bookCase = (hex, moving, date, meta) => {
+  const [y, m, d] = date.split('-').map(Number);
+  const values = HEX_BITS[hex].map((bit, i) => (moving.includes(i + 1) ? (bit ? 9 : 6) : (bit ? 7 : 8)));
+  return judgeLiuYao(buildLiuYaoReading(values, new Date(y, m - 1, d, 12, 0), { gender: 'male', ...meta }));
+};
+
+test('回头克：化回头冲克如逢仇敌；临日月逢伤待时，寡不敌众则伤；世化回头克；卦变回头克皆以凶推', () => {
+  // 占随官上任（卯月壬申日，比之井）：世临月建之官，化酉金回头冲克，又绝于申日
+  const officer = bookCase('水地比', [2, 3], '2001-3-10', { topic: 'career' });
+  assert.match(allText(officer), /化子孙辛酉回头冲克，如逢仇敌/);
+  assert.match(allText(officer), /用神虽临月建，而日辰又来克，寡不敌众/);
+  assert.equal(officer.verdict.level, 'bad');
+  // 占谒贵（酉月丙寅日，蛊之蒙）：世临月建之官，被午火回头之克，须待子日冲去午火
+  const visit = bookCase('山风蛊', [3], '2006-10-4', { topic: 'career' });
+  assert.match(allText(visit), /用神临月建，逢伤亦伤，却有待时之用，待子日冲去克神/);
+  // 占病（申月戊午日，遁之姤）：世爻午火临日辰，申金月建生亥水回头克世
+  const ill = bookCase('天山遁', [2], '2001-8-23', { topic: 'health', subject: 'self' });
+  assert.match(allText(ill), /用神虽临日辰，而克神得月建生扶，寡不敌众/);
+  assert.equal(ill.verdict.level, 'bad');
+  // 占开铺（寅月辛酉日，艮之明夷）：世化回头之克，用神是财而不是世
+  const shop = bookCase('艮为山', [1, 6], '2001-2-27', { topic: 'wealth' });
+  assert.match(allText(shop), /世爻动而化癸酉回头克，所谋多凶/);
+  assert.equal(shop.verdict.level, 'bad');
+  // 代占则只提醒问卦的人自己
+  const proxy = bookCase('艮为山', [1, 6], '2001-2-27', { topic: 'health', subject: 'parents' });
+  assert.match(allText(proxy), /世爻动而化癸酉回头克，问卦的人自己也要当心/);
+  // 占长子病（寅月癸酉日，震之兑）：卦变回头之克，少女亦难保
+  const son = bookCase('震为雷', [2, 5], '2003-3-1', { topic: 'health', subject: 'children' });
+  assert.match(allText(son), /卦变回头克（震为雷木化兑为泽金）/);
+  assert.equal(son.verdict.level, 'bad');
+  // 不是八纯卦内外同变的，不按卦变论（艮之颐，卦宫土化木，原书吉）
+  const promoted = bookCase('艮为山', [1, 3], '2007-3-3', { topic: 'career' });
+  assert.doesNotMatch(allText(promoted), /卦变回头克/);
+  assert.equal(promoted.verdict.level, 'good');
+});
+
+test('世应与三合：用神持世；应爻休囚安静生之不起；合局之爻月破无扶，待填实', () => {
+  // 占将来有官否再占（亥月己丑日，水地比）：「命若无官，难得……官星以持世也」
+  const officer = bookCase('水地比', [], '2001-11-22', { topic: 'career' });
+  assert.match(allText(officer), /用神持世，事在自己手里/);
+  assert.equal(officer.verdict.level, 'good');
+  // 占复起功名（寅月丙辰日，地泽临）：「九五来生，今被日克」
+  const again = bookCase('地泽临', [], '2001-2-22', { topic: 'career' });
+  assert.match(allText(again), /应爻虽生世，而休囚安静，生之不起/);
+  assert.equal(again.verdict.level, 'mixed');
+  // 占后遇功名（午月癸卯日，艮之观）：「子水破而化空……作元神而无用」，申子辰目下不成局
+  const later = bookCase('艮为山', [3, 5], '2001-6-9', { topic: 'career' });
+  assert.match(allText(later), /申子辰欲合水局，但五爻子月破无生扶，目下不成局/);
+  assert.doesNotMatch(allText(later), /申子辰合成水局/);
+  assert.equal(later.verdict.level, 'mixed');
+});
+
+test('不看用神而断：六冲变六合竟以吉断，久病逢冲不治、近病逢冲即愈，子孙变鬼万无一活', () => {
+  // 占悔婚可成（未月丁巳日，离之旅）：「此卦从来难以吉断，因得屡验六冲变合……此婚一定还成」
+  const marry = bookCase('离为火', [1], '2004-8-6', { topic: 'love' });
+  assert.match(allText(marry), /六冲卦变六合者，不看用神，竟以吉断/);
+  assert.equal(marry.verdict.level, 'good');
+  // 占久病（戌月癸未日，乾之夬）：「久病逢冲莫治」
+  const chronic = bookCase('乾为天', [6], '2003-11-6', { topic: 'health', subject: 'self', illness: 'chronic' });
+  assert.equal(chronic.verdict.level, 'bad');
+  // 占妻病（午月己卯日，震之丰）：「近病逢冲即愈」
+  const recent = bookCase('震为雷', [3], '2003-7-5', { topic: 'health', subject: 'spouse', illness: 'recent' });
+  assert.equal(recent.verdict.level, 'good');
+  // 卦变回头克「新病亦主危亡」，压过近病逢冲：占长子病（震之兑）当新病问也断偏弱
+  const son = bookCase('震为雷', [2, 5], '2003-3-1', { topic: 'health', subject: 'children', illness: 'recent' });
+  assert.equal(son.verdict.level, 'bad');
+  // 占子易养否（亥月丙辰日，姤之旅）：「亥水子孙临月建……旺莫旺于此也……岂知子孙变鬼」
+  const child = bookCase('天风姤', [2, 5], '2004-12-3', { topic: 'children' });
+  assert.match(allText(child), /子孙变鬼，大凶之兆/);
+  assert.equal(child.verdict.level, 'bad');
+});
+
+test('出行世动逢合；进神化空仍进；用神临应克世来就我', () => {
+  // 占出行（申月丙子日，明夷之小过）：「合住，必有事绊，不能动身」
+  const trip = bookCase('地火明夷', [1, 4], '2002-9-5', { topic: 'travel', subject: 'self' });
+  assert.match(allText(trip), /世动逢合（化合或日辰合住），必有事故阻滞不行/);
+  assert.equal(trip.verdict.level, 'bad');
+  // 占考试中否（酉月乙丑日，兑之讼）：「此卦动散化空亦能中矣」
+  const exam = bookCase('兑为泽', [1, 6], '2005-10-8', { topic: 'study' });
+  assert.match(allText(exam), /化壬戌进神，越走越旺，变爻旬空（进退不因空破而改）/);
+  assert.equal(exam.verdict.level, 'good');
+  // 占求财（未月庚子日，风天小畜）：「应临月建之财以克世，许之必得」
+  const money = bookCase('风天小畜', [], '2001-8-5', { topic: 'wealth' });
+  assert.match(allText(money), /用神临应而克世，用神来就我/);
+  assert.equal(money.verdict.level, 'good');
+});
+
+test('行人三合冲开而来；世爻独发与日月共成三合；寻地世爻化回头克非吉地', () => {
+  // 占伯何日来（未月戊戌日，屯之随）：「父母为用神，克世者速至」；用神在申子辰局中，行人章「用神三合，冲开之月日而来」
+  const uncle = bookCase('水雷屯', [4], '2001-8-3', { topic: 'travel', subject: 'parents' });
+  assert.match(allText(uncle), /用神在局中，被合住，冲开之月日而来/);
+  assert.equal(uncle.verdict.level, 'good');
+  // 占墓地（寅月戊午日，颐之无妄）：「日月世爻共成三合，青龙戏水」
+  const tomb = bookCase('山雷颐', [4, 5], '2001-2-24', { topic: 'gravesite' });
+  assert.match(allText(tomb), /寅午戌合成火局，生用神/);
+  assert.equal(tomb.verdict.level, 'good');
+  // 占以父柩附葬祖茔（子月丙申日，复之坤）：「世爻被克，不宜附葬」；寻地章「化回头克……皆非吉地」
+  const rebury = bookCase('地雷复', [1], '2007-1-2', { topic: 'gravesite' });
+  assert.match(allText(rebury), /世爻动而化破、化墓绝、化退或化回头克，但逢一者，皆非吉地/);
+  assert.equal(rebury.verdict.level, 'bad');
 });
