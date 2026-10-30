@@ -261,9 +261,10 @@ const renReadingOf = (key, { female, ctx, basis, pillars, scores, byKey, stars, 
     if (rule) return { source, tone: rule.tone, rule, god: null, text: ruleText(rule) };
     const palace = palaces.find((item) => !item.missing);
     if (palace && palace.tone !== 'neutral') {
-      const zuoCai = /财/.test(palace.shiShen ?? '');
+      // 坐财只算正财、偏财（「劫财」是比劫，不是财）；任注原话是「日主坐财，财为喜用者，必得妻财」。
+      const zuoCai = palace.shiShen === '正财' || palace.shiShen === '偏财';
       const text = palace.tone === 'good'
-        ? (zuoCai ? '日主坐财，财为喜用，任注主得贤妻' : '妻宫（日支）坐喜神，古法主妻贤有助')
+        ? (zuoCai ? '日主坐财，财为喜用，任注「必得妻财」' : '妻宫（日支）坐喜神，古法主妻贤有助')
         : '妻宫（日支）坐忌神，古法主夫妻难以全美';
       return { source, tone: palace.tone, rule: null, god: null, text };
     }
