@@ -525,9 +525,11 @@ export const detectAbsentRoles = (summary) => ROLES
   .filter((role) => role !== '比劫' && summary.roleCount[role] === 0)
   .map((role) => ({ role, text: { 印: '无印星', 食伤: '无食伤', 财: '无财星', 官杀: '无官星' }[role] }));
 
-/** 五行缺失：八个字里没有的，以及藏干里也没有的。 */
+/** 五行缺失：八个字里没有的，以及藏干里也没有的。时辰不详只有三柱六个字，照实说「已知的六个字」。 */
 export const analyzeWuxingGap = (chart, strength) => {
   const pillars = knownPillars(chart);
+  const charsText = pillars.length === 4 ? '八个字' : `已知的${['', '两', '四', '六'][pillars.length] ?? pillars.length * 2}个字`;
+  const hourNote = pillars.length === 4 ? '' : '；时柱不详，未计在内';
   const surface = new Set(pillars.flatMap((pillar) => [GAN_WUXING[pillar.gan], ZHI_WUXING[pillar.zhi]]));
   const hidden = new Set(pillars.flatMap((pillar) => pillar.hiddenGanDetails.map((detail) => GAN_WUXING[detail.gan])));
   const missingSurface = WUXING.filter((element) => !surface.has(element));
@@ -543,11 +545,12 @@ export const analyzeWuxingGap = (chart, strength) => {
 
   let text;
   if (!missingSurface.length) {
-    text = `五行俱全，${weakest}最弱（${strength.percents[weakest] ?? 0}%）`;
+    // 五行力量不计日干：最弱的正是日主那一行时说明一句，免得「五行俱全，火最弱（0%）」看着像自相矛盾。
+    text = `五行俱全，${weakest === chart.dayMaster?.wuxing ? '除日主本身外' : ''}${weakest}最弱（${strength.percents[weakest] ?? 0}%）`;
   } else if (missingAll.length === missingSurface.length) {
-    text = `五行缺${missingAll.join('、')}（藏干里也没有）`;
+    text = `五行缺${missingAll.join('、')}（藏干里也没有${hourNote}）`;
   } else {
-    text = `八个字里不见${missingSurface.join('、')}${missingAll.length ? `，其中${missingAll.join('、')}藏干里也没有` : ''}；${hiddenOnly.map((item) => item.text).join('、')}`;
+    text = `${charsText}里不见${missingSurface.join('、')}${missingAll.length ? `，其中${missingAll.join('、')}藏干里也没有` : ''}；${hiddenOnly.map((item) => item.text).join('、')}`;
   }
   let hint = '缺什么不等于补什么：补救以喜用为准。';
   if (favorableMissing.length) hint = `所缺的${favorableMissing.join('、')}正是喜用，可以适当留意。`;
