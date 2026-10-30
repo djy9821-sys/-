@@ -183,6 +183,18 @@ test('从格、专旺按《滴天髓阐微·衰旺》任注的「旺极」「衰
   assert.equal(xieXiu.strength.favorable[0].element, '木');
   // 财星透干有根而无食伤生它的，仍作从强（「支类西方，又逢厚土，金旺极者，似水也」，戊子己丑庚运名利皆遂）。
   assert.equal(judgeByPillars('庚申 乙酉 庚戌 庚辰').judge.special.kind, 'congqiang');
+
+  // 地支会成三合、三会局的按局的五行看四支本气：「此木局全，混一寅字，然四柱无金，其势从强」，亥卯未木局里的未土不算财根。
+  const muJu = judgeByPillars('甲寅 乙亥 乙卯 癸未');
+  assert.ok(['zhuanwang', 'congqiang'].includes(muJu.judge.special?.kind), '亥卯未木局，从强');
+  assert.equal(muJu.judge.special.favorable[0].element, '木');
+  assert.ok(muJu.judge.special.unfavorable.some(({ element }) => element === '金'), '「惟忌西方金运克破」');
+  // 「地支亥子丑，干透壬癸辛，局成润下」：丑在北方水局里，不作官杀之根。
+  assert.ok(['zhuanwang', 'congqiang'].includes(judgeByPillars('壬子 辛亥 癸丑 壬子').judge.special?.kind));
+  // 同是木局，帮身打分不到旺极、月干丁火透出的，任注「取丁火食神秀气，非前造从强论也」。
+  const xiuQi = judgeByPillars('甲寅 丁卯 乙未 丁亥');
+  assert.equal(xiuQi.judge.special, null);
+  assert.equal(xiuQi.strength.favorable[0].element, '火');
 });
 
 test('从格看地支、化气看化神得势：任注从象、化象、顺局诸造', () => {
