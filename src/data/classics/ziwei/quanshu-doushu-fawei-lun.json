@@ -81,20 +81,28 @@
       "applies": [
         {
           "module": "ziwei",
-          "stars": [
-            "左辅",
-            "右弼",
+          "palace": "命宫",
+          "star": [
             "紫微",
             "天府"
-          ]
+          ],
+          "meet": [
+            "左辅",
+            "右弼"
+          ],
+          "note": "左右会于紫府：紫微或天府守命，会左辅或右弼"
         },
         {
           "module": "ziwei",
-          "mutagen": "科"
-        },
-        {
-          "module": "ziwei",
-          "mutagen": "权"
+          "palace": "命宫",
+          "mutagen": [
+            "科",
+            "权"
+          ],
+          "brightness": [
+            "陷"
+          ],
+          "note": "科权陷于凶乡：化科或化权之星落陷守命"
         }
       ],
       "tags": [
