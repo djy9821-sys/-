@@ -243,10 +243,15 @@
           "module": "ziwei",
           "gender": "女",
           "palace": "命宫",
-          "stars": [
-            "武曲",
-            "破军"
-          ]
+          "star": "武曲",
+          "note": "武曲之宿为寡宿"
+        },
+        {
+          "module": "ziwei",
+          "gender": "女",
+          "palace": "命宫",
+          "star": "破军",
+          "note": "破军一曜性难明"
         }
       ],
       "tags": [
