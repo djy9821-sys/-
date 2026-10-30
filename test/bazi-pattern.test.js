@@ -227,6 +227,25 @@ test('从格、专旺按《滴天髓阐微·衰旺》任注的「旺极」「衰
   assert.equal(judgeByPillars('癸未 乙卯 甲戌 乙亥').judge.special, null);
 });
 
+test('两气成象：天干地支只有日主与食伤两行、各占一半，取食伤秀气为用（《滴天髓·形象》任注）；只认木火、火土、土金三种', () => {
+  // 「甲午 丁卯 甲午 丁卯：此造木火各半，两气成象，取丁火伤官，秀气为用」「丙午 戊戌 丙午 戊戌……取戌土食神」「戊戌 辛酉 戊戌 辛酉……取辛金伤官为用」。
+  const muHuo = judgeByPillars('甲午 丁卯 甲午 丁卯');
+  assert.equal(muHuo.judge.special.name, '两气成象（木火相生）');
+  assert.equal(muHuo.judge.special.kind, 'liangqi');
+  assert.deepEqual(godsOf(muHuo.judge.special.favorable), ['火食伤', '木比劫']);
+  assert.deepEqual(godsOf(muHuo.judge.special.unfavorable), ['水印', '金官杀']);
+  assert.match(muHuo.judge.special.basis, /^天干与地支本气只有木、火两行（4 比 4），两气成象；日主甲木是生的一方，以火（食伤）秀气为用。$/);
+  assert.equal(judgeByPillars('丙午 戊戌 丙午 戊戌').judge.special.name, '两气成象（火土相生）');
+  assert.equal(judgeByPillars('戊戌 辛酉 戊戌 辛酉').judge.special.name, '两气成象（土金相生）');
+  // 印局不作此论：「丁卯 乙巳 丁卯 乙巳：日主是火……木从火势，格成炎上」仍是专旺。
+  assert.equal(judgeByPillars('丁卯 乙巳 丁卯 乙巳').judge.special.name, '疑似炎上格（专旺）');
+  // 水木各半的两造任注都不作秀气论（「寅亥化木，伤官太重」「仍作偏枯论」），财局、杀局也不作此论。
+  assert.equal(judgeByPillars('癸亥 甲寅 癸亥 甲寅').judge.special, null);
+  assert.equal(judgeByPillars('壬寅 壬寅 壬寅 壬寅').judge.special, null);
+  assert.equal(judgeByPillars('戊戌 癸亥 戊戌 癸亥').judge.special, null);
+  assert.equal(judgeByPillars('癸亥 己未 癸亥 己未').judge.special, null);
+});
+
 test('从格看地支、化气看化神得势：任注从象、化象、顺局诸造', () => {
   // 「未土又会木局，不得不从杀矣」：亥卯未会成木局，己土的未根作木论。
   const sha = judgeByPillars('癸亥 乙卯 己未 丁卯');
