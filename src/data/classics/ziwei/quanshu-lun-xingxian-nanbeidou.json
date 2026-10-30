@@ -27,7 +27,15 @@
         },
         {
           "module": "ziwei",
-          "note": "小限"
+          "limit": "小限",
+          "gender": "男",
+          "note": "小限断上半年、下半年应"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "gender": "女",
+          "note": "小限断上半年、下半年应"
         }
       ],
       "tags": [
