@@ -11,9 +11,9 @@
  *   都不合时看妻宫（日支）坐喜坐忌，宫不分喜忌再看财星喜忌（「清者，喜神即是财星」）。
  * - 夫（女命）：「凡女命之夫星，即是用神」——先看任注克夫诸条（官星微、无财星、日主强、伤官重之类），都不合时看用神有力与否。
  * - 子女：男命「凡八字之用神即是子星」，先看任注子女诸条（日主旺、无印绶、有食伤，子必多……），都不合时看用神；
- *   女命「女命之子星，即是喜神」，看喜神（喜用第二位）。
+ *   女命「女命之子星，即是喜神」，看喜神（喜用第二位）。火炎土燥、局中全无湿气的，男女命都先断子息艰难。
  * - 父母：「财官印绶，在于年月，为日主之喜，父母不贵亦富；为日主之忌，不贫亦贱」——看年月两柱天干与本气的喜忌。
- * - 兄弟：「不论提纲之喜忌，全凭日主之爱憎」——看比劫是喜是忌。
+ * - 兄弟：先看任注「官轻伤重，比劫生伤……必遭兄弟之累」，不合时「不论提纲之喜忌，全凭日主之爱憎」——看比劫是喜是忌。
  * 用神、喜神取「五行与旺衰」一节的喜用第一、二位；认出从、化、专旺的，按此格论喜忌（与大运流年同一口径）。
  * 用神有力：透干或作某支本气，五行分数（日干不计）不少于 1.5；受制：克它的五行分数不少于 3 且是它的两倍以上，
  * 又没有通关（生用神者）、没有制伏（克那一行者）。各条只列结构与古法的看法，不断具体人事。
@@ -40,6 +40,8 @@ const PALACE_KINDS = ['反吟', '冲', '刑', '自刑', '害', '合', '半合', 
 const STRONG_SPECIAL = /从强|专旺|曲直|炎上|稼穑|从革|润下/;
 /** 五行分数（日干不计）的粗分：无 < 0.5，微 < 1，轻 < 1.5，有 ≥ 1，重 ≥ 3。 */
 const AMOUNT = Object.freeze({ none: 0.5, faint: 1, light: 1.5, has: 1, heavy: 3 });
+/** 火炎土燥要火重（≥ AMOUNT.heavy）、土也不轻（≥ 2.5 分）。 */
+const ZAO_EARTH = 2.5;
 
 const relativesOf = (female) => [
   {
@@ -171,6 +173,20 @@ const amountOf = (pillars, scores, element) => {
   };
 };
 
+const ZHI_CHONG = { 子: '午', 午: '子', 丑: '未', 未: '丑', 寅: '申', 申: '寅', 卯: '酉', 酉: '卯', 辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳' };
+const holds = (pillar, element) => (pillar.hiddenGanDetails ?? []).some((detail) => GAN_WUXING[detail.gan] === element);
+
+/**
+ * 财星够不够得着印（任注「财星坏印」与「财印相隔」之别）：财透干；或印透干而坐下藏财；
+ * 或藏财之支与藏印之支紧贴相冲。三样都没有，就是财印相隔。
+ */
+const caiMeetsYinOf = (pillars, cai, yin) => {
+  if (!cai || !yin) return false;
+  if (pillars.some((pillar) => pillar.key !== 'day' && GAN_WUXING[pillar.gan] === cai)) return true;
+  if (pillars.some((pillar) => pillar.key !== 'day' && GAN_WUXING[pillar.gan] === yin && holds(pillar, cai))) return true;
+  return pillars.some((a) => pillars.some((b) => adjacent(a.key, b.key) && ZHI_CHONG[a.zhi] === b.zhi && holds(a, cai) && holds(b, yin)));
+};
+
 /**
  * 用神（或喜神）的成色：不现、受制、有力、力薄。
  * @returns {{ element: string, state: 'absent'|'restrained'|'strong'|'weak', tone: 'good'|'bad'|'neutral', text: string }|null}
@@ -203,7 +219,9 @@ const QI_RULES = [
   { when: ({ bi, cai, shi, yin }) => bi.heavy && cai.light && shi.has && yin.has, tone: 'bad', cond: '劫刃重，财星轻，有食伤而逢枭印', verdict: '妻有凶险', original: '主妻遭凶死' },
   { when: ({ bi, cai, guan }) => cai.light && guan.none && bi.heavy, tone: 'bad', cond: '财神轻而无官，比劫多', verdict: '克妻', original: '主克妻' },
   { when: ({ body, bi, cai }) => cai.heavy && body === 'weak' && bi.light, tone: 'bad', cond: '财神重而身弱，无比劫', verdict: '克妻', original: '主克妻' },
-  { when: ({ guan, cai, yongRole }) => guan.heavy && yongRole === '印' && cai.has, tone: 'bad', cond: '官杀旺而用印，见财星', verdict: '妻宫不美、有刑克', original: '主妻陋而克' },
+  // 「见财星」要财星够得着印（坏印）：财透干，或印干坐下藏财，或藏财之支紧贴冲印之支；财印相隔的不算
+  // （任注「甲子 丙寅 戊寅 己未」杀旺用印，财藏年支，「喜其财印相隔，生生不悖」，夫妇齐眉）。
+  { when: ({ guan, cai, yongRole, caiMeetsYin }) => guan.heavy && yongRole === '印' && cai.has && caiMeetsYin, tone: 'bad', cond: '官杀旺而用印，见财星', verdict: '妻宫不美、有刑克', original: '主妻陋而克' },
   { when: ({ cai, guan, shi, yin }) => cai.faint && guan.heavy && shi.none && yin.has, tone: 'bad', cond: '财星微，官杀旺，无食伤，有印绶', verdict: '妻多病弱', original: '主妻有弱病' },
 ];
 
@@ -220,12 +238,19 @@ const FU_RULES = [
 ];
 
 /**
+ * 任注《女命》「火炎土燥无子」：局中全无湿气（日干不是壬癸，水 0 分，又无辰、丑湿土），火重、土也不轻。男命任注论命造也以此断克子
+ * （「乙未 辛巳 戊戌 丁巳」「局中全无湿气……生十二子，刑过十子」；「丙寅 戊戌 丁酉 乙巳」「柱中无水，戌乃燥土……妻妾生十子皆克」）。
+ */
+const ZAO_RULE = { when: ({ zao }) => zao, tone: 'bad', cond: '火炎土燥，局中全无湿气', verdict: '子息艰难', original: '火炎土燥无子' };
+
+/**
  * 任注《子女》（男命以食伤为子），按先后取第一条合的。条文据 1947 年大东书局《滴天髓阐微》扫描本（古籍库
  * ditian.renzhu.liuqin.005、006）。原书另有「日主弱，有印绶，无食伤，子必多」「日主弱，印绶轻，有财星，子必无」
  * 「日主弱，食伤旺，有印绶，遇财星，虽有若无」「日主弱，官杀旺，有印绶，遇财星，有子必逆」等条，拿任注自己的命造
  * 对照，按程序的旺衰、多少粗分去套反而多断错，暂不收，只在古籍库里录原文。
  */
 const ZINV_RULES = [
+  ZAO_RULE,
   { when: ({ body, yin, shi }) => body === 'strong' && yin.none && shi.has, tone: 'good', cond: '日主旺，无印绶，有食伤', verdict: '子息多', original: '子必多' },
   { when: ({ body, yin, shi, cai }) => body === 'strong' && yin.heavy && shi.light && cai.has, tone: 'good', cond: '日主旺，印绶重，食伤轻，有财星', verdict: '子多而贤', original: '子多而贤' },
   { when: ({ body, yin, shi, cai }) => body === 'strong' && yin.heavy && shi.none && cai.has, tone: 'good', cond: '日主旺，印绶多，无食伤，有财星', verdict: '子多而能', original: '子多而能' },
@@ -236,8 +261,17 @@ const ZINV_RULES = [
   { when: ({ body, shi, yin }) => body === 'weak' && shi.heavy && yin.none, tone: 'bad', cond: '日主弱，食伤重，印绶无', verdict: '子息艰难', original: '亦无子' },
   { when: ({ body, shi, bi, guan }) => body === 'weak' && shi.light && bi.none && guan.has, tone: 'bad', cond: '日主弱，食伤轻，无比劫，有官星', verdict: '子息艰难', original: '子必无' },
   { when: ({ body, guan, yin, cai }) => body === 'weak' && guan.heavy && yin.light && cai.faint && cai.hidden, tone: 'bad', cond: '日主弱，官杀重，印绶轻，微伏财', verdict: '多女', original: '必多女' },
-  { when: ({ body, guan, shi, bi }) => body === 'weak' && guan.heavy && shi.light && bi.has, tone: 'bad', cond: '日主弱，七杀重，食伤轻，有比劫', verdict: '女多子少', original: '女多子少' },
+  // 印重的杀印相生，不作此论：任注「甲子 丙寅 戊寅 己未」杀旺以丙火印为用，「主从得宜」，生六子皆登科第。
+  { when: ({ body, guan, shi, bi, yin }) => body === 'weak' && guan.heavy && shi.light && bi.has && !yin.heavy, tone: 'bad', cond: '日主弱，七杀重，食伤轻，有比劫', verdict: '女多子少', original: '女多子少' },
   { when: ({ body, guan, yin, bi }) => body === 'weak' && guan.heavy && yin.light && bi.light, tone: 'bad', cond: '日主弱，官杀重，无印比', verdict: '子息艰难', original: '子必无' },
+];
+
+/**
+ * 任注《兄弟》：「官轻伤重，比劫生伤；制杀太过，比劫助食，必遭兄弟之累」——身旺、比劫重，官杀轻而食伤已重，比劫还去生食伤。
+ * 身旺用食伤的盘，比劫生用神也列喜，但兄弟按此条论（任注「癸巳 戊午 丙午 庚寅」羊刃当权，「兄弟六人，皆不成器，遭累不堪」）。
+ */
+const XIONG_RULES = [
+  { when: ({ body, guan, shi, bi }) => body === 'strong' && guan.light && shi.heavy && bi.heavy, tone: 'bad', cond: '官轻伤重，比劫生伤', verdict: '兄弟之累', original: '必遭兄弟之累' },
 ];
 
 /** 任注条目的说法：「任注：日主旺，无印绶，有食伤，古法主子息多」。 */
@@ -276,7 +310,7 @@ const renReadingOf = (key, { female, ctx, basis, pillars, scores, byKey, stars, 
   if (key === 'spouse' || key === 'children') {
     const byXi = key === 'children' && female;
     const source = `《滴天髓阐微·${female ? '女命' : '子女'}》任注`;
-    const rule = firstRule(key === 'spouse' ? FU_RULES : female ? [] : ZINV_RULES);
+    const rule = firstRule(key === 'spouse' ? FU_RULES : female ? [ZAO_RULE] : ZINV_RULES);
     if (rule) return { source, tone: rule.tone, rule, god: null, text: ruleText(rule) };
     const lead = key === 'spouse' ? '任注「女命之夫星，即是用神」' : byXi ? '任注「女命之子星，即是喜神」' : '任注「凡八字之用神即是子星」';
     const god = godStateOf(pillars, scores, byXi ? favorable[1] ?? favorable[0] : favorable[0]);
@@ -304,6 +338,8 @@ const renReadingOf = (key, { female, ctx, basis, pillars, scores, byKey, stars, 
     return { source, tone, rule: null, god: null, text: `任注论父母只看年月：年月${list}，${tail}` };
   }
   const source = '《滴天髓阐微·兄弟》任注';
+  const rule = firstRule(XIONG_RULES);
+  if (rule) return { source, tone: rule.tone, rule, god: null, text: ruleText(rule) };
   const star = stars[0];
   const tail = star.tone === 'good' ? `比劫${star.element}是喜用，古法看作兄弟得力` : star.tone === 'bad' ? `比劫${star.element}是忌神，古法看作兄弟难靠` : `比劫${star.element}喜忌不显，兄弟平平`;
   return { source, tone: star.tone, rule: null, god: null, text: `任注「全凭日主之爱憎」：${tail}` };
@@ -344,6 +380,10 @@ export const analyzeLiuqin = (chart, strength, { special = null } = {}) => {
     cai: amountOf(pillars, scores, roleElement('财')),
     guan: amountOf(pillars, scores, roleElement('官杀')),
     yongRole: basis.roles[basis.favorable[0]?.element] ?? null,
+    caiMeetsYin: caiMeetsYinOf(pillars, roleElement('财'), roleElement('印')),
+    // 火炎土燥（见 ZAO_RULE）：日干不是壬癸，水 0 分，无辰、丑湿土，火重、土也不轻。
+    zao: !['壬', '癸'].includes(byKey.day?.gan) && !((scores.水 ?? 0) > 0) && !pillars.some((pillar) => pillar.zhi === '辰' || pillar.zhi === '丑')
+      && (scores.火 ?? 0) >= AMOUNT.heavy && (scores.土 ?? 0) >= ZAO_EARTH,
   };
 
   const items = relativesOf(female).map((item) => {
