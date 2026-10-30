@@ -113,6 +113,43 @@ test('妻宫坐财只算正财、偏财（劫财是比劫），断语照任注�
   assert.equal(zuoJie.ren.text, '妻宫（日支）坐喜神，古法主妻贤有助');
 });
 
+test('火炎土燥先断子息艰难（男女命同），水气稍有或土不重的不算', () => {
+  // 乙未 辛巳 戊戌 丁巳：无水、无辰丑湿土，火土俱重（任注「局中全无湿气……生十二子，刑过十子」）。
+  const zao = itemOf(liuqinOf(chartByPillars('乙未 辛巳 戊戌 丁巳')), 'children');
+  assert.equal(zao.tone, 'bad');
+  assert.equal(zao.ren.rule.original, '火炎土燥无子');
+  assert.equal(zao.verdict, '任注：火炎土燥，局中全无湿气，古法主子息艰难。');
+  // 女命照任注《女命》「火炎土燥无子」。
+  const female = itemOf(liuqinOf(chartByPillars('丙午 甲午 丙午 甲午', 'female')), 'children');
+  assert.equal(female.ren.source, '《滴天髓阐微·女命》任注');
+  assert.equal(female.ren.rule.original, '火炎土燥无子');
+  // 甲寅 庚午 戊寅 甲寅：也全无水气，但七杀木重、土不重，不算火炎土燥（任注此造「子富孙多」）。
+  const notZao = itemOf(liuqinOf(chartByPillars('甲寅 庚午 戊寅 甲寅')), 'children');
+  assert.equal(notZao.ren.rule, null);
+  assert.equal(notZao.tone, 'good');
+});
+
+test('「见财星」要财星透出；印重的杀印相生不作「女多子少」', () => {
+  // 甲子 丙寅 戊寅 己未：杀旺用丙火印，财藏年支子水（任注「喜其财印相隔，生生不悖」，夫妇齐眉，生六子皆登科第）。
+  const liuqin = liuqinOf(chartByPillars('甲子 丙寅 戊寅 己未'));
+  const wife = itemOf(liuqin, 'spouse');
+  assert.equal(wife.ren.rule, null);
+  assert.equal(wife.tone, 'good');
+  const children = itemOf(liuqin, 'children');
+  assert.equal(children.ren.rule, null);
+  assert.equal(children.tone, 'good');
+  assert.match(children.verdict, /^任注「凡八字之用神即是子星」：用神火透月干丙/);
+});
+
+test('兄弟：身旺比劫重、官轻伤重，比劫又去生伤，主兄弟之累', () => {
+  // 癸巳 戊午 丙午 庚寅：羊刃当权，用食伤土，比劫火生用神也列喜，但任注「兄弟六人，皆不成器，遭累不堪」。
+  const siblings = itemOf(liuqinOf(chartByPillars('癸巳 戊午 丙午 庚寅')), 'siblings');
+  assert.equal(siblings.stars[0].tone, 'good');
+  assert.equal(siblings.tone, 'bad');
+  assert.equal(siblings.ren.rule.original, '必遭兄弟之累');
+  assert.equal(siblings.verdict, '任注：官轻伤重，比劫生伤，古法主兄弟之累。');
+});
+
 test('宫位逢冲另提一句；比劫不现也按日主喜忌论兄弟', () => {
   // 丙寅 辛卯 癸酉 戊午（坤造）：夫妻宫酉逢卯冲；比劫水四柱不见，但癸水身弱喜水。
   const liuqin = liuqinOf(chartByPillars('丙寅 辛卯 癸酉 戊午', 'female'));
