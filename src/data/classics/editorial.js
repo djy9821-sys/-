@@ -70,6 +70,16 @@ export const readerSentenceOf = (sentence) => {
   return /[\p{Script=Han}A-Za-z0-9]/u.test(text) ? text : '';
 };
 
+/**
+ * Unicode 私用区字符：底本里 Unicode 没收的字，维基文库录文也只标作 {{PUA}}、没有辨识（如《穷通宝鉴》「聪□特达」「刑□子息」），
+ * 网页上显示成空白或方框乱码。界面与提示词一律换成古籍整理通行的缺字符号「□」，不猜补；数据里照留原码。
+ */
+const PUA = /[\uE000-\uF8FF]/gu;
+export const MISSING_CHAR = '□';
+export const displayTextOf = (text) => (typeof text === 'string' ? text.replace(PUA, MISSING_CHAR) : text);
+export const hasMissingChar = (text) => typeof text === 'string' && /[\uE000-\uF8FF]/u.test(text);
+export const MISSING_CHAR_NOTE = '原文、白话里的「□」是底本中电脑无法显示的字，维基文库录文也未能辨识，暂缺不补';
+
 const toList = (value) => (Array.isArray(value) ? value : value ? [value] : []);
 /** 句末的分号、逗号换成句号（几句拼在一起时，末句的分号原是接下一句的）。 */
 const closeSentence = (text) => text.replace(/[；，、]$/, '。');
@@ -82,8 +92,9 @@ export const readerNotesOf = (entry) => {
   const notes = sentencesOf(entry?.notes).map(readerSentenceOf).filter(Boolean);
   const doubts = toList(entry?.doubts).flatMap(sentencesOf).map(readerSentenceOf).filter(Boolean)
     .map((text) => text.replace(/[；，、。]$/, ''));
+  if (hasMissingChar(entry?.original) || hasMissingChar(entry?.vernacular)) doubts.push(MISSING_CHAR_NOTE);
   return {
-    notes: notes.length ? closeSentence(notes.join('')) : '',
-    doubts: [...new Set(doubts)],
+    notes: notes.length ? closeSentence(displayTextOf(notes.join(''))) : '',
+    doubts: [...new Set(doubts.map(displayTextOf))],
   };
 };
