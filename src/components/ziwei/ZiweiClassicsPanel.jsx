@@ -24,9 +24,9 @@ const LAYERS = Object.freeze([
 const LAYER_KEYS = Object.freeze({ 大限: 'decadal', 小限: 'age', 流年: 'yearly' });
 
 /**
- * @param {{ palaces?: object[], focusedIndex?: number|null, gender?: string|null, patterns?: string[], limits?: { decadal?: { index: number, label: string, scope?: object|null }|null, age?: { index: number, label: string, scope?: object|null }|null, yearly?: { index: number, label: string, scope?: object|null }|null }, natal?: { yearGan?: string|null, yearZhi?: string|null }|null }} props
+ * @param {{ palaces?: object[], focusedIndex?: number|null, gender?: string|null, patterns?: string[], limits?: { decadal?: { index: number, label: string, scope?: object|null }|null, age?: { index: number, label: string, scope?: object|null }|null, yearly?: { index: number, label: string, scope?: object|null, doujun?: { name: string, earthlyBranch: string }|null }|null }, natal?: { yearGan?: string|null, yearZhi?: string|null }|null }} props
  *   patterns：程序认出的格局名（按命宫三方四正判的），只在看本命盘的命宫时算进匹配条件。
- *   limits：此刻所行大限、小限（age）、流年的命宫在哪一宫（宫的 index）与说明，scope 是排盘库该层的运限对象（带流曜与四化，流羊算擎羊、运昌算文昌一起找；小限只有四化）；不传则只看本命盘。
+ *   limits：此刻所行大限、小限（age）、流年的命宫在哪一宫（宫的 index）与说明，scope 是排盘库该层的运限对象（带流曜与四化，流羊算擎羊、运昌算文昌一起找；小限只有四化）；流年另带 doujun（流年斗君所落本命宫，「斗君过度在妻宫」一类条目靠它判）；不传则只看本命盘。
  *   natal：生年干支（ziweiNatalOf），给「壬甲生人」这类条件用。
  */
 export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, gender = null, patterns = EMPTY, limits = null, natal = null }) {
@@ -54,9 +54,11 @@ export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, 
         () => (limitInfo?.scope ? ziweiFlowOf(limitInfo.scope, palace, ziweiSurroundOf(palaces, palace)) : null),
         [limitInfo, palace, palaces],
     );
+    // 流年层：斗君（流年正月所在的本命宫）也算进条件，古籍论流年常以「斗君过度在某宫」起论。
+    const doujun = limitInfo?.doujun ?? null;
     const ctx = useMemo(
-        () => ziweiPalaceContextOf(palace, { gender, natal, limit: activeLayer, patterns: isMing ? patterns : EMPTY, neighbors: ziweiNeighborsOf(palaces, palace), opposite, surround: ziweiSurroundOf(palaces, palace), flow }),
-        [palaces, palace, gender, natal, activeLayer, isMing, patterns, opposite, flow],
+        () => ziweiPalaceContextOf(palace, { gender, natal, limit: activeLayer, patterns: isMing ? patterns : EMPTY, neighbors: ziweiNeighborsOf(palaces, palace), opposite, surround: ziweiSurroundOf(palaces, palace), flow, doujun: doujun?.name ?? null }),
+        [palaces, palace, gender, natal, activeLayer, isMing, patterns, opposite, flow, doujun],
     );
     const stars = palace ? [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])] : [];
     const borrowed = ziweiBorrowedStarsOf(palace, opposite);
@@ -87,6 +89,7 @@ export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, 
             {limitInfo ? (
                 <p className="text-xs leading-5 text-[#655d54]" data-testid="ziwei-classics-limit">
                     {limitInfo.label}：命宫在本命盘的{palaceLabel(palace?.name)}（{palace?.earthlyBranch}宫），按宫中星曜找，另加古籍里专讲「{activeLayer}」的条目。
+                    {doujun ? <span data-testid="ziwei-classics-doujun">流年斗君（正月）在本命{palaceLabel(doujun.name)}（{doujun.earthlyBranch}宫）。</span> : null}
                 </p>
             ) : (
             <div className="flex flex-wrap gap-1.5" role="group" aria-label="选择宫位">
