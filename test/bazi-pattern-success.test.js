@@ -229,3 +229,12 @@ test('待详辨：天干不构成原书条件时只列透出的十神，不下�
   assert.match(qianlong.chengBai.summary, /天干透出劫财（年柱辛）、正官（月柱丁）、七杀（时柱丙）/);
   assert.ok(qianlong.points.some((line) => line.startsWith('成败（《子平真诠》·论用神成败救应）：羊刃格待详辨')));
 });
+
+test('中和的盘按旺衰一节略偏的一边算身强、身弱：庚申 壬午 辛酉 癸巳 中和略偏旺，壬癸制杀，七杀格成（任注「午火真神得用」）', () => {
+  const zhen = judge(1920, 7, 2, 5);
+  assert.equal(zhen.pillars, '庚申 壬午 辛酉 癸巳');
+  assert.equal(zhen.pattern.name, '七杀格');
+  assert.equal(zhen.chengBai.verdict, '成');
+  assert.equal(zhen.chengBai.success[0].text, '身中和略偏旺，食伤（月柱壬、时柱癸）制杀。');
+  assert.ok(quotes(zhen.chengBai).includes('身强七煞逢制'));
+});
