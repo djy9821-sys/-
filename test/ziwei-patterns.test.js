@@ -129,5 +129,13 @@ test('《紫微斗数全书》卷一定富局、定贵局、定贫贱局：照�
     assert.match(hit.evidence.join('\n'), evidence);
   }
   // 按安星法不可能成立、或原书写「见前批注」的格暂不收。
-  ['金舆扶驾格', '财荫夹印格', '财印夹禄格', '荫印拱身格', '文星暗拱格'].forEach((name) => assert.ok(!ZIWEI_PATTERN_NAMES.includes(name), name));
+  ['金舆扶驾格', '财荫夹印格', '财印夹禄格', '荫印拱身格', '文星暗拱格', '马头带剑格'].forEach((name) => assert.ok(!ZIWEI_PATTERN_NAMES.includes(name), name));
+  // 马头带剑「谓马有刃」：天马只在寅申巳亥，擎羊在禄存前一位、不入寅申巳亥，十个年干排下来两星从不同宫。
+  const siMa = new Set(['寅', '申', '巳', '亥']);
+  for (let year = 1984; year < 1994; year += 1) {
+    const chart = astro.bySolar(`${year}-6-15`, 6, '男', true, 'zh-CN');
+    const branchOf = (name) => chart.palaces.find((palace) => palace.minorStars.some((star) => star.name === name))?.earthlyBranch;
+    assert.ok(siMa.has(branchOf('天马')), `${year} 天马在${branchOf('天马')}`);
+    assert.ok(!siMa.has(branchOf('擎羊')), `${year} 擎羊在${branchOf('擎羊')}`);
+  }
 });
