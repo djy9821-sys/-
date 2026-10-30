@@ -23,11 +23,12 @@ const LAYERS = Object.freeze([
 const LAYER_KEYS = Object.freeze({ 大限: 'decadal', 流年: 'yearly' });
 
 /**
- * @param {{ palaces?: object[], focusedIndex?: number|null, gender?: string|null, patterns?: string[], limits?: { decadal?: { index: number, label: string }|null, yearly?: { index: number, label: string }|null } }} props
+ * @param {{ palaces?: object[], focusedIndex?: number|null, gender?: string|null, patterns?: string[], limits?: { decadal?: { index: number, label: string }|null, yearly?: { index: number, label: string }|null }, natal?: { yearGan?: string|null, yearZhi?: string|null }|null }} props
  *   patterns：程序认出的格局名（按命宫三方四正判的），只在看本命盘的命宫时算进匹配条件。
  *   limits：此刻所行大限、流年的命宫在哪一宫（宫的 index）与说明；不传则只看本命盘。
+ *   natal：生年干支（ziweiNatalOf），给「壬甲生人」这类条件用。
  */
-export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, gender = null, patterns = EMPTY, limits = null }) {
+export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, gender = null, patterns = EMPTY, limits = null, natal = null }) {
     // 默认看盘上高亮的宫（没有就命宫）。面板里另选的宫记在 picked 里，并记下当时的高亮；
     // 盘上换了高亮就回到新高亮的宫，不用 effect 重置。
     const [picked, setPicked] = useState({ focusedIndex: null, index: null });
@@ -48,8 +49,8 @@ export default function ZiweiClassicsPanel({ palaces = [], focusedIndex = null, 
     // 空宫借对宫的主星一起找（排盘习惯「无正曜借对宫论」），命中说明里注「借对宫」。
     const opposite = ziweiOppositeOf(palaces, palace);
     const ctx = useMemo(
-        () => ziweiPalaceContextOf(palace, { gender, limit: activeLayer, patterns: isMing ? patterns : EMPTY, neighbors: ziweiNeighborsOf(palaces, palace), opposite, surround: ziweiSurroundOf(palaces, palace) }),
-        [palaces, palace, gender, activeLayer, isMing, patterns, opposite],
+        () => ziweiPalaceContextOf(palace, { gender, natal, limit: activeLayer, patterns: isMing ? patterns : EMPTY, neighbors: ziweiNeighborsOf(palaces, palace), opposite, surround: ziweiSurroundOf(palaces, palace) }),
+        [palaces, palace, gender, natal, activeLayer, isMing, patterns, opposite],
     );
     const stars = palace ? [...(palace.majorStars ?? []), ...(palace.minorStars ?? []), ...(palace.adjectiveStars ?? [])] : [];
     const borrowed = ziweiBorrowedStarsOf(palace, opposite);
