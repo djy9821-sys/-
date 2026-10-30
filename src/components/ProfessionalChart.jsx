@@ -501,7 +501,8 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     // 运势话术另附此刻大限、流年命宫（落在本命盘哪一宫）的原文，连同古籍里专讲大限、流年的条目。
     const withClassicsForFortune = (text, fortuneContext) => {
         if (!text || !classicsData?.library || palaces.length === 0 || !fortuneContext?.fortune) return withClassics(text);
-        const extra = [['decadal', '大限', '当前大限'], ['yearly', '流年', '今年流年']].map(([key, limit, label]) => {
+        // 大限、小限（排盘库的 age）、流年三层：《全书》论运限多以「二限」「岁限」并举。
+        const extra = [['decadal', '大限', '当前大限'], ['age', '小限', '今年小限'], ['yearly', '流年', '今年流年']].map(([key, limit, label]) => {
             const scope = fortuneContext.fortune[key];
             // 这一层的命宫落在本命盘的哪一宫（变量不叫 natal：natal 是外面的生年干支，之前在这里被遮住，运限层就判不了「壬甲生人」）。
             const natalPalace = Number.isInteger(scope?.index) ? (palaces.find((palace) => palace?.index === scope.index) ?? palaces[scope.index] ?? null) : null;
@@ -634,6 +635,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     // scope 是排盘库那一层的运限对象（流曜与四化），古籍匹配时把流羊、运昌这类流曜算进去。
     const classicsLimits = {
         decadal: currentDaxianPalace ? { index: currentDaxianPalace.index, label: `当前大限（${formatDaxian(currentDaxianPalace)}）`, scope: currentHoroscope?.decadal ?? null } : null,
+        age: Number.isInteger(currentHoroscope?.age?.index) ? { index: currentHoroscope.age.index, label: `${currentFlowYear} 年小限（虚岁 ${virtualAge}，${currentHoroscope.age.heavenlyStem ?? ''}${currentHoroscope.age.earthlyBranch ?? ''}）`, scope: currentHoroscope.age } : null,
         yearly: Number.isInteger(currentHoroscope?.yearly?.index) ? { index: currentHoroscope.yearly.index, label: `${currentFlowYear} 年流年`, scope: currentHoroscope.yearly } : null,
     };
     // 时间轴手动选到的各层干支：选到某一天后与「当前运势」同一口径（getZiweiFortune：流年立春换年、流月农历月、晚子时按命盘流派）。
