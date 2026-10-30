@@ -5,92 +5,49 @@ import {
 } from './fortuneContext.js';
 
 
-export const AI_PROMPT_TEMPLATE = `**--- 🚨 深度鉴渣报告：多派紫微 x 进化心理学 🚨 ---**
-**声明：本报告基于紫微斗数（三合/飞星/钦天）及Ayawawa剪石布理论生成，风格犀利毒舌，仅供娱乐与防御参考。**
+/**
+ * 紫微「AI 分析」的提示词模板。性情与婚恋一则以《紫微斗数全书》为据（排盘时另附命宫、身宫、夫妻宫、福德宫
+ * 星曜的原书原文，见 ProfessionalChart 的 classicsSectionsFor）：只说命盘显示的倾向，不贴标签、不打分、不下断语。
+ */
+export const CHARACTER_PROMPT_TEMPLATE = `**--- 紫微斗数性情与婚恋分析 ---**
+**说明：本分析以《紫微斗数全书》为据，由「古书派」排盘并附上原书原文。语气平实，只说命盘显示的倾向，不给人贴标签、不打分、不下断语。**
 
-你是一位集**多派紫微斗数大师**（精通三合、飞星、河洛、钦天四化）与**进化心理学专家**（Ayawawa理论深度研究者）于一身的**毒舌情感导师**。你的分析风格是：**极度专业、逻辑严密、一针见血、不留情面**。你的任务是利用玄学与心理学双重手术刀，剖析这个男人的本质。
+你是一位熟读《紫微斗数全书》的命理师。下面给出一张命盘的十二宫数据（已排好，不要重排），以及古籍库里与这张盘的命宫、身宫、夫妻宫、福德宫星曜相关的原文。请只依据这些数据与原文，按下面的结构分析这个人的性情与婚恋态度。
 
-请根据星盘数据与用户描述，严格按以下结构输出报告：
+**### 1. 性情大体（命宫、身宫）**
+- 先说命宫主星与庙旺，再看身宫与会照的辅煞（左辅、右弼、文昌、文曲、天魁、天钺为吉，擎羊、陀罗、火星、铃星、地空、地劫为煞）。
+- 依《形性赋》《太微赋》与「论诸星同垣」所述星性，说这个人的气质、处事方式、长处与易犯的毛病。
+- 命宫无主星的，按对宫（迁移宫）借星论，并说明是借星。
 
-**### 1. 【一键回怼/鉴渣话术】（毒舌女王版）**
-*   **目标：** 生成一段高冷、嘲讽、直击其灵魂痛点的回复。
-*   **要求：** 结合他的核心劣根性（如“软饭硬吃”、“情绪巨婴”、“中央空调”），用最优雅的词汇骂最脏的人。让他看了沉默，你看了极度舒适。
+**### 2. 心性与福分（福德宫）**
+- 福德宫主星与吉煞，照《全书》卷二论福德所述，说此人内心所求、能否安享、是否劳心。
 
-**### 2. 【剪子·石头·布】属性定性（Ayawawa理论）**
-*   **核心属性判定：** 明确给出他是 **【剪子男】**（高情绪价值/花心/多偶）、**【石头男】**（低情绪价值/专一/固执）还是 **【布男】**（高社会地位/掌控欲/供养者）。
-*   **紫微命理支撑：**
-    *   *剪子特征：* 命/夫见贪狼、廉贞、天姚、咸池等桃花星。
-    *   *石头特征：* 命/夫见武曲、七杀、巨门、天梁等孤寡星。
-    *   *布特征：* 命/夫见紫微、天府、太阳（旺）、天相。
+**### 3. 对感情的态度与婚姻情形（夫妻宫）**
+- 夫妻宫主星、庙陷与吉煞，照《全书》卷二论妻妾所述，说配偶大致情形、感情是早是迟、宜顺宜忌。
+- 女命另参《女命骨髓赋》。
+- 桃花诸曜（贪狼、廉贞、天姚、咸池、红鸾、天喜）在命宫、夫妻宫、福德宫的，照原书说其所主，不渲染。
 
-**### 3. 【渣男综合评分】&【出轨预警】**
-*   **渣男等级：** 评级（C级~S级）及 **综合渣度（0-100分）**。
-*   **出轨/搞外遇指数：** **0-10分制**（10分=行走的播种机，0分=柳下惠）。
-*   **一句话短评：** （例如：“这就是一个只想走肾不想走心的低配剪子。”）
+**### 4. 四化与格局**
+- 生年四化落在哪几宫，化禄、化权、化科、化忌各主何事；化忌落命宫、夫妻宫、福德宫的，说其所忌何在。
+- 命盘数据里程序认出的格局（如有），对照原书定局所述说其高下。
 
-**### 4. 【多派紫微深度底色分析】（大师级技法）**
-*必须使用Markdown列表，展示你的专业深度：*
-1.  **三合派（格局与星情）：** 分析命宫、夫妻宫、福德宫的星曜组合。是否存在“泛水桃花”、“风流彩杖”等典型渣男格局？
-2.  **飞星/钦天四化（因果与轨迹）：**
-    *   **飞化追踪：** 重点分析**夫妻宫化忌**飞入何宫？（如飞入交友宫=老婆变路人/出轨朋友；飞入迁移宫=在外有家）。
-    *   **自化分析：** 命宫或夫妻宫是否有**自化禄**（滥情/缘分浅）或**自化忌**（情绪无常/自我刑克）？
-    *   **离心/向心力：** 是否有关键的离心力导致感情离散？
-3.  **煞星破坏力：** 擎羊、陀罗、火星、铃星、地空、地劫在关键宫位的破坏作用。
+**### 5. 当前大限与近年**
+- 数据里有大限、流年的，说当前大限的宫位与星曜对感情、心性的影响；没有的略过。
 
-**### 5. 【情感自保/止损建议】**
-*   **针对性策略：**
-    *   对剪子：如何只享受情绪价值不给钱？
-    *   对石头：如何调教或放弃？
-    *   对布：如何提供情绪价值换取生存资源？
-*   **最终判决：** 是一刀两断，还是留着过年？给出具体操作建议。
+**### 6. 小结与相处之道**
+- 用三五句话概括：这个人的性情底色、在感情里的长处与需要留意之处，相处时怎样配合为宜。
+- 命盘只显示倾向，不能断定一个人的品行；有利与不利两面都要如实写，不下「好人」「坏人」一类的结论。
 
-**--- 客户提供的线索 ---**
-**【客户描述】：**
+**规则：**
+- 每一条判断都落到具体宫位、星曜与原书说法上；引用原文注明篇目（如《全书》卷二「论妻妾」）。
+- 所附原文与命盘数据对不上的，说明差异，不硬套；拿不准的写「存疑」。
+- 不用贬损、嘲讽的词，不给人打分、分类、定性；不编造原书没有的说法；不涉及风水、改运。
+- 分析对象可能是提问者本人，也可能是提问者关心的人，按文末「补充情况」里的说明来；没写就按本人论。
 `;
 
-export const FEMALE_PROMPT_TEMPLATE = `**--- 🚨 深度鉴茶报告：多派紫微 x 鉴婊指南 🚨 ---**
-**声明：本报告基于紫微斗数（三合/飞星/钦天）及当代情感图鉴生成，风格犀利毒舌，仅供娱乐与防御参考。**
-
-你是一位集**多派紫微斗数大师**与**鉴茶达人**于一身的**毒舌情感导师**。你的任务是撕开伪装，用玄学手术刀剖析这个女人的本质。
-
-请根据星盘数据与用户描述，严格按以下结构输出报告：
-
-**### 1. 【一键回怼/鉴茶话术】（毒舌女王版）**
-*   **目标：** 生成一段高冷、嘲讽、直击其痛点的回复。
-*   **要求：** 针对她的核心手段（如“养鱼”、“索取情绪价值”、“假装无辜”），生成一段让她瞬间破防的话术。
-
-**### 2. 【物种定性】（捞/仙/茶/渣）**
-*   **核心属性判定：** 明确给出她是以下哪种类型：
-    *   **【捞女】**（拜金/吞金兽/利用感情换资源）：命/财见贪狼+禄存、武曲+七杀等。
-    *   **【小仙女】**（巨婴/双标/普信/情绪勒索）：命/福见紫微+破军、巨门（化忌）、天梁（孤克）。
-    *   **【绿茶婊】**（心机/扮猪吃虎/纯欲陷阱）：命/迁见天机+太阴、天同+天姚、廉贞+贪狼。
-    *   **【纯渣女】**（海王/玩弄感情/无缝衔接）：命/夫见廉贞（化忌）、贪狼（泛水桃花）、咸池。
-*   **紫微命理支撑：** 必须引用星曜组合作为证据。
-
-**### 3. 【终极判决】（红玫瑰 vs 玩伴）**
-*   **定位：**
-    *   **【红玫瑰】**：值得娶回家，虽然有刺但值得爱一生。
-    *   **【短期玩伴】**：只适合短期娱乐，千万别动心，动心你就输了。
-*   **综合渣度：** **0-100分**。
-*   **一句话短评：** （例如：“这就是一个段位极高的顶级绿茶，你玩不过她的。”）
-
-**### 4. 【多派紫微深度底色分析】**
-*必须使用Markdown列表：*
-1.  **三合派（心性与手段）：** 分析命宫、福德宫、夫妻宫。她到底是要钱、要爱、还是都要？
-2.  **飞星/钦天四化（因果与轨迹）：**
-    *   **飞化追踪：** 重点分析**命宫/夫妻宫化禄**飞入何宫？（如化禄入财帛=爱钱；化禄入交友=爱玩）。
-    *   **自化分析：** 夫妻宫**自化禄**（对谁都好/不主动不拒绝）或**自化忌**（情绪不稳定/作精）。
-3.  **桃花煞星：** 咸池、天姚、红鸾在命宫或夫妻宫的作用（是真爱还是烂桃花）。
-
-**### 5. 【防御/反制建议】**
-*   **针对性策略：**
-    *   对捞女：如何哭穷并反向索取？
-    *   对绿茶：如何比她更茶？
-    *   对小仙女：如何进行魔法打败魔法？
-*   **操作指南：：** 给出具体的战术建议。
-
-**--- 客户提供的线索 ---**
-**【客户描述】：**
+/** 性情与婚恋提示词的结尾：留给提问者补充这张盘是谁的、想了解什么。 */
+export const CHARACTER_PROMPT_TAIL = `**--- 补充情况（可选）---**
+这张盘是谁的、想了解什么，请在此补充：
 `;
 
 export const WEALTH_PROMPT_TEMPLATE = `**--- 💰 紫微斗数深度财运分析报告 💰 ---**
@@ -118,7 +75,9 @@ export const WEALTH_PROMPT_TEMPLATE = `**--- 💰 紫微斗数深度财运分析
 
 **### 4. 【风险提示与建议】**
 *   **漏财陷阱：** 分析星盘中的“破财点”（如地劫/地空/化忌在财帛宫）。
-*   **改运建议：** 给出具体的提升财运建议（如风水方位、行事风格调整）。
+*   **行事建议：** 按星盘所示的长短处给出求财、守财上的建议；不涉及风水、改运之说。
+
+**规则：** 每一条判断都落到具体宫位、星曜与所附《紫微斗数全书》原文上，引用时注明篇目；原文与命盘数据对不上的说明差异，拿不准的写「存疑」。
 
 **--- 命主星盘数据 ---**
 `;
@@ -148,65 +107,114 @@ export const MARRIAGE_PROMPT_TEMPLATE = `**--- 💍 紫微斗数深度姻缘分�
 *   **潜在危机：** 指出星盘中可能影响婚姻的负面因素（如：寡宿、化忌、桃花煞）。
 *   **相处之道：** 给出一对一的感情经营建议，如何化解矛盾，长久维系。
 
+**规则：** 每一条判断都落到具体宫位、星曜与所附《紫微斗数全书》原文上，引用时注明篇目；原文与命盘数据对不上的说明差异，拿不准的写「存疑」；不用贬损的词，不涉及风水、改运之说。
+
 **--- 命主星盘数据 ---**
 `;
 
-export const generateScumbagPrompt = (horoscope) => {
+/** 庙旺七等的全称（排盘库用单字）：《全书》作庙、旺、得地、利益、平和、不得地、陷。 */
+const BRIGHTNESS_TEXT = { 庙: '庙', 旺: '旺', 得: '得地', 利: '利益', 平: '平和', 不: '不得地', 陷: '陷' };
+
+/** 一颗星连庙旺、四化一起写：紫微(旺)、天机(陷，化忌)、左辅(化科)。 */
+const starLabel = (star) => {
+  const marks = [BRIGHTNESS_TEXT[star.brightness] ?? star.brightness, star.mutagen ? `化${star.mutagen}` : ''].filter(Boolean);
+  return marks.length ? `${star.name}(${marks.join('，')})` : star.name;
+};
+
+const OPPOSITE_BRANCH = { 子: '午', 午: '子', 丑: '未', 未: '丑', 寅: '申', 申: '寅', 卯: '酉', 酉: '卯', 辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳' };
+/**
+ * 空宫（没有主星）写成「无主星（借对宫子女·申：太阳(得地，化禄)、巨门(庙)）」：排盘习惯「无正曜借对宫论」，
+ * 把借的是哪一宫、哪几颗星写清楚，AI 才能按原书论借来的星；对宫也空的只写「无主星（对宫亦无主星）」。
+ */
+const majorStarsText = (palace, palaces = []) => {
+  if (palace?.majorStars?.length) return palace.majorStars.map(starLabel).join('、');
+  const opposite = (palaces ?? []).find((item) => item?.earthlyBranch === OPPOSITE_BRANCH[palace?.earthlyBranch]);
+  if (!opposite?.majorStars?.length) return '无主星（对宫亦无主星）';
+  return `无主星（借对宫${opposite.name}·${opposite.earthlyBranch}：${opposite.majorStars.map(starLabel).join('、')}）`;
+};
+
+const YANG_STEMS = new Set(['甲', '丙', '戊', '庚', '壬']);
+const YIN_STEMS = new Set(['乙', '丁', '己', '辛', '癸']);
+/**
+ * 生年干支一行：「生年干支：庚午（农历一九九〇年四月廿六，午时）；阳男」。
+ * 《全书》论星常按「壬甲生人」「六癸生人」分吉凶，论行限分南北斗按阳男阴女定应期，AI 要有年干才能照办；排盘库的年柱按农历年。
+ */
+export const natalYearText = (horoscope, gender = null) => {
+  const yearly = horoscope?.rawDates?.chineseDate?.yearly;
+  const ganzhi = Array.isArray(yearly) && yearly.length === 2
+    ? yearly.join('')
+    : (typeof horoscope?.chineseDate === 'string' ? horoscope.chineseDate.trim().split(/\s+/)[0] : '') || '';
+  if (!ganzhi) return '';
+  const when = [horoscope?.lunarDate ? `农历${horoscope.lunarDate}` : '', horoscope?.time || ''].filter(Boolean).join('，');
+  const genderText = gender === 'male' || gender === '男' ? '男' : gender === 'female' || gender === '女' ? '女' : '';
+  const yinYang = YANG_STEMS.has(ganzhi[0]) ? '阳' : YIN_STEMS.has(ganzhi[0]) ? '阴' : '';
+  const kind = genderText ? `${yinYang}${genderText}` : '';
+  return `生年干支：${ganzhi}${when ? `（${when}）` : ''}${kind ? `；${kind}` : ''}`;
+};
+
+/**
+ * 十二宫数据，附在各类提示词后面：生年干支、五行局、命主、身主，每宫的宫干支、是否身宫、主星（带庙旺、四化）、辅星、杂曜、长生、大限年岁。
+ * 庙旺照《紫微斗数全书》（见 ziweiBrightness.js），AI 按原书论星先看庙陷。
+ * @param {object} horoscope iztro 排盘结果
+ * @param {{ gender?: string }} [options] 性别（写成阳男、阴女）
+ */
+export const generateChartDataPrompt = (horoscope, { gender = null } = {}) => {
   try {
     if (!horoscope || !horoscope.palaces) {
-      return "--- 渣男/渣女星盘真实数据 ---\n数据获取失败\n";
+      return "--- 命盘十二宫数据 ---\n数据获取失败\n";
     }
 
-    let scumbagData = "--- 渣男/渣女星盘真实数据 ---\n";
+    let chartData = "--- 命盘十二宫数据 ---\n";
+    const natal = natalYearText(horoscope, gender);
+    if (natal) chartData += `- ${natal}\n`;
+    const header = [
+      horoscope.fiveElementsClass ? `五行局：${horoscope.fiveElementsClass}` : '',
+      horoscope.soul ? `命主：${horoscope.soul}` : '',
+      horoscope.body ? `身主：${horoscope.body}` : '',
+    ].filter(Boolean);
+    if (header.length) chartData += `- ${header.join('；')}\n`;
 
-    horoscope.palaces.forEach((palace, index) => {
+    // 从命宫起按兄弟、夫妻、子女……父母的顺序列（排盘库的数组从寅宫起，命宫往前一格是兄弟宫）。
+    const total = horoscope.palaces.length;
+    const mingIndex = Math.max(0, horoscope.palaces.findIndex((palace) => palace?.name === '命宫'));
+    const ordered = horoscope.palaces.map((_, offset) => horoscope.palaces[(((mingIndex - offset) % total) + total) % total]);
+    ordered.forEach((palace, index) => {
       const palaceName = palace.name || `宫位${index}`;
       const stemBranch = `${palace.heavenlyStem}${palace.earthlyBranch}`;
 
-      let palaceInfo = `- **${palaceName}(${stemBranch})**：`;
+      let palaceInfo = `- **${palaceName}(${stemBranch})${palace.isBodyPalace ? '·身宫' : ''}**：`;
       let parts = [];
 
       if (palace.majorStars && palace.majorStars.length > 0) {
-        const majorStarNames = palace.majorStars.map(star => {
-          if (star.mutagen) {
-            return `${star.name}(${star.mutagen})`;
-          }
-          return star.name;
-        });
-        parts.push(`主星[${majorStarNames.join('、')}]`);
+        parts.push(`主星[${majorStarsText(palace)}]`);
+      } else {
+        parts.push(majorStarsText(palace, horoscope.palaces));
       }
 
       if (palace.minorStars && palace.minorStars.length > 0) {
-        const minorStarNames = palace.minorStars.map(star => star.name);
-        parts.push(`辅星[${minorStarNames.join('、')}]`);
+        parts.push(`辅星[${palace.minorStars.map(starLabel).join('、')}]`);
       }
 
       if (palace.adjectiveStars && palace.adjectiveStars.length > 0) {
-        const adjectiveNames = palace.adjectiveStars.map(star => star.name);
-        parts.push(`杂曜[${adjectiveNames.join('、')}]`);
+        parts.push(`杂曜[${palace.adjectiveStars.map((star) => star.name).join('、')}]`);
       }
 
-      if (palace.changeSummarize && palace.changeSummarize.length > 0) {
-        parts.push(`四化[${palace.changeSummarize.join('、')}]`);
+      if (palace.changsheng12) {
+        parts.push(`长生[${palace.changsheng12}]`);
       }
 
-      if (palace.stage) {
-        parts.push(`长生[${palace.stage}]`);
+      if (Array.isArray(palace.decadal?.range) && palace.decadal.range.length === 2) {
+        parts.push(`大限[${palace.decadal.range[0]}-${palace.decadal.range[1]}岁]`);
       }
 
-      if (parts.length > 0) {
-        palaceInfo += parts.join('，');
-      } else {
-        palaceInfo += "空宫";
-      }
-
-      scumbagData += palaceInfo + "\n";
+      palaceInfo += parts.join('，');
+      chartData += palaceInfo + "\n";
     });
 
-    return scumbagData;
+    return chartData;
   } catch (error) {
-    console.error('生成渣男数据失败:', error);
-    return "--- 渣男/渣女星盘真实数据 ---\n数据获取失败\n";
+    console.error('生成命盘数据失败:', error);
+    return "--- 命盘十二宫数据 ---\n数据获取失败\n";
   }
 };
 
@@ -238,6 +246,8 @@ export const generateFortunePromptText = (layerKey, selection, activeStems, basi
 
   prompt += `【基本信息】\n`;
   prompt += `性别：${basicInfo.gender === 'male' ? '男' : '女'}\n`;
+  const natal = natalYearText(horoscope, basicInfo.gender);
+  if (natal) prompt += `${natal}\n`;
   prompt += `五行局：${horoscope.fiveElementsClass}\n`;
   prompt += `命主：${horoscope.soul}  身主：${horoscope.body}\n\n`;
 
@@ -292,11 +302,12 @@ export const generateFortunePromptText = (layerKey, selection, activeStems, basi
     });
   }
 
+  // 主星带庙旺（全书七等全称）与生年四化；排盘库没给庙旺的（左右魁钺等）不标，不要默认成「平」。
   prompt += `【命盘十二宫位分布】\n`;
   palaces.forEach(p => {
-    const major = (p.majorStars || []).map(s => `${s.name}(${s.brightness || '平'})`).join('、') || '无';
-    const minor = (p.minorStars || []).map(s => s.name).join('、') || '无';
-    prompt += `- ${p.name} (${p.heavenlyStem}${p.earthlyBranch})：${major} | ${minor}\n`;
+    const major = majorStarsText(p, palaces);
+    const minor = (p.minorStars || []).map(starLabel).join('、') || '无';
+    prompt += `- ${p.name}${p.isBodyPalace ? '·身宫' : ''} (${p.heavenlyStem}${p.earthlyBranch})：${major} | ${minor}\n`;
   });
 
   prompt += `\n【分析要求】\n`;
@@ -305,6 +316,7 @@ export const generateFortunePromptText = (layerKey, selection, activeStems, basi
   prompt += `3. 针对“忌”星所在的宫位和冲照宫位，给出具体的避坑建议。\n`;
   prompt += `4. 针对“禄”星所在的宫位，给出具体的把握机会建议。\n`;
   prompt += `5. 语气专业、客观、富有同理心，不要使用过于宿命论的词汇。\n`;
+  prompt += `6. 后面附有《紫微斗数全书》论本命星曜与论大限、流年的原文：每一条判断落到具体宫位、星曜与原文上，引用时注明篇目；原文与命盘数据对不上的说明差异，拿不准的写「存疑」；不涉及风水、改运之说。\n`;
 
   return prompt;
 };
