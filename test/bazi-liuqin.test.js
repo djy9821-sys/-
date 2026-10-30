@@ -174,6 +174,14 @@ test('宫位逢冲另提一句；比劫不现也按日主喜忌论兄弟', () =>
   assert.deepEqual(parents.palaces.map((palace) => palace.key), ['year', 'month']);
 });
 
+test('用神受制看制伏时，湿土止不住水（任注「丑乃湿土，能泄火不能止水」）', () => {
+  // 己亥 丙子 乙丑 壬午「克妻无子」：用神丙火受壬子亥水重克，木印只有半分通不了关，己、丑是湿土，止不住水，子星按受制断。
+  const liuqin = liuqinOf(chartByPillars('己亥 丙子 乙丑 壬午'));
+  const children = itemOf(liuqin, 'children');
+  assert.equal(children.tone, 'bad');
+  assert.match(children.ren.text, /用神火（透月干丙，作时支午本气）受水重克，无木通关、湿土止不住水，古法看作子息艰难$/);
+});
+
 test('只合紧贴的天干：隔位的不算合住', () => {
   // 庚午 辛巳 壬午 丙午：月干辛与时干丙隔着日干，不作相合。
   const liuqin = liuqinOf(buildBaziChart({ calendarType: 'solar', year: 1990, month: 5, day: 17, hourIndex: 6, gender: 'male' }));
