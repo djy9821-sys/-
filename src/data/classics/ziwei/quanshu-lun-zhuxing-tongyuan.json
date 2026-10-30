@@ -70,7 +70,11 @@
           ],
           "star": "紫微",
           "gender": "男",
-          "note": "男命紫微在亥安命；原文还要壬、甲年生人，程序条件没有年干，请对照生年干支"
+          "yearGan": [
+            "壬",
+            "甲"
+          ],
+          "note": "男命紫微在亥安命，壬、甲年生人"
         },
         {
           "module": "ziwei",
@@ -80,7 +84,11 @@
           ],
           "star": "紫微",
           "gender": "女",
-          "note": "女命紫微在寅安命；原文还要壬、甲年生人，程序条件没有年干，请对照生年干支"
+          "yearGan": [
+            "壬",
+            "甲"
+          ],
+          "note": "女命紫微在寅安命，壬、甲年生人"
         }
       ],
       "tags": [
@@ -802,7 +810,23 @@
           "meet": [
             "天相"
           ],
-          "note": "天府在午、戌守命，天相在三方来朝；原文还要甲年生人"
+          "note": "天府在午、戌守命，天相在三方来朝"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "午",
+            "戌"
+          ],
+          "star": "天府",
+          "meet": [
+            "天相"
+          ],
+          "yearGan": [
+            "甲"
+          ],
+          "note": "再是甲年生人，「一品之贵」"
         }
       ],
       "tags": [
@@ -1050,6 +1074,57 @@
             "天相",
             "右弼"
           ]
+        },
+        {
+          "module": "ziwei",
+          "gender": "女",
+          "palace": "命宫",
+          "allStars": [
+            "天相",
+            "右弼"
+          ],
+          "branches": [
+            "子"
+          ],
+          "yearGan": [
+            "癸"
+          ],
+          "note": "子宫癸年生人，贵格"
+        },
+        {
+          "module": "ziwei",
+          "gender": "女",
+          "palace": "命宫",
+          "allStars": [
+            "天相",
+            "右弼"
+          ],
+          "branches": [
+            "寅"
+          ],
+          "yearGan": [
+            "癸",
+            "己"
+          ],
+          "note": "寅宫癸、己年生人，贵格"
+        },
+        {
+          "module": "ziwei",
+          "gender": "女",
+          "palace": "命宫",
+          "allStars": [
+            "天相",
+            "右弼"
+          ],
+          "branches": [
+            "申"
+          ],
+          "yearGan": [
+            "甲",
+            "庚",
+            "癸"
+          ],
+          "note": "申宫甲、庚、癸年生人，贵格"
         }
       ],
       "tags": [
@@ -1113,6 +1188,20 @@
             "午"
           ],
           "star": "天梁"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "午"
+          ],
+          "star": "天梁",
+          "yearGan": [
+            "丁",
+            "己",
+            "癸"
+          ],
+          "note": "丁、己、癸年生人合格"
         }
       ],
       "tags": [
@@ -1513,6 +1602,56 @@
           "palace": "命宫",
           "star": "天同",
           "gender": "女"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天同",
+          "gender": "女",
+          "branches": [
+            "寅"
+          ],
+          "yearZhi": [
+            "子"
+          ],
+          "note": "子年生人命坐寅入格"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天同",
+          "gender": "女",
+          "branches": [
+            "卯"
+          ],
+          "yearGan": [
+            "辛"
+          ],
+          "note": "辛年生人命坐卯入格"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天同",
+          "gender": "女",
+          "branches": [
+            "戌"
+          ],
+          "yearGan": [
+            "丁"
+          ],
+          "note": "丁年生人命坐戌入格"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天同",
+          "gender": "女",
+          "yearGan": [
+            "丙",
+            "辛"
+          ],
+          "note": "丙、辛年生人命中吉"
         }
       ],
       "tags": [
@@ -1997,6 +2136,19 @@
             "子"
           ],
           "star": "太阴"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "子"
+          ],
+          "star": "太阴",
+          "yearGan": [
+            "丙",
+            "丁"
+          ],
+          "note": "丙、丁年生人富贵忠良（夜生人合局）"
         }
       ],
       "tags": [
@@ -2127,6 +2279,18 @@
             "亥"
           ],
           "star": "太阴"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "亥"
+          ],
+          "star": "太阴",
+          "yearZhi": [
+            "子"
+          ],
+          "note": "子年、夜里生人合局，不贵则大富"
         }
       ],
       "tags": [
@@ -3006,7 +3170,13 @@
           "stars": [
             "文昌",
             "文曲"
-          ]
+          ],
+          "yearGan": [
+            "己",
+            "辛",
+            "壬"
+          ],
+          "note": "己、辛、壬年生人，大限行到辰戌，宫中有文昌或文曲"
         }
       ],
       "tags": [
@@ -3766,10 +3936,58 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "allStars": [
-            "贪狼",
-            "火星"
-          ]
+          "branches": [
+            "寅"
+          ],
+          "star": "贪狼",
+          "yearZhi": [
+            "寅",
+            "午",
+            "戌"
+          ],
+          "note": "火局（寅午戌年）生人，贪狼守命在寅（火长生之地），再加吉星"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "亥"
+          ],
+          "star": "贪狼",
+          "yearZhi": [
+            "亥",
+            "卯",
+            "未"
+          ],
+          "note": "木局（亥卯未年）生人，贪狼守命在亥（木长生之地），再加吉星"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "申"
+          ],
+          "star": "贪狼",
+          "yearZhi": [
+            "申",
+            "子",
+            "辰"
+          ],
+          "note": "水局（申子辰年）生人，贪狼守命在申（水长生之地），再加吉星"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "巳"
+          ],
+          "star": "贪狼",
+          "yearZhi": [
+            "巳",
+            "酉",
+            "丑"
+          ],
+          "note": "金局（巳酉丑年）生人，贪狼守命在巳（金长生之地），再加吉星"
         }
       ],
       "tags": [
@@ -4460,7 +4678,77 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "star": "廉贞"
+          "star": "廉贞",
+          "branches": [
+            "酉"
+          ],
+          "yearGan": [
+            "甲",
+            "丙",
+            "戊"
+          ],
+          "note": "甲、丙、戊年生人命坐酉：廉贞与将军同宫"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "廉贞",
+          "branches": [
+            "亥"
+          ],
+          "yearGan": [
+            "乙"
+          ],
+          "note": "乙年生人命坐亥"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "廉贞",
+          "branches": [
+            "寅"
+          ],
+          "yearGan": [
+            "丁",
+            "己"
+          ],
+          "note": "丁、己年生人命坐寅"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "廉贞",
+          "branches": [
+            "子"
+          ],
+          "yearGan": [
+            "庚"
+          ],
+          "note": "庚年生人命坐子"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "廉贞",
+          "branches": [
+            "卯"
+          ],
+          "yearGan": [
+            "辛"
+          ],
+          "note": "辛年生人命坐卯"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "廉贞",
+          "branches": [
+            "申"
+          ],
+          "yearGan": [
+            "癸"
+          ],
+          "note": "癸年生人命坐申"
         }
       ],
       "tags": [
@@ -5628,6 +5916,20 @@
             "午"
           ],
           "star": "破军"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "子",
+            "午"
+          ],
+          "star": "破军",
+          "yearGan": [
+            "甲",
+            "癸"
+          ],
+          "note": "甲、癸年生人合格；丁、己次之，丙、戊主困"
         }
       ],
       "tags": [
