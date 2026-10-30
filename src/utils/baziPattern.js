@@ -456,7 +456,8 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     const counts = mainElements.reduce((acc, element) => ({ ...acc, [element]: (acc[element] ?? 0) + 1 }), {});
     const kinds = Object.keys(counts);
     const output = GENERATES[dayWuxing];
-    if (kinds.length === 2 && kinds.includes(dayWuxing) && kinds.includes(output) && Math.min(...Object.values(counts)) >= 3) {
+    // 「各半」照任注命造取八字里四比四，五比三不算。
+    if (kinds.length === 2 && kinds.includes(dayWuxing) && kinds.includes(output) && counts[dayWuxing] === 4 && counts[output] === 4) {
       return withRoleGods({
         name: `两气成象（${dayWuxing}${output}相生）`,
         kind: 'liangqi',
