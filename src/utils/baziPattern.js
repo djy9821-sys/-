@@ -69,6 +69,9 @@ const PATTERN_NAME = {
 const ZHUAN_WANG = { 木: '曲直格', 火: '炎上格', 土: '稼穑格', 金: '从革格', 水: '润下格' };
 /** 三合局之外同气的余气支：木局的辰（木余气）、火局的未、金局的戌、水局的丑；局齐全时这一支随局论。 */
 const YU_QI_ZHI = { 木: '辰', 火: '未', 金: '戌', 水: '丑' };
+/** 地支六合所化：相邻两支六合而化神正是日主本气时，合住的那一支随化神论（任注「子丑化土，斯真格象，已成稼穑」）。 */
+const LIU_HE_HUA = Object.freeze(Object.fromEntries([['子', '丑', '土'], ['寅', '亥', '木'], ['卯', '戌', '火'], ['辰', '酉', '金'], ['巳', '申', '水'], ['午', '未', '土']]
+  .flatMap(([a, b, element]) => [[a + b, element], [b + a, element]])));
 /** 生我者：木 ← 水。 */
 const GENERATED_BY = { 木: '水', 火: '木', 土: '火', 金: '土', 水: '金' };
 /** 我生者：水 → 木。 */
@@ -306,9 +309,12 @@ export const determinePattern = (chart, summary = null) => {
  *   日主本气的三合、三会局齐全而全局不见官杀的（方局篇「支全寅卯辰，东方一气」「丁卯 甲辰 甲寅 乙亥……格名曲直仁寿」），
  *   打分不到极强也作专旺，局外的同气余气支（火局的未、木局的辰……）随局论（「支全火局，木从火势，格成炎上」）；
  *   但「财旺提纲」——月支本气是财、财支不止一处——照任注「必先察财官之势……以财为用」，不作专旺。
+ *   相邻两支六合而化神正是日主本气的，合住的那一支随化神论；天干全是印比、四支本气也全是印比的「斯真格象」，
+ *   打分不到极强也作专旺（费中堂造「子丑化土……已成稼穑」）。
  *   专旺而食伤两透有根、或无印透出的，顺势以食伤吐秀为用（「化神者丙丁也」「取丁火食神秀气」），印克食伤为忌；
  *   食伤只透一位又有印透的仍以印比为用（「一点甲木枯浮，难泄水气」，大取金水）。
- *   （这三条加入后，`node scripts/bazi-cases.mjs`：格局与书一致 28 → 30 造、漏判 15 → 13；喜用第一位、留集都不变；
+ *   「全局不见官杀」看天干、地支本气与寅申巳亥所藏中气，辰戌丑未杂气里一点官杀余气不算（费中堂造未中乙木仍作稼穑）。
+ *   （这几条加入后，`node scripts/bazi-cases.mjs`：格局与书一致 28 → 31 造、漏判 15 → 12；喜用第一位一致 174 → 175、相反 32 → 31，留集不变；
  *   岁运一致 552 → 553、相反 205 → 206——多出的一造是母象篇「母众子孤」的癸卯 丙辰 甲寅 乙亥，书以水为忌，程序按专旺列水为喜。）
  *   打分的两条（从格与极强）要时辰已知。
  *   食伤有本气之根的是「太旺」，任注取食伤泄秀（「水太旺者……喜其寅木吐秀」），仍按扶抑。
@@ -316,7 +322,7 @@ export const determinePattern = (chart, summary = null) => {
  *   或食伤透干有根、又有财星透出（「喜其甲丙并透……用神必是甲木」），也按扶抑。
  */
 export const detectSpecialPattern = (chart, strength, summary) => {
-  const { roleShare, roleCount, byKey, stems, pillars } = summary;
+  const { roleShare, byKey, stems, pillars } = summary;
   const dayGan = chart.dayMaster.gan;
   const dayWuxing = chart.dayMaster.wuxing;
   const score = strength.score ?? null;
@@ -436,16 +442,24 @@ export const detectSpecialPattern = (chart, strength, summary) => {
   // 日主本气的局齐全时（「支全寅卯辰，东方一气」「寅午戌全」），局外那一支若是本气的余气支（木局的辰、火局的未、金局的戌、水局的丑）
   // 也随局论——任注炎上一造「丙寅 甲午 丙戌 乙未」，未是火之余气，仍作炎上。
   const juOfDay = Object.values(ju).includes(dayWuxing);
-  const juElementOf = (zhi) => ju[zhi] ?? (juOfDay && YU_QI_ZHI[dayWuxing] === zhi ? dayWuxing : null);
-  const benqiRoles = new Set(pillars.map((pillar) => (juElementOf(pillar.zhi) ? strength.roles[juElementOf(pillar.zhi)] : ROLE_OF[pillar.hiddenGanDetails?.[0]?.shiShen])).filter(Boolean));
+  // 相邻两支六合而化神正是日主本气的（费中堂造「己未 丁丑 戊子 己未」，子丑化土），合住的那一支随化神论。
+  const liuHeElementOf = (index) => [pillars[index - 1], pillars[index + 1]]
+    .some((neighbor) => neighbor && LIU_HE_HUA[pillars[index].zhi + neighbor.zhi] === dayWuxing) ? dayWuxing : null;
+  const juElementOf = (zhi, index) => ju[zhi] ?? (juOfDay && YU_QI_ZHI[dayWuxing] === zhi ? dayWuxing : null) ?? liuHeElementOf(index);
+  const benqiRoles = new Set(pillars.map((pillar, index) => (juElementOf(pillar.zhi, index) ? strength.roles[juElementOf(pillar.zhi, index)] : ROLE_OF[pillar.hiddenGanDetails?.[0]?.shiShen])).filter(Boolean));
   // 旺极：打分到极强、同党占八成以上；或日主本气的三合、三会局齐全而全局不见官杀（任注「支全寅卯辰……曲直仁寿」「局成润下」，
   // 打分不到四分也作专旺：局全的旺势不是逐支相加算得出的）。
   // 任注方局篇「不论成方成局，必先察财官之势。若财旺提纲，则以财为用」：月支本气是财、财的本气支又不止一处（「癸卯 丙辰 甲辰 丙寅」
   // 辰辰财旺，身旺用财），局全也不作专旺；只一处财支的（「丁卯 甲辰 甲寅 乙亥」）仍是曲直仁寿。
   const caiBranches = pillars.filter((pillar) => ROLE_OF[pillar.hiddenGanDetails?.[0]?.shiShen] === '财').length;
   const caiWangTiGang = ROLE_OF[byKey.month?.hiddenGanDetails?.[0]?.shiShen] === '财' && caiBranches >= 2;
-  const juWang = juOfDay && roleCount['官杀'] === 0 && !caiWangTiGang;
-  const wangJi = (scored && score.total >= 4) || strength.ratio > 0.8 || juWang;
+  // 「全局不见官杀」：天干、地支本气与寅申巳亥所藏的中气里没有官杀；辰戌丑未杂气里一点官杀余气不算（费中堂造未中乙木，任注仍作稼穑）。
+  const guanShaVisible = stems.some((stem) => ROLE_OF[stem.shiShen] === '官杀')
+    || summary.hidden.some((item) => ROLE_OF[item.shiShen] === '官杀' && (item.rank === 0 || !ZA_QI_MONTHS.has(item.zhi)));
+  const juWang = juOfDay && !guanShaVisible && !caiWangTiGang;
+  // 干支一气：天干全是印比、四支本气（会局、六合化后）也全是印比，「斯真格象」，打分不到极强也作旺极。
+  const yiQiWang = stems.every((stem) => ['比劫', '印'].includes(ROLE_OF[stem.shiShen])) && [...benqiRoles].every((role) => role === '比劫' || role === '印');
+  const wangJi = (scored && score.total >= 4) || strength.ratio > 0.8 || juWang || yiQiWang;
   // 从强「绝无一毫财星官杀之气」：天干官杀在地支有根，官星有力（「乙木官星透露，盘根在未，余气在辰，本可为用」）；
   // 食伤透干有根、又有财星透出，旺神有泄、食伤生财（「喜其甲丙并透……用神必是甲木」）：都按扶抑，不作专旺、从强。
   const rootedStemOf = (role) => stems.some((stem) => stem.key !== 'day' && ROLE_OF[stem.shiShen] === role && rootedGan(stem.gan));
@@ -454,7 +468,7 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     && !(rootedStemOf('食伤') && summary.transparentRole('财').length > 0);
   if (wangJi && shunShi) {
     const level = score ? `帮身打分 ${Math.round(score.total * 100) / 100} 分` : `同党占 ${Math.round(strength.ratio * 100)}%`;
-    if (roleCount['官杀'] === 0 && roleShare['比劫'] >= roleShare['印']) {
+    if (!guanShaVisible && roleShare['比劫'] >= roleShare['印']) {
       // 食伤透干有根才谈吐秀；印也透出而食伤只有一位的，印克食伤、食伤难为用（任注炎上一造戊土食神透而甲印亦透，仍用火），
       // 食伤两透成势、或全局无印透出的，才顺势以食伤为用。
       const xieXiu = rootedStemOf('食伤') && (summary.transparentRole('食伤').length >= 2 || !yinThrough);
