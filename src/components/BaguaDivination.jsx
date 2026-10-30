@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft } from 'lucide-react';
 import FullBaguaExperience from './BaguaBackground/FullBaguaExperience.jsx';
 import { getHexagram } from '../utils/hexagramLogic';
 import { fetchQuantumUtils } from '../utils/quantumRandom';
+import { coinsToLineValue } from '../utils/liuyao';
 
 const InkStroke = ({ type, width = '100%' }) => {
     return (
@@ -54,7 +54,8 @@ const InkStroke = ({ type, width = '100%' }) => {
     );
 };
 
-export default function BaguaDivination({ onBack }) {
+// onComplete：六爻页接管结果时传入，六爻齐后把爻值（初爻在前）交给它。
+export default function BaguaDivination({ onBack, onComplete = null }) {
     const [yaos, setYaos] = useState([]);
     const [finalHexagram, setFinalHexagram] = useState(null);
     
@@ -120,6 +121,11 @@ export default function BaguaDivination({ onBack }) {
     };
 
     const generateFinalHexagram = (finalYaos) => {
+        if (onComplete) {
+            isGeneratingRef.current = false;
+            onComplete(finalYaos.map((yao) => coinsToLineValue(yao.headsCount)));
+            return;
+        }
         const hexagramBinary = finalYaos.map(y => y.binaryVal).join('');
         const movingLines = finalYaos.map((y, index) => y.isMoving ? index + 1 : null).filter(Boolean);
         const result = getHexagram(hexagramBinary, movingLines);
@@ -141,21 +147,7 @@ export default function BaguaDivination({ onBack }) {
                 <FullBaguaExperience onFist={handleFist} onClose={onBack} />
             </div>
 
-            {/* Title overlay */}
-            <div className="absolute top-6 left-6 z-50 text-white/80 pointer-events-none drop-shadow-md">
-                <div className="text-xl tracking-widest font-bold">手势起卦</div>
-                <div className="text-xs tracking-widest opacity-60 mt-1">隔空握拳 六次成卦 ({yaos.length}/6)</div>
-            </div>
-
-            {/* Back Button */}
-            <button
-                type="button"
-                onClick={onBack}
-                className="absolute z-[100] top-6 right-6 size-11 rounded-full border border-white/20 bg-black/40 backdrop-blur-md flex items-center justify-center text-white/80 shadow-sm transition-colors hover:bg-black/60 focus-visible:outline-none"
-                aria-label="返回首页"
-            >
-                <ArrowLeft size={19} aria-hidden="true" />
-            </button>
+            {/* 返回：手势引擎自带的「返回」与右上角 ✕ 已覆盖，这里不再重复放按钮，避免和状态栏重叠。 */}
 
             {/* Centered Yao List Overlay */}
             <div className="absolute inset-0 z-40 pointer-events-none flex flex-col items-center justify-center">
@@ -204,17 +196,18 @@ export default function BaguaDivination({ onBack }) {
                 )}
             </div>
 
-            {/* Manual Trigger Button (Fallback for users without camera or slow gesture recognition) */}
+            {/* 起卦进度与手动按钮：没有摄像头或识别不灵时也能完成起卦 */}
             {!finalHexagram && (
-                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-auto flex flex-col items-center">
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto flex flex-col items-center text-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+                    <span className="text-xs tracking-[0.3em] text-white/70 drop-shadow-md">手势起卦 · 已得 {yaos.length}/6 爻</span>
                     <button
                         type="button"
                         onClick={handleFist}
-                        className="px-6 py-2.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/25 text-white/95 text-xs md:text-sm font-medium backdrop-blur-md transition-all active:scale-95 shadow-xl flex items-center gap-2 cursor-pointer"
+                        className="mt-2 min-h-11 px-6 rounded-full bg-white/15 hover:bg-white/25 border border-white/25 text-white/95 text-sm font-medium backdrop-blur-md transition-all active:scale-95 shadow-xl flex items-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                     >
-                        <span>✊ 模拟握拳生爻 ({yaos.length}/6)</span>
+                        <span>✊ 点击生一爻</span>
                     </button>
-                    <span className="text-[10px] text-white/40 mt-1.5 tracking-wider">对着摄像头握拳 或 点击按钮手动起卦</span>
+                    <span className="text-[10px] text-white/45 mt-1.5 tracking-wider">开启摄像头后对着镜头握拳，也能生爻</span>
                 </div>
             )}
 

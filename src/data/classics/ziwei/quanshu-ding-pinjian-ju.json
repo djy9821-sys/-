@@ -1,0 +1,181 @@
+{
+  "classic": "ziwei",
+  "volume": "卷一",
+  "section": "定贫贱局",
+  "edition": "公版古籍《紫微斗数全书》（明万历潘希尹辑刻本、四库提要存目本，参校维基文库、ctext.org 公版文本）",
+  "contributor": "antigravity",
+  "entries": [
+    {
+      "id": "ziwei.quanshu.dingpinjianju.001",
+      "title": "定贫贱局·生不逢时",
+      "original": "生不逢时：命坐空亡，逢廉贞是也。",
+      "vernacular": "生不逢时格：命宫落入空亡之地，且逢廉贞星坐守即是此格。",
+      "notes": "廉贞为囚星，坐命本忌凶曜，若再落入地空、地劫或截空旬空等空亡之位，主生不逢时、怀才不遇。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "生不逢时格"
+        }
+      ],
+      "tags": [
+        "定贫贱局",
+        "廉贞",
+        "生不逢时"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingpinjianju.002",
+      "title": "定贫贱局·禄逢两杀",
+      "original": "禄逢两杀：禄坐空亡，又逢空劫杀星是也。",
+      "vernacular": "禄逢两杀：禄存坐在空亡，又遇到空劫杀星，就是此格。",
+      "notes": "禄存最怕逢空劫，称两重华盖或两煞冲破，虚名虚利，财来财去。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "禄逢两杀格"
+        }
+      ],
+      "tags": [
+        "定贫贱局",
+        "禄存",
+        "地空",
+        "地劫",
+        "禄逢两杀"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingpinjianju.003",
+      "title": "定贫贱局·马落空亡",
+      "original": "马落空亡：马既落亡，虽禄冲会无用，主奔波。",
+      "vernacular": "马落空亡：天马已落入空亡，即使有禄来冲会也无用，主奔波劳碌。",
+      "notes": "天马逢地空地劫或截路旬空，虽有禄马交驰之象，但因落空而徒劳无功，主浮沉流浪。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "马落空亡格"
+        }
+      ],
+      "tags": [
+        "定贫贱局",
+        "天马",
+        "马落空亡"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingpinjianju.004",
+      "title": "定贫贱局·日月藏辉",
+      "original": "日月藏辉：日月反背，又逢巨暗是也。",
+      "vernacular": "日月藏辉：太阳、太阴处于反背，又遇到巨门暗星，就是此格。",
+      "notes": "日月失辉，更逢暗宿巨门遮蔽，主一生多劳碌晦滞、眼目昏暗。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "日月藏辉：日月反背又逢巨门。按安星法太阴与巨门不同宫，「逢巨暗」是同宫还是会照字义两可，程序暂不判"
+        }
+      ],
+      "tags": [
+        "定贫贱局",
+        "太阳",
+        "太阴",
+        "巨门",
+        "日月反背",
+        "日月藏辉"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingpinjianju.005",
+      "title": "定贫贱局·财与囚仇",
+      "original": "财与囚仇：武贞同守身命是也。",
+      "vernacular": "财与囚仇：武曲、廉贞一同坐守身宫、命宫，就是此格。",
+      "notes": "武曲金克廉贞木，一财一囚，同宫相生相克，性情矛盾，易因财招非或横遭破败。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "财与囚仇格"
+        }
+      ],
+      "tags": [
+        "定贫贱局",
+        "武曲",
+        "廉贞",
+        "财与囚仇"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingpinjianju.006",
+      "title": "定贫贱局·一生孤贫",
+      "original": "一生孤贫：谓破守命星陷地是也。",
+      "vernacular": "一生孤贫格：指破军星在失陷宫位坐守命宫即是此格。",
+      "notes": "破军在卯酉陷地坐命，无吉星化解而煞曜加临，主破荡祖业、一生孤苦贫困。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "一生孤贫格"
+        }
+      ],
+      "tags": [
+        "定贫贱局",
+        "破军",
+        "一生孤贫"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingpinjianju.007",
+      "title": "定贫贱局·君子在野",
+      "original": "君子在野：谓四杀守身命，而言临陷地是也。",
+      "vernacular": "君子在野：指四杀坐守身宫、命宫，而且落在陷地，就是此格。",
+      "notes": "身命值四煞陷地，吉星不临，纵有君子之才亦难展抱负，淹滞草野。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "君子在野格"
+        }
+      ],
+      "tags": [
+        "定贫贱局",
+        "擎羊",
+        "陀罗",
+        "火星",
+        "铃星",
+        "君子在野"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingpinjianju.008",
+      "title": "定贫贱局·两重华盖",
+      "original": "两重华盖：谓禄存化禄坐命，遇空劫是也。",
+      "vernacular": "两重华盖：禄存、化禄坐守命宫，又遇到空劫，就是此格。",
+      "notes": "双禄坐命本为大富，但被地劫、地空二煞冲破，称为两重华盖，反主贫寒无禄或遁入空门僧道。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "两重华盖格"
+        }
+      ],
+      "tags": [
+        "定贫贱局",
+        "禄存",
+        "化禄",
+        "两重华盖",
+        "地空",
+        "地劫"
+      ],
+      "status": "translated"
+    }
+  ]
+}

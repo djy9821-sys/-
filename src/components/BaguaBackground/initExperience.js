@@ -9,6 +9,11 @@ export function initBaguaExperience(callbacks = {}) {
   const canvas = document.querySelector('#stage');
   if (!canvas) return () => {};
 
+  // 所有事件监听都挂在同一个 signal 上，离开页面时一次性移除。
+  const listeners = new AbortController();
+  const { signal } = listeners;
+  let disposed = false;
+
 const video = document.querySelector('#camera');
 const gate = document.querySelector('#gate');
 const hud = document.querySelector('#hud');
@@ -35,9 +40,24 @@ function setStatus(state, vortex = false) {
 }
 
 const sound = createSoundscape();
-const experience = createBaguaExperience(canvas, (state, vortex) => {
-  setStatus(state, vortex);
+// 没有 WebGL（老手机、浏览器关了硬件加速）时 three.js 建不出画布：别让整页报错，
+// 提示一句，起卦仍可用下方「点击生一爻」。
+const noop = () => false;
+const FALLBACK_EXPERIENCE = Object.freeze({
+  dispose() {}, state: 'hidden', vortex: false,
+  summon: noop, flatten: noop, rise: noop, flattenBack: noop, reset: noop, toggleVortex: noop,
+  moveSeed() {}, setSeedIntensity() {}, guide() {}, manualGuide() {}, scaleBy() {},
+  screenToWorld: () => ({ x: 0, y: 0 }),
 });
+let experience = FALLBACK_EXPERIENCE;
+try {
+  experience = createBaguaExperience(canvas, (state, vortex) => {
+    setStatus(state, vortex);
+  });
+} catch (error) {
+  console.warn('[bagua] 3D 画面初始化失败', error);
+  showError('这台设备暂时显示不了 3D 画面，仍可点下方「点击生一爻」起卦。');
+}
 
 let mediaPipeCamera = null;
 let hands = null;
@@ -75,6 +95,7 @@ function enterExperience(nextMode) {
 }
 
 function stopCamera() {
+  mediaPipeCamera?.stop?.();
   const stream = video.srcObject;
   if (stream instanceof MediaStream) {
     stream.getTracks().forEach((track) => track.stop());
@@ -192,6 +213,42 @@ function handleResults(results) {
   }
 }
 
+// 先用网站自己提供的模型文件（构建时复制，国内也能访问），失败再试 CDN。
+const MEDIAPIPE_HANDS_BASES = [
+  import.meta.env.VITE_MEDIAPIPE_HANDS_BASE,
+  'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/'
+].filter(Boolean);
+const MODEL_TIMEOUT_MS = 25000;
+
+async function createHands(Hands) {
+  let lastError = null;
+  for (const base of MEDIAPIPE_HANDS_BASES) {
+    const instance = new Hands({ locateFile: (file) => base + file });
+    instance.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.55,
+      minTrackingConfidence: 0.55
+    });
+    try {
+      await Promise.race([
+        instance.initialize(),
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('手势模型加载超时')), MODEL_TIMEOUT_MS);
+        })
+      ]);
+      return instance;
+    } catch (error) {
+      lastError = error;
+      instance.close?.();
+    }
+  }
+  const failure = new Error('手势识别模型加载失败');
+  failure.name = 'ModelUnavailableError';
+  failure.cause = lastError;
+  throw failure;
+}
+
 async function enableCamera() {
   clearError();
   enterExperience('camera');
@@ -201,16 +258,12 @@ async function enableCamera() {
       import('@mediapipe/hands'),
       import('@mediapipe/camera_utils')
     ]);
-    hands = new Hands({
-      locateFile: (file) =>
-        'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/' + file
-    });
-    hands.setOptions({
-      maxNumHands: 1,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.55,
-      minTrackingConfidence: 0.55
-    });
+    const createdHands = await createHands(Hands);
+    if (disposed) {
+      createdHands.close?.();
+      return;
+    }
+    hands = createdHands;
     hands.onResults(handleResults);
 
     mediaPipeCamera = new Camera(video, {
@@ -224,33 +277,39 @@ async function enableCamera() {
       facingMode: 'user'
     });
     await mediaPipeCamera.start();
+    if (disposed) {
+      stopCamera();
+      return;
+    }
     cameraLive.hidden = false;
     stopCameraButton.hidden = false;
   } catch (error) {
     stopCamera();
     showError(
-      '摄像头不可用，已切换到手动模式。Camera unavailable; manual mode is active.'
+      error?.name === 'ModelUnavailableError'
+        ? '手势识别模型没能加载（网络较慢或无法访问模型文件），已切换到手动模式，点击画面即可操作。'
+        : '摄像头不可用，已切换到手动模式。Camera unavailable; manual mode is active.'
     );
     console.error(error);
   }
 }
 
-document.querySelector('#enable-camera').addEventListener('click', enableCamera);
+document.querySelector('#enable-camera').addEventListener('click', enableCamera, { signal });
 document.querySelector('#manual-mode').addEventListener('click', () => {
   clearError();
   enterExperience('manual');
-});
+}, { signal });
 
 document.querySelector('#reset').addEventListener('click', () => {
   if (experience.reset()) sound.reset();
-});
+}, { signal });
 
 muteButton.addEventListener('click', () => {
   const muted = sound.toggleMute();
   muteButton.textContent = muted ? '×' : '♪';
-});
+}, { signal });
 
-stopCameraButton.addEventListener('click', stopCamera);
+stopCameraButton.addEventListener('click', stopCamera, { signal });
 
 canvas.addEventListener('click', (event) => {
   if (gate.hidden !== true) return;
@@ -265,14 +324,14 @@ canvas.addEventListener('click', (event) => {
   } else if (experience.state === 'rising' || experience.state === 'risen') {
     if (experience.flattenBack()) sound.fold();
   }
-});
+}, { signal });
 
 window.addEventListener('mousemove', (event) => {
   if (mode !== 'manual' || experience.state !== 'risen') return;
   const x = event.clientX / window.innerWidth - 0.5;
   const y = event.clientY / window.innerHeight - 0.5;
   experience.manualGuide(x, y);
-});
+}, { signal });
 
 window.addEventListener(
   'wheel',
@@ -281,7 +340,7 @@ window.addEventListener(
     event.preventDefault();
     experience.scaleBy(event.deltaY > 0 ? 0.94 : 1.06);
   },
-  { passive: false }
+  { passive: false, signal }
 );
 
 window.addEventListener('keydown', (event) => {
@@ -296,18 +355,23 @@ window.addEventListener('keydown', (event) => {
     muteButton.textContent = muted ? '×' : '♪';
   }
   if (key === 'escape') stopCamera();
-});
+}, { signal });
 
 window.addEventListener('pagehide', () => {
   stopCamera();
   sound.dispose();
-});
+}, { signal });
 
   return () => {
-    // cleanup
+    // 离开页面：关摄像头、移除监听、停掉动画与声音
+    disposed = true;
+    listeners.abort();
     try {
-      if (mediaPipeCamera) stopCamera();
-      if (hands) hands.close();
+      stopCamera();
+      hands?.close();
+      hands = null;
+      sound.dispose();
+      experience.dispose();
     } catch (err) {
       console.warn('Cleanup error', err);
     }

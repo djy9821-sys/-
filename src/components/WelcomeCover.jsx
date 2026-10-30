@@ -23,11 +23,11 @@ const COVER_ENTRANCES = Object.freeze([
     action: 'bazi',
   }),
   Object.freeze({
-    key: 'money',
+    key: 'liuyao',
     seal: '卦',
-    title: '金钱卦',
+    title: '六爻',
     caption: '一事一问',
-    action: 'money',
+    action: 'liuyao',
   }),
   Object.freeze({
     key: 'archive',
@@ -61,7 +61,7 @@ export default function WelcomeCover({ onEnter, onNavigate }) {
             <span className="welcome-cover__brand-seal" aria-hidden="true">古</span>
             <h1 id="welcome-cover-title">古书派</h1>
           </div>
-          <p className="welcome-cover__brand-caption">紫微 · 八字 · 金钱卦</p>
+          <p className="welcome-cover__brand-caption">紫微 · 八字 · 六爻</p>
           <p className="welcome-cover__brand-promise">观本命&nbsp;·&nbsp;察流年&nbsp;·&nbsp;知进退</p>
         </header>
 

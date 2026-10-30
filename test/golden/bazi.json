@@ -1,0 +1,1559 @@
+{
+  "qianlong": {
+    "note": "乾隆 辛卯 丁酉 庚午 丙子",
+    "input": {
+      "calendarType": "solar",
+      "year": 1711,
+      "month": 9,
+      "day": 25,
+      "hourIndex": 0,
+      "gender": "male"
+    },
+    "result": {
+      "pillars": [
+        "年柱 辛卯 劫财 | 乙正财 | 松柏木 | 胎/绝 | 空午未 | 德秀贵人 将星 桃花",
+        "月柱 丁酉 正官 | 辛劫财 | 山下火 | 帝旺/长生 | 空辰巳 | 羊刃 灾煞",
+        "日柱 庚午 日主 | 丁正官 己正印 | 路旁土 | 沐浴/沐浴 | 空戌亥 | 天乙贵人 月德贵人 德秀贵人 将星 天喜",
+        "时柱 丙子 七杀 | 癸伤官 | 涧下水 | 死/胎 | 空申酉 | 文昌贵人 天厨贵人 桃花 红鸾 灾煞"
+      ],
+      "timeInfo": {
+        "correctedDate": null,
+        "correctedTime": null,
+        "hourName": null,
+        "trueSolarApplied": false,
+        "dstApplied": false
+      },
+      "extras": {
+        "taiYuan": "戊子",
+        "taiYuanNaYin": "霹雳火",
+        "mingGong": "丙申",
+        "mingGongNaYin": "山下火",
+        "shenGong": "戊戌",
+        "shenGongNaYin": "平地木"
+      },
+      "yun": {
+        "startSolar": "1717-02-25 14:00:00",
+        "forward": false,
+        "dayun": [
+          "丙申 7–16 1717",
+          "乙未 17–26 1727",
+          "甲午 27–36 1737",
+          "癸巳 37–46 1747",
+          "壬辰 47–56 1757",
+          "辛卯 57–66 1767",
+          "庚寅 67–76 1777",
+          "己丑 77–86 1787"
+        ]
+      },
+      "strength": {
+        "band": "偏弱",
+        "ratio": 0.4118,
+        "deLing": true,
+        "favorable": [
+          {
+            "element": "水",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "金",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "土",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": false
+          },
+          {
+            "element": "火",
+            "role": "官杀",
+            "tiaoHou": true,
+            "usable": true
+          }
+        ]
+      },
+      "pattern": {
+        "pattern": {
+          "name": "羊刃格",
+          "kind": "ren",
+          "tenGod": "劫财",
+          "monthZhi": "酉",
+          "basis": "月支酉为阳干庚的羊刃，日主当令且旺。"
+        },
+        "special": null,
+        "traits": [
+          {
+            "key": "guansha-hunza",
+            "name": "官杀混杂",
+            "tone": "caution",
+            "basis": "正官见于月柱丁，七杀见于时柱丙。",
+            "note": "官杀并见，责任与压力来自多方，宜去留分明（合去或制去其一）；性格上常显得既守规矩又想突破。"
+          },
+          {
+            "key": "yangren-jiasha",
+            "name": "羊刃驾杀",
+            "tone": "good",
+            "basis": "月柱酉为羊刃，七杀见于时柱丙。",
+            "note": "刃杀相济，魄力与执行力强，适合竞争性强的行业；忌刃被冲或杀无制。"
+          },
+          {
+            "key": "shazhong-shenqing",
+            "name": "杀重身轻",
+            "tone": "caution",
+            "basis": "官杀占 35%，日主偏弱。",
+            "note": "压力型命局，宜印星化杀或食伤制杀，身体与情绪都要留余地。"
+          },
+          {
+            "key": "rizuo",
+            "name": "日坐正官",
+            "tone": "neutral",
+            "basis": "日支午本气丁为正官，日主自坐沐浴。",
+            "note": "配偶宫见正官：伴侣端正有分寸，看重名分与规矩。"
+          }
+        ]
+      },
+      "chengBai": {
+        "group": "羊刃格",
+        "verdict": "待详辨",
+        "success": [],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
+      }
+    }
+  },
+  "sunzhongshan": {
+    "note": "孙中山 丙寅 己亥 辛卯 庚寅",
+    "input": {
+      "calendarType": "solar",
+      "year": 1866,
+      "month": 11,
+      "day": 12,
+      "hourIndex": 2,
+      "gender": "male"
+    },
+    "result": {
+      "pillars": [
+        "年柱 丙寅 正官 | 甲正财 丙正官 戊正印 | 炉中火 | 胎/长生 | 空戌亥 | 天乙贵人 太极贵人 亡神",
+        "月柱 己亥 偏印 | 壬伤官 甲正财 | 平地木 | 沐浴/胎 | 空辰巳 | 天乙贵人 太极贵人 月德合 金舆 劫煞",
+        "日柱 辛卯 日主 | 乙偏财 | 松柏木 | 绝/绝 | 空午未 | 太极贵人 将星 桃花 阴差阳错",
+        "时柱 庚寅 劫财 | 甲正财 丙正官 戊正印 | 松柏木 | 胎/绝 | 空午未 | 天乙贵人 太极贵人 天德合 亡神"
+      ],
+      "timeInfo": {
+        "correctedDate": null,
+        "correctedTime": null,
+        "hourName": null,
+        "trueSolarApplied": false,
+        "dstApplied": false
+      },
+      "extras": {
+        "taiYuan": "庚寅",
+        "taiYuanNaYin": "松柏木",
+        "mingGong": "壬辰",
+        "mingGongNaYin": "长流水",
+        "shenGong": "庚寅",
+        "shenGongNaYin": "松柏木"
+      },
+      "yun": {
+        "startSolar": "1875-05-12 09:00:00",
+        "forward": true,
+        "dayun": [
+          "庚子 10–19 1875",
+          "辛丑 20–29 1885",
+          "壬寅 30–39 1895",
+          "癸卯 40–49 1905",
+          "甲辰 50–59 1915",
+          "乙巳 60–69 1925",
+          "丙午 70–79 1935",
+          "丁未 80–89 1945"
+        ]
+      },
+      "strength": {
+        "band": "偏弱",
+        "ratio": 0.2453,
+        "deLing": false,
+        "favorable": [
+          {
+            "element": "土",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "金",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": false
+          },
+          {
+            "element": "火",
+            "role": "官杀",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "木",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "水",
+            "role": "食伤",
+            "tiaoHou": true,
+            "usable": true
+          }
+        ]
+      },
+      "pattern": {
+        "pattern": {
+          "name": "伤官格",
+          "kind": "regular",
+          "tenGod": "伤官",
+          "monthZhi": "亥",
+          "source": "本气",
+          "transparent": false,
+          "basis": "月支亥藏干均未透出，以本气壬（伤官）为格。"
+        },
+        "special": null,
+        "traits": [
+          {
+            "key": "shangguan-jianguan",
+            "name": "伤官见官",
+            "tone": "caution",
+            "basis": "伤官见于月令亥本气，正官见于年柱丙。",
+            "note": "传统视为需要留意的组合：与上司、规则容易起摩擦，宜以财通关或以印制伤；也常见于敢想敢做、不走寻常路的人。"
+          },
+          {
+            "key": "guanyin-xiangsheng",
+            "name": "官印相生",
+            "tone": "good",
+            "basis": "正官见于年柱丙，印星见于月柱己。",
+            "note": "官生印、印护身，适合体制内、专业资格与稳扎稳打的路线。"
+          },
+          {
+            "key": "caiduo-shenruo",
+            "name": "财多身弱",
+            "tone": "caution",
+            "basis": "财星占 38%，日主偏弱。",
+            "note": "财来财去、为财所累，宜比劫帮身或印星生扶，合伙与理财需量力。"
+          },
+          {
+            "key": "yinxing-hushen",
+            "name": "印星护身",
+            "tone": "good",
+            "basis": "日主偏弱，印星见于月柱己。",
+            "note": "身弱得印，学习与长辈助力是主要依靠。"
+          },
+          {
+            "key": "rizuo",
+            "name": "日坐偏财",
+            "tone": "neutral",
+            "basis": "日支卯本气乙为偏财，日主自坐绝。",
+            "note": "配偶宫见偏财：伴侣大方活络，人缘与财路都广。"
+          }
+        ]
+      },
+      "chengBai": {
+        "group": "伤官格",
+        "verdict": "成",
+        "success": [
+          "伤官佩印",
+          "伤官非金水而见官（金水伤官例外）"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
+      }
+    }
+  },
+  "maozedong-lunar": {
+    "note": "毛泽东 农历癸巳年十一月十九 辰时",
+    "input": {
+      "calendarType": "lunar",
+      "year": 1893,
+      "month": 11,
+      "day": 19,
+      "hourIndex": 4,
+      "gender": "male"
+    },
+    "result": {
+      "pillars": [
+        "年柱 癸巳 七杀 | 丙劫财 庚正财 戊伤官 | 长流水 | 帝旺/胎 | 空午未 | 天乙贵人 太极贵人 天德贵人 德秀贵人",
+        "月柱 甲子 正印 | 癸七杀 | 海中金 | 绝/沐浴 | 空戌亥 | 德秀贵人",
+        "日柱 丁酉 日主 | 辛偏财 | 山下火 | 长生/长生 | 空辰巳 | 天乙贵人 太极贵人 月德合 文昌贵人 将星",
+        "时柱 甲辰 正印 | 戊伤官 乙偏印 癸七杀 | 覆灯火 | 衰/衰 | 空寅卯 | 德秀贵人 天喜 寡宿"
+      ],
+      "timeInfo": {
+        "correctedDate": null,
+        "correctedTime": null,
+        "hourName": null,
+        "trueSolarApplied": false,
+        "dstApplied": false
+      },
+      "extras": {
+        "taiYuan": "乙卯",
+        "taiYuanNaYin": "大溪水",
+        "mingGong": "乙丑",
+        "mingGongNaYin": "海中金",
+        "shenGong": "丁巳",
+        "shenGongNaYin": "沙中土"
+      },
+      "yun": {
+        "startSolar": "1900-05-09 13:00:00",
+        "forward": false,
+        "dayun": [
+          "癸亥 8–17 1900",
+          "壬戌 18–27 1910",
+          "辛酉 28–37 1920",
+          "庚申 38–47 1930",
+          "己未 48–57 1940",
+          "戊午 58–67 1950",
+          "丁巳 68–77 1960",
+          "丙辰 78–87 1970"
+        ]
+      },
+      "strength": {
+        "band": "偏弱",
+        "ratio": 0.3646,
+        "deLing": false,
+        "favorable": [
+          {
+            "element": "木",
+            "role": "印",
+            "tiaoHou": true,
+            "usable": true
+          },
+          {
+            "element": "火",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "水",
+            "role": "官杀",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "金",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "土",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ]
+      },
+      "pattern": {
+        "pattern": {
+          "name": "七杀格",
+          "kind": "regular",
+          "tenGod": "七杀",
+          "monthZhi": "子",
+          "source": "本气",
+          "transparent": true,
+          "basis": "月支子本气癸（七杀）透于年柱癸，以透出者为格。"
+        },
+        "special": null,
+        "traits": [
+          {
+            "key": "yinxing-hushen",
+            "name": "印星护身",
+            "tone": "good",
+            "basis": "日主偏弱，印星见于月柱甲、时柱甲。",
+            "note": "身弱得印，学习与长辈助力是主要依靠。"
+          },
+          {
+            "key": "rizuo",
+            "name": "日坐偏财",
+            "tone": "neutral",
+            "basis": "日支酉本气辛为偏财，日主自坐长生。",
+            "note": "配偶宫见偏财：伴侣大方活络，人缘与财路都广。"
+          }
+        ]
+      },
+      "chengBai": {
+        "group": "七杀格",
+        "verdict": "成",
+        "success": [
+          "煞用印化（论偏官）"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
+      }
+    }
+  },
+  "lichun-before": {
+    "note": "2016 立春前两小时：乙未 己丑",
+    "input": {
+      "calendarType": "solar",
+      "year": 2016,
+      "month": 2,
+      "day": 4,
+      "clockHour": 15,
+      "clockMinute": 40,
+      "timeMode": "exact",
+      "gender": "female",
+      "applyTrueSolar": false
+    },
+    "result": {
+      "pillars": [
+        "年柱 乙未 正印 | 己伤官 丁劫财 乙正印 | 沙中金 | 衰/养 | 空辰巳 | 天德合 月德合 德秀贵人 金舆 华盖",
+        "月柱 己丑 伤官 | 己伤官 癸正官 辛正财 | 霹雳火 | 养/墓 | 空午未 | 国印贵人",
+        "日柱 丙辰 日主 | 戊食神 乙正印 癸正官 | 沙中土 | 冠带/冠带 | 空子丑 | 华盖 寡宿",
+        "时柱 丙申 比肩 | 庚偏财 壬七杀 戊食神 | 山下火 | 病/病 | 空辰巳 | 天乙贵人 文昌贵人 红鸾 劫煞 孤辰"
+      ],
+      "timeInfo": {
+        "correctedDate": "2016-02-04",
+        "correctedTime": "15:40",
+        "hourName": null,
+        "trueSolarApplied": false,
+        "dstApplied": false
+      },
+      "extras": {
+        "taiYuan": "庚辰",
+        "taiYuanNaYin": "白蜡金",
+        "mingGong": "甲申",
+        "mingGongNaYin": "泉中水",
+        "shenGong": "丙戌",
+        "shenGongNaYin": "屋上土"
+      },
+      "yun": {
+        "startSolar": "2016-02-15 03:40:00",
+        "forward": true,
+        "dayun": [
+          "庚寅 2–11 2016",
+          "辛卯 12–21 2026",
+          "壬辰 22–31 2036",
+          "癸巳 32–41 2046",
+          "甲午 42–51 2056",
+          "乙未 52–61 2066",
+          "丙申 62–71 2076",
+          "丁酉 72–81 2086"
+        ]
+      },
+      "strength": {
+        "band": "偏弱",
+        "ratio": 0.275,
+        "deLing": false,
+        "favorable": [
+          {
+            "element": "木",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "火",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "水",
+            "role": "官杀",
+            "tiaoHou": true,
+            "usable": false
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "金",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "土",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ]
+      },
+      "pattern": {
+        "pattern": {
+          "name": "伤官格",
+          "kind": "regular",
+          "tenGod": "伤官",
+          "monthZhi": "丑",
+          "source": "本气",
+          "transparent": true,
+          "basis": "月支丑本气己（伤官）透于月柱己，以透出者为格。"
+        },
+        "special": null,
+        "traits": [
+          {
+            "key": "shangguan-peiyin",
+            "name": "伤官配印",
+            "tone": "good",
+            "basis": "伤官见于月柱己，正印见于年柱乙。",
+            "note": "才华与分寸兼具，适合专业、文教与创作一类的路。"
+          },
+          {
+            "key": "yinxing-hushen",
+            "name": "印星护身",
+            "tone": "good",
+            "basis": "日主偏弱，印星见于年柱乙。",
+            "note": "身弱得印，学习与长辈助力是主要依靠。"
+          },
+          {
+            "key": "rizuo",
+            "name": "日坐食神",
+            "tone": "neutral",
+            "basis": "日支辰本气戊为食神，日主自坐冠带。",
+            "note": "配偶宫见食神：伴侣随和爱生活，家庭气氛多轻松。"
+          }
+        ]
+      },
+      "chengBai": {
+        "group": "伤官格",
+        "verdict": "成",
+        "success": [
+          "伤官佩印"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
+      }
+    }
+  },
+  "lichun-after": {
+    "note": "2016 立春后两小时：丙申 庚寅",
+    "input": {
+      "calendarType": "solar",
+      "year": 2016,
+      "month": 2,
+      "day": 4,
+      "clockHour": 19,
+      "clockMinute": 40,
+      "timeMode": "exact",
+      "gender": "female",
+      "applyTrueSolar": false
+    },
+    "result": {
+      "pillars": [
+        "年柱 丙申 比肩 | 庚偏财 壬七杀 戊食神 | 山下火 | 病/病 | 空辰巳 | 月德贵人 文昌贵人 德秀贵人",
+        "月柱 庚寅 偏财 | 甲偏印 丙比肩 戊食神 | 松柏木 | 长生/绝 | 空午未 | 红艳 驿马",
+        "日柱 丙辰 日主 | 戊食神 乙正印 癸正官 | 沙中土 | 冠带/冠带 | 空子丑 | 月德贵人 德秀贵人 华盖",
+        "时柱 戊戌 食神 | 戊食神 辛正财 丁劫财 | 平地木 | 墓/墓 | 空辰巳 | 德秀贵人"
+      ],
+      "timeInfo": {
+        "correctedDate": "2016-02-04",
+        "correctedTime": "19:40",
+        "hourName": null,
+        "trueSolarApplied": false,
+        "dstApplied": false
+      },
+      "extras": {
+        "taiYuan": "辛巳",
+        "taiYuanNaYin": "白蜡金",
+        "mingGong": "癸巳",
+        "mingGongNaYin": "长流水",
+        "shenGong": "辛丑",
+        "shenGongNaYin": "壁上土"
+      },
+      "yun": {
+        "startSolar": "2016-02-14 07:40:00",
+        "forward": false,
+        "dayun": [
+          "己丑 2–11 2016",
+          "戊子 12–21 2026",
+          "丁亥 22–31 2036",
+          "丙戌 32–41 2046",
+          "乙酉 42–51 2056",
+          "甲申 52–61 2066",
+          "癸未 62–71 2076",
+          "壬午 72–81 2086"
+        ]
+      },
+      "strength": {
+        "band": "偏弱",
+        "ratio": 0.4,
+        "deLing": true,
+        "favorable": [
+          {
+            "element": "木",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "火",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "水",
+            "role": "官杀",
+            "tiaoHou": true,
+            "usable": false
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "金",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "土",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ]
+      },
+      "pattern": {
+        "pattern": {
+          "name": "食神格",
+          "kind": "regular",
+          "tenGod": "食神",
+          "monthZhi": "寅",
+          "source": "余气",
+          "transparent": true,
+          "basis": "月支寅余气戊（食神）透于时柱戊，以透出者为格。"
+        },
+        "special": null,
+        "traits": [
+          {
+            "key": "rizuo",
+            "name": "日坐食神",
+            "tone": "neutral",
+            "basis": "日支辰本气戊为食神，日主自坐冠带。",
+            "note": "配偶宫见食神：伴侣随和爱生活，家庭气氛多轻松。"
+          }
+        ]
+      },
+      "chengBai": {
+        "group": "食神格",
+        "verdict": "成",
+        "success": [
+          "食神生财"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
+      }
+    }
+  },
+  "true-solar-cross-day": {
+    "note": "乌鲁木齐 00:40 真太阳时回到前一天亥时",
+    "input": {
+      "calendarType": "solar",
+      "year": 2026,
+      "month": 3,
+      "day": 10,
+      "clockHour": 0,
+      "clockMinute": 40,
+      "timeMode": "exact",
+      "gender": "male",
+      "longitude": 87.6,
+      "timezone": 8,
+      "applyTrueSolar": true,
+      "placeName": "乌鲁木齐"
+    },
+    "result": {
+      "pillars": [
+        "年柱 丙午 偏财 | 丁正财 己正官 | 天河水 | 胎/帝旺 | 空寅卯 | 将星",
+        "月柱 辛卯 正印 | 乙伤官 | 松柏木 | 死/绝 | 空午未 | 天乙贵人 太极贵人 桃花 天喜",
+        "日柱 壬午 日主 | 丁正财 己正官 | 杨柳木 | 胎/胎 | 空申酉 | 德秀贵人 将星",
+        "时柱 辛亥 正印 | 壬比肩 甲食神 | 钗钏金 | 临官/沐浴 | 空寅卯 | 天乙贵人 禄神 劫煞"
+      ],
+      "timeInfo": {
+        "correctedDate": "2026-03-09",
+        "correctedTime": "22:20",
+        "hourName": null,
+        "trueSolarApplied": true,
+        "dstApplied": false
+      },
+      "extras": {
+        "taiYuan": "壬午",
+        "taiYuanNaYin": "杨柳木",
+        "mingGong": "辛卯",
+        "mingGongNaYin": "松柏木",
+        "shenGong": "辛卯",
+        "shenGongNaYin": "松柏木"
+      },
+      "yun": {
+        "startSolar": "2034-12-01 14:20:00",
+        "forward": true,
+        "dayun": [
+          "壬辰 9–18 2034",
+          "癸巳 19–28 2044",
+          "甲午 29–38 2054",
+          "乙未 39–48 2064",
+          "丙申 49–58 2074",
+          "丁酉 59–68 2084",
+          "戊戌 69–78 2094",
+          "己亥 79–88 2104"
+        ]
+      },
+      "strength": {
+        "band": "偏弱",
+        "ratio": 0.3158,
+        "deLing": false,
+        "favorable": [
+          {
+            "element": "水",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "金",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": false
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "土",
+            "role": "官杀",
+            "tiaoHou": true,
+            "usable": false
+          },
+          {
+            "element": "火",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ]
+      },
+      "pattern": {
+        "pattern": {
+          "name": "伤官格",
+          "kind": "regular",
+          "tenGod": "伤官",
+          "monthZhi": "卯",
+          "source": "本气",
+          "transparent": false,
+          "basis": "月支卯藏干均未透出，以本气乙（伤官）为格。"
+        },
+        "special": null,
+        "traits": [
+          {
+            "key": "yinxing-hushen",
+            "name": "印星护身",
+            "tone": "good",
+            "basis": "日主偏弱，印星见于月柱辛、时柱辛。",
+            "note": "身弱得印，学习与长辈助力是主要依靠。"
+          },
+          {
+            "key": "rizuo",
+            "name": "日坐正财",
+            "tone": "neutral",
+            "basis": "日支午本气丁为正财，日主自坐胎。",
+            "note": "配偶宫见正财：伴侣务实稳重，重视家庭与积蓄。"
+          }
+        ]
+      },
+      "chengBai": {
+        "group": "伤官格",
+        "verdict": "成中有败",
+        "success": [
+          "伤官生财",
+          "伤官佩印"
+        ],
+        "failure": [],
+        "flaw": [
+          "伤官生财，而财又逢合"
+        ],
+        "rescue": []
+      }
+    }
+  },
+  "late-zi-same-day": {
+    "note": "晚子时不换日（默认）",
+    "input": {
+      "calendarType": "solar",
+      "year": 1990,
+      "month": 5,
+      "day": 20,
+      "hourIndex": 12,
+      "gender": "male",
+      "daySect": 2
+    },
+    "result": {
+      "pillars": [
+        "年柱 庚午 正官 | 丁食神 己偏财 | 路旁土 | 长生/沐浴 | 空戌亥 | 太极贵人 月德贵人 文昌贵人 天厨贵人 德秀贵人 将星 桃花",
+        "月柱 辛巳 七杀 | 丙伤官 庚正官 戊正财 | 白蜡金 | 沐浴/死 | 空申酉 | 天德贵人 德秀贵人 金舆 亡神",
+        "日柱 乙酉 日主 | 辛七杀 | 泉中水 | 绝/绝 | 空午未 | 月德合 德秀贵人 将星 红鸾",
+        "时柱 戊子 正财 | 癸偏印 | 霹雳火 | 病/胎 | 空午未 | 天乙贵人 太极贵人 灾煞"
+      ],
+      "timeInfo": {
+        "correctedDate": null,
+        "correctedTime": null,
+        "hourName": null,
+        "trueSolarApplied": false,
+        "dstApplied": false
+      },
+      "extras": {
+        "taiYuan": "壬申",
+        "taiYuanNaYin": "剑锋金",
+        "mingGong": "戊子",
+        "mingGongNaYin": "霹雳火",
+        "shenGong": "壬午",
+        "shenGongNaYin": "杨柳木"
+      },
+      "yun": {
+        "startSolar": "1995-10-29 19:00:00",
+        "forward": true,
+        "dayun": [
+          "壬午 6–15 1995",
+          "癸未 16–25 2005",
+          "甲申 26–35 2015",
+          "乙酉 36–45 2025",
+          "丙戌 46–55 2035",
+          "丁亥 56–65 2045",
+          "戊子 66–75 2055",
+          "己丑 76–85 2065"
+        ]
+      },
+      "strength": {
+        "band": "极弱",
+        "ratio": 0.099,
+        "deLing": false,
+        "favorable": [
+          {
+            "element": "水",
+            "role": "印",
+            "tiaoHou": true,
+            "usable": true
+          },
+          {
+            "element": "木",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": false
+          },
+          {
+            "element": "金",
+            "role": "官杀",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "土",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "火",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ]
+      },
+      "pattern": {
+        "pattern": {
+          "name": "正官格",
+          "kind": "regular",
+          "tenGod": "正官",
+          "monthZhi": "巳",
+          "source": "中气",
+          "transparent": true,
+          "basis": "月支巳中气庚（正官）透于年柱庚，以透出者为格。"
+        },
+        "special": {
+          "name": "疑似从杀格",
+          "kind": "cong",
+          "basis": "日主乙木地支无比劫之根，只有子中癸一点印气，天干无印比相帮，官杀占 40% 独旺。",
+          "note": "从格以顺从旺势为用，喜忌与常法相反：扶身反而不利。是否真从还要看是否有微根、印星是否被制，请人工确认。",
+          "favorable": [
+            {
+              "element": "土",
+              "label": "财"
+            },
+            {
+              "element": "金",
+              "label": "官杀"
+            }
+          ],
+          "unfavorable": [
+            {
+              "element": "火",
+              "label": "食伤"
+            },
+            {
+              "element": "水",
+              "label": "印"
+            },
+            {
+              "element": "木",
+              "label": "比劫"
+            }
+          ],
+          "godsBasis": "从杀以财星生杀为用（任注「用土以从之」），官杀次之；食伤制杀、印比扶身，都会破格",
+          "godsText": "喜土（财）、金（官杀）；忌火（食伤）、水（印）、木（比劫）"
+        },
+        "traits": [
+          {
+            "key": "guansha-hunza",
+            "name": "官杀混杂",
+            "tone": "caution",
+            "basis": "正官见于年柱庚，七杀见于月柱辛。",
+            "note": "官杀并见，责任与压力来自多方，宜去留分明（合去或制去其一）；性格上常显得既守规矩又想突破。"
+          },
+          {
+            "key": "shangguan-jianguan",
+            "name": "伤官见官",
+            "tone": "caution",
+            "basis": "伤官见于月令巳本气，正官见于年柱庚。",
+            "note": "传统视为需要留意的组合：与上司、规则容易起摩擦，宜以财通关或以印制伤；也常见于敢想敢做、不走寻常路的人。"
+          },
+          {
+            "key": "shazhong-shenqing",
+            "name": "杀重身轻",
+            "tone": "caution",
+            "basis": "官杀占 40%，日主极弱。",
+            "note": "压力型命局，宜印星化杀或食伤制杀，身体与情绪都要留余地。"
+          },
+          {
+            "key": "rizuo",
+            "name": "日坐七杀",
+            "tone": "neutral",
+            "basis": "日支酉本气辛为七杀，日主自坐绝。",
+            "note": "配偶宫见七杀：伴侣有魄力、脾气直，彼此需要留出空间。"
+          }
+        ]
+      },
+      "chengBai": {
+        "group": "正官格",
+        "verdict": "败",
+        "success": [
+          "官逢财印，又无刑冲破害，官格成也"
+        ],
+        "failure": [
+          "杂煞"
+        ],
+        "flaw": [],
+        "rescue": []
+      }
+    }
+  },
+  "late-zi-next-day": {
+    "note": "晚子时换次日",
+    "input": {
+      "calendarType": "solar",
+      "year": 1990,
+      "month": 5,
+      "day": 20,
+      "hourIndex": 12,
+      "gender": "male",
+      "daySect": 1
+    },
+    "result": {
+      "pillars": [
+        "年柱 庚午 偏财 | 丁劫财 己伤官 | 路旁土 | 帝旺/沐浴 | 空戌亥 | 月德贵人 德秀贵人 将星 羊刃",
+        "月柱 辛巳 正财 | 丙比肩 庚偏财 戊食神 | 白蜡金 | 临官/死 | 空申酉 | 天德贵人 天厨贵人 德秀贵人 禄神 亡神",
+        "日柱 丙戌 日主 | 戊食神 辛正财 丁劫财 | 屋上土 | 墓/墓 | 空午未 | 天德合 华盖",
+        "时柱 戊子 食神 | 癸正官 | 霹雳火 | 胎/胎 | 空午未 | 灾煞"
+      ],
+      "timeInfo": {
+        "correctedDate": null,
+        "correctedTime": null,
+        "hourName": null,
+        "trueSolarApplied": false,
+        "dstApplied": false
+      },
+      "extras": {
+        "taiYuan": "壬申",
+        "taiYuanNaYin": "剑锋金",
+        "mingGong": "戊子",
+        "mingGongNaYin": "霹雳火",
+        "shenGong": "壬午",
+        "shenGongNaYin": "杨柳木"
+      },
+      "yun": {
+        "startSolar": "1995-10-29 19:00:00",
+        "forward": true,
+        "dayun": [
+          "壬午 6–15 1995",
+          "癸未 16–25 2005",
+          "甲申 26–35 2015",
+          "乙酉 36–45 2025",
+          "丙戌 46–55 2035",
+          "丁亥 56–65 2045",
+          "戊子 66–75 2055",
+          "己丑 76–85 2065"
+        ]
+      },
+      "strength": {
+        "band": "偏弱",
+        "ratio": 0.3028,
+        "deLing": true,
+        "favorable": [
+          {
+            "element": "水",
+            "role": "官杀",
+            "tiaoHou": true,
+            "usable": true
+          },
+          {
+            "element": "木",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": false
+          },
+          {
+            "element": "金",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "土",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "火",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ]
+      },
+      "pattern": {
+        "pattern": {
+          "name": "建禄格",
+          "kind": "lu",
+          "tenGod": "比肩",
+          "monthZhi": "巳",
+          "basis": "月支巳为日主丙的禄位，日主当令得气。"
+        },
+        "special": null,
+        "traits": [
+          {
+            "key": "rizuo",
+            "name": "日坐食神",
+            "tone": "neutral",
+            "basis": "日支戌本气戊为食神，日主自坐墓。",
+            "note": "配偶宫见食神：伴侣随和爱生活，家庭气氛多轻松。"
+          }
+        ]
+      },
+      "chengBai": {
+        "group": "建禄月劫",
+        "verdict": "成",
+        "success": [
+          "透财而逢食伤"
+        ],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
+      }
+    }
+  },
+  "leap-month": {
+    "note": "农历 2023 闰二月二十",
+    "input": {
+      "calendarType": "lunar",
+      "year": 2023,
+      "month": -2,
+      "day": 20,
+      "hourIndex": 6,
+      "gender": "female"
+    },
+    "result": {
+      "pillars": [
+        "年柱 癸卯 正财 | 乙正官 | 金箔金 | 沐浴/长生 | 空辰巳 | 天乙贵人 文昌贵人 天厨贵人 德秀贵人 天医 将星 桃花",
+        "月柱 丙辰 偏印 | 戊比肩 乙正官 癸正财 | 沙中土 | 冠带/冠带 | 空子丑 | 太极贵人 德秀贵人 红艳",
+        "日柱 戊戌 日主 | 戊比肩 辛伤官 丁正印 | 平地木 | 墓/墓 | 空辰巳 | 太极贵人 德秀贵人 华盖 魁罡 十恶大败",
+        "时柱 戊午 比肩 | 丁正印 己劫财 | 天上火 | 帝旺/帝旺 | 空子丑 | 德秀贵人 将星 天喜 羊刃"
+      ],
+      "timeInfo": {
+        "correctedDate": null,
+        "correctedTime": null,
+        "hourName": null,
+        "trueSolarApplied": false,
+        "dstApplied": false
+      },
+      "extras": {
+        "taiYuan": "丁未",
+        "taiYuanNaYin": "天河水",
+        "mingGong": "己未",
+        "mingGongNaYin": "天上火",
+        "shenGong": "癸亥",
+        "shenGongNaYin": "大海水"
+      },
+      "yun": {
+        "startSolar": "2031-10-26 23:00:00",
+        "forward": true,
+        "dayun": [
+          "丁巳 9–18 2031",
+          "戊午 19–28 2041",
+          "己未 29–38 2051",
+          "庚申 39–48 2061",
+          "辛酉 49–58 2071",
+          "壬戌 59–68 2081",
+          "癸亥 69–78 2091",
+          "甲子 79–88 2101"
+        ]
+      },
+      "strength": {
+        "band": "极强",
+        "ratio": 0.6239,
+        "deLing": true,
+        "favorable": [
+          {
+            "element": "木",
+            "role": "官杀",
+            "tiaoHou": true,
+            "usable": true
+          },
+          {
+            "element": "水",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "金",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": false
+          },
+          {
+            "element": "土",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ]
+      },
+      "pattern": {
+        "pattern": {
+          "name": "杂气正财格",
+          "kind": "regular",
+          "tenGod": "正财",
+          "monthZhi": "辰",
+          "source": "余气",
+          "transparent": true,
+          "basis": "月支辰本气戊为比肩不取，余气癸（正财）透于年柱癸，以透出者为格。"
+        },
+        "special": null,
+        "traits": [
+          {
+            "key": "bijie-zhengcai",
+            "name": "比劫争财",
+            "tone": "caution",
+            "basis": "比劫占 41%，日主极强，财星透于年柱癸。",
+            "note": "合伙、借贷、担保宜谨慎；有官杀制比劫或食伤通关则可缓解。"
+          },
+          {
+            "key": "rizuo",
+            "name": "日坐比肩",
+            "tone": "neutral",
+            "basis": "日支戌本气戊为比肩，日主自坐墓。",
+            "note": "配偶宫见比肩：伴侣性格与自己相近，相处像朋友，也容易各执己见。"
+          }
+        ]
+      },
+      "chengBai": {
+        "group": "财格",
+        "verdict": "败",
+        "success": [],
+        "failure": [
+          "财轻比重"
+        ],
+        "flaw": [],
+        "rescue": []
+      }
+    }
+  },
+  "time-unknown": {
+    "note": "不知时辰",
+    "input": {
+      "calendarType": "solar",
+      "year": 1985,
+      "month": 10,
+      "day": 1,
+      "hourIndex": null,
+      "timeMode": "unknown",
+      "gender": "female"
+    },
+    "result": {
+      "pillars": [
+        "年柱 乙丑 食神 | 己七杀 癸比肩 辛偏印 | 海中金 | 冠带/衰 | 空戌亥 | 月德合 德秀贵人 华盖",
+        "月柱 乙酉 食神 | 辛偏印 | 泉中水 | 病/绝 | 空午未 | 月德合 德秀贵人 将星",
+        "日柱 癸酉 日主 | 辛偏印 | 剑锋金 | 病/病 | 空戌亥 | 将星",
+        "时柱 不详"
+      ],
+      "timeInfo": {
+        "correctedDate": null,
+        "correctedTime": null,
+        "hourName": null,
+        "trueSolarApplied": false,
+        "dstApplied": false
+      },
+      "extras": {
+        "taiYuan": "丙子",
+        "taiYuanNaYin": "涧下水",
+        "mingGong": "",
+        "mingGongNaYin": "",
+        "shenGong": "",
+        "shenGongNaYin": ""
+      },
+      "yun": {
+        "startSolar": "1988-02-23 12:00:00",
+        "forward": true,
+        "dayun": [
+          "丙戌 4–13 1988",
+          "丁亥 14–23 1998",
+          "戊子 24–33 2008",
+          "己丑 34–43 2018",
+          "庚寅 44–53 2028",
+          "辛卯 54–63 2038",
+          "壬辰 64–73 2048",
+          "癸巳 74–83 2058"
+        ]
+      },
+      "strength": {
+        "band": "中和",
+        "ratio": 0.5588,
+        "deLing": true,
+        "favorable": [
+          {
+            "element": "木",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "火",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": false
+          },
+          {
+            "element": "水",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": false
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "金",
+            "role": "印",
+            "tiaoHou": true,
+            "usable": true
+          },
+          {
+            "element": "土",
+            "role": "官杀",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ]
+      },
+      "pattern": {
+        "pattern": {
+          "name": "偏印格",
+          "kind": "regular",
+          "tenGod": "偏印",
+          "monthZhi": "酉",
+          "source": "本气",
+          "transparent": false,
+          "basis": "月支酉藏干均未透出，以本气辛（偏印）为格。"
+        },
+        "special": null,
+        "traits": [
+          {
+            "key": "rizuo",
+            "name": "日坐偏印",
+            "tone": "neutral",
+            "basis": "日支酉本气辛为偏印，日主自坐病。",
+            "note": "配偶宫见偏印：伴侣想法独特、有点距离感，适合各有天地。"
+          }
+        ]
+      },
+      "chengBai": {
+        "group": "印格",
+        "verdict": "待详辨",
+        "success": [],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
+      }
+    }
+  },
+  "dst-1988": {
+    "note": "1988 年夏令时，北京 12:30",
+    "input": {
+      "calendarType": "solar",
+      "year": 1988,
+      "month": 7,
+      "day": 15,
+      "clockHour": 12,
+      "clockMinute": 30,
+      "timeMode": "exact",
+      "gender": "male",
+      "longitude": 116.41,
+      "timezone": 8,
+      "applyTrueSolar": true,
+      "applyDst": true,
+      "placeName": "北京"
+    },
+    "result": {
+      "pillars": [
+        "年柱 戊辰 正印 | 戊正印 乙偏财 癸食神 | 大林木 | 墓/冠带 | 空戌亥 | 太极贵人 华盖",
+        "月柱 己未 偏印 | 己偏印 丁七杀 乙偏财 | 天上火 | 衰/冠带 | 空子丑 | 天乙贵人 太极贵人 天德合 月德合 华盖",
+        "日柱 辛未 日主 | 己偏印 丁七杀 乙偏财 | 路旁土 | 衰/衰 | 空戌亥 | 天乙贵人 太极贵人 华盖",
+        "时柱 甲午 正财 | 丁七杀 己偏印 | 沙中金 | 病/死 | 空辰巳 | 天乙贵人 天德贵人 月德贵人 德秀贵人 天医 灾煞"
+      ],
+      "timeInfo": {
+        "correctedDate": "1988-07-15",
+        "correctedTime": "11:10",
+        "hourName": null,
+        "trueSolarApplied": true,
+        "dstApplied": true
+      },
+      "extras": {
+        "taiYuan": "庚戌",
+        "taiYuanNaYin": "钗钏金",
+        "mingGong": "丙辰",
+        "mingGongNaYin": "沙中土",
+        "shenGong": "甲寅",
+        "shenGongNaYin": "大溪水"
+      },
+      "yun": {
+        "startSolar": "1996-04-05 07:10:00",
+        "forward": true,
+        "dayun": [
+          "庚申 9–18 1996",
+          "辛酉 19–28 2006",
+          "壬戌 29–38 2016",
+          "癸亥 39–48 2026",
+          "甲子 49–58 2036",
+          "乙丑 59–68 2046",
+          "丙寅 69–78 2056",
+          "丁卯 79–88 2066"
+        ]
+      },
+      "strength": {
+        "band": "偏强",
+        "ratio": 0.5556,
+        "deLing": true,
+        "favorable": [
+          {
+            "element": "木",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "火",
+            "role": "官杀",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "水",
+            "role": "食伤",
+            "tiaoHou": true,
+            "usable": false
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "金",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": false
+          },
+          {
+            "element": "土",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ]
+      },
+      "pattern": {
+        "pattern": {
+          "name": "偏印格",
+          "kind": "regular",
+          "tenGod": "偏印",
+          "monthZhi": "未",
+          "source": "本气",
+          "transparent": true,
+          "basis": "月支未本气己（偏印）透于月柱己，以透出者为格。"
+        },
+        "special": null,
+        "traits": [
+          {
+            "key": "yinzhong-shenqiang",
+            "name": "印重身强",
+            "tone": "caution",
+            "basis": "印星占 56%，日主偏强。",
+            "note": "想得多做得少、依赖性强；喜财星破印，宜多动手实践。"
+          },
+          {
+            "key": "rizuo",
+            "name": "日坐偏印",
+            "tone": "neutral",
+            "basis": "日支未本气己为偏印，日主自坐衰。",
+            "note": "配偶宫见偏印：伴侣想法独特、有点距离感，适合各有天地。"
+          }
+        ]
+      },
+      "chengBai": {
+        "group": "印格",
+        "verdict": "待详辨",
+        "success": [],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
+      }
+    }
+  },
+  "female-backward": {
+    "note": "阳年女命逆行大运",
+    "input": {
+      "calendarType": "solar",
+      "year": 2000,
+      "month": 8,
+      "day": 16,
+      "hourIndex": 2,
+      "gender": "female"
+    },
+    "result": {
+      "pillars": [
+        "年柱 庚辰 偏财 | 戊食神 乙正印 癸正官 | 白蜡金 | 冠带/养 | 空申酉 | 国印贵人 华盖",
+        "月柱 甲申 偏印 | 庚偏财 壬七杀 戊食神 | 泉中水 | 病/绝 | 空午未 | 文昌贵人 德秀贵人 驿马",
+        "日柱 丙午 日主 | 丁劫财 己伤官 | 天河水 | 帝旺/帝旺 | 空寅卯 | 德秀贵人 将星 羊刃 灾煞 阴差阳错",
+        "时柱 庚寅 偏财 | 甲偏印 丙比肩 戊食神 | 松柏木 | 长生/绝 | 空午未 | 太极贵人 红艳 驿马"
+      ],
+      "timeInfo": {
+        "correctedDate": null,
+        "correctedTime": null,
+        "hourName": null,
+        "trueSolarApplied": false,
+        "dstApplied": false
+      },
+      "extras": {
+        "taiYuan": "乙亥",
+        "taiYuanNaYin": "山头火",
+        "mingGong": "癸未",
+        "mingGongNaYin": "杨柳木",
+        "shenGong": "丁亥",
+        "shenGongNaYin": "屋上土"
+      },
+      "yun": {
+        "startSolar": "2003-06-25 23:00:00",
+        "forward": false,
+        "dayun": [
+          "癸未 4–13 2003",
+          "壬午 14–23 2013",
+          "辛巳 24–33 2023",
+          "庚辰 34–43 2033",
+          "己卯 44–53 2043",
+          "戊寅 54–63 2053",
+          "丁丑 64–73 2063",
+          "丙子 74–83 2073"
+        ]
+      },
+      "strength": {
+        "band": "中和",
+        "ratio": 0.3419,
+        "deLing": false,
+        "favorable": [
+          {
+            "element": "金",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "土",
+            "role": "食伤",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "水",
+            "role": "官杀",
+            "tiaoHou": true,
+            "usable": false
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "火",
+            "role": "比劫",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "木",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": true
+          }
+        ]
+      },
+      "pattern": {
+        "pattern": {
+          "name": "偏财格",
+          "kind": "regular",
+          "tenGod": "偏财",
+          "monthZhi": "申",
+          "source": "本气",
+          "transparent": true,
+          "basis": "月支申本气庚（偏财）透于年柱庚、时柱庚，以透出者为格。"
+        },
+        "special": null,
+        "traits": [
+          {
+            "key": "rizuo",
+            "name": "日坐劫财",
+            "tone": "neutral",
+            "basis": "日支午本气丁为劫财，日主自坐帝旺。",
+            "note": "配偶宫见劫财：伴侣有主见、重义气，钱财上宜分清界限。"
+          }
+        ]
+      },
+      "chengBai": {
+        "group": "财格",
+        "verdict": "待详辨",
+        "success": [],
+        "failure": [],
+        "flaw": [],
+        "rescue": []
+      }
+    }
+  }
+}

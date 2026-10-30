@@ -1,42 +1,37 @@
-:root {
+/*
+ * 手势八卦的样式只作用在 .full-bagua-experience 里面。
+ * 这份样式随按需加载的手势页一起注入、离开后也不会卸下：以前写在 html、body、h1、:root、.privacy-note 上，
+ * 进过一次手势页，整个网站就滚不动（html、body 被设成 overflow: hidden、高 100%），紫微录入页的隐私说明也变成 8px 浅字。
+ * 手势页打开期间禁止页面滚动，改由 FullBaguaExperience 挂载时加、卸载时去掉。
+ */
+.full-bagua-experience {
   color-scheme: dark;
   font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   background: #050706;
   color: #f0eee7;
   font-synthesis: none;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body,
-.full-bagua-experience {
   width: 100%;
   height: 100%;
   margin: 0;
   overflow: hidden;
 }
 
-body.gate-active {
-  background:
-    radial-gradient(circle at 50% 44%, rgba(49, 73, 65, 0.24), transparent 38%),
-    #050706;
+.full-bagua-experience * {
+  box-sizing: border-box;
 }
 
-button {
+.full-bagua-experience button {
   font: inherit;
 }
 
-#camera {
+.full-bagua-experience #camera {
   position: fixed;
   left: -9999px;
   width: 960px;
   height: 540px;
 }
 
-#stage {
+.full-bagua-experience #stage {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -44,7 +39,7 @@ button {
   cursor: crosshair;
 }
 
-.gate {
+.full-bagua-experience .gate {
   position: fixed;
   inset: 0;
   z-index: 10;
@@ -59,42 +54,42 @@ button {
   transition: opacity 600ms ease, visibility 600ms ease;
 }
 
-.gate.is-leaving {
+.full-bagua-experience .gate.is-leaving {
   opacity: 0;
   visibility: hidden;
 }
 
-.gate__frame {
+.full-bagua-experience .gate__frame {
   position: fixed;
   inset: 28px;
   border: 1px solid rgba(209, 215, 204, 0.16);
   pointer-events: none;
 }
 
-.gate__frame::after {
+.full-bagua-experience .gate__frame::after {
   content: "";
   position: absolute;
   inset: 7px;
   border: 1px solid rgba(209, 215, 204, 0.07);
 }
 
-.eyebrow,
-.byline,
-.status small,
-.privacy-note,
-.manual-help,
-.camera-live {
+.full-bagua-experience .eyebrow,
+.full-bagua-experience .byline,
+.full-bagua-experience .status small,
+.full-bagua-experience .privacy-note,
+.full-bagua-experience .manual-help,
+.full-bagua-experience .camera-live {
   letter-spacing: 0.22em;
   text-transform: uppercase;
 }
 
-.eyebrow {
+.full-bagua-experience .eyebrow {
   margin: 0 0 18px;
   color: rgba(204, 217, 207, 0.52);
   font-size: 10px;
 }
 
-h1 {
+.full-bagua-experience h1 {
   margin: 0;
   font-family: "Songti SC", "Noto Serif CJK SC", Georgia, serif;
   font-size: clamp(36px, 7vw, 72px);
@@ -102,7 +97,7 @@ h1 {
   letter-spacing: 0.18em;
 }
 
-h1 span {
+.full-bagua-experience h1 span {
   display: inline-grid;
   width: 0.9em;
   height: 0.9em;
@@ -114,20 +109,20 @@ h1 span {
   vertical-align: 0.08em;
 }
 
-.byline {
+.full-bagua-experience .byline {
   margin: 14px 0 34px;
   color: rgba(236, 234, 228, 0.38);
   font-size: 9px;
 }
 
-.gesture-sequence {
+.full-bagua-experience .gesture-sequence {
   display: flex;
   align-items: center;
   gap: clamp(15px, 4vw, 34px);
   margin-bottom: 28px;
 }
 
-.gesture-sequence span {
+.full-bagua-experience .gesture-sequence span {
   display: grid;
   width: 58px;
   height: 58px;
@@ -139,31 +134,31 @@ h1 span {
   filter: grayscale(1);
 }
 
-.gesture-sequence i {
+.full-bagua-experience .gesture-sequence i {
   color: rgba(236, 234, 228, 0.22);
   font-style: normal;
 }
 
-.intro {
+.full-bagua-experience .intro {
   max-width: 620px;
   margin: 0;
   color: rgba(238, 237, 231, 0.74);
   font: 400 14px/2 "Songti SC", Georgia, serif;
 }
 
-.intro span {
+.full-bagua-experience .intro span {
   color: rgba(238, 237, 231, 0.4);
   font: 400 11px/1.8 Inter, sans-serif;
   letter-spacing: 0.06em;
 }
 
-.gate__actions {
+.full-bagua-experience .gate__actions {
   display: flex;
   gap: 12px;
   margin: 32px 0 20px;
 }
 
-.gate button {
+.full-bagua-experience .gate button {
   min-width: 170px;
   padding: 13px 18px;
   border: 1px solid rgba(212, 223, 214, 0.3);
@@ -173,13 +168,13 @@ h1 span {
   transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
 }
 
-.gate button:hover {
+.full-bagua-experience .gate button:hover {
   transform: translateY(-2px);
   border-color: rgba(212, 223, 214, 0.72);
   background: rgba(188, 211, 197, 0.12);
 }
 
-.gate button small {
+.full-bagua-experience .gate button small {
   display: block;
   margin-top: 5px;
   color: rgba(231, 233, 226, 0.4);
@@ -187,22 +182,48 @@ h1 span {
   letter-spacing: 0.18em;
 }
 
-.gate .primary {
+/* 左上角的「返回」是小字链接，不套用上面大按钮的边框、宽度。 */
+.full-bagua-experience .gate .gate__back {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  left: 16px;
+  width: auto;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  color: rgba(236, 234, 228, 0.6);
+}
+
+.full-bagua-experience .gate .gate__back:hover {
+  transform: none;
+  background: transparent;
+  color: rgba(236, 234, 228, 0.92);
+}
+
+.full-bagua-experience .gate .gate__back small {
+  display: inline;
+  margin: 0 0 0 6px;
+}
+
+.full-bagua-experience .gate .primary {
   border-color: rgba(164, 203, 183, 0.58);
 }
 
-.privacy-note {
+.full-bagua-experience .privacy-note {
+  /* 全站的 .privacy-note（紫微录入页）是 flex：这里要按两行排，显式改回 block。 */
+  display: block;
   margin: 0;
   color: rgba(236, 234, 228, 0.34);
   font-size: 8px;
   line-height: 1.8;
 }
 
-.privacy-note span {
+.full-bagua-experience .privacy-note span {
   letter-spacing: 0.1em;
 }
 
-.hud {
+.full-bagua-experience .hud {
   position: fixed;
   inset: 0;
   z-index: 5;
@@ -210,14 +231,14 @@ h1 span {
   pointer-events: none;
 }
 
-.status {
+.full-bagua-experience .status {
   display: flex;
   width: max-content;
   align-items: center;
   gap: 12px;
 }
 
-.status__icon {
+.full-bagua-experience .status__icon {
   display: grid;
   width: 42px;
   height: 42px;
@@ -227,25 +248,25 @@ h1 span {
   filter: grayscale(1);
 }
 
-.status strong,
-.status small {
+.full-bagua-experience .status strong,
+.full-bagua-experience .status small {
   display: block;
 }
 
-.status strong {
+.full-bagua-experience .status strong {
   color: rgba(238, 239, 234, 0.8);
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.12em;
 }
 
-.status small {
+.full-bagua-experience .status small {
   margin-top: 5px;
   color: rgba(238, 239, 234, 0.35);
   font-size: 8px;
 }
 
-.controls {
+.full-bagua-experience .controls {
   position: absolute;
   top: 24px;
   right: 24px;
@@ -255,7 +276,7 @@ h1 span {
   pointer-events: auto;
 }
 
-.controls button {
+.full-bagua-experience .controls button {
   width: 36px;
   height: 36px;
   border: 1px solid rgba(225, 231, 224, 0.18);
@@ -265,17 +286,17 @@ h1 span {
   cursor: pointer;
 }
 
-.controls button:hover {
+.full-bagua-experience .controls button:hover {
   border-color: rgba(225, 231, 224, 0.52);
 }
 
-.camera-live {
+.full-bagua-experience .camera-live {
   margin-right: 8px;
   color: rgba(149, 211, 178, 0.7);
   font-size: 7px;
 }
 
-.manual-help {
+.full-bagua-experience .manual-help {
   position: fixed;
   right: 24px;
   bottom: 22px;
@@ -285,7 +306,7 @@ h1 span {
   pointer-events: none;
 }
 
-.error {
+.full-bagua-experience .error {
   position: fixed;
   left: 50%;
   bottom: 28px;
@@ -301,60 +322,69 @@ h1 span {
   text-align: center;
 }
 
-[hidden] {
+.full-bagua-experience [hidden] {
   display: none !important;
 }
 
 @media (max-width: 640px) {
-  .gate {
+  .full-bagua-experience .gate {
     padding: 24px;
   }
 
-  .gate__frame {
+  .full-bagua-experience .gate__frame {
     inset: 14px;
   }
 
-  .gesture-sequence span {
+  .full-bagua-experience .gesture-sequence span {
     width: 48px;
     height: 48px;
     font-size: 23px;
   }
 
-  .gate__actions {
+  .full-bagua-experience .gate__actions {
     width: min(320px, 100%);
     flex-direction: column;
   }
 
-  .gate button {
+  .full-bagua-experience .gate button {
     width: 100%;
   }
 
-  .hud {
+  .full-bagua-experience .hud {
     padding: 16px;
   }
 
-  .controls {
+  .full-bagua-experience .controls {
     top: 16px;
     right: 16px;
   }
 
-  .camera-live,
-  .manual-help {
+  .full-bagua-experience .camera-live,
+  .full-bagua-experience .manual-help {
     display: none;
   }
 
-  .status strong {
+  .full-bagua-experience .status strong {
     font-size: 10px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  .full-bagua-experience *,
+  .full-bagua-experience *::before,
+  .full-bagua-experience *::after {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* 起卦页底部有进度与「点击生一爻」按钮：错误提示放到它上方，避免被挡住。 */
+.full-bagua-experience .error {
+  bottom: calc(132px + env(safe-area-inset-bottom));
+}
+
+.full-bagua-experience .manual-help {
+  bottom: calc(132px + env(safe-area-inset-bottom));
 }

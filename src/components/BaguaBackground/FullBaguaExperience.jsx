@@ -4,19 +4,34 @@ import './BaguaExperience.css';
 
 export default function FullBaguaExperience({ onFist, onClose }) {
   const containerRef = useRef(null);
+  // 握拳回调放在 ref 里：父组件每生成一爻都会重新渲染，
+  // 如果把回调放进依赖，整个手势引擎会被拆掉重建，摄像头也随之关闭。
+  const onFistRef = useRef(onFist);
 
   useEffect(() => {
-    // start the vanilla JS experience
-    const cleanup = initBaguaExperience({
-      onFist: () => {
-        if (onFist) onFist();
-      }
-    });
-    
-    return () => {
-      if (cleanup) cleanup();
-    };
+    onFistRef.current = onFist;
   }, [onFist]);
+
+  useEffect(() => {
+    const cleanup = initBaguaExperience({
+      onFist: () => onFistRef.current?.()
+    });
+    return () => cleanup?.();
+  }, []);
+
+  // 手势页铺满全屏，打开期间锁住页面滚动，离开时恢复。
+  // 不能写在样式表里：按需加载的样式离开后不会卸下，整个网站都会滚不动。
+  useEffect(() => {
+    const { documentElement, body } = document;
+    const previousHtml = documentElement.style.overflow;
+    const previousBody = body.style.overflow;
+    documentElement.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    return () => {
+      documentElement.style.overflow = previousHtml;
+      body.style.overflow = previousBody;
+    };
+  }, []);
 
   return (
     <div ref={containerRef} className="full-bagua-experience w-full h-full absolute inset-0 z-0">
@@ -53,11 +68,7 @@ export default function FullBaguaExperience({ onFist, onClose }) {
         </p>
         
         {onClose && (
-          <button 
-            type="button" 
-            onClick={onClose}
-            className="absolute top-4 left-4 p-2 text-white/50 hover:text-white"
-          >
+          <button type="button" onClick={onClose} className="gate__back">
             返回 <small>BACK</small>
           </button>
         )}

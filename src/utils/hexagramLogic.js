@@ -30,9 +30,9 @@ const TRIGRAMS = {
 // 2. Define 64 Hexagrams by Composition (Upper, Lower)
 // Source: Standard I Ching Table
 const HEXAGRAM_DEFINITIONS = [
-    { number: 1, name: '乾为天', upper: 'Heaven', lower: 'Heaven', desc: '元亨利贞。天行健，君子以自强不息。' },
-    { number: 2, name: '坤为地', upper: 'Earth', lower: 'Earth', desc: '元亨，利牝马之贞。地势坤，君子以厚德载物。' },
-    { number: 3, name: '水雷屯', upper: 'Water', lower: 'Thunder', desc: '元亨利贞。勿用有筱，利建侯。' },
+    { number: 1, name: '乾为天', upper: 'Heaven', lower: 'Heaven', desc: '元亨利贞。' },
+    { number: 2, name: '坤为地', upper: 'Earth', lower: 'Earth', desc: '元亨，利牝马之贞。君子有攸往，先迷后得主，利。西南得朋，东北丧朋。安贞吉。' },
+    { number: 3, name: '水雷屯', upper: 'Water', lower: 'Thunder', desc: '元亨利贞。勿用有攸往，利建侯。' },
     { number: 4, name: '山水蒙', upper: 'Mountain', lower: 'Water', desc: '亨。匪我求童蒙，童蒙求我。初筮告，再三渎，渎则不告。利贞。' },
     { number: 5, name: '水天需', upper: 'Water', lower: 'Heaven', desc: '有孚，光亨，贞吉。利涉大川。' },
     { number: 6, name: '天水讼', upper: 'Heaven', lower: 'Water', desc: '有孚，窒。惕中吉。终凶。利见大人，不利涉大川。' },
@@ -77,7 +77,7 @@ const HEXAGRAM_DEFINITIONS = [
     { number: 45, name: '泽地萃', upper: 'Lake', lower: 'Earth', desc: '亨。王假有庙，利见大人，亨，利贞。用大牲吉，利有攸往。' },
     { number: 46, name: '地风升', upper: 'Earth', lower: 'Wind', desc: '元亨，用见大人，勿恤，南征吉。' },
     { number: 47, name: '泽水困', upper: 'Lake', lower: 'Water', desc: '亨，贞，大人吉，无咎，有言不信。' },
-    { number: 48, name: '水风井', upper: 'Water', lower: 'Wind', desc: '改邑不改井，无丧无得，往来井井。' },
+    { number: 48, name: '水风井', upper: 'Water', lower: 'Wind', desc: '改邑不改井，无丧无得，往来井井。汔至亦未繘井，羸其瓶，凶。' },
     { number: 49, name: '泽火革', upper: 'Lake', lower: 'Fire', desc: '巳日乃孚，元亨利贞，悔亡。' },
     { number: 50, name: '火风鼎', upper: 'Fire', lower: 'Wind', desc: '元吉，亨。' },
     { number: 51, name: '震为雷', upper: 'Thunder', lower: 'Thunder', desc: '亨。震来虩虩，笑言哑哑。震惊百里，不丧匕鬯。' },
@@ -141,18 +141,3 @@ export const getHexagram = (yaos) => {
 
     return HEXAGRAM_MAP[binaryKey] || { name: '未知卦', desc: '无法解析' };
 };
-
-// Self-Correction / Verification
-const testKui = [1, 1, 0, 1, 0, 1]; // Bottom -> Top: Lake (110->011), Fire (101->101)
-// Lake (011) is Bottom. Fire (101) is Top.
-// Array: [1, 1, 0, 1, 0, 1]
-// Reverse: [1, 0, 1, 0, 1, 1] -> "101011"
-// Map["101011"] should be "火泽睽".
-
-const result = getHexagram(testKui);
-if (result.name !== '火泽睽') {
-    console.error('CRITICAL ERROR: Self-correction failed for 火泽睽');
-    console.error('Expected: 火泽睽, Got:', result.name);
-} else {
-    console.log('Self-correction passed: 火泽睽 verified.');
-}

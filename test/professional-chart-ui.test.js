@@ -145,7 +145,11 @@ test('中宫展示可核验的出生资料并提供手机友好的完整说明',
   assert.match(source, /出生农历/);
   assert.match(source, /出生钟表时/);
   assert.match(source, /真太阳时/);
-  assert.match(source, /未校正：缺少出生地点、经度及准确分钟/);
+  // 录入页选「精确到分钟」并填出生地后显示换算结果，否则提示如何校正
+  assert.match(source, /未校正：录入时选「精确到分钟」并填出生地，可按真太阳时定时辰/);
+  assert.match(source, /trueSolar\?\.applied/);
+  assert.match(app, /trueSolar: ziweiExact \? \{/);
+  assert.match(app, /精确到分钟/);
   assert.match(source, /节气四柱（八字）/);
   assert.match(source, /命宫地支/);
   assert.match(source, /身宫地支/);
@@ -162,13 +166,13 @@ test('中宫展示可核验的出生资料并提供手机友好的完整说明',
   assert.match(styles, /@media \(max-width: 360px\)[\s\S]*?\.wenmo-center-layer-status \{ grid-template-columns: repeat\(3/);
 });
 
-test('常用功能采用左下向上展开的八项竖向菜单并接通隐私与显示开关', async () => {
+test('常用功能采用左下向上展开的九项竖向菜单并接通隐私、显示开关与分享链接', async () => {
   const source = await readProjectFile('src/components/ProfessionalChart.jsx');
   const styles = await readProjectFile('src/index.css');
   const menuStart = source.indexOf('data-testid="ziwei-common-menu"');
   const menuEnd = source.indexOf('</nav>', menuStart);
   const menuSource = source.slice(menuStart, menuEnd);
-  const expectedItems = ['AI 分析', '格局分析', '精简星曜', '命盘调整', '显示模式', '隐藏生辰', '截图保存', '打印分享'];
+  const expectedItems = ['AI 分析', '格局分析', '精简星曜', '命盘调整', '显示模式', '隐藏生辰', '截图保存', '打印分享', '分享链接'];
 
   assert.ok(menuStart > 0 && menuEnd > menuStart);
   expectedItems.forEach((label) => assert.match(menuSource, new RegExp(`>${label}</button>`)));
@@ -190,6 +194,8 @@ test('常用功能采用左下向上展开的八项竖向菜单并接通隐私�
   assert.match(source, /handleScreenshotSave/);
   assert.match(source, /canvas\.toBlob\(resolve, 'image\/png'/);
   assert.match(source, /<button type="button" onClick=\{onSave\}>保存档案<\/button>/);
+  assert.match(source, /onShareLink = null/);
+  assert.match(menuSource, /\{onShareLink && \(/);
 
   assert.match(styles, /\.wenmo-common-anchor \{ position: relative/);
   assert.match(styles, /\.wenmo-common-menu\s*\{[\s\S]*?bottom: calc\(100% \+ 4px\);[\s\S]*?display: grid;[\s\S]*?width: clamp\(104px, 32vw, 126px\);[\s\S]*?max-height: min\(60dvh, 352px\)/);
@@ -293,4 +299,14 @@ test('四化盘视觉规则隔离并采用四色箭头、六层方章与手机�
   assert.match(styles, /@media \(max-width: 430px\)[\s\S]*?\.wenmo-arrow-explainer > dl \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\); \}/);
   assert.match(styles, /\.wenmo-center-info--sihua\s*\{/);
   assert.match(styles, /\.wenmo-luck-table--sihua \.wenmo-luck-row/);
+});
+
+test('专业盘时间轴：年份按出生农历年排，手动选的各层干支与「今」运势同一口径', async () => {
+  const source = await readProjectFile('src/components/ProfessionalChart.jsx');
+
+  assert.match(source, /birthLunarYearOf\(horoscope\)/);
+  assert.match(source, /getTimelineFortune\(horoscope, selection\)/);
+  assert.match(source, /year === currentFlowYear \? 'is-current'/);
+  assert.doesNotMatch(source, /new Date\(basicInfo\.birthday\)\.getFullYear\(\)/);
+  assert.doesNotMatch(source, /astro\.byLunar/);
 });

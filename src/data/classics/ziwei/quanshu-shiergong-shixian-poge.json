@@ -1,0 +1,289 @@
+{
+  "classic": "ziwei",
+  "volume": "卷一",
+  "section": "十二宫诸星失陷破格",
+  "edition": "公版古籍《紫微斗数全书》（明万历潘希尹辑刻本、四库提要存目本，参校维基文库、ctext.org 公版文本）",
+  "contributor": "antigravity",
+  "entries": [
+    {
+      "id": "ziwei.quanshu.shixianpoge.001",
+      "title": "十二宫诸星失陷破格·子丑安命",
+      "original": "子丑安命：子午天机丑巨铃，此星落陷果为真，纵然化吉更为美，任他富贵不清宁。",
+      "vernacular": "命宫在子丑：天机在子午、巨门铃星在丑，确实落陷；即使化吉而变好，纵然富贵，也不得清静安宁。",
+      "notes": "子午天机：天机在子午宫若失助，与丑宫巨门铃星并见易致心神不宁。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "子",
+            "午"
+          ],
+          "star": "天机"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "丑"
+          ],
+          "stars": [
+            "巨门",
+            "铃星"
+          ]
+        }
+      ],
+      "tags": [
+        "失陷破格",
+        "子丑",
+        "安命"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpoge.002",
+      "title": "十二宫诸星失陷破格·寅安命",
+      "original": "寅安命：寅上机昌曲月逢，虽然吉拱不丰隆，男为伴仆女娼婢，若非夭折即贫穷。",
+      "vernacular": "命宫在寅，遇天机文昌文曲太阴，即使吉星拱照也不丰足；男子做随从仆人，女子做娼妓婢女，不夭折就贫穷。",
+      "notes": "伴仆：随从、家仆之类。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "寅"
+          ],
+          "stars": [
+            "天机",
+            "文昌",
+            "文曲",
+            "太阴"
+          ]
+        }
+      ],
+      "tags": [
+        "失陷破格",
+        "寅宫",
+        "安命"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpoge.003",
+      "title": "十二宫诸星失陷破格·卯辰安命",
+      "original": "卯辰安命：卯上太阴擎羊逢，辰宫巨宿紫微同，纵然化吉非全美，若非加杀到头凶。",
+      "vernacular": "命宫在卯辰：卯宫遇太阴擎羊，辰宫巨门紫微同；即使化吉也不算全好，若不加煞星，最终仍有凶险。",
+      "notes": "巨宿：即巨门星。",
+      "doubts": [
+        "「若非加杀到头凶」依现文字面译不加杀仍凶，不擅将「非」改「再」。",
+        "本句末「同」可作同临，也可能是天同简称，尚未定读。本轮白话保留原词，不据此增加天同或同宫条件；待核句读。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯"
+          ],
+          "stars": [
+            "太阴",
+            "擎羊"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "辰"
+          ],
+          "stars": [
+            "巨门",
+            "紫微"
+          ]
+        }
+      ],
+      "tags": [
+        "失陷破格",
+        "卯辰",
+        "安命"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpoge.004",
+      "title": "十二宫诸星失陷破格·巳安命",
+      "original": "巳安命：巳宫武月天梁巨，贪宿廉贞共到蛇，三方吉曜皆不贵，下贱贫穷度岁华。",
+      "vernacular": "命宫在巳，有武曲太阴天梁巨门，贪狼廉贞也到巳宫；三方有吉星也不能贵显，只能贫贱度日。",
+      "notes": "共到蛇：蛇即地支巳宫。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "巳"
+          ],
+          "stars": [
+            "武曲",
+            "太阴",
+            "天梁",
+            "巨门",
+            "贪狼",
+            "廉贞"
+          ]
+        }
+      ],
+      "tags": [
+        "失陷破格",
+        "巳宫",
+        "安命"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpoge.005",
+      "title": "十二宫诸星失陷破格·午安命",
+      "original": "午安命：午宫贪巨月昌从，羊刃三合最嫌冲，虽然化吉居仕路，横破横成到老穷。",
+      "vernacular": "命宫在午，有贪狼巨门太阴文昌，最忌羊刃三合来冲；即使化吉而做官，仍会突然败落、突然有成，到老贫穷。",
+      "notes": "羊刃：即擎羊星。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "午"
+          ],
+          "stars": [
+            "贪狼",
+            "巨门",
+            "太阴",
+            "文昌"
+          ]
+        }
+      ],
+      "tags": [
+        "失陷破格",
+        "午宫",
+        "安命"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpoge.006",
+      "title": "十二宫诸星失陷破格·未安命",
+      "original": "未安命：未宫巨宿太阳嫌，纵少灾危有克伤，劳碌奔波官事至，随缘下贱度时光。",
+      "vernacular": "命宫在未，忌巨门太阳，即使灾难危险少，也会受克伤；要劳碌奔波，还会惹上官司，随缘过贫贱日子。",
+      "notes": "巨宿太阳嫌：巨门太阳居未宫失辉相嫌。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "未"
+          ],
+          "stars": [
+            "巨门",
+            "太阳"
+          ]
+        }
+      ],
+      "tags": [
+        "失陷破格",
+        "未宫",
+        "安命"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpoge.007",
+      "title": "十二宫诸星失陷破格·申酉安命",
+      "original": "申酉安命：申宫机巨为破格，男人浪荡女人贫，二宫若然桃花见，男女逢之总不荣。",
+      "vernacular": "命宫在申酉：天机巨门在申是破格，男子浪荡，女子贫穷；两宫若见桃花，男女都不能荣显。",
+      "notes": "桃花：指廉贞、贪狼、天姚、咸池等桃花星曜。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "申",
+            "酉"
+          ],
+          "stars": [
+            "天机",
+            "巨门"
+          ]
+        }
+      ],
+      "tags": [
+        "失陷破格",
+        "申酉",
+        "安命"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpoge.008",
+      "title": "十二宫诸星失陷破格·戌安命",
+      "original": "戌安命：戌上紫破若相逢，天同太阳皆主凶，若还孤寒更夭折，随缘勤苦免贫穷。",
+      "vernacular": "命宫在戌，紫微破军相逢，天同太阳都带来凶险；若又孤独贫寒，更会夭折；随缘辛苦生活，可免贫穷。",
+      "notes": "戌上紫破：紫微在辰戌天罗地网宫对宫破军或同度。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "戌"
+          ],
+          "stars": [
+            "紫微",
+            "破军",
+            "天同",
+            "太阳"
+          ]
+        }
+      ],
+      "tags": [
+        "失陷破格",
+        "戌宫",
+        "安命"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpoge.009",
+      "title": "十二宫诸星失陷破格·亥安命",
+      "original": "亥安命：亥宫贪火天梁同，飘荡浪子走西东，若还富贵也年促，不然隶仆与贫穷。",
+      "vernacular": "命宫在亥，有贪狼火星天梁同，使人像浪子般四处漂泊；即使富贵也短寿，否则就做奴仆，陷于贫穷。",
+      "notes": "年促：寿命短促。",
+      "doubts": [
+        "本句末「同」可作同临，也可能是天同简称，尚未定读。本轮白话保留原词，不据此增加天同或同宫条件；待核句读。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "亥"
+          ],
+          "stars": [
+            "贪狼",
+            "火星",
+            "天梁"
+          ]
+        }
+      ],
+      "tags": [
+        "失陷破格",
+        "亥宫",
+        "安命"
+      ],
+      "status": "translated"
+    }
+  ]
+}

@@ -1,8 +1,11 @@
 {
-  "name": "古书派·紫微",
+  "id": "/",
+  "name": "古书派 · 紫微斗数与八字排盘",
   "short_name": "古书派",
-  "description": "紫微斗数与八字排盘工具，查看本命、大限和流年。",
+  "description": "紫微斗数、八字排盘与六爻起卦：真太阳时精排四柱、大运流年、流月流日，六爻纳甲装卦取用神，命盘只保存在本机。",
+  "lang": "zh-CN",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#07110f",
   "theme_color": "#07110f",
@@ -19,5 +22,54 @@
       "type": "image/png"
     }
   ],
-  "categories": ["lifestyle", "entertainment"]
+  "shortcuts": [
+    {
+      "name": "八字排盘",
+      "short_name": "八字",
+      "url": "/#/bazi",
+      "icons": [
+        {
+          "src": "/pwa-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "紫微排盘",
+      "short_name": "紫微",
+      "url": "/#/ziwei",
+      "icons": [
+        {
+          "src": "/pwa-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "六爻起卦",
+      "short_name": "六爻",
+      "url": "/#/liuyao",
+      "icons": [
+        {
+          "src": "/pwa-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "命盘档案",
+      "short_name": "档案",
+      "url": "/#/archive",
+      "icons": [
+        {
+          "src": "/pwa-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "categories": [
+    "lifestyle",
+    "entertainment"
+  ]
 }

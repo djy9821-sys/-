@@ -24,6 +24,7 @@ export const parseClockTime = (value) => {
  */
 export const buildBaziRecord = (form, chart, { name, group = 'self', note = '' } = {}) => {
   const exact = form.timeMode === 'exact';
+  const unknown = form.timeMode === 'unknown';
   return {
     name: name?.trim() || form.personName?.trim() || '未命名',
     gender: form.gender,
@@ -31,13 +32,15 @@ export const buildBaziRecord = (form, chart, { name, group = 'self', note = '' }
     calendarType: form.calendarType,
     birthDate: `${form.year}-${Math.abs(form.month)}-${form.day}`,
     solarDate: chart?.solarInfo?.ymd ?? '',
-    timeHour: chart?.input?.hourIndex ?? form.hourIndex,
+    // 时辰不详的记录不带 timeHour，紫微等需要时辰的功能会跳过它。
+    timeHour: unknown ? null : (chart?.input?.hourIndex ?? form.hourIndex),
     isLeapMonth: form.calendarType === 'lunar' && form.month < 0,
     group,
     note: note.trim(),
     data: {
       daySect: form.daySect,
-      timeMode: exact ? 'exact' : 'shichen',
+      yearBoundary: form.yearBoundary === 'chunjie' ? 'chunjie' : 'lichun',
+      timeMode: exact ? 'exact' : unknown ? 'unknown' : 'shichen',
       clockTime: exact ? form.clockTime : '',
       placeProvince: exact ? form.placeProvince ?? '' : '',
       placeCity: exact ? form.placeCity ?? '' : '',
@@ -61,12 +64,15 @@ export const recordToBaziForm = (record) => {
   const [year, month, day] = match.slice(1).map(Number);
   if (month < 1 || month > 12 || day < 1 || day > 31) return null;
 
-  const hourIndex = Number(record.timeHour);
-  if (!Number.isInteger(hourIndex) || hourIndex < 0 || hourIndex > 12) return null;
+  // 八字与紫微的档案都可能带精确时间设置（紫微录入页也支持精确到分钟）。
+  const data = record.data && typeof record.data === 'object' ? record.data : {};
+  // 时辰不详的八字记录没有 timeHour。
+  const unknown = record.type === 'bazi' && data.timeMode === 'unknown';
+  const hourIndex = unknown || record.timeHour == null || record.timeHour === '' ? null : Number(record.timeHour);
+  if (!unknown && (!Number.isInteger(hourIndex) || hourIndex < 0 || hourIndex > 12)) return null;
 
-  const data = record.type === 'bazi' && record.data && typeof record.data === 'object' ? record.data : {};
   const clock = parseClockTime(data.clockTime);
-  const exact = data.timeMode === 'exact' && clock !== null;
+  const exact = !unknown && data.timeMode === 'exact' && clock !== null;
   const longitude = Number(data.longitude);
   const isLeapMonth = calendarType === 'lunar' && Boolean(record.isLeapMonth ?? record.isLeap);
 
@@ -79,7 +85,8 @@ export const recordToBaziForm = (record) => {
     hourIndex,
     gender: record.gender,
     daySect: data.daySect === 1 ? 1 : 2,
-    timeMode: exact ? 'exact' : 'shichen',
+    yearBoundary: data.yearBoundary === 'chunjie' ? 'chunjie' : 'lichun',
+    timeMode: unknown ? 'unknown' : exact ? 'exact' : 'shichen',
     clockTime: exact ? data.clockTime : '',
     placeProvince: exact && typeof data.placeProvince === 'string' ? data.placeProvince : '',
     placeCity: exact && typeof data.placeCity === 'string' ? data.placeCity : '',
@@ -88,4 +95,59 @@ export const recordToBaziForm = (record) => {
     applyTrueSolar: exact ? data.applyTrueSolar !== false : true,
     applyDst: exact ? Boolean(data.applyDst) : false,
   };
+};
+
+/** 同一张八字盘的标识：出生资料、性别、子时流派、时间与地点设置都相同。 */
+export const baziChartSignature = (record) => {
+  const form = recordToBaziForm(record);
+  if (!form) return '';
+  return [
+    form.calendarType, form.year, form.month, form.day, form.hourIndex, form.gender, form.daySect, form.yearBoundary,
+    form.timeMode, form.clockTime, form.longitude, form.timezone, form.applyTrueSolar, form.applyDst,
+  ].join('|');
+};
+
+/**
+ * 档案里已有同名、同一张盘的八字记录时返回它，用来避免重复存档。
+ * 名字不同的不算重复：可能是同一天同一时辰出生的另一个人（比如客户）。
+ */
+export const findSameBaziRecord = (records, record) => {
+  const signature = baziChartSignature(record);
+  if (!signature || !Array.isArray(records)) return null;
+  const name = (record?.name ?? '').trim();
+  return records.find((item) => item?.type === 'bazi'
+    && (item.name ?? '').trim() === name
+    && baziChartSignature(item) === signature) ?? null;
+};
+
+// 上一次排的八字只存在本机浏览器里：八字页可直接打开，首页据此显示「八字 · 今日」。
+export const LAST_BAZI_CHART_KEY = 'bazi-last-chart';
+
+export const readLastBaziRecord = () => {
+  try {
+    const raw = globalThis.localStorage?.getItem(LAST_BAZI_CHART_KEY);
+    const record = raw ? JSON.parse(raw) : null;
+    return recordToBaziForm(record) ? record : null;
+  } catch {
+    return null;
+  }
+};
+
+export const saveLastBaziRecord = (record) => {
+  try {
+    globalThis.localStorage?.setItem(LAST_BAZI_CHART_KEY, JSON.stringify(record));
+    globalThis.dispatchEvent?.(new Event('bazi-last-chart-updated'));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const clearLastBaziRecord = () => {
+  try {
+    globalThis.localStorage?.removeItem(LAST_BAZI_CHART_KEY);
+    globalThis.dispatchEvent?.(new Event('bazi-last-chart-updated'));
+  } catch {
+    // 忽略：存储不可用时本来也没有记录。
+  }
 };

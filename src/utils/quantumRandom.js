@@ -1,36 +1,18 @@
 /**
- * Fetches true random numbers from the ANU Quantum Random Numbers Server.
- * @param {number} count - The number of random items needed (e.g., 3 for 3 coins).
- * @returns {Promise<boolean[]>} - An array of booleans (true for Heads/Yang, false for Tails/Yin).
+ * 起卦用的随机数。
+ *
+ * 以前从澳大利亚国立大学的量子随机数接口（qrng.anu.edu.au）取数，但这个旧接口已经停止响应，
+ * 每次请求都要等到超时（约 3 秒）才退回本地随机，摇卦和握拳起卦都会明显卡顿。
+ * 现在直接用浏览器的加密级随机数（crypto.getRandomValues），同样不可预测，且立即返回。
+ *
+ * @param {number} count 需要几枚铜钱（例如 3 枚生一爻）
+ * @returns {Promise<boolean[]>} true 表示字面（阳），false 表示背面（阴）
  */
 export async function fetchQuantumUtils(count = 3) {
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
-
-        const response = await fetch(`https://qrng.anu.edu.au/API/jsonI.php?length=${count}&type=uint8`, {
-            signal: controller.signal
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data && data.success && Array.isArray(data.data)) {
-            // Convert uint8 to boolean (even = true/Heads, odd = false/Tails) 
-            // This is arbitrary but valid for distribution
-            return data.data.slice(0, count).map(num => num % 2 === 0);
-        } else {
-            throw new Error('Invalid data structure');
-        }
-
-    } catch (error) {
-        console.warn('Quantum Randomness failed, falling back to pseudo-random:', error);
-        // Fallback to Math.random()
-        return Array(count).fill(0).map(() => Math.random() > 0.5);
+    const values = new Uint8Array(count);
+    if (globalThis.crypto?.getRandomValues) {
+        globalThis.crypto.getRandomValues(values);
+        return Array.from(values, (value) => value % 2 === 0);
     }
+    return Array.from({ length: count }, () => Math.random() > 0.5);
 }

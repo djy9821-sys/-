@@ -2,7 +2,7 @@ import {
   buildCurrentFortuneContext,
   formatFortuneTime,
 } from './fortuneContext.js';
-import { createZiweiHoroscope } from './ziweiBirth.js';
+import { createZiweiHoroscope, normalizeLateZiMode } from './ziweiBirth.js';
 
 export const HOME_FORTUNE_PERIODS = Object.freeze([
   Object.freeze({ key: 'hourly', label: '今时运势', icon: '⏰' }),
@@ -209,6 +209,7 @@ const validateRecord = (record) => {
     gender: record.gender,
     genderLabel: record.gender === 'female' ? '女' : '男',
     isLeapMonth: Boolean(record.isLeapMonth ?? record.isLeap),
+    lateZiMode: normalizeLateZiMode(record.data?.lateZi),
   };
 };
 
@@ -220,6 +221,7 @@ export const createHoroscopeFromRecord = (record) => {
     timeHour,
     genderLabel,
     isLeapMonth,
+    lateZiMode,
   } = normalized;
 
   try {
@@ -229,6 +231,7 @@ export const createHoroscopeFromRecord = (record) => {
       timeIndex: timeHour,
       gender: genderLabel,
       isLeapMonth,
+      lateZiMode,
     });
 
     if (!horoscope || !Array.isArray(horoscope.palaces) || horoscope.palaces.length !== 12) {

@@ -7,12 +7,13 @@ import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { ArrowLeft } from 'lucide-react';
 import { getHexagram } from '../utils/hexagramLogic';
+import { coinsToLineValue } from '../utils/liuyao';
 
 // --- Assets ---
-import coinYangTexture from '../assets/coin_yang_perfect.png';
-import coinYinTexture from '../assets/coin_yin_circular.png';
+import coinYangTexture from '../assets/coin_yang_perfect.webp';
+import coinYinTexture from '../assets/coin_yin_circular.webp';
 
-import bgImage from '../assets/song_mist.png';
+import bgImage from '../assets/song_mist.webp';
 import { fetchQuantumUtils } from '../utils/quantumRandom';
 
 // --- Constants ---
@@ -52,7 +53,10 @@ function AnimatedCoin({ index, isThrown, onResult, delay = 0, audioContext, targ
     const [started, setStarted] = useState(false);
     const [finalRotation, setFinalRotation] = useState(0);
     const [hasReported, setHasReported] = useState(false);
-    const [yangMap, yinMap] = useTexture([coinYangTexture, coinYinTexture]);
+    // 两面贴图：coin_yang_perfect 是有字的一面（乾隆通宝），coin_yin_circular 是无字的背面（满文）。
+    // 《增删卜易·以钱代蓍法》以背为阳：一背为单、二背为拆、三背为重（老阳）、三字为交（老阴）。
+    // targetIsHeads 为阳面朝上，落地时朝向镜头的是 -z 面，所以 -z 面贴背面、+z 面贴字面。
+    const [charFaceMap, backFaceMap] = useTexture([coinYangTexture, coinYinTexture]);
 
     useEffect(() => {
         if (isThrown && targetIsHeads !== undefined) {
@@ -106,11 +110,11 @@ function AnimatedCoin({ index, isThrown, onResult, delay = 0, audioContext, targ
 
             <mesh position={[0, 0, COIN_THICKNESS / 2 + 0.002]} castShadow>
                 <circleGeometry args={[COIN_RADIUS, 64]} />
-                <meshStandardMaterial map={yinMap} transparent={true} alphaTest={0.5} metalness={0.5} roughness={0.5} />
+                <meshStandardMaterial map={charFaceMap} transparent={true} alphaTest={0.5} metalness={0.5} roughness={0.5} />
             </mesh>
             <mesh position={[0, 0, -COIN_THICKNESS / 2 - 0.002]} rotation={[0, Math.PI, 0]} castShadow>
                 <circleGeometry args={[COIN_RADIUS, 64]} />
-                <meshStandardMaterial map={yangMap} transparent={true} alphaTest={0.5} metalness={0.5} roughness={0.5} />
+                <meshStandardMaterial map={backFaceMap} transparent={true} alphaTest={0.5} metalness={0.5} roughness={0.5} />
             </mesh>
 
             {/* Square hole overlays with background color - positioned AFTER textures to render on top */}
@@ -173,7 +177,8 @@ const playThrowSound = (audioContext) => {
 };
 
 // --- Main Component ---
-export default function MoneyDivination({ onBack }) {
+// onComplete：六爻页接管结果时传入，摇满六爻后把爻值（初爻在前）交给它，不再自己显示卦象。
+export default function MoneyDivination({ onBack, onComplete = null, question = '' }) {
     const [currentThrow, setCurrentThrow] = useState(1);
     const [yaos, setYaos] = useState([]);
     const [finalHexagram, setFinalHexagram] = useState(null);
@@ -181,7 +186,7 @@ export default function MoneyDivination({ onBack }) {
     const [coinResults, setCoinResults] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
     const [targetResults, setTargetResults] = useState([true, true, true]); // Store fetched results [bool, bool, bool]
-    const [isQuantum, setIsQuantum] = useState(false); // Track if current throw reused ANU data
+    const [isQuantum, setIsQuantum] = useState(false); // 本次摇卦是否已用加密级随机数取得结果（变量名沿用旧的量子随机）
     const isProcessingRef = useRef(false);
     const isGeneratingRef = useRef(false); // Lock to prevent double generation
     const audioContextRef = useRef(null);
@@ -195,7 +200,6 @@ export default function MoneyDivination({ onBack }) {
         checkMobile();
         window.addEventListener('resize', checkMobile);
 
-        console.log('MoneyDivination Responsive - Initialized');
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         audioContextRef.current = ctx;
         setAudioContext(ctx);
@@ -216,13 +220,9 @@ export default function MoneyDivination({ onBack }) {
         if (audioContextRef.current?.state === 'suspended') audioContextRef.current.resume();
         playThrowSound(audioContextRef.current);
 
-        // 2. Fetch Quantum Randomness
-        // Start fetching while sound plays. UX: might delay the *visual* throw slightly.
+        // 2. 取三枚铜钱的随机结果（浏览器加密级随机数，立即返回）
         try {
             const results = await fetchQuantumUtils(3);
-            // Check if we actually used quantum (hacky check: if it fell back, we wouldn't easily know unless we return metadata. 
-            // For now assume if it didn't throw error it's good, or we add flag to util. 
-            // Let's just assume for UX "Quantum Mode Active" if enabled.
             setTargetResults(results);
             setIsQuantum(true);
         } catch {
@@ -276,6 +276,7 @@ export default function MoneyDivination({ onBack }) {
 
     const generateYao = (results) => {
         if (yaos.length >= 6) return;
+        // heads 为阳面（背面）朝上：三背老阳、两背少阴、一背少阳、三字老阴。
         const headsCount = Object.values(results).filter(r => r === 'heads').length;
         let yaoType, isMoving, binaryVal;
 
@@ -300,6 +301,10 @@ export default function MoneyDivination({ onBack }) {
     };
 
     const generateFinalHexagram = (allYaos) => {
+        if (onComplete) {
+            onComplete(allYaos.map((yao) => coinsToLineValue(yao.headsCount)));
+            return;
+        }
         const hexagramInfo = getHexagram(allYaos.map(yao => yao.binaryVal));
         const movingYaos = allYaos.filter(yao => yao.isMoving);
         setFinalHexagram({
@@ -362,18 +367,18 @@ export default function MoneyDivination({ onBack }) {
                             paddingRight: isMobile ? '0' : '15px',
                             paddingLeft: isMobile ? '10px' : '0'
                         }}>
-                        问道于心・诚则灵
+                        {question ? `问：${question.length > 14 ? `${question.slice(0, 14)}…` : question}` : '问道于心・诚则灵'}
                     </div>
                 </div>
             </div>
 
-            {/* Quantum Badge */}
+            {/* 随机数来源标识：浏览器加密级随机数（crypto.getRandomValues），见 utils/quantumRandom.js */}
             <div
                 className={`absolute z-40 flex flex-col opacity-70 ${isMobile ? 'left-4 items-start' : 'top-20 right-12 items-end'}`}
                 style={isMobile ? { top: 'calc(env(safe-area-inset-top) + 4.25rem)' } : undefined}
             >
                 <div className="text-[10px] text-[#2b2b2b] bg-white/40 px-2 py-1 rounded-full backdrop-blur-sm border border-gray-400/30">
-                    量子真随机 · {isQuantum ? '已启用' : '就绪'}
+                    加密级随机 · {isQuantum ? '已启用' : '就绪'}
                 </div>
             </div>
 
@@ -383,7 +388,7 @@ export default function MoneyDivination({ onBack }) {
                 onClick={onBack}
                 className={`absolute z-[100] size-11 rounded-full border border-[#8b4513]/30 bg-[#f8f0e4]/70 backdrop-blur-sm flex items-center justify-center text-[#5d4037] shadow-sm transition-colors hover:border-[#5d4037] hover:bg-[#f8f0e4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a83232] ${isMobile ? 'right-4' : 'top-6 right-12'}`}
                 style={isMobile ? { top: 'max(0.75rem, env(safe-area-inset-top))' } : undefined}
-                aria-label="返回首页"
+                aria-label={onComplete ? '返回上一步' : '返回首页'}
             >
                 <ArrowLeft size={19} aria-hidden="true" />
             </button>
