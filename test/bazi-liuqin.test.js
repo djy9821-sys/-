@@ -102,6 +102,17 @@ test('女命：「女命之夫星，即是用神；女命之子星，即是喜�
   assert.equal(keFu.verdict, '任注：官星旺，印绶轻，古法主克夫；夫妻宫（日支）逢冲，古法主变动。');
 });
 
+test('妻宫坐财只算正财、偏财（劫财是比劫），断语照任注原话「必得妻财」', () => {
+  // 甲寅 壬申 癸巳 癸亥：癸水坐巳，巳中本气丙火正财，财为喜用。
+  const zuoCai = itemOf(liuqinOf(chartByPillars('甲寅 壬申 癸巳 癸亥')), 'spouse');
+  assert.equal(zuoCai.palaces[0].shiShen, '正财');
+  assert.equal(zuoCai.ren.text, '日主坐财，财为喜用，任注「必得妻财」');
+  // 壬子 癸丑 丙午 壬辰：丙火坐午，午中本气丁火是劫财，不是财；喜用而坐，只说妻宫坐喜神。
+  const zuoJie = itemOf(liuqinOf(chartByPillars('壬子 癸丑 丙午 壬辰')), 'spouse');
+  assert.equal(zuoJie.palaces[0].shiShen, '劫财');
+  assert.equal(zuoJie.ren.text, '妻宫（日支）坐喜神，古法主妻贤有助');
+});
+
 test('宫位逢冲另提一句；比劫不现也按日主喜忌论兄弟', () => {
   // 丙寅 辛卯 癸酉 戊午（坤造）：夫妻宫酉逢卯冲；比劫水四柱不见，但癸水身弱喜水。
   const liuqin = liuqinOf(chartByPillars('丙寅 辛卯 癸酉 戊午', 'female'));
