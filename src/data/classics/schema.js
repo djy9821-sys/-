@@ -55,7 +55,12 @@ export const APPLIES_KEYS = Object.freeze({
     palace: ZIWEI_PALACES,
     branches: ZHI,
     brightness: ZIWEI_BRIGHTNESS,
+    // 本宫星曜带的生年四化（运限层再加该层四化）：mutagen 任一化，mutagenAll 几化都在同一宫（「禄权同守」「双禄交流」）。
     mutagen: ZIWEI_MUTAGENS,
+    mutagenAll: ZIWEI_MUTAGENS,
+    // 本宫连三方四正里的四化（「科权拱」「权禄巡逢」「科权对拱」）：meetMutagen 任一化，meetMutagenAll 几化都有。
+    meetMutagen: ZIWEI_MUTAGENS,
+    meetMutagenAll: ZIWEI_MUTAGENS,
     pattern: ZIWEI_PATTERN_VOCAB,
     // 看那一层时命中：大限、小限（排盘库的 age）、流年；流月、流日程序还没有上下文。
     limit: ['本命', '大限', '小限', '流年', '流月', '流日'],
@@ -179,6 +184,12 @@ const checkApplies = (applies, where, errors, dirModule = null) => {
       }
       if (key === 'flowAll' && (!Array.isArray(value) || new Set(value).size < 2)) {
         errors.push(`${at}.flowAll: 要写两颗以上不同的流曜（几颗都要有）；只要一颗用 flow`);
+      }
+      if (key === 'mutagenAll' && (!Array.isArray(value) || new Set(value).size < 2)) {
+        errors.push(`${at}.mutagenAll: 要写两个以上不同的四化（几化都要在同一宫）；只要一化用 mutagen`);
+      }
+      if (key === 'meetMutagenAll' && (!Array.isArray(value) || new Set(value).size < 2)) {
+        errors.push(`${at}.meetMutagenAll: 要写两个以上不同的四化（三方四正里几化都要有）；只要一化用 meetMutagen`);
       }
       if ((key === 'flow' || key === 'flowAll') && !['大限', '流年'].includes(cond.limit)) {
         errors.push(`${at}.${key}: 流曜只在大限、流年层有（小限没有流曜），这条要同时写 limit: "大限" 或 "流年"`);
