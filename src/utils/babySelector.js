@@ -1,4 +1,5 @@
 import { astro } from 'iztro';
+import './ziweiBrightness.js'; // 星曜庙旺按《紫微斗数全书》改正三格（见该文件）
 
 // Helper to check if a star is in a list
 const hasStar = (stars, name) => stars.some(s => s.name === name);
