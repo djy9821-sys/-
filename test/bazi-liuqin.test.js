@@ -73,11 +73,11 @@ test('任注克妻、不克与子女诸条：合上哪条按哪条断', () => {
   const many = itemOf(liuqinOf(chartByPillars('辛丑 辛丑 戊戌 癸丑')), 'children');
   assert.equal(many.tone, 'good');
   assert.equal(many.verdict, '任注：日主旺，无印绶，有食伤，古法主子息多。');
-  // 戊辰 庚申 己卯 戊辰：己土身弱，食伤金重、印轻——「日主弱，食伤重，印绶轻，亦无子」（原书此造至老无子）。
+  // 戊辰 庚申 己卯 戊辰：己土身弱，食伤金重、无印——「日主弱，食伤重，印绶无，亦无子」（原书此造至老无子；扫描本作「印绶无」）。
   const none = itemOf(liuqinOf(chartByPillars('戊辰 庚申 己卯 戊辰')), 'children');
   assert.equal(none.tone, 'bad');
   assert.equal(none.ren.rule.original, '亦无子');
-  assert.equal(none.verdict, '任注：日主弱，食伤重，印绶轻，古法主子息艰难。');
+  assert.equal(none.verdict, '任注：日主弱，食伤重，印绶无，古法主子息艰难。');
 });
 
 test('女命：「女命之夫星，即是用神；女命之子星，即是喜神」，克夫诸条先看', () => {
