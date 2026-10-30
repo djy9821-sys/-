@@ -108,6 +108,10 @@ test('四个“今”运势入口自动填充当前运限', () => {
 
     assert.ok(prompt);
     assert.doesNotMatch(prompt, /undefined|null/);
+    assert.doesNotMatch(prompt, /程序认出的格局/, '没传 patterns 就不写这一行');
+    // 传了程序认出的格局（哪怕一个没认出）就在【基本信息】里写一行，AI 论「本命盘格局」时有据。
+    const withPatterns = generateFortunePromptText(type, context.selection, context.activeStems, BASIC_INFO, horoscope, horoscope.palaces, {}, context, { patterns: [{ name: '机月同梁格', source: { title: '甲', rule: '乙' } }] });
+    assert.match(withPatterns, /【基本信息】\n[\s\S]*?\n程序认出的格局：机月同梁格（甲；原书：乙）\n\n【/);
     assert.match(prompt, /【大限盘】/);
     assert.match(prompt, new RegExp(`【${context.fortune[type].name}盘】`));
     assert.match(prompt, /十二宫叠盘/);
