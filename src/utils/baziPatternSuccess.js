@@ -11,6 +11,7 @@
  */
 import { cite } from '../data/classics.js';
 import { getGanPairKinds, getZhiPairKinds } from './baziRelations.js';
+import { quYunOf } from './baziQuYun.js';
 
 const REN = { 甲: '卯', 丙: '午', 戊: '午', 庚: '酉', 壬: '子' };
 /** 十神 → 相神归类（官、杀分开，财、印、食伤、比劫按类） */
@@ -516,7 +517,7 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
   const xiangShen = verdict === '败' ? [] : [...new Set([...success, ...rescue].flatMap((item) => item.xiang ?? []))];
   const summaryText = (parts.length ? parts.join('') : `${seenText}未构成原书所列的成格或破格条件，需看地支与全局。`) + (xiangShen.length ? `相神：${xiangShen.join('、')}。` : '');
 
-  return {
+  const result = {
     group,
     verdict,
     success,
@@ -528,4 +529,7 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
     source: cite(CHENG_BAI_SOURCE.classic, CHENG_BAI_SOURCE.section),
     quotes: { 成: q.成[group], 败: q.败[group] },
   };
+  // 格局取运（各格「取运」篇）：按成格、救应的那一条配运，给大运流年的十神定喜忌
+  result.quYun = quYunOf(result, { stems: stems.map((stem) => stem.shiShen), share: roleShare, strong, weak });
+  return result;
 };
