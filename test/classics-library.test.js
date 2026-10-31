@@ -330,7 +330,7 @@ test('紫微提示词用：大限、流年命宫所落的本命宫，按宫中�
   assert.deepEqual(ziweiLimitPalaceHits(null, palaces, 0, '流年'), []);
 });
 
-test('流年斗君：太岁宫起正月逆数至生月、再从生月起子时顺数至生时（卷一安流年斗君诀），与排盘库流年正月的流月命宫一致；闰月生过十五按下月', () => {
+test('流年斗君：太岁宫起正月逆数至生月、再从生月起子时顺数至生时（卷一安流年斗君诀），与排盘库流年正月的流月命宫一致；闰月生人一律按下月（全书）', () => {
   // 1986-3-10 戌时女：农历二月初一生。2026 丙午年流年命宫（太岁宫）序 4：起正月逆数到二月得 3，再从子时顺数到戌时（10）→ 13 → 1，即本命夫妻宫（卯）。
   const astro = createZiweiHoroscope({ calendarType: 'solar', birthDate: '1986-3-10', timeIndex: 10, gender: 'female' });
   const flow = astro.horoscope('2026-2-20');
@@ -341,14 +341,18 @@ test('流年斗君：太岁宫起正月逆数至生月、再从生月起子时�
   const palace = ziweiDoujunPalace(astro, astro.palaces, flow.yearly.index);
   assert.equal(palace.name, '夫妻');
   assert.equal(palace.earthlyBranch, '卯');
-  // 闰五月生：十三按五月算，二十按六月算（与排盘库安命宫的闰月处理一致）。
+  // 闰五月生：十三、二十都按六月算（全书「凡有闰月具要依此为例」，与安命宫同一口径），五月廿九仍按五月。
   const leapEarly = createZiweiHoroscope({ calendarType: 'solar', birthDate: '1990-7-5', timeIndex: 0, gender: 'male' });
   const leapLate = createZiweiHoroscope({ calendarType: 'solar', birthDate: '1990-7-12', timeIndex: 0, gender: 'male' });
+  const beforeLeap = createZiweiHoroscope({ calendarType: 'solar', birthDate: '1990-6-21', timeIndex: 0, gender: 'male' });
   assert.deepEqual([leapEarly.rawDates.lunarDate.isLeap, leapEarly.rawDates.lunarDate.lunarDay, leapLate.rawDates.lunarDate.lunarDay], [true, 13, 20]);
-  assert.equal(ziweiDoujunIndex(leapEarly, 4), 0);
+  assert.deepEqual([beforeLeap.rawDates.lunarDate.isLeap, beforeLeap.rawDates.lunarDate.lunarMonth, beforeLeap.rawDates.lunarDate.lunarDay], [false, 5, 29]);
+  assert.equal(ziweiDoujunIndex(leapEarly, 4), 11);
   assert.equal(ziweiDoujunIndex(leapEarly, 4), leapEarly.horoscope('2026-2-20').monthly.index);
   assert.equal(ziweiDoujunIndex(leapLate, 4), 11);
   assert.equal(ziweiDoujunIndex(leapLate, 4), leapLate.horoscope('2026-2-20').monthly.index);
+  assert.equal(ziweiDoujunIndex(beforeLeap, 4), 0);
+  assert.equal(ziweiDoujunIndex(beforeLeap, 4), beforeLeap.horoscope('2026-2-20').monthly.index);
   // 算不出就不给：没有排盘结果、没有流年宫序。
   assert.equal(ziweiDoujunIndex(null, 4), null);
   assert.equal(ziweiDoujunIndex(astro, undefined), null);
