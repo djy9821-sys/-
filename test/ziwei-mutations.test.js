@@ -181,3 +181,52 @@ test('1998-01-02 辰时女参考盘的八条箭头全部锚在发起宫', () => 
   );
   assert.equal(entries.every((entry) => entry.anchorBranch === entry.sourceBranch), true);
 });
+
+test('宫干四化落宫查表与 iztro mutagedPlaces 逐条一致，且不再走逐星翻词表的慢路', () => {
+  for (const [date, timeIndex, gender] of [['1998-1-2', 4, '男'], ['1962-8-26', 2, '女'], ['2026-8-23', 8, '女']]) {
+    const chart = astro.bySolar(date, timeIndex, gender, true, 'zh-CN');
+    const reference = chart.palaces.map(({ index }) => chart.palace(index).mutagedPlaces().map((palace) => palace.index));
+    // mutagedPlaces 每找一颗星都把全盘星名逐个翻多语种词表，一张盘要一秒多；这里堵死它，确认查表路径独立成立。
+    chart.palaces.forEach((palace) => {
+      palace.mutagedPlaces = () => { throw new Error('buildPalaceFlights 不应再调用 mutagedPlaces'); };
+    });
+    const flights = buildPalaceFlights(chart);
+    assert.equal(flights.length, 48, `${date}应生成48条宫干飞化`);
+    assert.deepEqual(
+      chart.palaces.map(({ index }) => flights.filter((flight) => flight.sourceIndex === index).map((flight) => flight.targetIndex)),
+      reference,
+      `${date}十二宫四化落宫应与 iztro 一致`,
+    );
+  }
+});
+
+test('飞星年表同一大限只起一次运限盘，推出的各年与逐年起盘逐条一致', () => {
+  const chart = astro.bySolar('1990-5-17', 3, '男', true, 'zh-CN');
+  const birthYear = 1990;
+  const exact = (year) => {
+    try {
+      const fortune = chart.horoscope(`${year}-06-15`);
+      return {
+        year,
+        nominalAge: fortune?.age?.nominalAge ?? (year - birthYear + 1),
+        ganZhi: `${fortune?.yearly?.heavenlyStem || ''}${fortune?.yearly?.earthlyBranch || ''}`,
+        yearlyPalaceIndex: fortune?.yearly?.index ?? null,
+        decadalPalaceNames: fortune?.decadal?.palaceNames || [],
+      };
+    } catch {
+      return { year, nominalAge: year - birthYear + 1, ganZhi: '', yearlyPalaceIndex: null, decadalPalaceNames: [] };
+    }
+  };
+  const decades = chart.palaces.map((palace) => palace.decadal.range).sort((a, b) => a[0] - b[0]);
+  const decadeYears = ([from, to]) => Array.from({ length: to - from + 1 }, (_, offset) => birthYear + from + offset - 1);
+  const original = chart.horoscope;
+  for (const years of [...decades.slice(0, 3).map(decadeYears), Array.from({ length: 14 }, (_, offset) => birthYear - 2 + offset)]) {
+    const expected = years.map(exact);
+    let calls = 0;
+    chart.horoscope = (...args) => { calls += 1; return original(...args); };
+    const markers = buildFlyYearMarkers({ astrolabe: chart, years, birthYear });
+    chart.horoscope = original;
+    assert.deepEqual(markers, expected, `${years[0]}起${years.length}年应与逐年起盘一致`);
+    if (years.length === 10) assert.equal(calls, 1, '同一大限的十年只需起一次运限盘');
+  }
+});
