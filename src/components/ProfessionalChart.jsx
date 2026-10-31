@@ -223,6 +223,8 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         birthTime: TIME_RANGES[0]
     });
     const [isCalculating, setIsCalculating] = React.useState(false);
+    // 双人指令算完时自动复制没成功（手机浏览器只认点击当下的复制），把指令留在弹窗里让用户再点一次复制。
+    const [babyPrompt, setBabyPrompt] = React.useState('');
 
     // State for Donation Modal
     const [showDonationModal, setShowDonationModal] = React.useState(false);
@@ -1905,6 +1907,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                 const babyType = type.replace('baby_', '');
                 setSelectedBabyType(babyType);
                 setSelectedMutationInfo(null);
+                setBabyPrompt('');
                 setShowPartnerModal(true);
                 setShowAiMenu(false); // Close menu
                 return; // Stop here, wait for modal
@@ -1928,6 +1931,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         }
 
         setIsCalculating(true);
+        setBabyPrompt('');
 
         // Use setTimeout to allow UI to update with "Calculating..." state
         setTimeout(async () => {
@@ -1947,13 +1951,15 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                 const prompt = generateBabyPrompt(selectedBabyType, basicInfo, horoscope, partnerHoroscope, bestDates);
                 track('ai_export', { kind: 'ziwei', scope: 'baby', channel: 'copy' });
 
-                navigator.clipboard.writeText(prompt).then(() => {
+                try {
+                    await navigator.clipboard.writeText(prompt);
                     alert(`✅ 已生成【${selectedBabyType === 'leader' ? '帝王' : selectedBabyType === 'iq' ? '文昌' : selectedBabyType === 'sport' ? '武曲' : '陶朱'}起居注】指令！\n\n已为您筛选出未来14天内Top3最佳受孕时机。\n请发送给AI获取详细解读。`);
                     setShowPartnerModal(false);
-                }).catch(err => {
+                } catch (err) {
+                    // 算了几秒才复制，iPhone 等浏览器已不认那次点击，自动复制会被拒；指令留在弹窗里，再点一次「复制指令」或长按选取。
                     console.error('Failed to copy:', err);
-                    alert('复制失败，请手动复制。');
-                });
+                    setBabyPrompt(prompt);
+                }
 
             } catch (error) {
                 console.error('Calculation failed:', error);
@@ -3317,6 +3323,25 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                     <span>生成双人分析指令</span>
                                 )}
                             </button>
+                            {babyPrompt && (
+                                <div className="space-y-2" data-testid="baby-prompt-fallback">
+                                    <p className="text-xs text-gray-600">指令已生成，但浏览器没有允许自动复制。请点下面的按钮复制，或长按文字全选复制。</p>
+                                    <textarea
+                                        readOnly
+                                        aria-label="双人分析指令"
+                                        value={babyPrompt}
+                                        onFocus={(event) => event.target.select()}
+                                        className="h-32 w-full rounded border border-gray-300 p-2 text-xs text-gray-700"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => copyToClipboard(babyPrompt)}
+                                        className="w-full rounded-lg border border-purple-500 py-2 text-sm font-bold text-purple-700 hover:bg-purple-50"
+                                    >
+                                        复制指令
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
