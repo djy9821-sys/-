@@ -67,6 +67,27 @@ test('四库作大运地支按方论：未作火（南方燥土），癸丑作�
   assert.equal(getLiuNianMarks(liuNianOf('己未'), { chart, strength }).favor.zhi.element, '土');
 });
 
+test('大运天干贪合助忌：喜神与原局忌神相合、所化也是忌，不作喜论（任注「乙运合庚助虐」「乙丑合庚，晦火生金」）', () => {
+  // 丁丑 壬子 己酉 戊辰：喜土火，忌木水。丁未运丁火本是喜，却与月干壬水相合化木，木水皆忌。
+  const dingWei = getDaYunMarks({ gan: '丁', zhi: '未' }, { strength, chart });
+  assert.equal(dingWei.favor.gan.tone, 'neutral');
+  assert.deepEqual(dingWei.favor.gan.he, { partner: { key: 'month', gan: '壬' }, hua: '木', label: '月干壬' });
+  assert.equal(dingWei.favor.overall, 'good', '运支未作火，仍是喜');
+  assert.equal(describeDaYunFavor({ gan: '丁', zhi: '未' }, dingWei.favor),
+    '天干丁火（与月干壬相合化木，贪合助忌，不作喜论）平（印） · 地支未（南方燥土，作火论）火喜（印）');
+  // 丁亥运：干平、支亥水忌，整步运按忌；没有贪合的丙火运干照旧是喜。
+  assert.equal(getDaYunMarks({ gan: '丁', zhi: '亥' }, { strength, chart }).favor.overall, 'bad');
+  assert.equal(getDaYunMarks({ gan: '丙', zhi: '午' }, { strength, chart }).favor.gan.he, undefined);
+  // 不给原局（没有 chart）或是流年的，不论贪合。
+  assert.equal(getDaYunMarks({ gan: '丁', zhi: '未' }, { strength }).favor.gan.tone, 'good');
+  assert.equal(getLiuNianMarks(liuNianOf('丁未'), { chart, strength }).favor.gan.tone, 'good');
+  const { tanHeOf } = yearMarks;
+  const toneOf = (element) => (['木', '火', '水'].includes(element) ? 'good' : ['金', '土'].includes(element) ? 'bad' : 'neutral');
+  assert.equal(tanHeOf('乙', [{ key: 'month', gan: '庚' }], toneOf).label, '月干庚');
+  assert.equal(tanHeOf('甲', [{ key: 'month', gan: '己' }], toneOf).hua, '土');
+  assert.equal(tanHeOf('庚', [{ key: 'month', gan: '乙' }], toneOf), null, '运干是忌的不论');
+});
+
 test('大运喜忌与岁运反吟', () => {
   const daYun = getDaYunMarks({ gan: '丙', zhi: '午' }, { strength });
   assert.equal(daYun.favor.overall, 'good');
