@@ -33,7 +33,7 @@ const entries = files.cases
   .filter((entry) => entry?.expected && Array.isArray(entry.pillars) && !/自检/.test(entry.notes ?? ''));
 
 const results = entries.map(evaluateBaziCase);
-const tally = { strength: {}, pattern: {}, useGod: {}, yun: {}, liuqin: {}, liuqinYun: {} };
+const tally = { strength: {}, pattern: {}, chengBai: {}, useGod: {}, yun: {}, liuqin: {}, liuqinYun: {} };
 results.forEach((result) => {
   Object.entries(result.checks ?? {}).forEach(([key, value]) => {
     [].concat(value).forEach((item) => { tally[key][item] = (tally[key][item] ?? 0) + 1; });
@@ -44,6 +44,7 @@ const fmt = (counts) => Object.entries(counts).map(([key, value]) => `${key} ${v
 console.log(`八字命例 ${entries.length} 条（写了 expected、四柱未标自检）`);
 console.log(`旺衰：${fmt(tally.strength)}`);
 console.log(`格局：${fmt(tally.pattern)}`);
+if (Object.keys(tally.chengBai).length) console.log(`成败（月令格相同的命造）：${fmt(tally.chengBai)}`);
 console.log(`喜用：${fmt(tally.useGod)}`);
 const splitUseGod = (pick) => fmt(results.filter((result, index) => result.checks?.useGod && pick(isUseGodHoldout(entries[index])))
   .reduce((acc, result) => ({ ...acc, [result.checks.useGod]: (acc[result.checks.useGod] ?? 0) + 1 }), {}));
@@ -75,11 +76,11 @@ const listed = results.filter((result) => !result.error && (showAll || isMiss(re
 if (listed.length) {
   console.log(showAll ? '\n逐条：' : '\n不一致的：');
   listed.forEach(({ id, pillars, expected, program, checks, yun, liuqin }) => {
-    const exp = [expected.strength && `旺衰${expected.strength}`, expected.pattern, expected.useGod && `用${[].concat(expected.useGod).join('')}`].filter(Boolean).join(' ');
+    const exp = [expected.strength && `旺衰${expected.strength}`, expected.pattern, expected.chengBai, expected.useGod && `用${[].concat(expected.useGod).join('')}`].filter(Boolean).join(' ');
     const gods = program.useGodSource === 'special'
       ? `按此格喜${program.specialFavorable.join('')} 忌${program.specialUnfavorable.join('')}（扶抑喜${program.favorable.join('')}）`
       : `喜${program.favorable.join('')} 忌${program.unfavorable.join('')}`;
-    const got = [`${program.band}(${program.score} 分)`, program.special, gods].filter(Boolean).join(' ');
+    const got = [`${program.band}(${program.score} 分)`, program.special ?? (expected.pattern && !/从|专旺|化|两气/.test(expected.pattern) ? `${program.pattern ?? '无格'}${program.chengBai ? `·${program.chengBai}` : ''}` : null), gods].filter(Boolean).join(' ');
     const yunText = yun.filter((item) => item.check && item.check !== 'same').map((item) => `${item.ganZhi}${item.kind === '流年' ? '年' : '运'}书${item.verdict}程序${item.program}`).join('、');
     const liuqinText = liuqin.filter((item) => item.check && item.check !== 'same').map((item) => `${item.scope === 'yun' ? '（运中）' : ''}${item.kind}书${item.verdict}程序${item.program}`).join('、');
     console.log(`  ${id} ${pillars.join(' ')}｜书：${exp}｜程序：${got}｜${Object.entries(checks).filter(([key]) => !['yun', 'liuqin', 'liuqinYun'].includes(key)).map(([key, value]) => `${key}:${value}`).join(' ')}${yunText ? ` 岁运:${yunText}` : ''}${liuqinText ? ` 六亲:${liuqinText}` : ''}`);
