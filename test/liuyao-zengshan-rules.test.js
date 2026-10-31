@@ -336,3 +336,18 @@ test('终身财福章：世居空位无生终身无成；旺财持世多自成�
   assert.doesNotMatch(allText(bookCase('风泽中孚', [], '2001-4-12', { topic: 'life', subject: 'self' })), /终身财福/);
   assert.doesNotMatch(allText(bookCase('山雷颐', [], '2007-10-4', { topic: 'life', subject: 'parents' })), /终身财福/);
 });
+
+test('乡试会试章：旺官持世功名可望（日月动爻合成官局亦是）；世动化出官鬼回头克世，化鬼更凶', () => {
+  // 卯月甲申日占会试得艮之益：「寅木旺官持世……一定高捷」
+  const wang = bookCase('艮为山', [1, 3, 5], '2001-3-22', { topic: 'study' });
+  assert.match(allText(wang), /考试中否（乡试会试章）：旺官持世，功名可望/);
+  assert.equal(wang.verdict.level, 'good');
+  // 戌月甲寅日占会试能联捷否得小过：「日月合成官局，旺相当时，卦之全美」
+  const ju = bookCase('雷山小过', [4, 6], '2001-10-18', { topic: 'study' });
+  assert.match(allText(ju), /旺官持世（日月动爻合成官局），功名可望/);
+  assert.equal(ju.verdict.level, 'good');
+  // 卯月戊辰日占乡试得离之既济：「变出子水之鬼回头克世，客死于途中」
+  const hua = bookCase('离为火', [4, 5, 6], '2001-3-6', { topic: 'study' });
+  assert.match(allText(hua), /世动化出官鬼回头克世，化鬼更凶/);
+  assert.equal(hua.verdict.level, 'bad');
+});
