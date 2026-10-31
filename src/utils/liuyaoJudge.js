@@ -35,6 +35,7 @@ export const LIUYAO_TOPICS = Object.freeze([
   { value: 'refuge', label: LIUYAO_TOPIC_LABELS.refuge, hint: '避险、躲灾、养病、避是非：以世爻为主，子孙为福神，并看往哪个方向', relative: null, aux: [['子孙', '福神'], ['官鬼', '祸患']], subjects: true },
   { value: 'gravesite', label: LIUYAO_TOPIC_LABELS.gravesite, hint: '寻新坟地、点穴：世爻为穴，子孙为儿孙；已葬的选「祖坟风水」', relative: null, aux: [['子孙', '儿孙后代']] },
   { value: 'ancestral', label: LIUYAO_TOPIC_LABELS.ancestral, hint: '已葬的祖坟好坏、有无损伤：以父母为用神，冲克父母者为所伤之由', relative: '父母', aux: [['子孙', '儿孙兴衰']] },
+  { value: 'spirits', label: LIUYAO_TOPIC_LABELS.spirits, hint: '病痛灾祸疑为鬼神作祟、系何方神祇：以官鬼为用神，鬼休囚空破墓绝皆非鬼神之害，旺相者按五行分神祇；野鹤云疯痨气蛊系失调伤身，与鬼神无干', relative: '官鬼', aux: [['子孙', '制鬼福神']] },
 ]);
 
 const TOPIC_BY_VALUE = Object.fromEntries(LIUYAO_TOPICS.map((topic) => [topic.value, topic]));
@@ -68,6 +69,7 @@ export const liuyaoNeedsGender = (topic, subject) => {
 };
 
 /** 五行的墓库（土随水，墓于辰）。 */
+const SPIRIT_NOTICE = '占鬼神以官鬼为用神（《增删卜易·用神章》）：鬼值休囚及空破墓绝皆非鬼神之害；旺相者金为武神、木为文神、水为河海之神、火为火神、土为土神，休囚者为枉死之鬼（《鬼神章》）。野鹤云：时灾瘟瘴照法祭送屡验；疯痨气蛊系失调理、酒色伤身，与鬼神何干，惟节饮食、远色欲、息气养神。';
 const TOMB = Object.freeze({ 木: '未', 火: '戌', 金: '丑', 水: '辰', 土: '辰' });
 /** 五行长生之支（土随水）：「晴逢子动，望晴只待子逢生」。 */
 const CHANG_SHENG = Object.freeze({ 木: '亥', 火: '寅', 金: '巳', 水: '申', 土: '申' });
@@ -566,7 +568,59 @@ const injuryOf = (line, clash) => {
  * 各类别在用神旺衰、动变、世应之外的专门断法，返回 { score, points, notices }。
  * 依据《增删卜易》各章原文；失物用通行的《黄金策》「失脱」之法与千金赋「墓多暧昧」（野鹤注：用神动而化墓，「失脱遇之，暗藏不见」）。
  */
+/** 鬼神章：鬼属五行各分其神，旺相者为正神，休囚者为枉死之鬼。 */
+const SPIRIT_KINDS = Object.freeze({
+  金: ['武神及西方之神', '刀剑身亡之鬼'],
+  木: ['文神及东方之神', '傍草附木之妖，或刑杖悬梁之鬼'],
+  水: ['河海及北方之神', '池井江湖水死之鬼'],
+  火: ['火神及雷公电母、窑灶之神', '汤火焚烧之魂'],
+  土: ['土神及中央之庙、掌管山川社稷之神', '墙倒屋塌土死之鬼'],
+});
+
 const TOPIC_RULES = Object.freeze({
+  // 鬼神章：「凡占鬼神，卦中鬼值休囚及空破墓绝，皆非鬼神之害也」；旺相者「官鬼属金，旺相者武神及西方之神；休囚者刀剑身亡之鬼」
+  // 等各按五行分神；「得罪于正神者，香花纸马祭之；勾惹邪祟之鬼，用浆纸钱于夜静之时，金鬼者向西送之，水鬼者向北送之」；
+  // 野鹤曰「时灾瘟瘴，照此法而祭送者，余屡验之；疯痨气蛊……与鬼神何干？惟节饮食，远色欲，息气养神，其病自减」。
+  // 用神是官鬼，吉凶反着看：鬼衰才是「非鬼神之害」，所以倾向自己给。
+  spirits: ({ lines, time, shiLine, yong }) => {
+    const ghosts = lines.filter((line) => line.relative === '官鬼');
+    const notes = [];
+    const weakOf = (line) => {
+      const result = assessStrength(line, time);
+      const stages = [stageAt(line.element, time.monthZhi), stageAt(line.element, time.dayZhi)].filter((stage) => stage === '墓' || stage === '绝');
+      const weak = result.level === '休囚' || result.marks.includes('旬空') || result.marks.includes('月破') || stages.length > 0;
+      return { result, weak, stages };
+    };
+    const sons = movingOf(lines, '子孙');
+    const sonsHold = shiLine.relative === '子孙';
+    if (!ghosts.length) {
+      notes.push(`官鬼不上卦${yong.hidden ? `，伏于${yong.flyer.positionName}下` : ''}，无鬼神之害`);
+      return { score: 3, floor: true, points: [`鬼神：${notes.join('；')}`], notices: [SPIRIT_NOTICE], verdict: { level: 'good', title: '非鬼神之害', text: '官鬼不现，所患非鬼神所为，宜从调理与人事上求（《增删卜易·鬼神章》）。' } };
+    }
+    const assessed = ghosts.map((line) => ({ line, ...weakOf(line) }));
+    const allWeak = assessed.every((item) => item.weak);
+    assessed.forEach(({ line, result, weak, stages }) => {
+      const [god, ghost] = SPIRIT_KINDS[line.element];
+      const state = weak ? `${result.level === '休囚' ? '休囚' : ''}${result.marks.filter((mark) => mark === '旬空' || mark === '月破').join('')}${stages.length ? `临${stages.join('')}` : ''}` : '旺相';
+      notes.push(weak
+        ? `${lineLabel(line)}${state}，非鬼神之害；若有所疑，属${ghost}，宜于夜静向${DIRECTION[line.element]}送之`
+        : `${lineLabel(line)}旺相，系${god}；须问病人曾于何处许愿未还、何庙秽污作践，按所疑祭之`);
+    });
+    let score = 0;
+    if (allWeak) score += 3;
+    const attackers = ghosts.filter((line) => line.isMoving && line.position !== shiLine.position && controls(line, shiLine));
+    attackers.forEach((line) => { score -= 2; notes.push(`${lineLabel(line)}发动克世，祟近其身`); });
+    if (sons.length || sonsHold) {
+      score += 2;
+      notes.push(`子孙${sons.length ? '发动' : '持世'}，福神制鬼，祭祷可解`);
+    }
+    const verdict = allWeak
+      ? { level: 'good', title: '非鬼神之害', text: '官鬼休囚或空破墓绝，所患非鬼神所为，宜从调理与人事上求（《增删卜易·鬼神章》）。' }
+      : attackers.length && !sons.length && !sonsHold
+        ? { level: 'bad', title: '鬼神为祟', text: '官鬼旺相又发动克世，确有鬼神之事，按所疑之神祭送，仍须调理身体。' }
+        : { level: 'mixed', title: '有鬼神之事', text: `官鬼旺相，${sons.length || sonsHold ? '幸子孙制鬼，祭祷可解' : '按所疑之神祭送'}；疯痨气蛊之类与鬼神无干，惟节饮食、远色欲、息气养神。` };
+    return { score, floor: allWeak, points: [`鬼神：${notes.join('；')}`], notices: [SPIRIT_NOTICE], verdict };
+  },
   // 千金赋：占流年，以官为鬼，不宜官鬼持世；泽水困占例：世空而忌神动，出空遭伤。替别人问以那人的用神为主。
   year: ({ lines, shiLine, yong, proxy }) => {
     const person = proxy ? yong : shiLine;
@@ -1730,6 +1784,7 @@ export const judgeLiuYao = (reading, options = {}) => {
   if (special) {
     total += special.score;
     if (special.cap) cap = true;
+    if (special.floor) floor = true;
     points.push(...special.points);
     notices.push(...special.notices);
   }
@@ -1795,7 +1850,8 @@ export const judgeLiuYao = (reading, options = {}) => {
   if (floor) total = Math.max(total, 3);
   // 卦变回头克「新病亦主危亡」，压过近病逢冲之吉
   if (guaBackCtrl || cap) total = Math.min(total, -3);
-  const verdict = verdictOf(total, Boolean(yong.hidden));
+  // 用神是官鬼而吉凶反看的类别（占鬼神），倾向由专门断法给。
+  const verdict = special?.verdict ?? verdictOf(total, Boolean(yong.hidden));
   const timing = timingOf(yong, strength);
   points.push(`倾向：${verdict.title}。${verdict.text}`);
   points.push(`应期：${timing.join('；')}`);
