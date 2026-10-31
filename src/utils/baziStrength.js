@@ -25,6 +25,8 @@
  *   食伤重取印制伤生身；官杀重取印化杀，印无力而食伤有力时取食伤制杀（任注「庚金并透，通根砍伐……
  *   更妙丙火独透，制杀扶身」：地支土气虽略多，并透的庚金才是病），食伤也重（3 分以上）的是克泄交加，先取比劫帮身
  *   （「金寒水冷，过于泄气，全赖酉时扶身……用神必在酉金」「日主三面受敌……全赖午火旺刃当权为用」）；
+ *   印无力而食伤会成三合、三会局的，不再用食伤制杀，「制之以威，不若化之以德」，仍取印化杀、比劫帮身，食伤反为病
+ *   （「干透两庚，正当秋令，支会火局，虽制杀有功，而克泄并见……不喜会火局也，反以火为病矣」，庚戌 乙酉 甲寅 庚午，子运大魁）；
  * - 身旺：看印、比劫哪一方多——印多取财破印（财星有力，官星又透出有力、不比印重的，身旺足以用官；
  *   印在比劫两倍以上而财星、食伤都无力的是「母多灭子」，顺母之性，取比劫帮身）；
  *   比劫多取官杀制劫（官杀无力就取食伤泄秀；3.3 分以上「太旺」的，官杀逆其旺势，先取食伤泄秀）；
@@ -292,7 +294,8 @@ const usableElementsOf = (chart, { strong = false, scores = {} } = {}) => {
  * 扶抑取用：按旺衰与病因排出喜用、忌神的五行，并给一句取用思路。
  * 有力（见 usableElementsOf）的排前，同样有力的保持原先的先后。中和按 lean 分界偏向一边取。
  */
-const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts = {} }) => {
+/** juElements：四支会成的三合、三会局的五行（见 analyzeStrength）。 */
+const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts = {}, juElements = new Set() }) => {
   const yin = GENERATED_BY[dayWuxing];
   const output = GENERATES[dayWuxing];
   const wealth = CONTROLS[dayWuxing];
@@ -305,7 +308,7 @@ const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts 
     // 只有官杀两透而无食伤泄身的，仍可「身旺用官」（「此以丁火为源头……身旺用官」）。
     const shaHeavy = (touCounts[officer] ?? 0) >= 2 && usable.has(officer) && (touCounts[output] ?? 0) >= 1;
     const leanStrong = total >= STRENGTH_BOUNDS.lean && !shaHeavy;
-    const leaned = supportAndRestrain({ band: leanStrong ? '偏强' : '偏弱', total, scores, dayWuxing, usable, touCounts });
+    const leaned = supportAndRestrain({ band: leanStrong ? '偏强' : '偏弱', total, scores, dayWuxing, usable, touCounts, juElements });
     return { ...leaned, basis: `日主中和略偏${leanStrong ? '旺' : '弱'}，${leaned.basis}` };
   }
 
@@ -318,7 +321,12 @@ const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts 
       favorable = [dayWuxing, yin];
       basis = '身弱财重，取比劫帮身，印次之';
     } else if (heaviest === officer) {
-      if (!usable.has(yin) && usable.has(output) && weightOf(output) >= XIE_HEAVY_SCORE) {
+      if (!usable.has(yin) && juElements.has(output)) {
+        // 印无力而食伤会成局：食伤制杀虽有功，日主受克又受泄，「制之以威，不若化之以德」，仍取印化杀，食伤反为病
+        // （任注「干透两庚，正当秋令，支会火局，虽制杀有功，而克泄并见……不喜会火局也，反以火为病矣。故子运辰年，大魁天下」）。
+        favorable = [yin, dayWuxing];
+        basis = '身弱官杀重，印星无力而食伤又会成局，制之以威不若化之以德，取印化杀生身，比劫帮身，食伤反为病';
+      } else if (!usable.has(yin) && usable.has(output) && weightOf(output) >= XIE_HEAVY_SCORE) {
         // 官杀重、印无力而食伤也重：克泄交加，再取食伤制杀便泄得更狠，先以比劫帮身（任注「金寒水冷，过于泄气，全赖酉时扶身……
         // 天干丁火不过取其敌寒解冻，非用丁火也。用神必在酉金」；「月时两透壬水，日主三面受敌……全赖午火旺刃当权为用，更喜戌之燥土，制水会火」）。
         favorable = [dayWuxing, output, yin];
@@ -445,7 +453,9 @@ export const analyzeStrength = (chart) => {
   chart.pillars.forEach((pillar) => {
     if (pillar.key !== 'day' && pillar.gan) touCounts[pillar.ganWuxing] = (touCounts[pillar.ganWuxing] ?? 0) + 1;
   });
-  const fuYi = supportAndRestrain({ band, total: score.total, scores, dayWuxing, usable, touCounts });
+  // 四支会成的三合、三会局（不论帮身还是他党），取用时「支会火局」一类条件用。
+  const juElements = new Set(SAN_HE_JU.filter((item) => item.zhis.every((zhi) => chart.pillars.some((pillar) => pillar.zhi === zhi))).map((item) => item.wuxing));
+  const fuYi = supportAndRestrain({ band, total: score.total, scores, dayWuxing, usable, touCounts, juElements });
   const { basis } = fuYi;
   let { favorable } = fuYi;
   let urgent = null;
