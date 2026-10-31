@@ -338,7 +338,15 @@ test('燥土不载金：未、戌坐下生金不算有力，日主是土而通�
   assert.notEqual(jia.favorable[0].element, '金');
   // 木旺极先取火泄秀，无力的辛金为火所克，不列喜用。
   assert.ok(!elements(jia.favorable).includes('金'), '无力的辛金不列喜用');
-  assert.equal(jia.godsNote, '官杀为用神所克，不列喜用');
+  // 辛金正是卯月的调候，去留调候说明里已讲，godsNote 不再重复。
+  assert.match(jia.tiaoHouNote, /^调候宜金，但金为用神所克/);
+  assert.equal(jia.godsNote, '');
+  // 同理：戊土旺极先取金泄，调候之木为金所克。
+  const wu = analyzeStrength(chartOf(2023, 4, 10, 6, { gender: 'female' }));
+  assert.equal(wu.band, '极强');
+  assert.equal(wu.tiaoHou.element, '木');
+  assert.match(wu.tiaoHouNote, /木为用神所克，以用神为重，不作喜用$/);
+  assert.equal(wu.godsNote, '');
   // 癸卯 乙卯 己卯 辛未：「未土通根有余，足以用辛金制杀」——日主己土通根于未，辛金仍算有载，用金。
   const ji = analyzeStrength(chartByPillars('癸卯 乙卯 己卯 辛未'));
   assert.equal(ji.favorable[0].element, '金');
