@@ -109,6 +109,28 @@ const coverOf = (gan, zhi) => {
   return null;
 };
 
+/** 天干五合：相合的一干与所化之神。 */
+const GAN_HE = Object.freeze({ 甲: '己', 己: '甲', 乙: '庚', 庚: '乙', 丙: '辛', 辛: '丙', 丁: '壬', 壬: '丁', 戊: '癸', 癸: '戊' });
+const GAN_HE_HUA = Object.freeze({ 甲: '土', 己: '土', 乙: '金', 庚: '金', 丙: '水', 辛: '水', 丁: '木', 壬: '木', 戊: '火', 癸: '火' });
+const PILLAR_GAN_LABEL = { year: '年干', month: '月干', time: '时干' };
+
+/**
+ * 贪合助忌：大运天干是喜，却与原局天干（日干除外）相合，合的那一干是忌、所化之神也是忌——喜神贪合，反去助忌，运干不作喜论
+ * （任注「乙运合庚助虐，罢职回家」「乙丑合庚，晦火生金，落职」「乙运庚合，己丑拱金，虚损之症，不治而亡」）。
+ * 只论大运；合的是喜神、或所化不是忌神的，任注吉凶不一，不动。拿《滴天髓阐微》命造的岁运对照：同 610 → 612、反 191 → 185
+ * （作忌论反判更少，但书吉的也跟着翻掉十几步，所以只作平）。
+ * @param {string} gan 运干
+ * @param {Array<{ key: string, gan: string }>} stems 原局天干（不含日干）
+ * @param {(element: string) => 'good'|'bad'|'neutral'} toneOf 某一行的喜忌
+ * @returns {{ partner: { key: string, gan: string }, hua: string, label: string }|null}
+ */
+export const tanHeOf = (gan, stems, toneOf) => {
+  const hua = GAN_HE_HUA[gan];
+  if (!hua || toneOf(GAN_WUXING[gan]) !== 'good' || toneOf(hua) !== 'bad') return null;
+  const partner = (stems ?? []).find((stem) => stem.key !== 'day' && stem.gan === GAN_HE[gan] && toneOf(GAN_WUXING[stem.gan]) === 'bad');
+  return partner ? { partner, hua, label: `${PILLAR_GAN_LABEL[partner.key] ?? '原局'}${partner.gan}` } : null;
+};
+
 /** 盖头截脚四种情形里整步运的定论：截脚、喜泄于忌按忌，喜盖忌按喜；忌盖喜仍参半（没有定论）。 */
 const COVER_OVERALL = Object.freeze({ 截脚: 'bad', 喜泄于忌: 'bad', 喜盖忌: 'good' });
 
@@ -116,12 +138,15 @@ const COVER_OVERALL = Object.freeze({ 截脚: 'bad', 喜泄于忌: 'bad', 喜盖
  * 某柱天干、地支对日主的喜忌。
  * @param {object} item 大运或流年（gan、zhi）
  * @param {object} strength analyzeStrength 的结果
- * @param {{ zhis?: string[], daYun?: boolean }} [options] 与之会局的地支（原局四支，流年再加大运支）；地支凑齐会局的按局的五行论。
- *   daYun 为真时看盖头、截脚（见 coverOf）：截脚、喜泄于忌的整步运按忌论，喜盖忌的按喜论；四库运支按方论的见 fangOfYunZhi。
+ * @param {{ zhis?: string[], stems?: Array<{ key: string, gan: string }>, daYun?: boolean }} [options] 与之会局的地支（原局四支，流年再加大运支）；
+ *   地支凑齐会局的按局的五行论。daYun 为真时看盖头、截脚（见 coverOf）：截脚、喜泄于忌的整步运按忌论，喜盖忌的按喜论；
+ *   四库运支按方论的见 fangOfYunZhi；运干与原局天干（stems）贪合助忌的作平，见 tanHeOf。
  */
-export const describeFavor = (item, strength, { zhis = [], daYun = false } = {}) => {
+export const describeFavor = (item, strength, { zhis = [], stems = [], daYun = false } = {}) => {
   if (!item?.gan || !strength) return null;
-  const gan = elementToneOf(GAN_WUXING[item.gan], strength);
+  const ganTone = elementToneOf(GAN_WUXING[item.gan], strength);
+  const he = daYun ? tanHeOf(item.gan, stems, (element) => elementToneOf(element, strength).tone) : null;
+  const gan = he ? { ...ganTone, tone: 'neutral', he } : ganTone;
   const ju = juOfZhi(item.zhi, zhis);
   const fang = !ju && daYun ? fangOfYunZhi(item.gan, item.zhi) : null;
   const zhi = ju ? { ...elementToneOf(ju.element, strength), ju }
@@ -132,6 +157,12 @@ export const describeFavor = (item, strength, { zhis = [], daYun = false } = {})
 };
 
 const natalZhisOf = (chart) => (chart?.pillars ?? []).map((pillar) => pillar.zhi).filter(Boolean);
+const natalStemsOf = (chart) => (chart?.pillars ?? []).filter((pillar) => pillar.key !== 'day' && pillar.gan).map((pillar) => ({ key: pillar.key, gan: pillar.gan }));
+
+/** 天干喜忌的说法（后面接「喜」「忌」「平」）：贪合助忌的写明与原局哪一干相合、化成什么。 */
+export const ganFavorText = (gan, favorGan) => (favorGan?.he
+  ? `天干${gan}${favorGan.element}（与${favorGan.he.label}相合化${favorGan.he.hua}，贪合助忌，不作喜论）`
+  : `天干${gan}${favorGan?.element ?? ''}`);
 
 /** 地支喜忌的说法（后面接「喜」「忌」或「为喜用」）：会局的写明会成什么局，按局的五行论。 */
 export const zhiFavorText = (zhi, favorZhi) => (favorZhi?.ju
@@ -164,7 +195,7 @@ export const getLiuNianMarks = (liuNian, { chart, daYun = null, strength = null 
 };
 
 /** 大运的喜忌（地支与原局会局的按局论）。 */
-export const getDaYunMarks = (daYun, { strength = null, chart = null } = {}) => ({ favor: describeFavor(daYun, strength, { zhis: natalZhisOf(chart), daYun: true }) });
+export const getDaYunMarks = (daYun, { strength = null, chart = null } = {}) => ({ favor: describeFavor(daYun, strength, { zhis: natalZhisOf(chart), stems: natalStemsOf(chart), daYun: true }) });
 
 const TONE_TEXT = { good: '喜', bad: '忌', neutral: '平' };
 
@@ -172,7 +203,7 @@ const TONE_TEXT = { good: '喜', bad: '忌', neutral: '平' };
 export const describeDaYunFavor = (daYun, favor) => {
   if (!daYun || !favor) return '';
   const parts = [
-    `天干${daYun.gan}${favor.gan.element}${TONE_TEXT[favor.gan.tone]}（${favor.gan.role}）`,
+    `${ganFavorText(daYun.gan, favor.gan)}${TONE_TEXT[favor.gan.tone]}（${favor.gan.role}）`,
     `${zhiFavorText(daYun.zhi, favor.zhi)}${TONE_TEXT[favor.zhi.tone]}（${favor.zhi.role}）`,
   ];
   return `${parts.join(' · ')}${favor.cover ? `；${favor.cover.text}` : ''}`;
