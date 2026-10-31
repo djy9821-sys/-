@@ -314,3 +314,25 @@ test('产妇无忌即无碍；行人化出必到；世化回头克定见凶危�
   assert.match(allText(site), /卦逢六冲，飞砂走石，必无气脉/);
   assert.equal(site.verdict.level, 'bad');
 });
+
+test('终身财福章：世居空位无生终身无成；旺财持世多自成家；兄爻持世而不旺永无发福之秋', () => {
+  // 酉月辛未日得颐：「财爻持世，虽有未日扶拱，不宜旬空，且卦中无火生助……难许成家」
+  const empty = bookCase('山雷颐', [], '2007-10-4', { topic: 'life', subject: 'self' });
+  assert.match(allText(empty), /终身财福（终身财福章）：世居空位，又无日月动爻来生，终身作事无成/);
+  assert.equal(empty.verdict.level, 'bad');
+  // 戌月辛亥日得比之观：「世爻虽空，月建合之，亥日生之……卯年一定成家」——得日辰来生，不作空论
+  const born = bookCase('水地比', [6], '2001-10-15', { topic: 'life', subject: 'self' });
+  assert.doesNotMatch(allText(born), /世居空位/);
+  assert.equal(born.verdict.level, 'good');
+  // 午月丙戌日得节：「旺财临世，平素手有余钱」
+  const cai = bookCase('水泽节', [], '2004-7-6', { topic: 'life', subject: 'self' });
+  assert.match(allText(cai), /旺财持世，自强自旺，多自成家/);
+  assert.equal(cai.verdict.level, 'good');
+  // 申月壬子日得泰之临：「兄爻持世，永无发福之秋，且世爻逢退，难许长年」
+  const xiong = bookCase('地天泰', [3], '2001-8-17', { topic: 'life', subject: 'self' });
+  assert.match(allText(xiong), /兄爻持世而不旺，永无发福之秋/);
+  assert.equal(xiong.verdict.level, 'bad');
+  // 占寿得中孚，世兄弟未土「巳日生之，月建扶之」：世旺不论；替别人问也不论
+  assert.doesNotMatch(allText(bookCase('风泽中孚', [], '2001-4-12', { topic: 'life', subject: 'self' })), /终身财福/);
+  assert.doesNotMatch(allText(bookCase('山雷颐', [], '2007-10-4', { topic: 'life', subject: 'parents' })), /终身财福/);
+});
