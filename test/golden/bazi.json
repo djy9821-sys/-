@@ -1095,29 +1095,35 @@
         "deLing": true,
         "favorable": [
           {
-            "element": "木",
-            "role": "官杀",
-            "tiaoHou": true,
-            "usable": true
-          },
-          {
-            "element": "水",
-            "role": "财",
-            "tiaoHou": false,
-            "usable": true
-          }
-        ],
-        "unfavorable": [
-          {
             "element": "金",
             "role": "食伤",
             "tiaoHou": false,
             "usable": false
           },
           {
+            "element": "水",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
             "element": "土",
             "role": "比劫",
             "tiaoHou": false,
+            "usable": true
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "火",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "木",
+            "role": "官杀",
+            "tiaoHou": true,
             "usable": true
           }
         ]
