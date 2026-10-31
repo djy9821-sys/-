@@ -1112,10 +1112,14 @@ const TOPIC_RULES = Object.freeze({
   // 婚姻章：男占取财、女占取官；女占不宜子孙持世发动（克夫），男占忌兄弟持世（伤妻阻隔）；世应俱空事无准实
   love: ({ lines, shiLine, yingLine, yong, time }) => {
     let score = 0;
+    let cap = false;
     const notes = [];
     if (yong.relative === '官鬼' && shiLine.relative === '子孙') {
+      // 婚姻章其十三「女占男，不宜子孙持世……子孙乃克夫之神，未成者不成，已成者伤夫再嫁」：断语斩截，倾向至多偏弱
+      //（占夫妇将来和好否得需之大过「女占夫，不宜子孙持世，乃克夫之象……虽则不能死别，必有生离」）
       score -= 2;
-      notes.push('女占而子孙持世，克夫之象');
+      cap = true;
+      notes.push('女占而子孙持世，克夫之象，未成者不成，已成者伤夫');
     } else if (yong.relative === '官鬼' && movingOf(lines, '子孙').length) {
       // 婚姻章其十三「女占男，不宜子孙持世、子孙发动，子孙乃克夫之神」
       score -= 1;
@@ -1160,7 +1164,7 @@ const TOPIC_RULES = Object.freeze({
       score -= 1;
       notes.push('应化退神，对方必有退悔之心');
     }
-    return { score, points: notes.length ? [`婚姻（婚姻章）：${notes.join('；')}`] : [], notices: [] };
+    return { score, cap, points: notes.length ? [`婚姻（婚姻章）：${notes.join('；')}`] : [], notices: [] };
   },
   // 失物：以妻财为用神；千金赋「墓多暧昧」，野鹤注用神动而化墓「失脱遇之，暗藏不见」
   lost: ({ lines, yong, time }) => {
