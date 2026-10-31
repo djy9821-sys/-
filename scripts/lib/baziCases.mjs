@@ -9,7 +9,7 @@ import { Solar } from 'lunar-javascript';
 import { buildBaziChart } from '../../src/utils/baziChart.js';
 import { analyzeStrength } from '../../src/utils/baziStrength.js';
 import { judgeBaziPattern } from '../../src/utils/baziPattern.js';
-import { analyzeLiuqin } from '../../src/utils/baziLiuqin.js';
+import { analyzeLiuqin, liuqinOfYun } from '../../src/utils/baziLiuqin.js';
 import { fangOfYunZhi, juOfZhi } from '../../src/utils/baziYearMarks.js';
 import { patternNamesOf } from '../../src/data/classics/patternNames.js';
 
@@ -267,12 +267,16 @@ export const evaluateBaziCase = (entry) => {
   });
   if (yun.some((item) => item.check)) checks.yun = yun.map((item) => item.check).filter(Boolean);
   // 六亲：原书说到某一亲吉凶的，拿结果页「六亲宫星」那一亲的倾向比；原书说「平」的不比。
-  // 应在某步运、某个流年的（运中应事）另记在 liuqinYun，看原局倾向与它合不合。
+  // 应在某步运、某个流年的（运中应事）另记在 liuqinYun：写明哪步运的，按结果页「此运六亲」（liuqinOfYun）比，没写的看原局倾向。
   const liuqinResult = expected.liuqin?.length ? analyzeLiuqin(chart, strength, { special: judge.special }) : null;
   const liuqin = (expected.liuqin ?? []).map((item) => {
-    const program = liuqinVerdictOf(liuqinResult, item.kind);
+    const scope = liuqinScopeOf(entry, item);
+    const yunItem = scope === 'yun' && item.yun
+      ? liuqinOfYun(chart, strength, item.yun, { special: judge.special, liuqin: liuqinResult })?.items.find((candidate) => candidate.key === LIUQIN_ITEM_OF_KIND[item.kind])
+      : null;
+    const program = yunItem ? (TONE_VERDICT[yunItem.tone] ?? '平') : liuqinVerdictOf(liuqinResult, item.kind);
     const check = item.verdict === '平' ? null : program === item.verdict ? 'same' : program === '平' ? 'near' : 'reversed';
-    return { ...item, scope: liuqinScopeOf(entry, item), program, check };
+    return { ...item, scope, program, check };
   });
   const liuqinChecks = (scope) => liuqin.filter((item) => item.check && item.scope === scope).map((item) => item.check);
   if (liuqinChecks('natal').length) checks.liuqin = liuqinChecks('natal');
