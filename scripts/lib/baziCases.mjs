@@ -11,6 +11,7 @@ import { analyzeStrength } from '../../src/utils/baziStrength.js';
 import { judgeBaziPattern } from '../../src/utils/baziPattern.js';
 import { analyzeLiuqin } from '../../src/utils/baziLiuqin.js';
 import { juOfZhi } from '../../src/utils/baziYearMarks.js';
+import { patternNamesOf } from '../../src/data/classics/patternNames.js';
 
 const GAN = '甲乙丙丁戊己庚辛壬癸';
 const ZHI = '子丑寅卯辰巳午未申酉戌亥';
@@ -89,6 +90,20 @@ export const samePatternFamily = (special, expected) => {
   if (special === expected || special.includes(expected)) return true;
   if (expected === '化气格') return /化.格/.test(special);
   return STRONG_SPECIALS.test(expected) && STRONG_SPECIALS.test(special);
+};
+
+/** 命例写的是从、化、专旺、两气这类特殊格局（程序只给「疑似」），还是月令取的正格、禄刃？ */
+const SPECIAL_EXPECTED = /从|专旺|曲直|炎上|稼穑|从革|润下|化.格|化气格|两气成象/;
+/**
+ * 月令取的格（正官格、财格、杂气正财格……）与命例写的格是否同一个：按 patternNamesOf 的同义展开比（财格也算正财格、偏财格，印格也算印绶格）。
+ */
+export const sameRegularPattern = (program, expected) => Boolean(program && expected)
+  && (patternNamesOf(program).includes(expected) || patternNamesOf(expected).includes(program));
+/** 成败的对照：全同算 same；成 / 成中有败、败 / 败中有成算 near；成与败相反算 reversed。 */
+export const chengBaiCheck = (program, expected) => {
+  if (!program || !expected) return null;
+  if (program === expected) return 'same';
+  return program[0] === expected[0] ? 'near' : 'reversed';
 };
 
 /** 十神或十神类别 → 相对日主的五行。 */
@@ -189,8 +204,12 @@ export const evaluateBaziCase = (entry) => {
     checks.strength = expected.strength === programClass ? 'same'
       : (expected.strength === '中和' || programClass === '中和') ? 'near' : 'reversed';
   }
-  if (expected.pattern) checks.pattern = samePatternFamily(special, expected.pattern) ? 'same' : 'miss';
+  // 格局：命例写从、化、专旺的，比程序的特殊格局；写月令取的正格、禄刃的（《子平真诠》命造），比程序的月令格，程序另认出特殊格局时算不同。
+  if (expected.pattern && SPECIAL_EXPECTED.test(expected.pattern)) checks.pattern = samePatternFamily(special, expected.pattern) ? 'same' : 'miss';
+  else if (expected.pattern) checks.pattern = !special && sameRegularPattern(judge.pattern?.name, expected.pattern) ? 'same' : 'miss';
   else if (special) checks.pattern = 'extra';
+  // 成败：命例写了按《论用神成败救应》的成、败，比程序的成败判（月令格相同时才比，格都取错了成败无从谈起）。
+  if (expected.chengBai && checks.pattern === 'same' && !special) checks.chengBai = chengBaiCheck(judge.chengBai?.verdict, expected.chengBai);
   const dayWuxing = strength.dayWuxing;
   const favorable = strength.favorable.map((item) => item.element);
   const unfavorable = strength.unfavorable.map((item) => item.element);
@@ -231,7 +250,7 @@ export const evaluateBaziCase = (entry) => {
     chartPillars,
     pillarsMatch: pillars.every((gz, index) => gz === chartPillars[index]),
     expected,
-    program: { band: strength.band, score: strength.score.total, ratio: Math.round(strength.ratio * 100) / 100, class: programClass, special, favorable, unfavorable, specialFavorable, specialUnfavorable, useGodSource, basis: strength.basis, deLing: strength.deLing, pattern: judge.pattern?.name ?? null },
+    program: { band: strength.band, score: strength.score.total, ratio: Math.round(strength.ratio * 100) / 100, class: programClass, special, favorable, unfavorable, specialFavorable, specialUnfavorable, useGodSource, basis: strength.basis, deLing: strength.deLing, pattern: judge.pattern?.name ?? null, chengBai: judge.chengBai?.verdict ?? null },
     checks,
     yun,
     liuqin,
