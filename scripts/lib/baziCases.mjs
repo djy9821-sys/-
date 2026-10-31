@@ -10,7 +10,7 @@ import { buildBaziChart } from '../../src/utils/baziChart.js';
 import { analyzeStrength } from '../../src/utils/baziStrength.js';
 import { judgeBaziPattern } from '../../src/utils/baziPattern.js';
 import { analyzeLiuqin } from '../../src/utils/baziLiuqin.js';
-import { juOfZhi } from '../../src/utils/baziYearMarks.js';
+import { fangOfYunZhi, juOfZhi } from '../../src/utils/baziYearMarks.js';
 import { patternNamesOf } from '../../src/data/classics/patternNames.js';
 
 const GAN = '甲乙丙丁戊己庚辛壬癸';
@@ -152,7 +152,10 @@ export const useGodElement = (god, dayWuxing) => {
  * @param {string} [kind] 大运或流年；盖头截脚只论大运
  */
 export const yunVerdictOf = (ganZhi, favorable, unfavorable, natalZhis = [], kind = '大运') => {
-  const elements = [...ganZhi].map((char) => WUXING_OF_GAN[char] ?? juOfZhi(char, natalZhis)?.element ?? WUXING_OF_ZHI[char]);
+  const gan = WUXING_OF_GAN[ganZhi[0]] ? ganZhi[0] : null;
+  // 四库运支按方论（未作火、癸丑作水、甲辰作木），只论大运（见 fangOfYunZhi）
+  const elements = [...ganZhi].map((char) => WUXING_OF_GAN[char] ?? juOfZhi(char, natalZhis)?.element
+    ?? (kind !== '流年' ? fangOfYunZhi(gan, char)?.element : null) ?? WUXING_OF_ZHI[char]);
   const tones = elements.map((element) => (favorable.includes(element) ? 1 : unfavorable.includes(element) ? -1 : 0));
   if (kind !== '流年' && ganZhi.length === 2 && tones[0] === 1 && tones[1] === -1) {
     if (CONTROLS[elements[1]] === elements[0]) return '凶';
