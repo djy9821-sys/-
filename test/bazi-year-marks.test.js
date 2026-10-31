@@ -51,6 +51,22 @@ test('流年标记：岁运并临、日柱伏吟反吟、冲日支与喜忌', ()
   assert.equal(quiet.badge, null);
 });
 
+test('四库作大运地支按方论：未作火（南方燥土），癸丑作水、甲辰作木；流年不论', () => {
+  const { fangOfYunZhi } = yearMarks;
+  assert.deepEqual(fangOfYunZhi('己', '未'), { element: '火', note: '南方燥土，作火论' });
+  assert.equal(fangOfYunZhi('癸', '丑').element, '水');
+  assert.equal(fangOfYunZhi('辛', '丑'), null);
+  assert.equal(fangOfYunZhi('甲', '辰').element, '木');
+  assert.equal(fangOfYunZhi('庚', '戌'), null, '戌燥土夺水，仍按土');
+  // 丁丑 壬子 己酉 戊辰：己土身弱，喜火（印）土（比劫），忌水（财）木（官杀）
+  const jiWei = getDaYunMarks({ gan: '己', zhi: '未' }, { strength, chart });
+  assert.equal(jiWei.favor.zhi.element, '火');
+  assert.equal(jiWei.favor.zhi.tone, 'good');
+  assert.match(describeDaYunFavor({ gan: '己', zhi: '未' }, jiWei.favor), /地支未（南方燥土，作火论）火喜/);
+  // 流年不按方论，未仍是土
+  assert.equal(getLiuNianMarks(liuNianOf('己未'), { chart, strength }).favor.zhi.element, '土');
+});
+
 test('大运喜忌与岁运反吟', () => {
   const daYun = getDaYunMarks({ gan: '丙', zhi: '午' }, { strength });
   assert.equal(daYun.favor.overall, 'good');
