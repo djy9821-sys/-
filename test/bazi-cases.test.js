@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { chengBaiCheck, evaluateBaziCase, findSolarDateByPillars, liuqinScopeOf, liuqinVerdictOf, samePatternFamily, sameRegularPattern, useGodElement, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
+import { chengBaiCheck, evaluateBaziCase, findSolarDateByPillars, liuqinScopeOf, liuqinVerdictOf, samePatternFamily, sameRegularPattern, useGodElement, xiangShenCheck, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 
 test('八字命例：按四柱找日子（时柱可缺），找不到或干支不合法时为 null', () => {
@@ -90,6 +90,22 @@ test('《子平真诠》式命例：写月令取的格与成败的，比程序�
   const miss = evaluateBaziCase({ ...base, expected: { pattern: '正官格', chengBai: '成' } });
   assert.equal(miss.checks.pattern, 'miss');
   assert.equal(miss.checks.chengBai, undefined);
+  // 《子平真诠》命造按格局取的用（相神）与程序成败判的相神比：正官、七杀分开，财印食伤按类，「官杀」通官杀；格本身的用神在格成时算对上
+  assert.equal(xiangShenCheck(['财', '印'], ['财', '印']), 'same');
+  assert.equal(xiangShenCheck(['财'], ['正财']), 'same');
+  assert.equal(xiangShenCheck(['食伤'], ['食神']), 'same');
+  assert.equal(xiangShenCheck(['正官'], ['官杀']), 'same');
+  assert.equal(xiangShenCheck(['正官'], ['七杀']), 'miss');
+  assert.equal(xiangShenCheck(['财'], ['财', '七杀']), 'near');
+  assert.equal(xiangShenCheck([], ['财']), 'miss');
+  assert.equal(xiangShenCheck([], ['七杀'], '七杀格', '败中有成'), 'same');
+  assert.equal(xiangShenCheck([], ['七杀'], '七杀格', '败'), 'miss');
+  // 薛相公（子平真诠命造）：正官格相神财、印
+  const xue = evaluateBaziCase({ id: 'bazi.ziping.test', source: { classic: 'ziping' }, pillars: ['甲申', '壬申', '乙巳', '戊寅'], original: '测试', expected: { pattern: '正官格', useGod: ['财', '印'], useGodWhy: { kind: '格局', quote: '壬印戊财' } } });
+  assert.equal(xue.checks.useGod, 'same');
+  // 不是子平真诠的命造，或理由不是格局的，仍按喜忌比
+  const fuyi = evaluateBaziCase({ id: 'bazi.ditian.test', source: { classic: 'ditian' }, pillars: ['甲申', '壬申', '乙巳', '戊寅'], original: '测试', expected: { useGod: ['财', '印'], useGodWhy: { kind: '格局', quote: '测试' } } });
+  assert.notEqual(fuyi.checks.useGod, undefined);
 });
 
 test('八字命例的岁运：原书点名的大运、流年按程序喜忌判吉凶，干支各算一票', () => {
