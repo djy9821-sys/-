@@ -1,4 +1,4 @@
-import { util } from 'iztro';
+import { astro, util } from 'iztro';
 
 export const MUTAGEN_META = Object.freeze([
   { key: 'lu', mutagen: '禄', code: 'A', color: '#18a05e' },
@@ -74,12 +74,21 @@ export const getActiveMutagenBadges = ({
  * Build the four palace-stem transformations for every palace.
  *
  * iztro only attaches the parent astrolabe when `astrolabe.palace(index)` is
- * called. Calling `mutagedPlaces()` directly on an item from
- * `astrolabe.palaces` therefore returns no useful destinations. Keep that
- * binding step here so every UI layer uses the same, reliable calculation.
+ * called, so that binding step is kept here for every source palace.
+ *
+ * 落宫的找法与 iztro 的 `palace.mutagedPlaces()` 相同：宫干四化星（随排盘库当前 config，壬干按全书是天府）
+ * 依宫序在主星、辅星、杂曜里找，同名取最后一处。只是 iztro 每找一颗星，都要把全盘一百来颗星名
+ * 逐个拿去翻一遍六种语言的词表（kot），一张盘十二宫四十八次要一秒半，手机上打开紫微盘会卡住好几秒；
+ * 这里先把全盘星名到宫位的对照建一次再查表，落宫逐条一致（test/ziwei-mutations.test.js 有对照）。
  */
 export const buildPalaceFlights = (astrolabe) => {
   if (!astrolabe?.palaces?.length) return [];
+
+  const palaceByStar = new Map();
+  astrolabe.palaces.forEach((palace) => {
+    [palace?.majorStars, palace?.minorStars, palace?.adjectiveStars]
+      .forEach((stars) => (stars ?? []).forEach((star) => palaceByStar.set(star?.name, palace)));
+  });
 
   return astrolabe.palaces.flatMap(({ index }) => {
     try {
@@ -87,11 +96,10 @@ export const buildPalaceFlights = (astrolabe) => {
       if (!source) return [];
 
       const opposite = astrolabe.surroundedPalaces(index)?.opposite;
-      const targets = source?.mutagedPlaces?.() || [];
       const mutagenStars = util.getMutagensByHeavenlyStem(source.heavenlyStem);
 
       return MUTAGEN_META.map((meta, mutagenIndex) => {
-        const target = targets[mutagenIndex];
+        const target = mutagenStars[mutagenIndex] ? palaceByStar.get(mutagenStars[mutagenIndex]) : null;
         if (!target) return null;
 
         let kind = 'fly';
@@ -140,12 +148,7 @@ export const buildSihuaDiagramEntries = (flights = []) => flights
     track: flight.kind === 'inward' ? 'source-to-center' : 'source-to-outer',
   }));
 
-/**
- * Map every year in a selected formal decade to the natal palace occupied by
- * that year's 流年命宫. Ten years therefore populate ten palaces and leave two
- * palaces empty, matching the compact 飞星盘 convention.
- */
-export const buildFlyYearMarkers = ({ astrolabe, years = [], birthYear }) => years.map((year) => {
+const flyYearMarkerOf = (astrolabe, year, birthYear) => {
   try {
     const fortune = astrolabe.horoscope(`${year}-06-15`);
     return {
@@ -164,4 +167,52 @@ export const buildFlyYearMarkers = ({ astrolabe, years = [], birthYear }) => yea
       decadalPalaceNames: [],
     };
   }
-});
+};
+
+const FLY_YEAR_STEMS = '甲乙丙丁戊己庚辛壬癸';
+const FLY_YEAR_BRANCHES = '子丑寅卯辰巳午未申酉戌亥';
+const cyclic = (value, size) => ((value % size) + size) % size;
+
+/**
+ * Map every year in a selected formal decade to the natal palace occupied by
+ * that year's 流年命宫. Ten years therefore populate ten palaces and leave two
+ * palaces empty, matching the compact 飞星盘 convention.
+ *
+ * iztro 每起一次运限盘（horoscope）要五十毫秒上下，十年就是半秒，打开紫微盘和换大限都会顿一下。
+ * 这里只按年表第一年起一次：同取六月十五日，流年干支、流年命宫逐年顺进一位，虚岁（按自然年）逐年加一，
+ * 同一大限的宫名表不变，所以同限各年直接推出；出了这个大限、在童限里、或排盘库改成按生日算虚岁，
+ * 就退回逐年起盘。推出的结果与逐年起盘逐条一致（test/ziwei-mutations.test.js 有对照）。
+ */
+export const buildFlyYearMarkers = ({ astrolabe, years = [], birthYear }) => {
+  let anchor = null;
+  try {
+    if (years.length > 1 && Number.isInteger(years[0]) && astro.getConfig?.()?.ageDivide !== 'birthday') {
+      const fortune = astrolabe.horoscope(`${years[0]}-06-15`);
+      const range = astrolabe.palaces?.[fortune?.decadal?.index]?.decadal?.range;
+      const age = fortune?.age?.nominalAge;
+      const stem = FLY_YEAR_STEMS.indexOf(fortune?.yearly?.heavenlyStem || '?');
+      const branch = FLY_YEAR_BRANCHES.indexOf(fortune?.yearly?.earthlyBranch || '?');
+      if (Number.isInteger(age) && Number.isInteger(fortune?.yearly?.index) && stem >= 0 && branch >= 0
+        && Array.isArray(fortune?.decadal?.palaceNames) && range && age >= range[0] && age <= range[1]) {
+        anchor = { year: years[0], age, stem, branch, range, index: fortune.yearly.index, names: fortune.decadal.palaceNames };
+      }
+    }
+  } catch {
+    anchor = null;
+  }
+
+  return years.map((year) => {
+    const offset = anchor && Number.isInteger(year) ? year - anchor.year : null;
+    const nominalAge = offset === null ? null : anchor.age + offset;
+    if (nominalAge === null || nominalAge < anchor.range[0] || nominalAge > anchor.range[1]) {
+      return flyYearMarkerOf(astrolabe, year, birthYear);
+    }
+    return {
+      year,
+      nominalAge,
+      ganZhi: `${FLY_YEAR_STEMS[cyclic(anchor.stem + offset, 10)]}${FLY_YEAR_BRANCHES[cyclic(anchor.branch + offset, 12)]}`,
+      yearlyPalaceIndex: cyclic(anchor.index + offset, 12),
+      decadalPalaceNames: [...anchor.names],
+    };
+  });
+};
