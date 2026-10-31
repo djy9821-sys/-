@@ -6,7 +6,7 @@
  * 每深一层就多带上一层运限的干支，以及这些运限与命局之间的合冲刑害。
  */
 import { judgeBaziPattern } from './baziPattern.js';
-import { analyzeLiuqin } from './baziLiuqin.js';
+import { analyzeLiuqin, liuqinOfYun } from './baziLiuqin.js';
 import { findRelations } from './baziRelations.js';
 import { getShensha, SHENSHA_SOURCES } from './baziShensha.js';
 import { cite } from '../data/classics.js';
@@ -325,6 +325,7 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
     const quYun = judge.chengBai?.quYun ?? null;
     const daYunQuYun = daYun && !isXiaoYun && quYun ? describeQuYun(daYun, quYun, quYunContextOf(chart)) : null;
     const liuNianQuYun = liuNian && quYun ? describeQuYun(liuNian, quYun, quYunContextOf(chart)) : null;
+    const daYunLiuqin = daYun && !isXiaoYun && daYun.ganZhi ? liuqinOfYun(chart, strength, daYun.ganZhi, { special: judge.special, liuqin }) : null;
     sections.push([
       '【所选运限】',
       ...(favorBasis.source === 'special' ? [`- 运限喜忌按${favorBasis.specialName.replace(/^疑似/, '')}论（程序认出${favorBasis.specialName}；若不成格，以扶抑喜忌为准）`] : []),
@@ -332,6 +333,7 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
       ...(daYunFavor ? [`- 大运喜忌：${daYunFavor}`] : []),
       ...(daYunQuYun ? [`- 大运按格局取运（${quYunQuoteText(quYun)}）：${daYunQuYun.text}`] : []),
       ...(liuNianQuYun ? [`- 流年按格局取运：${liuNianQuYun.text}`] : []),
+      ...(daYunLiuqin ? [`- 此运六亲（程序按此运喜忌、克星、冲刑宫位推）：${daYunLiuqin.items.map((item) => item.text).join('；')}`] : []),
       ...(yearMarks ? [`- 流年标注：${yearMarks}`] : []),
       ...(yearSummary ? [`- 流年提要（程序合成，供参考）：${yearSummary.headline}。${yearSummary.text}`] : []),
       ...(almanac ? [almanac] : []),
