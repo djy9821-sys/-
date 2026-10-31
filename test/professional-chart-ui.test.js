@@ -310,3 +310,15 @@ test('专业盘时间轴：年份按出生农历年排，手动选的各层干�
   assert.doesNotMatch(source, /new Date\(basicInfo\.birthday\)\.getFullYear\(\)/);
   assert.doesNotMatch(source, /astro\.byLunar/);
 });
+
+test('双人起居注算完自动复制被拒时，指令留在弹窗里可再点复制（手机浏览器只认点击当下的复制）', async () => {
+  const source = await readProjectFile('src/components/ProfessionalChart.jsx');
+  const selector = await readProjectFile('src/utils/babySelector.js');
+
+  assert.match(source, /setBabyPrompt\(prompt\)/);
+  assert.match(source, /data-testid="baby-prompt-fallback"/);
+  assert.match(source, /onClick=\{\(\) => copyToClipboard\(babyPrompt\)\}/);
+  assert.doesNotMatch(source, /alert\('复制失败，请手动复制。'\)/);
+  // 遍历八十多张紫微盘时每算完一天让出一次，转圈不会卡死。
+  assert.match(selector, /await new Promise\(\(resolve\) => setTimeout\(resolve, 0\)\)/);
+});

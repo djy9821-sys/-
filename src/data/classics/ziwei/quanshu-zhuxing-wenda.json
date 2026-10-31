@@ -473,7 +473,26 @@
           "stars": [
             "地空",
             "地劫"
-          ]
+          ],
+          "note": "二星守身命，任一颗即算"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "stars": [
+            "地空",
+            "地劫"
+          ],
+          "note": "二限逢之必凶：大限逢空劫任一颗"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "stars": [
+            "地空",
+            "地劫"
+          ],
+          "note": "二限逢之必凶：小限逢空劫任一颗"
         }
       ],
       "tags": [
@@ -512,6 +531,35 @@
         {
           "module": "ziwei",
           "star": "天马"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "star": "天马",
+          "meet": [
+            "禄存",
+            "紫微",
+            "天府"
+          ],
+          "note": "大小二限临天马，更遇禄存、紫府"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "star": "天马",
+          "meet": [
+            "禄存",
+            "紫微",
+            "天府"
+          ],
+          "note": "大小二限临天马，更遇禄存、紫府"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "star": "天马",
+          "flow": "运昌",
+          "note": "大限临天马，流昌（运昌）必利"
         }
       ],
       "tags": [
@@ -531,6 +579,18 @@
         {
           "module": "ziwei",
           "mutagen": "禄"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "mutagen": "禄",
+          "note": "小限逢化禄主进财入仕之喜；大限十年吉庆"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "mutagen": "禄",
+          "note": "小限逢化禄主进财入仕之喜；大限十年吉庆"
         }
       ],
       "tags": [
@@ -550,6 +610,18 @@
         {
           "module": "ziwei",
           "mutagen": "权"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "mutagen": "权",
+          "note": "小限相逢无有不吉；大限十年必然遂志"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "mutagen": "权",
+          "note": "小限相逢无有不吉；大限十年必然遂志"
         }
       ],
       "tags": [
@@ -588,6 +660,18 @@
         {
           "module": "ziwei",
           "mutagen": "忌"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "mutagen": "忌",
+          "note": "小限逢之一年不足，大限十年悔吝"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "mutagen": "忌",
+          "note": "小限逢之一年不足，大限十年悔吝"
         }
       ],
       "tags": [
@@ -609,7 +693,35 @@
           "stars": [
             "天伤",
             "天使"
-          ]
+          ],
+          "note": "天伤、天使任一颗"
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "stars": [
+            "天伤",
+            "天使"
+          ],
+          "note": "太岁二限逢之：流年逢伤使任一颗"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "stars": [
+            "天伤",
+            "天使"
+          ],
+          "note": "二限逢伤使任一颗"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "stars": [
+            "天伤",
+            "天使"
+          ],
+          "note": "二限逢伤使任一颗"
         }
       ],
       "tags": [
@@ -631,6 +743,18 @@
         {
           "module": "ziwei",
           "star": "天刑"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "star": "天刑",
+          "note": "二限逢之主出家、官事牢狱失财"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "star": "天刑",
+          "note": "二限逢之主出家、官事牢狱失财"
         }
       ],
       "tags": [
@@ -673,7 +797,26 @@
           "stars": [
             "天哭",
             "天虚"
-          ]
+          ],
+          "note": "哭虚任一颗临命、临父母皆非常"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "stars": [
+            "天哭",
+            "天虚"
+          ],
+          "note": "二限若逢哭虚任一颗，哀哀哭断肠"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "stars": [
+            "天哭",
+            "天虚"
+          ],
+          "note": "二限若逢哭虚任一颗，哀哀哭断肠"
         }
       ],
       "tags": [
@@ -694,11 +837,12 @@
       "applies": [
         {
           "module": "ziwei",
-          "stars": [
-            "文昌",
-            "文曲"
+          "limit": "流年",
+          "flow": [
+            "流昌",
+            "流曲"
           ],
-          "limit": "流年"
+          "note": "流年昌曲（流昌、流曲）任一颗飞到流年命宫或三方四正，为科名科甲"
         }
       ],
       "tags": [

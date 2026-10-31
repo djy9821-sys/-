@@ -483,8 +483,9 @@
       "applies": [
         {
           "module": "ziwei",
-          "palace": "福德",
-          "note": "流年斗君在福德宫，遇吉安静，逢杀不宁。"
+          "limit": "流年",
+          "doujun": "福德",
+          "note": "斗君正月在此宫（流年起处），其月照此论；斗君每月顺行一宫，其余月份过度到此宫时同论，程序只标正月所在。"
         }
       ],
       "tags": [
@@ -504,8 +505,21 @@
       "applies": [
         {
           "module": "ziwei",
+          "limit": "流年",
           "palace": "福德",
-          "note": "岁君大小限过福德宫，逢吉享福，逢凶劳力辛苦。"
+          "note": "太岁（流年命宫）过福德宫"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "palace": "福德",
+          "note": "大限过福德宫"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "palace": "福德",
+          "note": "小限过福德宫"
         }
       ],
       "tags": [

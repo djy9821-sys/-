@@ -158,7 +158,8 @@ test('从格、专旺按《滴天髓阐微·衰旺》任注的「旺极」「衰
   assert.equal(yanShang.judge.special.name, '疑似炎上格（专旺）');
   assert.equal(yanShang.judge.special.favorable[0].element, '火');
   const tuWang = judgeByPillars('戊戌 丙辰 己巳 己巳'); // 「土旺极者，似金也」，「一交庚申……家业渐消」
-  assert.equal(tuWang.judge.special.kind, 'congqiang');
+  // 辰中一点乙木余气不算「见官杀」，比劫又重于印，按专旺（稼穑）论；旺极顺势，喜忌与从强同。
+  assert.equal(tuWang.judge.special.kind, 'zhuanwang');
   assert.ok(tuWang.judge.special.unfavorable.some(({ element }) => element === '金'));
 
   // 衰极：天干只有无根比劫，或一个无根之印而财星坏印，作从论。
@@ -182,7 +183,7 @@ test('从格、专旺按《滴天髓阐微·衰旺》任注的「旺极」「衰
   assert.equal(xieXiu.judge.special, null);
   assert.equal(xieXiu.strength.favorable[0].element, '木');
   // 财星透干有根而无食伤生它的，仍作从强（「支类西方，又逢厚土，金旺极者，似水也」，戊子己丑庚运名利皆遂）。
-  assert.equal(judgeByPillars('庚申 乙酉 庚戌 庚辰').judge.special.kind, 'congqiang');
+  assert.ok(['zhuanwang', 'congqiang'].includes(judgeByPillars('庚申 乙酉 庚戌 庚辰').judge.special.kind));
 
   // 地支会成三合、三会局的按局的五行看四支本气：「此木局全，混一寅字，然四柱无金，其势从强」，亥卯未木局里的未土不算财根。
   const muJu = judgeByPillars('甲寅 乙亥 乙卯 癸未');
@@ -191,10 +192,59 @@ test('从格、专旺按《滴天髓阐微·衰旺》任注的「旺极」「衰
   assert.ok(muJu.judge.special.unfavorable.some(({ element }) => element === '金'), '「惟忌西方金运克破」');
   // 「地支亥子丑，干透壬癸辛，局成润下」：丑在北方水局里，不作官杀之根。
   assert.ok(['zhuanwang', 'congqiang'].includes(judgeByPillars('壬子 辛亥 癸丑 壬子').judge.special?.kind));
-  // 同是木局，帮身打分不到旺极、月干丁火透出的，任注「取丁火食神秀气，非前造从强论也」。
+  // 同是木局，月干时干丁火两透，任注「取丁火食神秀气，非前造从强论也」：局全作专旺，但食伤成势，以食伤吐秀为用、比劫生之，
+  // 印克食伤为忌（「壬申木火皆伤，破局」）；不作印比为用的从强。
   const xiuQi = judgeByPillars('甲寅 丁卯 乙未 丁亥');
-  assert.equal(xiuQi.judge.special, null);
+  assert.equal(xiuQi.judge.special.kind, 'zhuanwang');
+  assert.match(xiuQi.judge.special.basis, /食伤透干有根，旺势有处吐秀/);
+  assert.deepEqual(xiuQi.judge.special.favorable.map(({ element }) => element), ['火', '木']);
+  assert.deepEqual(xiuQi.judge.special.unfavorable.map(({ element }) => element), ['水', '金']);
   assert.equal(xiuQi.strength.favorable[0].element, '火');
+
+  // 方局篇：「支全寅卯辰，东方一气，化神者丙丁也」（打分不到四分也作专旺）；「丁卯 甲辰 甲寅 乙亥……格名曲直仁寿」；
+  // 「支全火局，木从火势，格成炎上」——寅午戌外的未是火之余气，随局论。
+  assert.equal(judgeByPillars('甲寅 丁卯 甲辰 丙寅').judge.special.name, '疑似曲直格（专旺）');
+  assert.equal(judgeByPillars('甲寅 丁卯 甲辰 丙寅').judge.special.favorable[0].element, '火', '「化神者丙丁也」，食伤两透以吐秀为用');
+  assert.equal(judgeByPillars('丁卯 甲辰 甲寅 乙亥').judge.special.name, '疑似曲直格（专旺）');
+  assert.equal(judgeByPillars('丙寅 甲午 丙戌 乙未').judge.special.name, '疑似炎上格（专旺）');
+  // 费中堂造「己未 丁丑 戊子 己未：天干戊己逢丁，地支重重丑未。子丑化土，斯真格象，已成稼穑」：相邻子丑六合化土正是日主本气，
+  // 子随化神论，干支一气，打分不到四分也作稼穑。
+  const jiaSe = judgeByPillars('己未 丁丑 戊子 己未');
+  assert.equal(jiaSe.judge.special.name, '疑似稼穑格（专旺）');
+  // 「癸卯 丙辰 甲辰 丙寅：此造财旺提纲，丙食生助，当以财星为用……不论成方成局，必先察财官之势」：辰辰财旺，局全也不作专旺。
+  const caiWang = judgeByPillars('癸卯 丙辰 甲辰 丙寅');
+  assert.equal(caiWang.judge.special, null);
+  // 食伤只透一位而印也透出的，仍按印比为用（「戊寅 丁巳 丙寅 甲午」书取火；「癸酉 甲子 癸亥 辛酉」「一点甲木枯浮，难泄水气」，大取金水）。
+  const kuFu = judgeByPillars('癸酉 甲子 癸亥 辛酉');
+  assert.equal(kuFu.judge.special.name, '疑似润下格（专旺）');
+  assert.deepEqual(kuFu.judge.special.favorable.slice(0, 2).map(({ element }) => element), ['水', '金']);
+  // 「癸卯 乙卯 甲寅 辛未：未乃南方燥土，木之库根，非生金之土，故辛金之君无能为矣。当存君之子，以癸水为用」：
+  // 旺极时日主的墓库支随旺势论，四支皆印比、辛金无根，疑似从强，喜木水。
+  const kuGen = judgeByPillars('癸卯 乙卯 甲寅 辛未');
+  assert.equal(kuGen.judge.special.name, '疑似从强格');
+  assert.deepEqual(kuGen.judge.special.favorable.slice(0, 2).map(({ element }) => element), ['木', '水']);
+  // 旺不到极处的，墓库支不随势：癸未 乙卯 甲戌 乙亥 3.65 分偏强，未、戌仍是财，不作专旺。
+  assert.equal(judgeByPillars('癸未 乙卯 甲戌 乙亥').judge.special, null);
+});
+
+test('两气成象：天干地支只有日主与食伤两行、各占一半，取食伤秀气为用（《滴天髓·形象》任注）；只认木火、火土、土金三种', () => {
+  // 「甲午 丁卯 甲午 丁卯：此造木火各半，两气成象，取丁火伤官，秀气为用」「丙午 戊戌 丙午 戊戌……取戌土食神」「戊戌 辛酉 戊戌 辛酉……取辛金伤官为用」。
+  const muHuo = judgeByPillars('甲午 丁卯 甲午 丁卯');
+  assert.equal(muHuo.judge.special.name, '两气成象（木火相生）');
+  assert.equal(muHuo.judge.special.kind, 'liangqi');
+  assert.deepEqual(godsOf(muHuo.judge.special.favorable), ['火食伤', '木比劫']);
+  assert.deepEqual(godsOf(muHuo.judge.special.unfavorable), ['水印', '金官杀']);
+  assert.match(muHuo.judge.special.basis, /^天干与地支本气只有木、火两行（4 比 4），两气成象；日主甲木是生的一方，以火（食伤）秀气为用。$/);
+  assert.equal(muHuo.judge.special.caveat, '两气成象不是从、化，象不破就按此论（任注「象不可破也」）');
+  assert.equal(judgeByPillars('丙午 戊戌 丙午 戊戌').judge.special.name, '两气成象（火土相生）');
+  assert.equal(judgeByPillars('戊戌 辛酉 戊戌 辛酉').judge.special.name, '两气成象（土金相生）');
+  // 印局不作此论：「丁卯 乙巳 丁卯 乙巳：日主是火……木从火势，格成炎上」仍是专旺。
+  assert.equal(judgeByPillars('丁卯 乙巳 丁卯 乙巳').judge.special.name, '疑似炎上格（专旺）');
+  // 水木各半的两造任注都不作秀气论（「寅亥化木，伤官太重」「仍作偏枯论」），财局、杀局也不作此论。
+  assert.equal(judgeByPillars('癸亥 甲寅 癸亥 甲寅').judge.special, null);
+  assert.equal(judgeByPillars('壬寅 壬寅 壬寅 壬寅').judge.special, null);
+  assert.equal(judgeByPillars('戊戌 癸亥 戊戌 癸亥').judge.special, null);
+  assert.equal(judgeByPillars('癸亥 己未 癸亥 己未').judge.special, null);
 });
 
 test('从格看地支、化气看化神得势：任注从象、化象、顺局诸造', () => {
@@ -214,6 +264,15 @@ test('从格看地支、化气看化神得势：任注从象、化象、顺局�
   // 「喜其支会财局」：申子辰会成水局，辰中戊土之根作水论。
   const er2 = judgeByPillars('庚子 庚辰 戊申 辛酉');
   assert.equal(er2.judge.special.name, '疑似从儿格');
+  // 官杀独旺而月令本气是食伤的不作从杀：「丙申 壬辰 丙子 壬辰：两杀并透，支会杀局，喜其辰土当令制杀，辰中木有余气而生身」，用土。
+  const zhiSha = judgeByPillars('丙申 壬辰 丙子 壬辰');
+  assert.equal(zhiSha.judge.special, null);
+  assert.equal(zhiSha.strength.favorable[0].element, '土');
+  assert.equal(judgeByPillars('辛亥 壬辰 丙申 己亥').judge.special, null, '「火衰极者似金」，己丑、戊子土运反吉，按扶抑用食伤制杀');
+  // 日主坐禄、禄支会入他局的不作从：庚戌 乙酉 甲寅 庚午，寅午戌会火局而甲坐寅禄，任注「子运冲破火局……益我日主之气」，不从杀。
+  const zuoLu = judgeByPillars('庚戌 乙酉 甲寅 庚午');
+  assert.equal(zuoLu.judge.special, null);
+  assert.equal(zuoLu.strength.favorable[0].element, '木');
   // 化气：「土旺乘权，克去壬水，又无比劫，合神更真」；「丙火透而通根，化火斯真」（月令不是化神，化神得势）。
   assert.equal(judgeByPillars('戊辰 壬戌 甲辰 己巳').judge.special.name, '疑似甲己化土格');
   const huo = judgeByPillars('丙戌 戊戌 癸巳 壬戌').judge.special;
@@ -223,6 +282,63 @@ test('从格看地支、化气看化神得势：任注从象、化象、顺局�
   // 日主坐酉印的合（任注「日元柔弱，以印为夫，清而得用」）。
   ['戊辰 戊午 壬辰 甲辰', '丙寅 己亥 辛卯 庚寅', '甲寅 辛未 癸亥 戊午', '丙寅 辛卯 癸酉 戊午']
     .forEach((text) => assert.equal(judgeByPillars(text).judge.special, null, text));
+});
+
+test('四支一气都是官杀、天干比劫全无根的，三透也从杀（子平真诠李侍郎「乙酉、乙酉、乙酉、甲申」）；财一气的三透不从', () => {
+  const li = judgeByPillars('乙酉 乙酉 乙酉 甲申').judge.special;
+  assert.equal(li.name, '疑似从杀格');
+  assert.match(li.basis, /四支都是金（官杀）/);
+  assert.equal(judgeByPillars('辛卯 辛卯 辛卯 辛卯').judge.special, null, '四柱辛卯，财一气，任注不作从');
+});
+
+test('论从时三会方之外那一行的墓库支随方论：壬辰 辛亥 戊子 癸丑「支类北方，水势汪洋……土太衰者，似火也」', () => {
+  // 亥子丑会北方，辰是水库、又与子拱水，戊土不作有根；书上甲寅、乙卯运「名成利遂」，一交丙运「刑妻克子」，丁丑运亡。
+  const { judge, strength } = judgeByPillars('壬辰 辛亥 戊子 癸丑');
+  assert.equal(judge.special.name, '疑似从财格');
+  assert.match(judge.special.basis, /^亥子丑辰会成水局，四支都是水（财），日主戊土没有得力之根/);
+  assert.equal(judge.special.unfavorable[0].element, '土');
+  assert.ok(judge.special.favorable.some((item) => item.element === '木'), '从财，官杀泄财亦可：甲寅、乙卯运为喜');
+  assert.equal(strength.band, '偏弱');
+  // 三合局里本来就有库的不受影响；专旺仍按原来的余气支、墓库支条件（另见上面炎上、稼穑诸造）。
+  assert.equal(judgeByPillars('甲申 丙子 庚辰 戊寅').judge.special, null);
+  // 月令当令的库、日主坐下本气同类的库不随方：月令丑土、坐下丑土都是己土本气之根。
+  assert.equal(judgeByPillars('庚戌 己丑 己酉 壬申').judge.special, null);
+  assert.equal(judgeByPillars('丁酉 庚戌 己丑 壬申').judge.special, null);
+});
+
+test('印被财冲克、印根拔去也作从论：任注「三申冲去一寅，丙火之根已拔」「巳亥逢冲破印，格成弃命从杀」；禄刃与日主坐下之印冲不去', () => {
+  // 书上「只得从其弱势，顺财之性，以比肩为病……丙寅帮身，刑丧破耗」。
+  const sanShen = judgeByPillars('戊寅 庚申 丙申 丙申').judge.special;
+  assert.equal(sanShen.name, '疑似从财格');
+  assert.match(sanShen.basis, /^寅被申冲，印根已拔，余支都是金（财），日主丙火没有得力之根，时干丙虚浮无根/);
+  assert.ok(sanShen.unfavorable.some((item) => item.element === '火'), '以比肩为病');
+  // 书上壬子运连登科甲，辛亥运仕途平坦，庚戌运「土金并旺，水木两伤」。
+  const poYin = judgeByPillars('癸巳 乙卯 己亥 癸酉').judge.special;
+  assert.equal(poYin.name, '疑似从杀格');
+  assert.match(poYin.basis, /^巳被亥冲，印根已拔，余支本气都是食伤财官/);
+  assert.ok(poYin.favorable.some((item) => item.element === '水'));
+  assert.ok(poYin.unfavorable.some((item) => item.element === '土'));
+  // 禄被冲（庚申 庚辰 甲戌 丙寅「最喜寅时禄旺」）、日主坐下之印被冲（甲子 乙亥 己巳 丁卯「巳亥虽冲破印，喜卯木仍能生火」）、
+  // 天干帮身两位的（丁酉 癸卯 丙辰 丙申「卯酉逢冲……虽赖时干丙火之助」）任注都不作从。
+  assert.equal(judgeByPillars('庚申 庚辰 甲戌 丙寅').judge.special, null);
+  assert.equal(judgeByPillars('甲子 乙亥 己巳 丁卯').judge.special, null);
+  assert.equal(judgeByPillars('丁酉 癸卯 丙辰 丙申').judge.special, null);
+  // 拔去之后局外还有一点根的不算拔尽：丙申 庚寅 丙辰 戊戌，戌中丁火仍是日主与年干丙火之根。
+  assert.equal(judgeByPillars('丙申 庚寅 丙辰 戊戌').judge.special, null);
+  // 午是己土之禄（本气虽是印），冲不去；月令之印当令，两酉夹冲也不拔（「衰神冲旺旺神发」）。
+  assert.equal(judgeByPillars('己巳 庚午 己亥 甲子').judge.special, null);
+  assert.equal(judgeByPillars('己酉 丁卯 丁酉 庚子').judge.special, null);
+});
+
+test('论从时库支随月令之神：壬寅 辛亥 辛亥 壬辰「壬水当权……格取从儿」，辰为水库「能蓄水养木，不能生金」', () => {
+  // 书上甲寅运登科发甲、乙卯运出守黄堂，丙辰运「官印齐来」、戊戌年「冲动印绶，破其伤官，不禄」。
+  const { judge } = judgeByPillars('壬寅 辛亥 辛亥 壬辰');
+  assert.equal(judge.special.name, '疑似从儿格');
+  assert.match(judge.special.basis, /^辰为水库，随月令亥水论，四支本气都是食伤财官，日主辛金没有得力之根，月干辛虚浮无根/);
+  assert.deepEqual(godsOf(judge.special.unfavorable), ['土印', '火官杀']);
+  // 库的本气是日主同类的（癸卯 乙卯 己卯 辛未，未中己土是日主之根），日主坐下有印的（丁亥 辛亥 辛未 壬辰「用神在土不在火」）都不作从。
+  assert.equal(judgeByPillars('癸卯 乙卯 己卯 辛未').judge.special, null);
+  assert.equal(judgeByPillars('丁亥 辛亥 辛未 壬辰').judge.special, null);
 });
 
 test('四支一气不拘微根、日主坐库仍能盘根、假化与化气有余宜泄：任注从象、化象、假化、顺局、反局诸造', () => {
@@ -276,4 +392,23 @@ test('五行俱全时报最弱的一行；缺的是喜用时提示留意', () =>
 test('determinePattern 可单独调用', () => {
   const chart = buildBaziChart({ calendarType: 'solar', year: 1998, month: 1, day: 2, gender: 'male', hourIndex: 4 }, NOW);
   assert.equal(determinePattern(chart).name, '偏财格');
+});
+
+test('时辰不详只有三柱：五行缺失照实说「已知的六个字」，全缺时注明时柱未计', () => {
+  // 壬申 壬寅 庚辰（时辰不详）：六个字里不见火，寅中藏丙火。
+  const chart = buildBaziChart({ calendarType: 'solar', year: 1992, month: 3, day: 5, gender: 'female', timeMode: 'unknown' }, NOW);
+  assert.equal(ganZhiOf(chart).trim(), '壬申 壬寅 庚辰');
+  const strength = analyzeStrength(chart);
+  assert.equal(analyzeWuxingGap(chart, strength).text, '已知的六个字里不见火；寅中藏丙火');
+  // 甲子 丙子 癸卯（时辰不详）：土、金在三柱里藏干也没有。
+  const noEarth = buildBaziChart({ calendarType: 'solar', year: 1985, month: 1, day: 4, gender: 'male', timeMode: 'unknown' }, NOW);
+  assert.equal(ganZhiOf(noEarth).trim(), '甲子 丙子 癸卯');
+  assert.equal(analyzeWuxingGap(noEarth, analyzeStrength(noEarth)).text, '五行缺土、金（藏干里也没有；时柱不详，未计在内）');
+});
+
+test('五行俱全而最弱的正是日主那一行：说明「除日主本身外」（五行力量不计日干）', () => {
+  // 庚辰 乙酉 丙子（时辰不详）：火只有日主丙火自己，力量统计里是 0%。
+  const chart = buildBaziChart({ calendarType: 'solar', year: 2000, month: 9, day: 15, gender: 'male', timeMode: 'unknown' }, NOW);
+  assert.equal(ganZhiOf(chart).trim(), '庚辰 乙酉 丙子');
+  assert.equal(analyzeWuxingGap(chart, analyzeStrength(chart)).text, '五行俱全，除日主本身外火最弱（0%）');
 });

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
 import { judgeBaziPattern } from '../src/utils/baziPattern.js';
-import { analyzeLiuqin } from '../src/utils/baziLiuqin.js';
+import { analyzeLiuqin, liuqinOfYun } from '../src/utils/baziLiuqin.js';
 import { buildBaziPrompt } from '../src/utils/baziPrompt.js';
 import { findSolarDateByPillars } from '../scripts/lib/baziCases.mjs';
 
@@ -103,12 +103,12 @@ test('女命：「女命之夫星，即是用神；女命之子星，即是喜�
 });
 
 test('妻宫坐财只算正财、偏财（劫财是比劫），断语照任注原话「必得妻财」', () => {
-  // 甲寅 壬申 癸巳 癸亥：癸水坐巳，巳中本气丙火正财，财为喜用。
-  const zuoCai = itemOf(liuqinOf(chartByPillars('甲寅 壬申 癸巳 癸亥')), 'spouse');
+  // 己未 丁丑 壬午 庚戌：壬水坐午，午中本气丁火正财，财为喜用，午不逢冲。
+  const zuoCai = itemOf(liuqinOf(chartByPillars('己未 丁丑 壬午 庚戌')), 'spouse');
   assert.equal(zuoCai.palaces[0].shiShen, '正财');
   assert.equal(zuoCai.ren.text, '日主坐财，财为喜用，任注「必得妻财」');
-  // 壬子 癸丑 丙午 壬辰：丙火坐午，午中本气丁火是劫财，不是财；喜用而坐，只说妻宫坐喜神。
-  const zuoJie = itemOf(liuqinOf(chartByPillars('壬子 癸丑 丙午 壬辰')), 'spouse');
+  // 庚申 壬午 癸亥 甲寅：癸水坐亥，亥中本气壬水是劫财，不是财；喜用而坐，只说妻宫坐喜神。
+  const zuoJie = itemOf(liuqinOf(chartByPillars('庚申 壬午 癸亥 甲寅')), 'spouse');
   assert.equal(zuoJie.palaces[0].shiShen, '劫财');
   assert.equal(zuoJie.ren.text, '妻宫（日支）坐喜神，古法主妻贤有助');
 });
@@ -127,6 +127,20 @@ test('火炎土燥先断子息艰难（男女命同），水气稍有或土不�
   const notZao = itemOf(liuqinOf(chartByPillars('甲寅 庚午 戊寅 甲寅')), 'children');
   assert.equal(notZao.ren.rule, null);
   assert.equal(notZao.tone, 'good');
+});
+
+test('火炎土燥也先断克妻（任注「局中全无湿气……所以克两妻」「四柱全无水气……克三妻五子」）；从、化、专旺顺其燥势，不作此论', () => {
+  // 乙未 辛巳 戊戌 丁巳：日支戌是比劫，身旺比劫为喜，旧法看作「妻宫坐喜神」，与书相反。
+  const zao = itemOf(liuqinOf(chartByPillars('乙未 辛巳 戊戌 丁巳')), 'spouse');
+  assert.equal(zao.tone, 'bad');
+  assert.equal(zao.ren.rule.cond, '火炎土燥，局中全无湿气');
+  assert.equal(zao.ren.text, '任注：火炎土燥，局中全无湿气，古法主克妻');
+  // 丁酉 丁未 戊戌 丁巳：「重叠印绶，四柱全无水气，燥土不能泄火生金，克三妻五子」。
+  assert.equal(itemOf(liuqinOf(chartByPillars('丁酉 丁未 戊戌 丁巳')), 'spouse').ren.rule.cond, '火炎土燥，局中全无湿气');
+  // 丙午 甲午 丙午 甲午：炎上，顺其火势，克妻一条不看燥（子息仍按「火炎土燥无子」）。
+  const yanShang = liuqinOf(chartByPillars('丙午 甲午 丙午 甲午'));
+  assert.notEqual(itemOf(yanShang, 'spouse').ren.rule?.cond, '火炎土燥，局中全无湿气');
+  assert.equal(itemOf(yanShang, 'children').ren.rule.cond, '火炎土燥，局中全无湿气');
 });
 
 test('「见财星」要财星够得着印，财印相隔的不算；印重的杀印相生不作「女多子少」', () => {
@@ -174,6 +188,26 @@ test('宫位逢冲另提一句；比劫不现也按日主喜忌论兄弟', () =>
   assert.deepEqual(parents.palaces.map((palace) => palace.key), ['year', 'month']);
 });
 
+test('用神受制看制伏时，湿土止不住水（任注「丑乃湿土，能泄火不能止水」）', () => {
+  // 己亥 丙子 乙丑 壬午「克妻无子」：用神丙火受壬子亥水重克，木印只有半分通不了关，己、丑是湿土，止不住水，子星按受制断。
+  const liuqin = liuqinOf(chartByPillars('己亥 丙子 乙丑 壬午'));
+  const children = itemOf(liuqin, 'children');
+  assert.equal(children.tone, 'bad');
+  assert.match(children.ren.text, /用神火（透月干丙，作时支午本气）受水重克，无木通关、湿土止不住水，古法看作子息艰难$/);
+});
+
+test('妻宫坐喜神却被克它的一支冲去，按克妻看；被它克的一支来冲不算（任注「巳亥逢冲」「酉金冲去卯木」）', () => {
+  // 甲寅 壬申 癸巳 癸亥「巳亥逢冲，群劫纷争，所以连克三妻」：日支巳火是财、是喜，被时支亥水冲去。
+  const chong = itemOf(liuqinOf(chartByPillars('甲寅 壬申 癸巳 癸亥')), 'spouse');
+  assert.equal(chong.tone, 'bad');
+  assert.match(chong.ren.text, /^妻宫（日支）虽坐喜神，却被水冲去/);
+  assert.doesNotMatch(chong.verdict, /逢冲，古法主变动/, '断语已说被冲去，不再附「逢冲」一句');
+  // 丁未 乙巳 丁酉 癸卯「最喜坐下酉金冲去卯木，生起癸水……得妻财万仞」：酉金克卯木，被冲去的是卯，妻宫照坐财论。
+  const you = itemOf(liuqinOf(chartByPillars('丁未 乙巳 丁酉 癸卯')), 'spouse');
+  assert.equal(you.tone, 'good');
+  assert.match(you.ren.text, /日主坐财，财为喜用/);
+});
+
 test('只合紧贴的天干：隔位的不算合住', () => {
   // 庚午 辛巳 壬午 丙午：月干辛与时干丙隔着日干，不作相合。
   const liuqin = liuqinOf(buildBaziChart({ calendarType: 'solar', year: 1990, month: 5, day: 17, hourIndex: 6, gender: 'male' }));
@@ -189,4 +223,80 @@ test('时辰不详：子女宫不论；提示词附上六亲宫星一节', () =>
   const prompt = buildBaziPrompt({ chart: chartByPillars('癸卯 乙丑 庚申 丁丑'), scope: 'natal', now: new Date('2026-10-28T10:00:00') });
   assert.match(prompt, /【六亲宫星（程序初判）】\n男命；喜忌按「五行与旺衰」一节扶抑所取。\n- 妻：妻星木（正财为妻，偏财为妾）透月干乙/);
   assert.match(prompt, /- 子女：[^\n]*任注「凡八字之用神即是子星」：用神木/);
+});
+
+/** 结果页「此运六亲」同一口径：认出从、化、专旺的按此格论喜忌。 */
+const yunLiuqinOf = (chart, ganZhi) => {
+  const strength = analyzeStrength(chart);
+  return liuqinOfYun(chart, strength, ganZhi, { special: judgeBaziPattern(chart, strength).special });
+};
+const yunItemOf = (yun, key) => yun.items.find((item) => item.key === key);
+
+test('此运六亲：忌运连及六亲（任注「交己未，妻子皆伤」「叹椿萱之并逝」）', () => {
+  // 癸亥 癸亥 壬子 庚子：己未运「妻子皆伤，家业破尽」。
+  const jiWei = yunLiuqinOf(chartByPillars('癸亥 癸亥 壬子 庚子'), '己未');
+  assert.equal(jiWei.overall, 'bad');
+  assert.deepEqual(jiWei.items.map((item) => item.title), ['妻', '子女', '父母', '兄弟']);
+  assert.equal(yunItemOf(jiWei, 'spouse').tone, 'bad');
+  assert.equal(yunItemOf(jiWei, 'children').tone, 'bad');
+  assert.equal(yunItemOf(jiWei, 'spouse').text, '妻：忌运；此运于妻不利');
+  // 甲辰 丁卯 甲子 戊辰：壬申运「刑妻克子」。
+  const renShen = yunLiuqinOf(chartByPillars('甲辰 丁卯 甲子 戊辰'), '壬申');
+  assert.deepEqual(['spouse', 'children'].map((key) => yunItemOf(renShen, key).tone), ['bad', 'bad']);
+  // 癸未 丁巳 丙午 癸巳：癸丑运「叹椿萱之并逝，嗟兰桂之摧残」；运支丑冲年支未，一并写出。
+  const guiChou = yunLiuqinOf(chartByPillars('癸未 丁巳 丙午 癸巳'), '癸丑');
+  assert.equal(yunItemOf(guiChou, 'parents').tone, 'bad');
+  assert.equal(yunItemOf(guiChou, 'children').tone, 'bad');
+  assert.match(yunItemOf(guiChou, 'parents').text, /^父母：忌运，[^；]*运支丑冲年支未/);
+});
+
+test('此运六亲：喜运多主有利，运克其星、冲刑其宫的吉中有损作平；喜忌参半而不引动的仍看原局', () => {
+  // 癸卯 甲寅 丁卯 甲辰：丁未运「娶妾连生两子」——喜运，子女有利；运干丁火克妻星金，妻作平。
+  const dingWei = yunLiuqinOf(chartByPillars('癸卯 甲寅 丁卯 甲辰'), '丁未');
+  assert.equal(dingWei.overall, 'good');
+  assert.equal(yunItemOf(dingWei, 'children').tone, 'good');
+  assert.equal(yunItemOf(dingWei, 'children').text, '子女：喜运；此运于子女有利');
+  const wife = yunItemOf(dingWei, 'spouse');
+  assert.equal(wife.tone, 'neutral');
+  assert.match(wife.text, /^妻：喜运，但运干丁火克妻星金[^；]*吉中有损；此运于妻吉凶参半$/);
+  // 壬子 丙午 壬子 丙午：己酉运「娶妻生子成家」——干支喜忌参半，不克妻、子之星，不冲其宫，仍看原局倾向。
+  const chart = chartByPillars('壬子 丙午 壬子 丙午');
+  const jiYou = yunLiuqinOf(chart, '己酉');
+  assert.equal(jiYou.overall, 'mixed');
+  assert.equal(yunItemOf(jiYou, 'spouse').tone, itemOf(liuqinOf(chart), 'spouse').tone);
+  assert.equal(yunItemOf(jiYou, 'spouse').tone, 'good');
+  assert.match(yunItemOf(jiYou, 'spouse').text, /不特别引动，仍看原局；原局倾向有利$/);
+  // 同一步运，运干己土克兄弟星水：参半而克其星，作不利。
+  assert.equal(yunItemOf(jiYou, 'siblings').tone, 'bad');
+  // 戊午运「父母双亡」：忌运，运支午冲年支子。
+  const wuWu = yunLiuqinOf(chart, '戊午');
+  assert.equal(yunItemOf(wuWu, 'parents').tone, 'bad');
+  assert.match(yunItemOf(wuWu, 'parents').text, /运支午冲年支子/);
+});
+
+test('此运六亲：女命以官杀为夫星、食伤为子女星；只给一个字（「卯运」）也能推', () => {
+  // 戊子 戊午 癸酉 戊午（女命）：乙卯运「夫得疾而死」——忌运，运干乙木克夫星土，运支卯冲日支酉。
+  const yiMao = yunLiuqinOf(chartByPillars('戊子 戊午 癸酉 戊午', 'female'), '乙卯');
+  const husband = yunItemOf(yiMao, 'spouse');
+  assert.equal(husband.title, '夫');
+  assert.equal(husband.tone, 'bad');
+  assert.match(husband.text, /运干乙木克夫星土/);
+  assert.match(husband.text, /运支卯冲日支酉/);
+  // 丁酉 癸卯 丙辰 丙申（女命）：丙午运「夫主登科，生二子」。
+  const bingWu = yunLiuqinOf(chartByPillars('丁酉 癸卯 丙辰 丙申', 'female'), '丙午');
+  assert.deepEqual(['spouse', 'children'].map((key) => yunItemOf(bingWu, key).tone), ['good', 'good']);
+  const single = yunLiuqinOf(chartByPillars('壬子 丙午 壬子 丙午'), '午');
+  assert.equal(single.ganZhi, '午');
+  assert.equal(single.overall, 'bad');
+  assert.equal(liuqinOfYun(null, {}, '甲子'), null);
+  const chart = chartByPillars('壬子 丙午 壬子 丙午');
+  assert.equal(liuqinOfYun(chart, analyzeStrength(chart), ''), null);
+});
+
+test('提示词【所选运限】附此运六亲', () => {
+  const chart = chartByPillars('癸亥 癸亥 壬子 庚子');
+  const daYun = chart.yun.dayun.find((item) => item.ganZhi === '己未');
+  assert.ok(daYun, '这张盘的大运里要有己未');
+  const prompt = buildBaziPrompt({ chart, scope: 'year', selections: { daYun, liuNian: daYun.liuNian[0], liuYueList: [] } });
+  assert.match(prompt, /- 此运六亲（程序按此运喜忌、克星、冲刑宫位推）：妻：忌运；此运于妻不利；子女：忌运；此运于子女不利；/);
 });

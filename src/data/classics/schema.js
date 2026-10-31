@@ -23,6 +23,8 @@ export const ZIWEI_PALACES = Object.freeze(['命宫', '身宫', '兄弟', '夫�
 export const ZIWEI_PALACE_ALIASES = Object.freeze({ 交友: '仆役', 奴仆: '仆役', 事业: '官禄', 兄弟宫: '兄弟', 夫妻宫: '夫妻', 子女宫: '子女', 财帛宫: '财帛', 疾厄宫: '疾厄', 迁移宫: '迁移', 仆役宫: '仆役', 官禄宫: '官禄', 田宅宫: '田宅', 福德宫: '福德', 父母宫: '父母' });
 export const ZIWEI_BRIGHTNESS = Object.freeze(['庙', '旺', '得', '利', '平', '不', '陷']);
 export const ZIWEI_MUTAGENS = Object.freeze(['禄', '权', '科', '忌']);
+/** 五行局（排盘库 fiveElementsClass 的写法）：《全书》「金人遇坎」「土到东南」的「金人」「土人」就是金四局、土五局的人。 */
+export const ZIWEI_BUREAUS = Object.freeze(['水二局', '木三局', '金四局', '土五局', '火六局']);
 export const ZIWEI_STARS = Object.freeze([
   '紫微', '天机', '太阳', '武曲', '天同', '廉贞', '天府', '太阴', '贪狼', '巨门', '天相', '天梁', '七杀', '破军',
   '左辅', '右弼', '文昌', '文曲', '禄存', '天马', '擎羊', '陀罗', '火星', '铃星', '天魁', '天钺', '地空', '地劫',
@@ -32,6 +34,8 @@ export const ZIWEI_STARS = Object.freeze([
 ]);
 /** 「夹」能写的名字：星名，加上四化（写成「化禄」等）。 */
 export const ZIWEI_JIA_NAMES = Object.freeze([...ZIWEI_STARS, ...ZIWEI_MUTAGENS.map((name) => `化${name}`)]);
+/** 运限层的流曜（排盘库的叫法）：流年的流昌、流曲……，大限的运昌、运曲……。 */
+export const ZIWEI_FLOW_STARS = Object.freeze(['流昌', '流曲', '流魁', '流钺', '流禄', '流羊', '流陀', '流马', '流鸾', '流喜', '运昌', '运曲', '运魁', '运钺', '运禄', '运羊', '运陀', '运马', '运鸾', '运喜']);
 export const LIUYAO_SIX_RELATIVES = Object.freeze(['父母', '兄弟', '子孙', '妻财', '官鬼']);
 export const LIUYAO_SIX_GODS = Object.freeze(['青龙', '朱雀', '勾陈', '螣蛇', '白虎', '玄武']);
 export const LIUYAO_RELATIONS = Object.freeze(['六冲', '六合']);
@@ -47,12 +51,40 @@ export const APPLIES_KEYS = Object.freeze({
     allStars: ZIWEI_STARS,
     // 两颗星（或化禄、化权、化科、化忌）分坐本宫左右两邻（「昌曲夹命」「羊陀夹忌」「科权禄夹」）。
     jia: ZIWEI_JIA_NAMES,
+    // 本宫连三方四正（对宫、两个三合宫）里有这颗星（「会」「拱」「照」「朝」）：meet 任一颗，meetAll 几颗都要有。
+    meet: ZIWEI_STARS,
+    meetAll: ZIWEI_STARS,
     palace: ZIWEI_PALACES,
     branches: ZHI,
     brightness: ZIWEI_BRIGHTNESS,
+    // 本宫星曜带的生年四化（运限层再加该层四化）：mutagen 任一化，mutagenAll 几化都在同一宫（「禄权同守」「双禄交流」）。
     mutagen: ZIWEI_MUTAGENS,
+    mutagenAll: ZIWEI_MUTAGENS,
+    // 本宫连三方四正里的四化（「科权拱」「权禄巡逢」「科权对拱」）：meetMutagen 任一化，meetMutagenAll 几化都有。
+    meetMutagen: ZIWEI_MUTAGENS,
+    meetMutagenAll: ZIWEI_MUTAGENS,
     pattern: ZIWEI_PATTERN_VOCAB,
-    limit: ['本命', '大限', '流年', '流月', '流日'],
+    // 看那一层时命中：大限、小限（排盘库的 age）、流年；流月、流日程序还没有上下文。
+    limit: ['本命', '大限', '小限', '流年', '流月', '流日'],
+    // 运限层飞到本宫或三方四正的流曜，按排盘库的叫法写（「擎羊重逢流羊」写 limit: "流年", star: "擎羊", flow: "流羊"）：flow 任一颗，flowAll 几颗都要有。
+    // 条件里一写 flow，同条件的 star / meet 就只算本命的星（否则流羊本身也算擎羊，分不出「重逢」）。
+    flow: ZIWEI_FLOW_STARS,
+    flowAll: ZIWEI_FLOW_STARS,
+    // 宫里没有主星（「命无正曜」「本宫无正曜」「左右单守」）；有主星的宫不命中。
+    empty: ['无正曜'],
+    // 流年斗君（卷一安流年斗君诀：太岁宫起正月逆数至生月，再从生月起子时顺数至生时）落在本命哪一宫（「斗君过度在妻宫」写 doujun: "夫妻"），须同写 limit: "流年"。
+    doujun: ZIWEI_PALACES,
+    // 生年干支（排盘库按农历年）：「壬甲生人」写 yearGan: ["壬", "甲"]，「寅午戌生人」写 yearZhi: ["寅", "午", "戌"]。
+    yearGan: GAN,
+    yearGans: GAN,
+    yearZhi: ZHI,
+    yearZhis: ZHI,
+    // 五行局（排盘库按命宫干支纳音定）：「金人遇坎命须伤」写 bureau: "金四局"，「水木二局之人」写 bureau: ["水二局", "木三局"]（数组任一）。
+    bureau: ZIWEI_BUREAUS,
+    bureaus: ZIWEI_BUREAUS,
+    // 生时地支（排盘用的时辰；晚子时按安星口径算子）：「生在寅午戌申子辰六阳时」写 hourZhi: ["寅", "午", "戌", "申", "子", "辰"]。
+    hourZhi: ZHI,
+    hourZhis: ZHI,
   }),
   bazi: Object.freeze({
     dayGan: GAN,
@@ -157,6 +189,24 @@ const checkApplies = (applies, where, errors, dirModule = null) => {
       if (key === 'allStars' && (!Array.isArray(value) || new Set(value).size < 2)) {
         errors.push(`${at}.allStars: 要写两颗以上不同的星（几颗都要在同一宫）；只要一颗星用 star`);
       }
+      if (key === 'meetAll' && (!Array.isArray(value) || new Set(value).size < 2)) {
+        errors.push(`${at}.meetAll: 要写两颗以上不同的星（三方四正里几颗都要有）；只要一颗星用 meet`);
+      }
+      if (key === 'flowAll' && (!Array.isArray(value) || new Set(value).size < 2)) {
+        errors.push(`${at}.flowAll: 要写两颗以上不同的流曜（几颗都要有）；只要一颗用 flow`);
+      }
+      if (key === 'mutagenAll' && (!Array.isArray(value) || new Set(value).size < 2)) {
+        errors.push(`${at}.mutagenAll: 要写两个以上不同的四化（几化都要在同一宫）；只要一化用 mutagen`);
+      }
+      if (key === 'meetMutagenAll' && (!Array.isArray(value) || new Set(value).size < 2)) {
+        errors.push(`${at}.meetMutagenAll: 要写两个以上不同的四化（三方四正里几化都要有）；只要一化用 meetMutagen`);
+      }
+      if ((key === 'flow' || key === 'flowAll') && !['大限', '流年'].includes(cond.limit)) {
+        errors.push(`${at}.${key}: 流曜只在大限、流年层有（小限没有流曜），这条要同时写 limit: "大限" 或 "流年"`);
+      }
+      if (key === 'doujun' && cond.limit !== '流年') {
+        errors.push(`${at}.doujun: 斗君是流年的正月起处，这条要同时写 limit: "流年"`);
+      }
       if (key === 'jia' && (!Array.isArray(value) || value.length !== 2)) {
         errors.push(`${at}.jia: 要写左右两邻各一颗，共两个名字，如 ["文昌", "文曲"]；四化写「化禄」「化权」`);
       }
@@ -165,7 +215,7 @@ const checkApplies = (applies, where, errors, dirModule = null) => {
           if (!isNonEmptyString(item)) errors.push(`${at}.${key}: 必须是非空字符串`);
           return;
         }
-        const normalized = key === 'palace' ? (ZIWEI_PALACE_ALIASES[item] ?? item) : item;
+        const normalized = key === 'palace' || key === 'doujun' ? (ZIWEI_PALACE_ALIASES[item] ?? item) : item;
         if (range.includes(normalized)) return;
         if (NAME_KEYS[key]) {
           errors.push(`${at}.${key}: 「${item}」不是程序认得的${NAME_KEYS[key]}，写了永远匹配不上；改用下列名字之一，或改写成星曜、十神、月令、卦名等条件，实在编不出就只写 note（可用：${range.join('、')}）`);
@@ -317,6 +367,8 @@ export const BAZI_CASE_USE_GOD = Object.freeze(['木', '火', '土', '金', '水
 /** 八字命例 expected.yun：原书点名的大运、流年及其吉凶（「至癸巳运，连登甲第」「丑运……夫妇皆亡」）。 */
 export const BAZI_CASE_YUN_KIND = Object.freeze(['大运', '流年']);
 export const BAZI_CASE_YUN_VERDICT = Object.freeze(['吉', '凶', '平']);
+/** 八字命例 expected.chengBai：原书按《子平真诠·论用神成败救应》说这个格成、败、成中有败、败中有成（只在写了月令取的格 pattern 时写）。 */
+export const BAZI_CASE_CHENG_BAI = Object.freeze(['成', '败', '成中有败', '败中有成']);
 /**
  * 八字命例 expected.useGodWhy：原书取这个用神的理由归哪一类（只在写了 useGod 时写），回归里按类看程序哪一类取得不准。
  * 扶抑：身强取克泄、身弱取生扶；调候：寒暖燥湿；通关：两神相战取居中者；病药：取制忌神（病）之神；
@@ -439,6 +491,10 @@ export const validateCasesDoc = (doc, ctx = {}) => {
       const { expected } = entry;
       if (expected.strength !== undefined && !BAZI_CASE_STRENGTH.includes(expected.strength)) errors.push(`${where}: expected.strength 须是 ${BAZI_CASE_STRENGTH.join('/')}（原书明说的日主旺衰）`);
       if (expected.pattern !== undefined && !BAZI_PATTERN_VOCAB.includes(expected.pattern)) errors.push(`${where}: expected.pattern「${expected.pattern}」不是程序认得的格局名（见 src/data/classics/patternNames.js）`);
+      if (expected.chengBai !== undefined) {
+        if (!BAZI_CASE_CHENG_BAI.includes(expected.chengBai)) errors.push(`${where}: expected.chengBai 须是 ${BAZI_CASE_CHENG_BAI.join('/')}`);
+        if (expected.pattern === undefined) errors.push(`${where}: expected.chengBai 只在写了 pattern（月令取的格）时写`);
+      }
       if (expected.useGod !== undefined) {
         const gods = Array.isArray(expected.useGod) ? expected.useGod : [expected.useGod];
         if (!gods.length || gods.some((god) => !BAZI_CASE_USE_GOD.includes(god))) errors.push(`${where}: expected.useGod 须是五行（木火土金水）或十神（比劫、印、食伤、财、官杀，或正官、七杀等），可写数组`);
@@ -496,7 +552,7 @@ export const validateCasesDoc = (doc, ctx = {}) => {
         }
       }
       Object.keys(expected).forEach((key) => {
-        if (!['strength', 'pattern', 'useGod', 'useGodWhy', 'outcome', 'yun', 'liuqin'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
+        if (!['strength', 'pattern', 'chengBai', 'useGod', 'useGodWhy', 'outcome', 'yun', 'liuqin'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
       });
     } else if (entry.expected !== undefined && doc.module === 'liuyao') {
       const { expected } = entry;

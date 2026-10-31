@@ -116,6 +116,12 @@ test('八字命例的 expected：原书明说的旺衰、格局、用神与结�
   assert.match(yunMessages, /expected\.yun\[0\] 未知字段 extra/);
   assert.match(yunMessages, /expected\.yun\[1\] 须是对象/);
   assert.match(validateCasesDoc(doc({ yun: [] })).join('\n'), /expected\.yun 须是非空数组/);
+  // 成败：只在写了月令取的格时写，取《论用神成败救应》的四种说法。
+  assert.deepEqual(validateCasesDoc(doc({ pattern: '正官格', chengBai: '成', useGod: '正官' })), []);
+  assert.deepEqual(validateCasesDoc(doc({ pattern: '财格', chengBai: '败中有成' })), []);
+  const chengBaiMessages = validateCasesDoc(doc({ chengBai: '大成' })).join('\n');
+  assert.match(chengBaiMessages, /expected\.chengBai 须是 成\/败\/成中有败\/败中有成/);
+  assert.match(chengBaiMessages, /expected\.chengBai 只在写了 pattern/);
   // 取用理由：只在写了 useGod 时写，kind 取固定几类。
   assert.deepEqual(validateCasesDoc(doc({ useGod: '火', useGodWhy: { kind: '调候', quote: '寒金喜火' } })), []);
   const whyMessages = validateCasesDoc(doc({ useGodWhy: { kind: '直觉', quote: '', extra: 1 } })).join('\n');

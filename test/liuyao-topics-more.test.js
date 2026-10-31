@@ -29,7 +29,28 @@ test('新增五类：失物寻找、流年运势、避乱避祸、寻地择穴�
   });
   assert.equal(LIUYAO_TOPICS.filter((topic) => topic.common).length, 12);
   LIUYAO_TOPICS.forEach((topic) => assert.ok(topic.hint, topic.value));
-  assert.deepEqual([...LIUYAO_TOPIC_PENDING], ['国朝', '鬼神']);
+  assert.deepEqual([...LIUYAO_TOPIC_PENDING], ['国朝']);
+});
+
+test('鬼神作祟：以官鬼为用神，吉凶反看——鬼休囚空破墓绝为「非鬼神之害」，旺相者按五行分神，动克世为祟，子孙制鬼（《增删卜易·鬼神章》）', () => {
+  assert.ok(LIUYAO_TOPICS.some((topic) => topic.value === 'spirits' && topic.relative === '官鬼' && !topic.common));
+  const weak = findCast('spirits', (reading, judge) => judge.verdict.title === '非鬼神之害' && !judge.yongShen.hidden);
+  assert.ok(weak, '应能找到官鬼休囚的卦');
+  assert.equal(weak.judge.yongShen.relative, '官鬼');
+  assert.equal(weak.judge.verdict.level, 'good');
+  assert.match(pointOf(weak.judge, '鬼神：'), /非鬼神之害/);
+  const strong = findCast('spirits', (reading, judge) => judge.verdict.title === '鬼神为祟');
+  assert.ok(strong, '应能找到官鬼旺相发动克世的卦');
+  assert.equal(strong.judge.verdict.level, 'bad');
+  assert.match(pointOf(strong.judge, '鬼神：'), /旺相，系.+神/);
+  assert.match(pointOf(strong.judge, '鬼神：'), /发动克世，祟近其身/);
+  const eased = findCast('spirits', (reading, judge) => judge.verdict.title === '有鬼神之事' && judge.points.some((point) => point.includes('福神制鬼')));
+  assert.ok(eased, '应能找到官鬼旺相而子孙发动的卦');
+  assert.equal(eased.judge.verdict.level, 'mixed');
+  assert.match(eased.judge.notices.join(''), /与鬼神何干/);
+  // 古籍匹配：鬼神章的条目按类别与官鬼用神命中。
+  const ctx = liuyaoReadingContextOf(weak.reading, weak.judge);
+  assert.ok(ctx.topic.includes('鬼神') && ctx.sixRelative.includes('官鬼'));
 });
 
 test('古籍匹配：新类别展开成古籍里的叫法，坟墓两类都算', () => {

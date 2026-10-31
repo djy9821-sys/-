@@ -1,11 +1,11 @@
 
 import React, { useMemo } from 'react';
 import {
-    AI_PROMPT_TEMPLATE,
-    FEMALE_PROMPT_TEMPLATE,
+    CHARACTER_PROMPT_TAIL,
+    CHARACTER_PROMPT_TEMPLATE,
     WEALTH_PROMPT_TEMPLATE,
     MARRIAGE_PROMPT_TEMPLATE,
-    generateScumbagPrompt,
+    generateChartDataPrompt,
     generateFortunePromptText,
     generateBabyPrompt
 } from '../utils/aiPrompts';
@@ -40,7 +40,7 @@ import {
 import { buildBaziChart } from '../utils/baziChart';
 import ZiweiClassicsPanel from './ziwei/ZiweiClassicsPanel.jsx';
 import { useClassicsLibrary } from './common/useClassicsLibrary.js';
-import { ziweiGlossarySeeds, ziweiLifePalaceHits } from '../data/classics/index.js';
+import { pickLifeHits, pickLimitHits, ziweiDoujunPalace, ziweiGlossarySeeds, ziweiLifePalaceHits, ziweiLifeStarsOf, ziweiLimitPalaceHits, ziweiNatalOf, ziweiPalaceHits } from '../data/classics/index.js';
 import GlossaryPanel from './common/GlossaryPanel.jsx';
 import { classicsPromptSection } from '../utils/classicsPrompt.js';
 import { Sparkles, Coffee, Save, Archive, Calendar, Printer } from "lucide-react";
@@ -223,6 +223,8 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         birthTime: TIME_RANGES[0]
     });
     const [isCalculating, setIsCalculating] = React.useState(false);
+    // 双人指令算完时自动复制没成功（手机浏览器只认点击当下的复制），把指令留在弹窗里让用户再点一次复制。
+    const [babyPrompt, setBabyPrompt] = React.useState('');
 
     // State for Donation Modal
     const [showDonationModal, setShowDonationModal] = React.useState(false);
@@ -476,12 +478,47 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     );
     // 程序认出的格局名（三奇加会、机月同梁格……），古籍匹配时算进命宫的上下文。
     const patternNames = useMemo(() => patternEntries.map((pattern) => pattern.name), [patternEntries]);
+    // 生年干支（排盘库按农历年），给古籍里「壬甲生人」「寅午戌生人」这类条件用。
+    const natal = useMemo(() => ziweiNatalOf(horoscope), [horoscope]);
     const classicsPromptText = useMemo(() => {
         if (!classicsData?.library || palaces.length === 0) return null;
-        const hits = ziweiLifePalaceHits(classicsData.library, palaces, { gender: basicInfo.gender, patterns: patternNames });
-        return classicsPromptSection(hits, { title: '【古籍原文（命宫、身宫星曜）】', subject: '命宫身宫星曜', limit: 4 });
-    }, [classicsData, palaces, basicInfo.gender, patternNames]);
+        const hits = ziweiLifePalaceHits(classicsData.library, palaces, { gender: basicInfo.gender, patterns: patternNames, natal });
+        // 四条里格局条目最多两条，命宫身宫每颗主星至少一条按它命中的，AI 既看到格又看到主星的原文（见 pickLifeHits）。
+        return classicsPromptSection(pickLifeHits(hits, 4, { stars: ziweiLifeStarsOf(palaces) }), { title: '【古籍原文（命宫、身宫星曜）】', subject: '命宫身宫星曜', limit: 4, total: hits.length });
+    }, [classicsData, palaces, basicInfo.gender, patternNames, natal]);
     const withClassics = (text) => (text && classicsPromptText ? `${text}\n\n${classicsPromptText}` : text);
+    // 性情婚恋、姻缘、财运三种话术各附相关几个宫的原文（命宫身宫之外再附夫妻、福德、财帛、官禄），让 AI 照原书说。
+    const PROMPT_CLASSICS_PALACES = {
+        character: [['夫妻'], ['福德']],
+        marriage: [['夫妻']],
+        wealth: [['财帛'], ['官禄']],
+    };
+    const withClassicsFor = (text, type) => {
+        if (!text || !classicsData?.library || palaces.length === 0) return text;
+        const extra = (PROMPT_CLASSICS_PALACES[type] ?? []).map((names) => {
+            const hits = ziweiPalaceHits(classicsData.library, palaces, names, { gender: basicInfo.gender, natal });
+            return classicsPromptSection(hits, { title: `【古籍原文（${names.join('、')}宫星曜）】`, subject: `${names.join('、')}宫星曜`, limit: 3 });
+        }).filter(Boolean);
+        return [withClassics(text), ...extra].join('\n\n');
+    };
+    // 运势话术另附此刻大限、流年命宫（落在本命盘哪一宫）的原文，连同古籍里专讲大限、流年的条目。
+    const withClassicsForFortune = (text, fortuneContext) => {
+        if (!text || !classicsData?.library || palaces.length === 0 || !fortuneContext?.fortune) return withClassics(text);
+        // 大限、小限（排盘库的 age）、流年三层：《全书》论运限多以「二限」「岁限」并举。
+        const extra = [['decadal', '大限', '当前大限'], ['age', '小限', '今年小限'], ['yearly', '流年', '今年流年']].map(([key, limit, label]) => {
+            const scope = fortuneContext.fortune[key];
+            // 这一层的命宫落在本命盘的哪一宫（变量不叫 natal：natal 是外面的生年干支，之前在这里被遮住，运限层就判不了「壬甲生人」）。
+            const natalPalace = Number.isInteger(scope?.index) ? (palaces.find((palace) => palace?.index === scope.index) ?? palaces[scope.index] ?? null) : null;
+            if (!natalPalace) return null;
+            // 流年层另算斗君（流年正月所在的本命宫），「斗君过度在某宫」的条目靠它判。
+            const doujun = key === 'yearly' ? ziweiDoujunPalace(horoscope, palaces, scope.index) : null;
+            // 带上该层的流曜与四化（scope），流羊流陀、流昌流曲这类条件才算得到。
+            const hits = ziweiLimitPalaceHits(classicsData.library, palaces, scope.index, limit, { gender: basicInfo.gender, natal, scope, doujun: doujun?.name ?? null });
+            // 最多三条，其中至少一条是专讲这层运限的，其余按所落宫的星曜取。
+            return classicsPromptSection(pickLimitHits(hits, 3, limit), { title: `【古籍原文（${label}命宫：本命${natalPalace.name}·${natalPalace.earthlyBranch}宫${doujun ? `，斗君在本命${doujun.name}·${doujun.earthlyBranch}宫` : ''}，及论${limit}的条目）】`, subject: `${label}`, limit: 3, total: hits.length });
+        }).filter(Boolean);
+        return [withClassics(text), ...extra].join('\n\n');
+    };
     const selectedPattern = patternEntries.find((pattern) => pattern.id === selectedPatternId)
         || patternEntries[0]
         || null;
@@ -600,9 +637,11 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         return `${palace.decadal.heavenlyStem}${palace.decadal.earthlyBranch}限 · 虚岁${startAge}-${endAge} · ${startYear}-${endYear}`;
     };
     // 古籍弹层可切到「当前大限 / 今年流年」：那一层的命宫在本命盘的哪一宫。
+    // scope 是排盘库那一层的运限对象（流曜与四化），古籍匹配时把流羊、运昌这类流曜算进去。
     const classicsLimits = {
-        decadal: currentDaxianPalace ? { index: currentDaxianPalace.index, label: `当前大限（${formatDaxian(currentDaxianPalace)}）` } : null,
-        yearly: Number.isInteger(currentHoroscope?.yearly?.index) ? { index: currentHoroscope.yearly.index, label: `${currentFlowYear} 年流年` } : null,
+        decadal: currentDaxianPalace ? { index: currentDaxianPalace.index, label: `当前大限（${formatDaxian(currentDaxianPalace)}）`, scope: currentHoroscope?.decadal ?? null } : null,
+        age: Number.isInteger(currentHoroscope?.age?.index) ? { index: currentHoroscope.age.index, label: `${currentFlowYear} 年小限（虚岁 ${virtualAge}，${currentHoroscope.age.heavenlyStem ?? ''}${currentHoroscope.age.earthlyBranch ?? ''}）`, scope: currentHoroscope.age } : null,
+        yearly: Number.isInteger(currentHoroscope?.yearly?.index) ? { index: currentHoroscope.yearly.index, label: `${currentFlowYear} 年流年`, scope: currentHoroscope.yearly, doujun: ziweiDoujunPalace(horoscope, palaces, currentHoroscope.yearly.index) } : null,
     };
     // 时间轴手动选到的各层干支：选到某一天后与「当前运势」同一口径（getZiweiFortune：流年立春换年、流月农历月、晚子时按命盘流派）。
     const timelineFortune = useMemo(
@@ -1812,16 +1851,15 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
     const handleGeneratePrompt = async (type) => {
         try {
             let prompt = '';
-            const scumbagData = generateScumbagPrompt(horoscope);
+            const chartData = generateChartDataPrompt(horoscope, { gender: basicInfo.gender, patterns: patternEntries });
             const basicInfoData = `\n**--- 命主基本信息 (用于推算大限流年) ---**\n- **姓名**：${basicInfo.name || '未填写'}\n- **性别**：${basicInfo.gender === 'male' ? '男' : '女'}\n- **生辰**：${basicInfo.birthday}\n- **出生时辰**：${basicInfo.birthTime}\n`;
 
-            if (type === 'scumbag') {
-                const template = basicInfo.gender === 'female' ? FEMALE_PROMPT_TEMPLATE : AI_PROMPT_TEMPLATE;
-                prompt = withClassics(`${template}\n${basicInfoData}\n${scumbagData}`);
+            if (type === 'character') {
+                prompt = `${withClassicsFor(`${CHARACTER_PROMPT_TEMPLATE}\n${basicInfoData}\n${chartData}`, type)}\n\n${CHARACTER_PROMPT_TAIL}`;
             } else if (type === 'marriage') {
-                prompt = withClassics(`${MARRIAGE_PROMPT_TEMPLATE}\n${basicInfoData}\n${scumbagData}`);
+                prompt = withClassicsFor(`${MARRIAGE_PROMPT_TEMPLATE}\n${basicInfoData}\n${chartData}`, type);
             } else if (type === 'wealth') {
-                prompt = withClassics(`${WEALTH_PROMPT_TEMPLATE}\n${basicInfoData}\n${scumbagData}`);
+                prompt = withClassicsFor(`${WEALTH_PROMPT_TEMPLATE}\n${basicInfoData}\n${chartData}`, type);
             } else if (['yearly', 'monthly', 'daily', 'hourly'].includes(type)) {
                 const fortuneContext = buildCurrentFortuneContext({
                     horoscope,
@@ -1844,7 +1882,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     hourly: targetIndex >= 3,
                 });
 
-                prompt = withClassics(generateFortunePromptText(
+                prompt = withClassicsForFortune(generateFortunePromptText(
                     type,
                     fortuneContext.selection,
                     fortuneContext.activeStems,
@@ -1853,7 +1891,8 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     palaces,
                     getAllMutagenStarMaps(),
                     fortuneContext,
-                ));
+                    { patterns: patternEntries },
+                ), fortuneContext);
 
                 if (!prompt) throw new Error(`无法生成${FORTUNE_LAYER_LABELS[type] || '运势'}话术`);
 
@@ -1868,6 +1907,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                 const babyType = type.replace('baby_', '');
                 setSelectedBabyType(babyType);
                 setSelectedMutationInfo(null);
+                setBabyPrompt('');
                 setShowPartnerModal(true);
                 setShowAiMenu(false); // Close menu
                 return; // Stop here, wait for modal
@@ -1891,6 +1931,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
         }
 
         setIsCalculating(true);
+        setBabyPrompt('');
 
         // Use setTimeout to allow UI to update with "Calculating..." state
         setTimeout(async () => {
@@ -1910,13 +1951,15 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                 const prompt = generateBabyPrompt(selectedBabyType, basicInfo, horoscope, partnerHoroscope, bestDates);
                 track('ai_export', { kind: 'ziwei', scope: 'baby', channel: 'copy' });
 
-                navigator.clipboard.writeText(prompt).then(() => {
+                try {
+                    await navigator.clipboard.writeText(prompt);
                     alert(`✅ 已生成【${selectedBabyType === 'leader' ? '帝王' : selectedBabyType === 'iq' ? '文昌' : selectedBabyType === 'sport' ? '武曲' : '陶朱'}起居注】指令！\n\n已为您筛选出未来14天内Top3最佳受孕时机。\n请发送给AI获取详细解读。`);
                     setShowPartnerModal(false);
-                }).catch(err => {
+                } catch (err) {
+                    // 算了几秒才复制，iPhone 等浏览器已不认那次点击，自动复制会被拒；指令留在弹窗里，再点一次「复制指令」或长按选取。
                     console.error('Failed to copy:', err);
-                    alert('复制失败，请手动复制。');
-                });
+                    setBabyPrompt(prompt);
+                }
 
             } catch (error) {
                 console.error('Calculation failed:', error);
@@ -2019,7 +2062,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                         <span aria-hidden="true" />
                         <strong>如何看具体关系</strong>
                         <p>再点击盘中的 {info.code} 字母或箭头，可查看起宫、宫干、目标星与实际落宫。</p>
-                        <small>十干四化：九干同《紫微斗数全书》，壬干依今人排盘作左辅化科（全书原文「壬梁紫府武」作天府化科）；不同流派配置可能不同。</small>
+                        <small>十干四化按《紫微斗数全书》「安禄权科忌四星变化诀」，壬干照原文「壬梁紫府武」作天府化科（今人排盘多用左辅化科，《全集》亦作左辅）；不同流派配置可能不同。</small>
                     </footer>
                 </aside>
             );
@@ -2065,7 +2108,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     <footer>
                         <span aria-hidden="true" />
                         <strong>当前四化表</strong>
-                        <p>九干同《紫微斗数全书》十干四化，壬干用左辅化科（全书原文作天府）</p>
+                        <p>十干四化按《紫微斗数全书》，壬干作天府化科（今人多用左辅）</p>
                         <small>不同流派的四化表可能不同；当前显示的是本项目采用的固定算法口径。</small>
                     </footer>
                 </aside>
@@ -2149,7 +2192,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                     <span aria-hidden="true" />
                     <strong>{meaning.title}</strong>
                     <p>{meaning.detail}</p>
-                    <small>当前箭头按十干四化：九干同《紫微斗数全书》，壬干左辅化科（全书原文作天府）；不同流派可能不同。单条飞化只表示结构关系，不宜单独下吉凶结论。</small>
+                    <small>当前箭头按《紫微斗数全书》十干四化，壬干天府化科（今人多用左辅）；不同流派可能不同。单条飞化只表示结构关系，不宜单独下吉凶结论。</small>
                 </footer>
             </aside>
         );
@@ -2197,6 +2240,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 <div><dt>出生钟表时</dt><dd>{hideBirthDetails ? '已隐藏' : basicInfo.birthTime || horoscope.time || '-'}</dd></div>
                                 <div><dt>出生农历</dt><dd>{hideBirthDetails ? '已隐藏' : horoscope.lunarDate || basicInfo.lunarDate || '-'}</dd></div>
                                 {horoscope.lateZi && <div><dt>晚子时</dt><dd>{hideBirthDetails ? '已隐藏' : horoscope.lateZi.text}</dd></div>}
+                                {horoscope.leapMonth && <div><dt>闰月</dt><dd>{hideBirthDetails ? '已隐藏' : `${horoscope.leapMonth.text}（《全书》「凡有闰月具要依此为例」）`}</dd></div>}
                                 <div className={basicInfo.trueSolar?.applied ? '' : 'is-warning'}><dt>真太阳时</dt><dd>{hideBirthDetails ? '已隐藏' : trueSolarLabel}</dd></div>
                                 <div><dt>制盘时间</dt><dd>{currentTimeLabel}</dd></div>
                             </dl>
@@ -2212,7 +2256,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 <div><dt>身宫地支</dt><dd>{horoscope.earthlyBranchOfBodyPalace || '-'}宫</dd></div>
                                 <div className="is-pending"><dt>子斗</dt><dd>尚未接入经过校验的算法</dd></div>
                             </dl>
-                            <p className="wenmo-center-detail-note">安星依据《紫微斗数全书》安星诀：安命身、定五行局、起紫微天府、十四主星与辅佐煞曜、长生博士将前岁前十二神、大限小限；十干四化取《全书》「甲廉破武阳」歌诀（庚：阳武阴同）；惟壬干全书作「梁紫府武」，本程序依今人排盘用「梁紫左武」。年柱以立春为界，闰月十五以后按下月安命，晚子时见上方说明。</p>
+                            <p className="wenmo-center-detail-note">安星依据《紫微斗数全书》卷二安星诀：安命身、定五行局、起紫微天府、十四主星与辅佐煞曜、长生博士将前岁前十二神、大限小限；十干四化取《全书》「甲廉破武阳」歌诀（庚：阳武阴同，壬：梁紫府武，壬干天府化科，今人多用左辅）；长生十二神照全书「男命顺数、女命逆数」（通行排法按阳男阴女顺、阴男阳女逆）；闰月生人照全书「凡有闰月具要依此为例」一律按下月安命（通行排法以十五为界）。年柱以立春为界，晚子时见上方说明。</p>
                         </section>
 
                         <section>
@@ -2883,8 +2927,8 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                         <div className="max-h-[62vh] space-y-2 overflow-y-auto overscroll-contain md:max-h-none">
                         {menuView === 'main' && (
                             <>
-                                <button onClick={() => handleGeneratePrompt('scumbag')} className="w-full text-left px-4 py-3 rounded hover:bg-white/10 flex items-center gap-3 text-sm font-bold text-gray-200 border border-transparent hover:border-purple-500/30 transition-all">
-                                    <span className="text-xl">🕵️</span> 一键鉴渣话术
+                                <button onClick={() => handleGeneratePrompt('character')} className="w-full text-left px-4 py-3 rounded hover:bg-white/10 flex items-center gap-3 text-sm font-bold text-gray-200 border border-transparent hover:border-purple-500/30 transition-all">
+                                    <span className="text-xl">📜</span> 性情与婚恋
                                 </button>
                                 <button onClick={() => handleGeneratePrompt('marriage')} className="w-full text-left px-4 py-3 rounded hover:bg-white/10 flex items-center gap-3 text-sm font-bold text-pink-300 border border-transparent hover:border-pink-500/30 transition-all">
                                     <span className="text-xl">💍</span> 何时结婚
@@ -3104,7 +3148,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                 </h2>
                                 <p>选一个宫，看古籍里怎么说宫中的星曜；原文逐字照录公版古籍，白话另译并标注审核状态</p>
                             </header>
-                            <ZiweiClassicsPanel palaces={palaces} focusedIndex={focusedIndex} gender={basicInfo.gender} patterns={patternNames} limits={classicsLimits} />
+                            <ZiweiClassicsPanel palaces={palaces} focusedIndex={focusedIndex} gender={basicInfo.gender} patterns={patternNames} limits={classicsLimits} natal={natal} />
                         </div>
 
                         <footer className="wenmo-pattern-actions wenmo-pattern-actions--single">
@@ -3279,6 +3323,25 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                                     <span>生成双人分析指令</span>
                                 )}
                             </button>
+                            {babyPrompt && (
+                                <div className="space-y-2" data-testid="baby-prompt-fallback">
+                                    <p className="text-xs text-gray-600">指令已生成，但浏览器没有允许自动复制。请点下面的按钮复制，或长按文字全选复制。</p>
+                                    <textarea
+                                        readOnly
+                                        aria-label="双人分析指令"
+                                        value={babyPrompt}
+                                        onFocus={(event) => event.target.select()}
+                                        className="h-32 w-full rounded border border-gray-300 p-2 text-xs text-gray-700"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => copyToClipboard(babyPrompt)}
+                                        className="w-full rounded-lg border border-purple-500 py-2 text-sm font-bold text-purple-700 hover:bg-purple-50"
+                                    >
+                                        复制指令
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

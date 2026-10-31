@@ -56,7 +56,8 @@ import { getShensha, SHENSHA_ORDER, SHENSHA_SOURCES } from '../utils/baziShensha
 import { cite } from '../data/classics';
 import { analyzeStrength, favorBasisOf } from '../utils/baziStrength';
 import { judgeBaziPattern } from '../utils/baziPattern';
-import { analyzeLiuqin } from '../utils/baziLiuqin';
+import { describeQuYun } from '../utils/baziQuYun';
+import { analyzeLiuqin, liuqinOfYun } from '../utils/baziLiuqin';
 
 // 摘要卡上的格局成败小标签（《子平真诠》口径）。
 const CHENG_BAI_CHIP = {
@@ -66,13 +67,18 @@ const CHENG_BAI_CHIP = {
     败中有成: 'border-[#315f7d]/40 bg-[#315f7d]/[0.08] text-[#2b4f68]',
     default: 'border-[#cbbfac] text-[#5f574f]',
 };
-import { describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks, zhiFavorText } from '../utils/baziYearMarks';
+import { describeYearMarks, describeYearSummary, ganFavorText, getDaYunMarks, getLiuNianMarks, zhiFavorText } from '../utils/baziYearMarks';
 import { buildBaziShareUrl } from '../utils/baziLink';
 import { buildShareCardModel, renderBaziShareCard } from '../utils/baziShareCard';
 
 // 大运卡片底边、流年按钮右上角的喜忌颜色。
 const FAVOR_CLASS = { good: 'bg-[#2d6b62]', bad: 'bg-[#a33b30]', neutral: 'bg-[#b9ad98]', mixed: 'bg-[linear-gradient(90deg,#2d6b62_50%,#a33b30_50%)]' };
 const FAVOR_TEXT = { good: '喜', bad: '忌', neutral: '平', mixed: '喜忌参半' };
+const YUN_LIUQIN_BADGE = {
+    good: { className: 'bg-[#2d6b62] text-white', label: '利' },
+    bad: { className: 'bg-[#a33b30] text-white', label: '不利' },
+    neutral: { className: 'bg-[#8a8074] text-white', label: '平' },
+};
 const YEAR_BADGE_CLASS = {
     clash: 'bg-[#a33b30] text-white', punish: 'bg-[#b06a1f] text-white', harm: 'bg-[#6b4f8a] text-white',
     echo: 'bg-[#315f7d] text-white', break: 'bg-[#8a8074] text-white',
@@ -514,6 +520,24 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
             return null;
         }
     }, [selectedLiuNian, baziResult, daYunPillar, strength, selectedYearMarks]);
+    // 格局取运（《子平真诠》各格取运篇）：按成败判定记下的那一条给所选大运、流年的十神标喜忌，与扶抑喜忌并列。
+    const quYun = patternJudge?.chengBai?.quYun ?? null;
+    const quYunContext = useMemo(() => (baziResult ? {
+        monthZhi: baziResult.pillars.find((pillar) => pillar.key === 'month')?.zhi ?? null,
+        guanGans: baziResult.pillars.filter((pillar) => pillar.key !== 'day' && pillar.ganShiShen === '正官').map((pillar) => pillar.gan),
+    } : null), [baziResult]);
+    const selectedDaYunQuYun = useMemo(() => (quYun && quYunContext && selectedDaYun && !selectedDaYun.isXiaoYun ? describeQuYun(selectedDaYun, quYun, quYunContext) : null), [quYun, quYunContext, selectedDaYun]);
+    const selectedLiuNianQuYun = useMemo(() => (quYun && quYunContext && selectedLiuNian ? describeQuYun(selectedLiuNian, quYun, quYunContext) : null), [quYun, quYunContext, selectedLiuNian]);
+    // 此运六亲：所选大运对妻（夫）、子女、父母、兄弟的引动（按此运喜忌、克星、冲刑宫位推，见 liuqinOfYun）；小运不论。
+    const selectedDaYunLiuqin = useMemo(() => {
+        if (!baziResult || !strength || !selectedDaYun || selectedDaYun.isXiaoYun) return null;
+        try {
+            return liuqinOfYun(baziResult, strength, selectedDaYun.ganZhi, { special: patternJudge?.special ?? null, liuqin });
+        } catch (error) {
+            console.error('此运六亲推算失败:', error);
+            return null;
+        }
+    }, [baziResult, strength, selectedDaYun, patternJudge, liuqin]);
 
     const selectionRelations = useMemo(() => {
         if (!selectedLiuRi) return [];
@@ -1417,13 +1441,18 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                             const isSelected = selectedDaYun?.index === daYun.index;
                                                             const favor = daYun.isXiaoYun ? null : getDaYunMarks(daYun, { strength: favorBasis, chart: baziResult }).favor;
                                                             return (
-                                                                <button key={daYun.index} data-dayun-index={daYun.index} type="button" aria-pressed={isSelected} aria-expanded={isSelected} onClick={() => selectDaYun(daYun)} className={`relative min-h-[5.75rem] w-[5.6rem] shrink-0 snap-start overflow-hidden rounded-xl border px-2 py-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f3ecdf] ${isSelected ? 'border-[#a33b30] bg-[#fffaf0] shadow-sm' : daYun.isCurrent ? 'border-[#2d6b62]/70 bg-[#2d6b62]/[0.07]' : 'border-[#cbbfac] bg-[#f8f1e6] hover:border-[#9e8f7a]'}`}>
+                                                                <button key={daYun.index} data-dayun-index={daYun.index} type="button" aria-pressed={isSelected} aria-expanded={isSelected} onClick={() => selectDaYun(daYun)} className={`relative min-h-[5.75rem] w-[5.6rem] shrink-0 snap-start rounded-xl border px-2 py-2 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f3ecdf] ${isSelected ? 'border-[#a33b30] bg-[#fffaf0] shadow-sm' : daYun.isCurrent ? 'border-[#2d6b62]/70 bg-[#2d6b62]/[0.07]' : 'border-[#cbbfac] bg-[#f8f1e6] hover:border-[#9e8f7a]'}`}>
                                                                     {daYun.isCurrent && <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#2d6b62] px-1.5 py-0.5 text-[10px] font-bold leading-4 text-white">当前</span>}
                                                                     <span className="block text-[11px] tabular-nums text-[#81776b]">{daYun.startAge}-{daYun.endAge}虚岁</span><span className="mt-1 block font-serif text-xl font-bold tracking-[0.12em] text-[#3b342e]">{daYun.isXiaoYun ? '小运' : daYun.ganZhi}</span><span className="mt-1 block text-[11px] tabular-nums text-[#81776b]">{daYun.startYear}-{daYun.endYear}</span>
                                                                     {favor?.cover?.kind === '截脚' && <span className="absolute right-1 top-1 text-[10px] font-bold leading-none text-[#a33b30]" aria-hidden="true" data-testid="bazi-dayun-jiejiao">截</span>}
+                                                                    {favor?.cover?.kind === '喜泄于忌' && <span className="absolute right-1 top-1 text-[10px] font-bold leading-none text-[#a33b30]" aria-hidden="true" data-testid="bazi-dayun-xie">泄</span>}
+                                                                    {favor?.cover?.kind === '喜盖忌' && <span className="absolute right-1 top-1 text-[10px] font-bold leading-none text-[#2d6b62]" aria-hidden="true" data-testid="bazi-dayun-gaitou">盖</span>}
                                                                     {favor && (
-                                                                        <span className="absolute inset-x-0 bottom-0 flex h-1" role="img" aria-label={`天干${favor.gan.element}${FAVOR_TEXT[favor.gan.tone]}，${zhiFavorText(daYun.zhi, favor.zhi)}${FAVOR_TEXT[favor.zhi.tone]}${favor.cover ? `；${favor.cover.text}` : ''}`}>
-                                                                            <span className={`flex-1 ${FAVOR_CLASS[favor.gan.tone]}`} /><span className={`flex-1 ${FAVOR_CLASS[favor.zhi.tone]}`} />
+                                                                        // 色条单独裁成卡片的圆角：卡片本身不裁，顶上的「当前」才不会被切掉一半。
+                                                                        <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
+                                                                            <span className="absolute inset-x-0 bottom-0 flex h-1" role="img" aria-label={`${ganFavorText(daYun.gan, favor.gan)}${FAVOR_TEXT[favor.gan.tone]}，${zhiFavorText(daYun.zhi, favor.zhi)}${FAVOR_TEXT[favor.zhi.tone]}${favor.cover ? `；${favor.cover.text}` : ''}`}>
+                                                                                <span className={`flex-1 ${FAVOR_CLASS[favor.gan.tone]}`} /><span className={`flex-1 ${FAVOR_CLASS[favor.zhi.tone]}`} />
+                                                                            </span>
                                                                         </span>
                                                                     )}
                                                                 </button>
@@ -1435,7 +1464,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                     卡片底边左半为天干、右半为地支对日主的
                                                     <span className="mx-1 inline-block size-2 rounded-sm bg-[#2d6b62] align-middle" aria-hidden="true" />喜
                                                     <span className="mx-1 inline-block size-2 rounded-sm bg-[#a33b30] align-middle" aria-hidden="true" />忌
-                                                    <span className="mx-1 inline-block size-2 rounded-sm bg-[#b9ad98] align-middle" aria-hidden="true" />平；地支与原局凑齐三会方、三合局的，按局的五行论。流年右上角的圆点同理。运以地支为重：运干是喜、运支是忌又克运干的（截脚，任注「支不载干，则十年皆否」），右上角标<span className="mx-0.5 font-bold text-[#a33b30]">截</span>，整步运按忌论。
+                                                    <span className="mx-1 inline-block size-2 rounded-sm bg-[#b9ad98] align-middle" aria-hidden="true" />平；地支与原局凑齐三会方、三合局的，按局的五行论。流年右上角的圆点同理。大运地支逢未作火论（南方燥土），癸丑作水、甲辰作木（任注「癸丑北方湿土，亦作水论」「癸卯甲辰东方木地」），流年不论。运以地支为重：运干是喜、运支是忌又克运干的（截脚，任注「支不载干，则十年皆否」），右上角标<span className="mx-0.5 font-bold text-[#a33b30]">截</span>，整步运按忌论；运干喜而生运支之忌的（喜神泄气、忌神得生，任注「金不通根，木得长生」）标<span className="mx-0.5 font-bold text-[#a33b30]">泄</span>，也按忌论；运干喜而克住运支之忌的（任注「辛卯庚寅盖头，逢金不能生火坏印」）标<span className="mx-0.5 font-bold text-[#2d6b62]">盖</span>，按喜论。
                                                     {favorBasis?.source === 'special' && (
                                                         <span className="block text-[#7f4b12]" data-testid="bazi-favor-basis">此盘{favorBasis.specialName}，大运流年与择日的喜忌按此格论（顺其气势为吉）；若不成格，以「五行与旺衰」一节的扶抑喜忌为准。</span>
                                                     )}
@@ -1458,6 +1487,29 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                                 <button type="button" onClick={viewProfessionalSelection} className="hidden min-h-11 rounded-lg bg-[#2d6b62] px-3 text-xs font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#75b4aa] sm:inline-flex sm:items-center">查看专业盘 ↑</button>
                                                             </div>
                                                         </div>
+                                                        {selectedDaYunQuYun && (
+                                                            <p className="mt-2 rounded-lg border border-[#cbbfac]/70 bg-[#e9dfcd]/40 px-3 py-2 text-xs leading-5 text-[#514941]" data-testid="bazi-dayun-quyun">
+                                                                <b className="font-serif text-[#3b342e]">按格局取运</b>（{quYun.source}「{quYun.texts.join('；')}」）：{selectedDaYun.ganZhi}运，{selectedDaYunQuYun.text}。
+                                                                <span className="block text-[11px] leading-4 text-[#81776b]">这是《子平真诠》「即以所就之格，分而配之」的配运口径，与上面按旺衰取的喜忌并列参考；原书没写到的十神标「原书未言」。</span>
+                                                            </p>
+                                                        )}
+                                                        {selectedDaYunLiuqin && (
+                                                            <div className="mt-2 rounded-lg border border-[#cbbfac]/70 bg-[#fffaf0]/80 px-3 py-2 text-xs leading-5 text-[#514941]" data-testid="bazi-dayun-liuqin">
+                                                                <p><b className="font-serif text-[#3b342e]">此运六亲</b>（{selectedDaYun.ganZhi}运，程序初判）</p>
+                                                                <ul className="mt-1 space-y-1">
+                                                                    {selectedDaYunLiuqin.items.map((item) => {
+                                                                        const badge = YUN_LIUQIN_BADGE[item.tone] ?? YUN_LIUQIN_BADGE.neutral;
+                                                                        return (
+                                                                            <li key={item.key} className="flex items-start gap-1.5">
+                                                                                <span className={`mt-0.5 inline-flex shrink-0 rounded px-1 text-[10px] font-bold leading-4 ${badge.className}`}>{badge.label}</span>
+                                                                                <span>{item.text}</span>
+                                                                            </li>
+                                                                        );
+                                                                    })}
+                                                                </ul>
+                                                                <span className="mt-1 block text-[11px] leading-4 text-[#81776b]">任注论运中六亲多就岁运喜忌说：「交己未，妻子皆伤」是忌运连及六亲，「壬运克丙坏印，丁外艰」是运克其星。这里按此运喜忌、运干支克其星、运支冲刑其宫推，只作参考。</span>
+                                                            </div>
+                                                        )}
                                                         <ul className="mt-3 grid grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-5">
                                                             {visibleLiuNian.map((liuNian) => {
                                                                 const isSelected = selectedLiuNian?.year === liuNian.year;
@@ -1492,6 +1544,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                         {selectedLiuNian && selectedYearMarks && (
                                                             <p className="mt-3 rounded-lg bg-[#e9dfcd]/50 px-3 py-2 text-xs leading-5 text-[#514941]">
                                                                 <b className="font-serif text-[#3b342e]">{selectedLiuNian.year} {selectedLiuNian.ganZhi}流年</b>：{describeYearMarks(selectedLiuNian, selectedYearMarks) || '与本命年支、日柱没有特别的冲合'}
+                                                                {selectedLiuNianQuYun && <span className="block" data-testid="bazi-year-quyun">按格局取运：{selectedLiuNianQuYun.text}。</span>}
                                                             </p>
                                                         )}
                                                         {selectedYearSummary && (

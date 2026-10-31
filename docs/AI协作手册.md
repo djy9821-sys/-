@@ -108,6 +108,9 @@ node scripts/check-zhanli.mjs     # 六爻占例：applies 的卦、动爻、地
 格式：
 - 一律按 `src/data/classics/README.md` 的结构写 JSON；`node scripts/validate-data.mjs` 过了才算格式合格。
 - `applies` 只编能确定的条件，编不出来写 `note`。
+- `notes`、`doubts` 会显示在结果页的古籍卡片上（「注：」「存疑：」），写给读者看：术语简释、校勘结论、拿不准的地方，每句话要能单独读懂。
+  底本页码（PDF 第几页、书内卷几第几页）、录入过程（本批、原录、重录、撤下旧白话、改了哪些字）界面上会滤掉（见 `src/data/classics/editorial.js`），
+  这些写进 PR 描述更好；实在要留在数据里，单独成句，别和简释写在同一句里。
 
 ## 7. 验收标准
 
