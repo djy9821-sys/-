@@ -351,3 +351,14 @@ test('乡试会试章：旺官持世功名可望（日月动爻合成官局亦�
   assert.match(allText(hua), /世动化出官鬼回头克世，化鬼更凶/);
   assert.equal(hua.verdict.level, 'bad');
 });
+
+test('功名诸章：子孙持世，子孙克官，休问功名，倾向至多偏弱', () => {
+  // 戌月丁卯日占终身功名有无得需：「子孙持世，休问功名……终身不许成名」
+  const zi = bookCase('水天需', [], '2001-10-31', { topic: 'career' });
+  assert.match(allText(zi), /功名（升选候补章、终身功名有无章）：子孙持世，子孙克官，休问功名/);
+  assert.equal(zi.verdict.level, 'bad');
+  // 申月戊寅日占得差否得夬：「子孙持世，此差不得；世空亦不得」
+  assert.equal(bookCase('泽天夬', [], '2002-9-7', { topic: 'career' }).verdict.level, 'bad');
+  // 只论功名：同一卦问求财不加这一条
+  assert.doesNotMatch(allText(bookCase('水天需', [], '2001-10-31', { topic: 'wealth' })), /休问功名/);
+});
