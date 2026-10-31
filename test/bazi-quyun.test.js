@@ -48,16 +48,17 @@ test('财旺生官（葛参政 壬申 壬子 戊午 乙卯）：论财取运「�
 });
 
 test('正官格总则「与地支刑冲，不问所就何局，皆不利」：运支冲月令按忌，并写明缘由', () => {
-  const chart = chartOf(['庚子', '辛巳', '辛酉', '己丑']);
+  const chart = chartOf(['庚子', '辛巳', '辛酉', '乙未']);
   const { chengBai } = judgeOf(chart);
   assert.equal(chengBai.group, '正官格');
   const quYun = chengBai.quYun;
   assert.ok(quYun.clashMonth);
-  // 这张盘是正官佩印，「运喜财乡，伤食反吉」：运干食神喜；运支亥冲月令巳，总则「皆不利」
+  // 这张盘是正官用财，「运喜印缓身旺之地，切忌食伤」：运干食神忌；运支亥冲月令巳，总则「皆不利」
   const clash = describeQuYun({ gan: '癸', zhi: '亥', ganShiShen: '食神', hiddenShiShens: ['伤官', '正财'] }, quYun, contextOf(chart));
   assert.equal(clash.zhi.tone, 'bad');
   assert.match(clash.zhi.note, /刑冲月令巳/);
-  assert.equal(clash.gan.tone, 'good');
+  assert.equal(clash.gan.tone, 'bad');
+  assert.equal(quYun.favor.印, 'good');
   assert.equal(quYun.favor.七杀, 'bad');
 });
 
