@@ -366,6 +366,10 @@ export const determinePattern = (chart, summary = null) => {
  *   拔去之后日主与帮身之干都再无一点根的，印根拔尽，这一支按冲它的财论（「三申冲去一寅，丙火之根已拔，比肩亦不能为力」「喜其巳亥逢冲破印，格成弃命从杀」
  *   「嫩木逢金，紧贴相冲，连根拔尽……格成从杀」；510 造只改判这三造，岁运同 612 → 615、反 185 → 182，格局漏判 12 → 11）。
  *   禄刃之根被冲不算（甲坐寅禄、丙午月刃被冲的，任注都不作从），日主坐下的印也不算（「巳亥虽冲破印，喜卯木仍能生火」）。
+ *   库支随月令之神：月令本气是食伤财官、又透出天干，库里藏的正是这一行（辰藏水、戌藏火、未藏木、丑藏金），库的本气戊己
+ *   不是日主同类、也不透出的，论从时这一支随月令之神论（任注「辰土，乃水之库，木之余气，能蓄水养木，不能生金」；
+ *   壬寅 辛亥 辛亥 壬辰「壬水当权……格取从儿」，丙辰运「官印齐来」、戊戌年「冲动印绶，破其伤官，不禄」——辰中之印不透，冲开才发；
+ *   子平真诠论杂气「透干会支，取其清者用之」）。510 造只此一造改判，岁运同 615 → 619、反 182 → 178。
  * - 专旺、从强（「旺极者似X」）：打分到极强（或同党占八成以上），而且四支本气都是印比，不见食伤、财、官杀之根。
  *   日主本气的三合、三会局齐全而全局不见官杀的（方局篇「支全寅卯辰，东方一气」「丁卯 甲辰 甲寅 乙亥……格名曲直仁寿」），
  *   打分不到极强也作专旺，局外的同气余气支（火局的未、木局的辰……）随局论（「支全火局，木从火势，格成炎上」）；
@@ -452,6 +456,19 @@ export const detectSpecialPattern = (chart, strength, summary) => {
   Object.values(ju).forEach((element) => pillars.forEach((pillar) => {
     if (pillar.zhi === KU_ZHI[element] && !congJu[pillar.zhi]) congJu[pillar.zhi] = element;
   }));
+  // 库支随月令之神：月令本气是食伤财官、又透出天干，库里藏的正是这一行（辰藏水、戌藏火、未藏木、丑藏金），
+  // 库的本气戊己既不是日主同类、也不透出的，论从时这一支随月令之神论（条件与命例见函数说明）。
+  const lingElement = GAN_WUXING[byKey.month?.hiddenGanDetails?.[0]?.gan];
+  const kuSuiLing = {};
+  if (lingElement && lingElement !== dayWuxing && lingElement !== GENERATED_BY[dayWuxing]
+    && stems.some((stem) => stem.key !== 'day' && GAN_WUXING[stem.gan] === lingElement)) {
+    pillars.forEach((pillar) => {
+      const own = GAN_WUXING[pillar.hiddenGanDetails?.[0]?.gan];
+      if (pillar.zhi !== KU_ZHI[lingElement] || congJu[pillar.zhi] || own === dayWuxing || stems.some((stem) => GAN_WUXING[stem.gan] === own)) return;
+      kuSuiLing[pillar.zhi] = lingElement;
+    });
+  }
+  Object.assign(congJu, kuSuiLing);
   // 地支的印被财冲克、印根拔去的，论从时这一支按冲它的财论（任注「三申冲去一寅，丙火之根已拔」戊寅 庚申 丙申 丙申，
   // 「巳亥逢冲破印，格成弃命从杀」癸巳 乙卯 己亥 癸酉）；禄刃、日主坐下的印冲不去。条件见函数说明。
   const chongVictims = pillars.map((pillar) => {
@@ -511,7 +528,11 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     // 日主坐禄，只因这一支会入他局才算无根的，不作从论：禄是日主最得力之根，会局夺不走（庚戌 乙酉 甲寅 庚午，甲坐寅禄而寅午戌会火局，
     // 任注不作从，「子运冲破火局……益我日主之气；辰年湿土……培日主之根源也」）；坐库的照旧随局（己未而亥卯未会木局，「未土又会木局，不得不从杀矣」）。
     if (LU[dayGan] === byKey.day?.zhi && congJu[byKey.day.zhi]) return null;
-    const juText = [...new Set(Object.values(congJu))].map((element) => `${Object.keys(congJu).filter((zhi) => congJu[zhi] === element).join('')}会成${element}局`).join('、');
+    const juZhis = Object.keys(congJu).filter((zhi) => !kuSuiLing[zhi]);
+    const juText = [
+      ...[...new Set(juZhis.map((zhi) => congJu[zhi]))].map((element) => `${juZhis.filter((zhi) => congJu[zhi] === element).join('')}会成${element}局`),
+      ...Object.entries(kuSuiLing).map(([zhi, element]) => `${zhi}为${element}库，随月令${byKey.month.zhi}${element}论`),
+    ].join('、');
     const rootText = (score?.roots ?? []).map((root) => `${root.zhi}中${root.gan}`).join('、');
     const byBranches = congByBranches && !congByRatio && !congByScore;
     const rootPart = rootText ? `地支无比劫之根，只有${rootText}一点印气` : '地支无根';
