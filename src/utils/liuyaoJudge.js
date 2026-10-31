@@ -228,9 +228,9 @@ export const assessStrength = (target, time) => {
       score -= 2;
       notes.push('又逢旬空，破而且空');
     } else if (target.isMoving || marks.includes('日冲') || monthSupports || daySupports) {
+      // 旬空章「旺不为空，动不为空，有日建动爻生扶者，亦不为空」：不扣分，只在应期上等出空（占本人婚姻「戌土虽值旬空，动不为空，明日出空之日，求之必允」）
       emptyKind = '假空';
-      score -= 1;
-      notes.push('旬空，但有气（动、冲、生扶），出空即实');
+      notes.push('旬空，但有气（动、冲、生扶），不为空，出空即实');
     } else if (DEAD_IN_SEASON[SEASON_OF[time.monthZhi]] === target.element) {
       emptyKind = '真空';
       score -= 3;
@@ -297,10 +297,8 @@ const changeOf = (line, time) => {
   }
   // 化进化退，变爻空破不改其进退：占自陈「子孙动休囚而化空破，进者进，而退者竟退」，占考试「动散化空亦能中矣」
   const steps = relation === 'same' && (PROGRESS[line.zhi] === changed.zhi || PROGRESS[changed.zhi] === line.zhi);
-  if (changedMarks.includes('旬空')) {
-    text += steps ? '，变爻旬空（进退不因空破而改）' : '，变爻旬空';
-    if (!steps) score -= 1;
-  }
+  // 旬空章「动而化空……皆不为空」：变爻旬空只记应期，不扣分
+  if (changedMarks.includes('旬空')) text += steps ? '，变爻旬空（进退不因空破而改）' : '，变爻旬空（动而化空不为空，出空之日应）';
   if (changedMarks.includes('月破')) {
     text += steps ? '，变爻月破（进退不因空破而改）' : '，变爻月破';
     if (!steps) score -= 1;
@@ -426,6 +424,12 @@ const dynamicsOf = (yong, lines, time, { sonsBless = false, framed = new Set() }
   const foes = movers.filter((item) => item.relation === 'spent');
   const liveHelper = helpers.find((item) => active(item) && item.power.force !== 'weak');
   const liveFoe = foes.find((item) => active(item));
+  // 日辰章「爻临日建，月冲不破，月克无伤，逢动爻之克亦不为害」「爻临日建而月建动爻同来克者，似寡不敌众」：
+  // 用神临日辰，单有动爻来克不为害（占借贷得晋「所喜卯日即是财星」，不以酉金兄爻暗动克财为嫌）；月建也克用神、忌神就是月建入卦，
+  // 或仇神同动生着忌神（占母血崩「戌土以生申金……此父母爻既无水养，且化退神」），克多生少，才是寡不敌众
+  const monthElement = ZHI_ELEMENT[time.monthZhi];
+  const dayLord = !yong.hidden && yong.zhi === time.dayZhi;
+  const outnumbered = Boolean(liveFoe) || relationOf(yong.element, monthElement) === 'controlled' || enemies.some((item) => active(item) && item.line.zhi === time.monthZhi);
 
   let score = 0;
   const texts = [];
@@ -450,6 +454,7 @@ const dynamicsOf = (yong, lines, time, { sonsBless = false, framed = new Set() }
       text = `${who}，子孙为福神，克世亦吉`;
     } else if (relation === 'controlled') {
       if (bound) text = `${who}为忌神，${bound}，贪合忘克`;
+      else if (dayLord && !outnumbered) text = `${who}为忌神，但用神临日辰，如山如冈，逢动爻之克亦不为害（《增删卜易·日辰章》）`;
       else if (liveHelper) {
         delta = 1;
         text = `${who}为忌神，与元神${liveHelper.line.ganZhi}同动：忌神生元神、元神生用神，接续相生，反为吉兆`;
@@ -512,6 +517,10 @@ const describeHiddenFlyer = (hiddenItem, flyer, time, lines) => {
   if (CONTROLS[dayElement] === hiddenItem.element || CONTROLS[monthElement] === hiddenItem.element || ZHI_CLASH[time.dayZhi] === hiddenItem.zhi || ZHI_CLASH[time.monthZhi] === hiddenItem.zhi) useless.push('被日月冲克');
   if (CONTROLS[flyer.element] === hiddenItem.element && flyerStrength.level === '旺相') useless.push('被旺相之飞神克害');
   if ([time.dayZhi, time.monthZhi, flyer.zhi].some((zhi) => ['墓', '绝'].includes(stageAt(hiddenItem.element, zhi)))) useless.push('墓绝于日月飞爻');
+  // 伏神自身空破、被日月冲克、被旺相飞神克害、墓绝（其六所列，休囚无气除外），飞神再空破衰墓也引拔不出：
+  // 占求财得睽之损「子财空伏于五爻未土之下，伏而又空，空而被克，知其无财而无疑也」；只是休囚无气的，飞神空破仍易出（占子病得地风升）
+  const damaged = useless.filter((item) => item !== '休囚无气');
+  if (damaged.length) return { score: -2, text: `伏神${damaged.join('、')}${easy.length ? `，虽则${easy.join('、')}，伏而又空、空而被克者` : ''}，虽有如无，终不能出（《增删卜易·飞伏神章》）` };
   if (easy.length) return { score: 3, text: `伏神易出（${easy.join('、')}），空下伏神，易于引拔，虽不现亦如现` };
   if (useful.length && !useless.length) return { score: 2, text: `伏神有用（${useful.join('、')}），虽不现亦如现` };
   if (useless.length && !useful.length) return { score: -1, text: `伏神无用（${useless.join('、')}），虽有如无，终难出现` };
@@ -689,8 +698,9 @@ const TOPIC_RULES = Object.freeze({
         score -= 2;
         notes.push('久病用神值旬空，即使旺相亦难医治');
       } else if (recent) {
-        score += 2;
-        notes.push('用遇旬空，近病何须忧虑：冲空、实空之日即愈');
+        // 疾病章其五「用神动静而值旬空，及化空者……许之冲空实空之日即愈。倘逢冲克，病虽重而不死」；占父近病得萃之否「近病逢空即愈，许次日退灾」
+        score += 3;
+        notes.push('用遇旬空，近病何须忧虑：冲空、实空之日即愈（《增删卜易·疾病章》）');
       } else notes.push('用神值旬空：新病冲空、实空之日即愈，久病则难医');
     }
     if (strength.marks.includes('月破')) {
@@ -772,10 +782,14 @@ const TOPIC_RULES = Object.freeze({
     let score = 0;
     const notes = [];
     if (proxy) {
-      if (yong.hidden) notes.push(`用神伏藏，待出现之日（${yong.zhi}日或冲开飞神之${ZHI_CLASH[yong.flyer.zhi]}日）`);
-      else if (yong.fromChange) {
+      if (yong.hidden) {
+        // 行人章「伏藏者出现之日」：伏神不论有用无用，出现之日即到（占仆人何日回「午火财爻伏而被日月之克……巳日必到」）
         score += 2;
-        notes.push(`用神由动爻化出，${yong.zhi}日可望`);
+        notes.push(`用神伏藏，出现之日即到（${yong.zhi}日或冲开飞神之${ZHI_CLASH[yong.flyer.zhi]}日）`);
+      } else if (yong.fromChange) {
+        // 占主人何日回「子水财爻化出巳火父，动爻不克变爻，巳日必到」
+        score += 3;
+        notes.push(`用神由动爻化出，动爻不克变爻，${yong.zhi}日必到`);
       } else if (yong.isMoving || isDarkMoving(yong, time)) {
         score += 2;
         notes.push(`用神${yong.isMoving ? '发动' : '暗动'}，明摇暗动归鞭发矣`);
@@ -806,8 +820,9 @@ const TOPIC_RULES = Object.freeze({
           score -= 1;
           notes.push('用神休囚安静，且不思归');
         } else if (strength.level === '旺相') {
-          score += 2;
-          notes.push(`用神旺相，静待冲动之${ZHI_CLASH[yong.zhi]}日必归`);
+          // 行人章「用爻静者，冲动之日」；占子久出不归「世临子孙，又临月建，未日生之，虽是六冲卦，此子必归」
+          score += 3;
+          notes.push(`用神旺相安静，静待冲动之${ZHI_CLASH[yong.zhi]}日必归`);
         } else notes.push(`用神安静，归期多在冲动之${ZHI_CLASH[yong.zhi]}日`);
       }
       if (!yong.hidden) {
@@ -840,7 +855,8 @@ const TOPIC_RULES = Object.freeze({
       score -= 1;
       notes.push('世爻休囚空破，不宜行');
     }
-    if (yingLine.marks.includes('旬空')) {
+    // 出行章「应若空亡宜止」「应为地头……若空破墓绝……去之无益」；旬空章「旺不为空，动不为空，有日建动爻生扶者亦不为空」，假空不算
+    if (yingLine.marks.includes('旬空') && assessStrength(yingLine, time).emptyKind !== '假空') {
       score -= 1;
       notes.push('应为地头，应爻旬空，去之无益');
     }
@@ -877,17 +893,23 @@ const TOPIC_RULES = Object.freeze({
       score += 1;
       notes.push('卦逢六合，聚气藏风');
     } else if (hexagram.relation === '六冲') {
-      score -= 1;
+      // 寻地章「若得六冲卦，或六冲，或世应相冲，冲者散也，必无气脉」：六冲卦不变合的，至多偏弱
+      score -= 2;
       notes.push('卦逢六冲，飞砂走石，必无气脉');
     }
+    let noVein = hexagram.relation === '六冲';
     if (hexagram.relation === '六冲' && changed?.relation === '六合') {
       score += 1;
+      noVein = false;
       notes.push('六冲变合，地已去而复来，再得世与子孙旺相，急宜用之');
     } else if (hexagram.relation === '六合' && changed?.relation === '六冲') {
       score -= 1;
       notes.push('六合变冲，形已成而复失，不宜用之');
     }
-    if (ZHI_CLASH[shiLine.zhi] === yingLine.zhi) notes.push('世应相冲，亦非吉地');
+    if (ZHI_CLASH[shiLine.zhi] === yingLine.zhi) {
+      if (hexagram.relation !== '六冲') score -= 1;
+      notes.push('世应相冲，亦非吉地');
+    }
     if (shiLine.isMoving && shiLine.changed) {
       if (PROGRESS[shiLine.zhi] === shiLine.changed.zhi) notes.push('世化进神，千秋绵远');
       else if (PROGRESS[shiLine.changed.zhi] === shiLine.zhi) notes.push('世化退神，终须迁改');
@@ -929,7 +951,7 @@ const TOPIC_RULES = Object.freeze({
     if (spoiled) notes.push(`${spoiled === shiLine ? '世爻' : '子孙'}动而化破、化墓绝、化退或化回头克，但逢一者，皆非吉地`);
     return {
       score,
-      cap: Boolean(spoiled),
+      cap: Boolean(spoiled) || noVein,
       points: notes.length ? [`寻地：${notes.join('；')}`] : [],
       notices: ['寻地、点穴以世爻为穴（野鹤：「所验者，世为穴也」），子孙为儿孙；已葬的坟请改选「祖坟风水」，以父母为用神（《增删卜易·寻地章》）。'],
     };
@@ -1022,15 +1044,47 @@ const TOPIC_RULES = Object.freeze({
     };
   },
   // 婚姻章：男占取财、女占取官；女占不宜子孙持世发动（克夫），男占忌兄弟持世（伤妻阻隔）；世应俱空事无准实
-  love: ({ shiLine, yingLine, yong, time }) => {
+  love: ({ lines, shiLine, yingLine, yong, time }) => {
     let score = 0;
     const notes = [];
     if (yong.relative === '官鬼' && shiLine.relative === '子孙') {
       score -= 2;
       notes.push('女占而子孙持世，克夫之象');
-    } else if (yong.relative === '妻财' && shiLine.relative === '兄弟') {
+    } else if (yong.relative === '官鬼' && movingOf(lines, '子孙').length) {
+      // 婚姻章其十三「女占男，不宜子孙持世、子孙发动，子孙乃克夫之神」
       score -= 1;
-      notes.push('男占而兄弟持世，伤妻阻隔之神');
+      notes.push('女占而子孙发动，克夫之神');
+    } else if (yong.relative === '妻财' && shiLine.relative === '兄弟') {
+      // 其十二「兄爻持世……婚必难成」，觉子「兄持世，财爻合世必成」
+      if (!yong.hidden && ZHI_HARMONY[yong.zhi] === shiLine.zhi) notes.push('男占而兄弟持世，但财爻合世，亦成');
+      else {
+        score -= 1;
+        notes.push('男占而兄弟持世，伤妻阻隔之神');
+      }
+    }
+    // 其二十「应财世鬼，夫唱妇随……世持鬼应持财，谓之阴阳得位，必然鸾凤齐鸣」（占本人婚姻得恒之鼎「酉官持世，戌土财爻动而生世」）
+    if (yong.relative === '妻财' && shiLine.relative === '官鬼' && yingLine.relative === '妻财') {
+      score += 1;
+      notes.push('世持官鬼、应持妻财，阴阳得位，鸾凤齐鸣');
+    }
+    // 其九「世动化进神，事在必成；若化退神，终须难就」
+    if (shiLine.isMoving) {
+      const flags = changeFlagsOf(shiLine, time);
+      if (flags.advance) {
+        score += 2;
+        notes.push('世动化进神，事在必成');
+      } else if (flags.retreat) {
+        score -= 1;
+        notes.push('世动化退神，终须难就');
+      }
+    }
+    // 其六「虽是女家占男，亦要财爻不致于失陷」（占女家婚事得临之既济「财被回头克，又逢丑土之克……婚姻虽成，终有他变」）：
+    // 财官两爻一卦关乎男女两人，非用神的那一个动而化回头克、化墓绝，婚虽成亦有变
+    const other = yong.relative === '官鬼' ? '妻财' : yong.relative === '妻财' ? '官鬼' : '';
+    const spoiled = other ? lines.find((line) => line.relative === other && line.isMoving && line.position !== yong.position && (() => { const flags = changeFlagsOf(line, time); return flags.backCtrl || flags.tomb || flags.jue; })()) : null;
+    if (spoiled) {
+      score -= 2;
+      notes.push(`${lineLabel(spoiled)}动而化${changeFlagsOf(spoiled, time).backCtrl ? '回头克' : '墓绝'}，财官不能相生，婚姻虽成，终有他变（《增删卜易·婚姻章》）`);
     }
     if (shiLine.marks.includes('旬空') && yingLine.marks.includes('旬空')) {
       score -= 1;
@@ -1461,7 +1515,7 @@ const judgeWeather = (reading, meta) => {
  * 卦逢六冲（或卦变六冲）按所问之事论（《增删卜易》六冲章、疾病章、行人章）：
  * 凡占凶事宜于冲散；问病近病逢冲即愈、久病逢冲不论用神衰旺难治；行人逢冲无定不返；其余事多散、难久。
  */
-const clashEffectOf = (topic, { illness, proxy, changedOnly, yongStrong = false }) => {
+const clashEffectOf = (topic, { illness, proxy, changedOnly, yongStrong = false, yongWeak = false }) => {
   const where = changedOnly ? '卦变六冲' : '卦逢六冲';
   if (topic === 'lawsuit' || topic === 'refuge') return { score: 1, text: `${where}：凡占凶事，宜于冲散（《增删卜易·六冲章》）` };
   if (topic === 'health') {
@@ -1474,6 +1528,11 @@ const clashEffectOf = (topic, { illness, proxy, changedOnly, yongStrong = false 
     if (yongStrong) return { score: 0, text: `${where}本主行人无定，但用神旺相，冲动之期可归（《增删卜易·行人章》占例）` };
     return { score: -1, text: `${where}：行人无定，一时不返（《增删卜易·行人章》）` };
   }
+  // 六冲章「冲者，散也。凡占凶事，宜于冲散；占吉事而不宜。亦必兼用神而言，用神旺，虽冲不破；用神失陷，凶而又凶」
+  // （占流年得艮「官星持世，长生于亥日，业已成矣」、占子久出不归「虽是六冲卦，此子必归」，都是用神旺相而不以六冲为嫌）
+  const name = changedOnly ? '变卦六冲' : '本卦六冲';
+  if (yongStrong) return { score: 0, text: `${name}本主散、不久，但用神旺相，虽冲不破（《增删卜易·六冲章》）` };
+  if (yongWeak) return { score: -2, text: `${name}而用神失陷，凶而又凶（《增删卜易·六冲章》）` };
   return { score: -1, text: changedOnly ? '变卦六冲，先聚后散' : '本卦六冲，事多散、快，难以久长' };
 };
 
@@ -1551,12 +1610,13 @@ export const judgeLiuYao = (reading, options = {}) => {
   if (yong.hidden) {
     // 飞伏神章：用神不现，日辰、月建与用神同五行的，即以日月为用神
     const byDay = ZHI_ELEMENT[time.dayZhi] === yong.element;
+    // 行人只看来与不来：伏神有用无用是在外安否的事（占仆人何日回「若问仆人在外之吉凶者，必不归矣……今问何日可到，不以此断」）
     if (byDay || ZHI_ELEMENT[time.monthZhi] === yong.element) {
-      total += 3;
+      if (!awayTraveler) total += 3;
       points.push(`用神不上卦，而${byDay ? `日辰${time.dayZhi}` : `月建${time.monthZhi}`}属${yong.element}，即以${byDay ? '日辰' : '月建'}为用神（《增删卜易·飞伏神章》）`);
     } else {
       const flyerInfo = describeHiddenFlyer(yong, yong.flyer, time, lines);
-      total += flyerInfo.score;
+      if (!awayTraveler) total += flyerInfo.score;
       points.push(flyerInfo.text);
     }
   }
@@ -1590,15 +1650,19 @@ export const judgeLiuYao = (reading, options = {}) => {
       // 照常计分，只补应期；克神得月建生扶，或日月、动爻又来克用神，寡不敌众，临日月也护不住，再减 2 分（日辰章「爻临日建而月建动爻
       // 同来克者，似寡不敌众……破亦为破，伤亦为伤」，占病得遁之姤「不宜申金月建生亥水回头克世」，月将章「只恐他爻又来克制用爻，虽临月建亦难敌也」）
       const lord = yong.zhi === time.monthZhi ? '月建' : yong.zhi === time.dayZhi ? '日辰' : '';
-      if (change.relation === 'controlled' && lord) {
+      // 「待时」是占事、占病的话；寻地、祖坟、家宅论的是形势，寻地章「世爻……化回头克，但逢一者，皆非吉地」（占以父柩附葬祖茔「世爻被克，不宜附葬」，世临月建亦然）
+      const waitable = !['gravesite', 'ancestral', 'home'].includes(meta.value);
+      if (change.relation === 'controlled' && lord && waitable) {
         const monthOnKiller = relationOf(yong.changed.element, ZHI_ELEMENT[time.monthZhi]);
         const killerByMonth = yong.changed.zhi === time.monthZhi || monthOnKiller === 'same' || monthOnKiller === 'generated';
         const otherAttack = lord === '月建' ? strength.dayRelation === 'controlled' : strength.monthRelation === 'controlled';
         const lineAttack = dyn.movers.some((item) => item.relation === 'controlled' && !item.bound && item.power.force !== 'weak');
         if (!killerByMonth && !otherAttack && !lineAttack) {
+          // 月将章其七「占事者目下不成，待至冲去伤爻之日，则不受其伤矣。病者必愈，图事必成」、日辰章其六「化回头之克亦不为殃」：回头克不扣分，只定应期
+          change.score = 0;
           change.text += lord === '月建'
-            ? `；用神临月建，逢伤亦伤，却有待时之用，待${ZHI_CLASH[yong.changed.zhi]}日冲去克神（《增删卜易·月将章》）`
-            : `；用神临日辰，目下受克，待${ZHI_CLASH[yong.changed.zhi]}日冲去克神（《增删卜易·日辰章》）`;
+            ? `；用神临月建，逢伤亦伤，却有待时之用，目下不成，待${ZHI_CLASH[yong.changed.zhi]}日冲去克神则必成（《增删卜易·月将章》）`
+            : `；用神临日辰，如山如冈，化回头之克亦不为殃，待${ZHI_CLASH[yong.changed.zhi]}日冲去克神（《增删卜易·日辰章》）`;
         } else {
           const why = killerByMonth ? '克神得月建生扶' : otherAttack ? `${lord === '月建' ? '日辰' : '月建'}又来克` : '动爻又来克';
           change.score -= 2;
@@ -1634,6 +1698,12 @@ export const judgeLiuYao = (reading, options = {}) => {
     if (sonsBless && fortune) {
       delta = 3;
       text = '，子孙合局，福神当权，克去身边之鬼';
+    } else if (!yong.hidden && frame.zhis.includes(yong.zhi) && ['controlled', 'drained', 'spent'].includes(relationOf(yong.element, frame.element))) {
+      // 用神自己在局内（如未土用神在亥卯未木局），是被合入局，不是局来克它、泄它：六合章只说「用神在三合之内，被合而留／被合不回」，
+      // 占父近病得萃之否「未土父爻动化进神，戌值旬空，近病逢空即愈」，野鹤不以亥卯未木局克父为嫌；
+      // 局与用神同气、局生用神的照旧（占地得颐之无妄「日月世爻共成三合……以化长生」，戌土世在寅午戌火局内而受局生）
+      delta = 0;
+      text = '，用神在局内，随局合住，不以局克用神论，待冲开之日';
     } else {
       const relation = relationOf(yong.element, frame.element);
       delta = { generated: 3, controlled: -3, same: 2, drained: -1, spent: 0 }[relation];
@@ -1649,8 +1719,10 @@ export const judgeLiuYao = (reading, options = {}) => {
           delta -= 1;
           text += '，局克世爻';
         } else if ((relation === 'same' || relation === 'generated') && (GENERATES[frame.element] === yingLine.element || frame.zhis.includes(yingLine.zhi))) {
+          // 占官缺得否「巳酉丑合成官局而生应爻，不来生世，正所谓出现无情，此缺不得……官生应爻，一定不得」：用神成局而归于应，所求归于他人，至多偏弱
           delta -= 4;
-          text += '，却生应爻不生世，出现无情，利于他人';
+          cap = true;
+          text += '，却生应爻不生世，出现无情，利于他人，所求不得';
         }
       }
     }
@@ -1697,16 +1769,28 @@ export const judgeLiuYao = (reading, options = {}) => {
   let shiYingText = shiYingTexts[shiYingRelation];
   let shiYingScore = { generated: 1, controlled: -1, same: 0, drained: 0, spent: 0 }[shiYingRelation];
   // 应爻安静而休囚，来生世爻生之不起（动静生克章「旺相之爻可以生得休囚之爻」；占复起功名「九五来生，今被日克」，不作吉论）
-  if (shiYingRelation === 'generated' && !yingLine.isMoving && !isDarkMoving(yingLine, time) && assessStrength(yingLine, time).level === '休囚') {
+  const yingStill = !yingLine.isMoving && !isDarkMoving(yingLine, time);
+  const yingStrength = assessStrength(yingLine, time);
+  if (shiYingRelation === 'generated' && yingStill && yingStrength.level === '休囚') {
     shiYingScore -= 1;
     shiYingText = '应爻虽生世，而休囚安静，生之不起';
-  }
-  if (ZHI_HARMONY[shiLine.zhi] === yingLine.zhi) {
-    shiYingText += '，世应相合，彼此有情';
+  } else if (shiYingRelation === 'controlled' && sonsBless && yingLine.relative === '子孙' && yingLine.changed?.relative !== '官鬼') {
+    // 出行章「子孙克世者亦吉」、趋避章「子孙若发动于卦中，不拘克世持世，俱以为吉」：应爻是子孙来克世，不作不利论；
+    // 子孙变鬼的不算福神（占出行得明夷之小过「卦中子动变鬼，防儿女少安」）
     shiYingScore += 1;
+    shiYingText = '应爻子孙克世，福神克世亦吉（《增删卜易·出行章》）';
+  } else if (shiYingRelation === 'controlled' && yingStill && yingStrength.level !== '旺相' && !(yingStrength.level === '平' && shiStrength.level === '休囚')) {
+    // 同理，静爻要旺相才克得休囚之爻（占流年得艮「官星持世，长生于亥日，业已成矣」，不以申金应爻克世为嫌）
+    shiYingScore += 1;
+    shiYingText = '应爻虽克世，而安静不旺，克之不动（《增删卜易·动静生克章》）';
+  }
+  // 六合卦世应必合、六冲卦世应必冲，那是卦体，已在卦象里按六合章、六冲章论，不再重复计分
+  if (ZHI_HARMONY[shiLine.zhi] === yingLine.zhi) {
+    shiYingText += hexagram.relation === '六合' ? '，世应相合（六合卦体）' : '，世应相合，彼此有情';
+    if (hexagram.relation !== '六合') shiYingScore += 1;
   } else if (ZHI_CLASH[shiLine.zhi] === yingLine.zhi) {
-    shiYingText += '，世应相冲，彼此不合';
-    shiYingScore -= 1;
+    shiYingText += hexagram.relation === '六冲' ? '，世应相冲（六冲卦体）' : '，世应相冲，彼此不合';
+    if (hexagram.relation !== '六冲') shiYingScore -= 1;
   }
   if (proxy) {
     // 代占：世是问卦的自己，成败看用神，世应只作参考（行人等另有专门断法）
@@ -1722,6 +1806,10 @@ export const judgeLiuYao = (reading, options = {}) => {
         // 用神临应而克世，也是用神来就我：占求财得小畜「应临月建之财以克世，许之必得」
         shiYingScore += 2;
         shiYingText = shiYingText.replace(shiYingTexts.controlled, '用神临应而克世，用神来就我（「应临月建之财以克世，许之必得」）');
+      } else if (shiYingRelation === 'generated') {
+        // 求财章「财爻生世合世克世持世，皆谓之财来就我」；占本人婚姻「戌土财爻动而生世，又得世应相生……求之必允」
+        shiYingScore += 1;
+        shiYingText = shiYingText.replace(shiYingTexts.generated, '用神临应而生世，用神来就我');
       } else shiYingText = `用神临应，事由对方或外界决定；${shiYingText}`;
     } else {
       const yongToShi = relationOf(shiLine.element, yong.element);
@@ -1746,9 +1834,14 @@ export const judgeLiuYao = (reading, options = {}) => {
   if (yong !== shiLine && shiLine.isMoving && changeFlagsOf(shiLine, time).backCtrl && meta.value !== 'travel') {
     if (proxy) shiYingText += `；世爻动而化${shiLine.changed.ganZhi}回头克，问卦的人自己也要当心（《增删卜易·子嗣章》：虽占六亲，常有带出自身之凶者）`;
     else {
-      total -= 2;
+      total -= 3;
       shiYingText += `；世爻动而化${shiLine.changed.ganZhi}回头克，所谋多凶（《增删卜易》：「不宜世爻变鬼，及化回头之克，定见凶危」）`;
     }
+  }
+  // 世是问卦人自己（用神另有六亲时），被日辰克而又不旺：日辰章「爻之强旺，能克害刑冲，似秋霜之杀草」，月将章占开铺「独嫌日辰克世……鬼在身边，须防疾病」
+  if (!proxy && yong !== shiLine && !yong.isShi && shiStrength.dayRelation === 'controlled' && shiStrength.level !== '旺相') {
+    shiYingScore -= 1;
+    shiYingText += '；世爻被日辰克而不旺，问卦人自身受累（《增删卜易·月将章》占开铺「独嫌日辰克世」）';
   }
   total += shiYingScore;
   points.push(`世爻${lineLabel(shiLine)}${shiStrength.level}，应爻${lineLabel(yingLine)}：${shiYingText}`);
@@ -1776,6 +1869,13 @@ export const judgeLiuYao = (reading, options = {}) => {
         notes.push(`${lineLabel(line)}化出妻财，${from === '官鬼' ? '鬼化妻财命不牢' : '兄化财为凶兆'}`);
       }
     });
+    // 歌诀所忌（鬼动、兄摇、财临绝破、鬼化财）一样不犯，用神又不空破休囚，便许无碍（占妹临产得晋「月令克之，日建生之，许之无碍……此月克而日生，无增克制帮扶也」）
+    const dayStage = yong.hidden ? '' : stageAt(yong.element, time.dayZhi);
+    if (!notes.length && !yong.hidden && strength.level !== '休囚' && !strength.marks.includes('月破') && !strength.emptyKind && dayStage !== '绝' && dayStage !== '墓'
+      && !lines.some((line) => line.isMoving && line.position !== yong.position && controls(line, yong))) {
+      total += 2;
+      notes.push('兄鬼不动，用神不临空破墓绝，又无动爻克制，许之无碍');
+    }
     if (notes.length) points.push(`产妇安否（问产妇安否章）：${notes.join('；')}`);
   }
 
@@ -1816,7 +1916,7 @@ export const judgeLiuYao = (reading, options = {}) => {
     structure.push('六合变六冲，合处逢冲，先聚后散');
   } else {
     if (clash || toClash) {
-      const effect = clashEffectOf(meta.value, { illness, proxy, changedOnly: !clash, yongStrong: !yong.hidden && strength.level === '旺相' });
+      const effect = clashEffectOf(meta.value, { illness, proxy, changedOnly: !clash, yongStrong: !yong.hidden && strength.level === '旺相', yongWeak: !yong.hidden && strength.level === '休囚' });
       total += effect.score;
       structure.push(effect.text);
     }
