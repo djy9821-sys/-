@@ -73,7 +73,7 @@ const CASES = [
   { id: '075', name: '占母何时来', date: '2001-7-13', hex: '火天大有', lines: [1, 4, 5, 6], topic: 'travel', subject: 'parents', book: '凶', near: true },
   { id: '076', name: '占开金银器皿铺', date: '2001-7-7', hex: '火雷噬嗑', lines: [4, 5, 6], topic: 'wealth', book: '吉' },
   { id: '078', name: '占夫病', date: '2001-9-2', hex: '天火同人', lines: [5], topic: 'health', subject: 'spouse', gender: 'female', book: '吉' },
-  { id: '079', name: '占会试能联捷否', date: '2001-10-18', hex: '雷山小过', lines: [4, 6], topic: 'study', book: '吉', near: true },
+  { id: '079', name: '占会试能联捷否', date: '2001-10-18', hex: '雷山小过', lines: [4, 6], topic: 'study', book: '吉' },
   { id: '080', name: '占病', date: '2004-9-7', hex: '雷风恒', lines: [], topic: 'health', subject: 'self', book: '吉' },
   { id: '081', name: '占已定重罪可蒙赦否', date: '2006-8-7', hex: '山风蛊', lines: [1, 3], topic: 'lawsuit', subject: 'self', book: '吉' },
   { id: '086', name: '占开煤窑', date: '2006-5-5', hex: '风火家人', lines: [3], topic: 'wealth', book: '平', near: true },
@@ -154,9 +154,9 @@ const CASES = [
   { id: '229', name: '占子从师', date: '2001-2-24', hex: '火山旅', lines: [1], topic: 'children', book: '凶' },
   { id: '230', name: '占道考', date: '2001-11-19', hex: '雷火丰', lines: [5], topic: 'study', book: '吉' },
   { id: '231', name: '占岁考', date: '2001-8-10', hex: '泽风大过', lines: [5, 6], topic: 'study', book: '吉' },
-  { id: '233', name: '占会试', date: '2001-3-22', hex: '艮为山', lines: [1, 3, 5], topic: 'study', book: '吉', near: true },
+  { id: '233', name: '占会试', date: '2001-3-22', hex: '艮为山', lines: [1, 3, 5], topic: 'study', book: '吉' },
   { id: '235', name: '占乡试再占', date: '2001-6-22', hex: '地泽临', lines: [1], topic: 'study', book: '吉' },
-  { id: '236', name: '占乡试', date: '2001-3-6', hex: '离为火', lines: [4, 5, 6], topic: 'study', book: '凶', near: true },
+  { id: '236', name: '占乡试', date: '2001-3-6', hex: '离为火', lines: [4, 5, 6], topic: 'study', book: '凶' },
   { id: '237', name: '占援例', date: '2005-1-31', hex: '雷地豫', lines: [5, 6], topic: 'career', book: '凶', near: true },
   { id: '238', name: '占上书', date: '2001-9-2', hex: '风泽中孚', lines: [5], topic: 'career', book: '平', near: true },
   { id: '239', name: '占具文伸枉保全功名', date: '2005-2-1', hex: '雷天大壮', lines: [5], topic: 'career', book: '凶' },
@@ -195,10 +195,10 @@ CASES.filter((item) => !item.miss).forEach((item) => {
   });
 });
 
-test('人事占例：同档的不少于 112 例，断反的只有列明缘故的几例', () => {
+test('人事占例：同档的不少于 115 例，断反的只有列明缘故的几例', () => {
   const results = CASES.map((item) => ({ item, level: judgeCase(item).verdict.level }));
   const exact = results.filter(({ item, level }) => level === LEVEL[item.book]).length;
   const reversed = results.filter(({ item, level }) => opposite(level, LEVEL[item.book])).map(({ item }) => item.id);
-  assert.ok(exact >= 112, `同档 ${exact} 例`);
+  assert.ok(exact >= 115, `同档 ${exact} 例`);
   assert.deepEqual(reversed.sort(), CASES.filter((item) => item.miss).map((item) => item.id).sort());
 });
