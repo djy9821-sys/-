@@ -166,6 +166,16 @@
           "module": "ziwei",
           "palace": "兄弟",
           "star": "太阴"
+        },
+        {
+          "module": "ziwei",
+          "palace": "兄弟",
+          "star": "太阴",
+          "mutagenAll": [
+            "科",
+            "权"
+          ],
+          "note": "科权同四五人"
         }
       ],
       "tags": [
