@@ -21,8 +21,9 @@
  * 又没有通关（生用神者）、没有制伏（克那一行者）——制水的土只算燥土（戊透干、未戌本气），辰丑己湿土不算
  *（任注「丑乃湿土，能泄火不能止水」，己亥 丙子 乙丑 壬午「克妻无子」）。各条只列结构与古法的看法，不断具体人事。
  */
-import { findRelations } from './baziRelations.js';
+import { findRelations, getZhiPairKinds } from './baziRelations.js';
 import { elementToneOf, favorBasisOf } from './baziStrength.js';
+import { getDaYunMarks, juOfZhi } from './baziYearMarks.js';
 
 const GAN_HE = { 甲: '己', 己: '甲', 乙: '庚', 庚: '乙', 丙: '辛', 辛: '丙', 丁: '壬', 壬: '丁', 戊: '癸', 癸: '戊' };
 const GAN_WUXING = { 甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水' };
@@ -427,4 +428,80 @@ export const analyzeLiuqin = (chart, strength, { special = null } = {}) => {
     : '喜忌按「五行与旺衰」一节扶抑所取';
   const points = items.map((item) => `${item.title}：${item.stars.map((star) => star.text).join('；')}；${item.palaces.map((palace) => palace.text).join('；')}。${item.verdict}`);
   return { female, basis: `${female ? '女命' : '男命'}；${basisText}。`, items, points };
+};
+
+const ZHI_WUXING = { 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' };
+/** 各亲的星（十神类）与宫（柱）：与 relativesOf 同一取法，父母以印为星（任注论父母「壬运克丙坏印，丁外艰」）。 */
+const YUN_STAR_ROLE = (female) => ({ spouse: female ? '官杀' : '财', children: female ? '食伤' : '官杀', parents: '印', siblings: '比劫' });
+const YUN_PALACES = { spouse: ['day'], children: ['time'], parents: ['year', 'month'], siblings: ['month'] };
+
+/**
+ * 大运引动六亲（程序初判，仅供参考）。任注论运中六亲多就岁运喜忌说：「一交丙运，刑妻克子，破耗多端」「交己未，妻子皆伤」
+ * 「卯运椿萱并谢」是忌运连及六亲；「壬运克丙坏印，丁外艰」「寅运克妻破财」是运克其星、冲其宫。所以：
+ * - 忌运：这一亲多主不利；
+ * - 喜运：多主有利，但运干支克其星、运支冲刑其宫的，吉中有损，作平；
+ * - 喜忌参半或喜忌不显的运：克其星、冲刑其宫的作不利，否则这一步运不特别引动，仍看原局倾向。
+ * 拿《滴天髓阐微》命造里应在某步运的六亲对照（138 条，node scripts/bazi-cases.mjs）：只看原局倾向时同 70、反 46、平 22，
+ * 按此运推后同 90、反 28、平 20。
+ * @param {string} ganZhi 大运干支（原书只说「丙运」「卯运」的也可只给一个字）
+ * @param {{ special?: object|null, liuqin?: object|null }} [options] 疑似特殊格局；原局六亲（analyzeLiuqin 的结果，不给就现算）
+ * @returns {{ ganZhi: string, overall: string, items: Array<{ key, title, tone, hits: string[], text }> }|null}
+ */
+export const liuqinOfYun = (chart, strength, ganZhi, { special = null, liuqin = null } = {}) => {
+  if (!chart?.pillars?.length || !strength || !ganZhi) return null;
+  const basis = favorBasisOf(strength, special);
+  const chars = [...ganZhi];
+  const gan = GAN_WUXING[chars[0]] ? chars[0] : null;
+  const zhi = chars.find((char) => ZHI_WUXING[char]) ?? null;
+  const natalZhis = chart.pillars.map((pillar) => pillar.zhi).filter(Boolean);
+  let overall;
+  let zhiElement = zhi ? (juOfZhi(zhi, natalZhis)?.element ?? ZHI_WUXING[zhi]) : null;
+  if (gan && zhi) {
+    const favor = getDaYunMarks({ gan, zhi, ganZhi }, { strength: basis, chart }).favor;
+    overall = favor.overall;
+    zhiElement = favor.zhi.element;
+  } else {
+    overall = elementToneOf(gan ? GAN_WUXING[gan] : zhiElement, basis).tone;
+  }
+  const female = chart.input?.gender === 'female';
+  const byKey = Object.fromEntries(chart.pillars.filter((pillar) => pillar.zhi).map((pillar) => [pillar.key, pillar]));
+  const roleElement = (role) => Object.keys(basis.roles).find((key) => basis.roles[key] === role);
+  const natal = liuqin ?? analyzeLiuqin(chart, strength, { special });
+  const starRoles = YUN_STAR_ROLE(female);
+  const items = relativesOf(female).map((relative) => {
+    const starElement = roleElement(starRoles[relative.key]);
+    const starLabel = relative.stars[0].label;
+    const hits = [];
+    if (gan && CONTROLS[GAN_WUXING[gan]] === starElement) hits.push(`运干${gan}${GAN_WUXING[gan]}克${starLabel}${starElement}`);
+    if (zhi && zhiElement && CONTROLS[zhiElement] === starElement) hits.push(`运支${zhi}${zhiElement}克${starLabel}${starElement}`);
+    if (zhi) {
+      YUN_PALACES[relative.key].forEach((key) => {
+        const palace = byKey[key];
+        const kinds = palace ? getZhiPairKinds(zhi, palace.zhi).filter((kind) => kind === '冲' || kind === '刑' || kind === '自刑') : [];
+        if (kinds.length) hits.push(`运支${zhi}${kinds[0] === '冲' ? '冲' : '刑'}${PILLAR_SHORT[key]}支${palace.zhi}`);
+      });
+    }
+    const natalItem = natal?.items?.find((item) => item.key === relative.key) ?? null;
+    let tone;
+    let reason;
+    if (overall === 'bad') {
+      tone = 'bad';
+      reason = `忌运${hits.length ? `，${hits.join('、')}` : ''}`;
+    } else if (overall === 'good') {
+      tone = hits.length ? 'neutral' : 'good';
+      reason = hits.length ? `喜运，但${hits.join('、')}，吉中有损` : '喜运';
+    } else if (hits.length) {
+      tone = 'bad';
+      reason = `${overall === 'mixed' ? '喜忌参半' : '喜忌不显'}，${hits.join('、')}`;
+    } else {
+      tone = natalItem?.tone ?? 'neutral';
+      reason = `${overall === 'mixed' ? '喜忌参半' : '喜忌不显'}，不特别引动，仍看原局`;
+    }
+    const toneWord = tone === 'good' ? '有利' : tone === 'bad' ? '不利' : null;
+    const word = overall !== 'bad' && overall !== 'good' && !hits.length
+      ? `原局倾向${toneWord ?? '不显'}`
+      : `此运于${relative.title}${toneWord ?? '吉凶参半'}`;
+    return { key: relative.key, title: relative.title, tone, hits, text: `${relative.title}：${reason}；${word}` };
+  });
+  return { ganZhi, overall, items };
 };
