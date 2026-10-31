@@ -63,11 +63,18 @@ test('《子平真诠》式命例：写月令取的格与成败的，比程序�
   assert.ok(sameRegularPattern('正印格', '印绶格'));
   assert.ok(!sameRegularPattern('正财格', '正官格'));
   assert.ok(!sameRegularPattern(null, '正官格'));
+  // 成败按结局同向算近似：败中有成终归于成（合煞留官、合财存食），成中有败终归于败（杂气正官财印相合「不上七品」）
   assert.equal(chengBaiCheck('成', '成'), 'same');
-  assert.equal(chengBaiCheck('成', '成中有败'), 'near');
-  assert.equal(chengBaiCheck('败中有成', '败'), 'near');
+  assert.equal(chengBaiCheck('败中有成', '成'), 'near');
+  assert.equal(chengBaiCheck('成中有败', '败'), 'near');
+  assert.equal(chengBaiCheck('成', '成中有败'), 'reversed');
+  assert.equal(chengBaiCheck('败中有成', '败'), 'reversed');
   assert.equal(chengBaiCheck('成', '败'), 'reversed');
+  assert.equal(chengBaiCheck('待详辨', '成'), null);
   assert.equal(chengBaiCheck(null, '成'), null);
+  // 化气格两干次序不论
+  assert.ok(samePatternFamily('疑似壬丁化木格', '丁壬化木格'));
+  assert.ok(!samePatternFamily('疑似壬丁化木格', '甲己化土格'));
   // 戊辰 丙辰 乙卯 甲申：月支辰本气戊透年干，正财格；食伤生财而身强带比，成。
   const base = { id: 'bazi.test.ziping', pillars: ['戊辰', '丙辰', '乙卯', '甲申'], original: '测试' };
   const ok = evaluateBaziCase({ ...base, expected: { pattern: '财格', chengBai: '成', useGod: '财' } });
@@ -75,7 +82,7 @@ test('《子平真诠》式命例：写月令取的格与成败的，比程序�
   assert.equal(ok.program.chengBai, '成');
   assert.equal(ok.checks.pattern, 'same');
   assert.equal(ok.checks.chengBai, 'same');
-  const near = evaluateBaziCase({ ...base, expected: { pattern: '正财格', chengBai: '成中有败' } });
+  const near = evaluateBaziCase({ ...base, expected: { pattern: '正财格', chengBai: '败中有成' } });
   assert.deepEqual([near.checks.pattern, near.checks.chengBai], ['same', 'near']);
   const reversed = evaluateBaziCase({ ...base, expected: { pattern: '正财格', chengBai: '败' } });
   assert.deepEqual([reversed.checks.pattern, reversed.checks.chengBai], ['same', 'reversed']);
