@@ -75,6 +75,8 @@ const YU_QI_ZHI = { 木: '辰', 火: '未', 金: '戌', 水: '丑' };
 const LIANG_QI_PAIRS = new Set(['木', '火', '土']);
 /** 各行的墓库支：木库未、火库戌、金库丑、水库辰（土寄四季，不另算）。专旺看日主本气的库，论从看三会方那一行的库。 */
 const KU_ZHI = { 木: '未', 火: '戌', 金: '丑', 水: '辰' };
+/** 支冲而受克的一方：申冲寅、酉冲卯、亥冲巳、子冲午（金克木、水克火）；辰戌、丑未同是土，不论受克。 */
+const CHONG_BY = { 寅: '申', 卯: '酉', 巳: '亥', 午: '子' };
 /** 地支六合所化：相邻两支六合而化神正是日主本气时，合住的那一支随化神论（任注「子丑化土，斯真格象，已成稼穑」）。 */
 const LIU_HE_HUA = Object.freeze(Object.fromEntries([['子', '丑', '土'], ['寅', '亥', '木'], ['卯', '戌', '火'], ['辰', '酉', '金'], ['巳', '申', '水'], ['午', '未', '土']]
   .flatMap(([a, b, element]) => [[a + b, element], [b + a, element]])));
@@ -360,6 +362,10 @@ export const determinePattern = (chart, summary = null) => {
  *   坐库的照旧随局（癸亥 乙卯 己未 丁卯，「未土又会木局，不得不从杀矣」）。
  *   三会方之外那一行的墓库支也随方论（壬辰 辛亥 戊子 癸丑「支类北方，水势汪洋……土太衰者，似火也」，辰为水库，戊土不作有根；
  *   加这一条后滴天髓 510 造只此一造改判从财，岁运同 608 → 610、反 194 → 191）。
+ *   地支的印被财冲克（申冲寅、酉冲卯、亥冲巳、子冲午），冲者不少于被冲者，这一支又不在日支，天干帮身至多一位、不透印，
+ *   拔去之后日主与帮身之干都再无一点根的，印根拔尽，这一支按冲它的财论（「三申冲去一寅，丙火之根已拔，比肩亦不能为力」「喜其巳亥逢冲破印，格成弃命从杀」
+ *   「嫩木逢金，紧贴相冲，连根拔尽……格成从杀」；510 造只改判这三造，岁运同 612 → 615、反 185 → 182，格局漏判 12 → 11）。
+ *   禄刃之根被冲不算（甲坐寅禄、丙午月刃被冲的，任注都不作从），日主坐下的印也不算（「巳亥虽冲破印，喜卯木仍能生火」）。
  * - 专旺、从强（「旺极者似X」）：打分到极强（或同党占八成以上），而且四支本气都是印比，不见食伤、财、官杀之根。
  *   日主本气的三合、三会局齐全而全局不见官杀的（方局篇「支全寅卯辰，东方一气」「丁卯 甲辰 甲寅 乙亥……格名曲直仁寿」），
  *   打分不到极强也作专旺，局外的同气余气支（火局的未、木局的辰……）随局论（「支全火局，木从火势，格成炎上」）；
@@ -446,8 +452,25 @@ export const detectSpecialPattern = (chart, strength, summary) => {
   Object.values(ju).forEach((element) => pillars.forEach((pillar) => {
     if (pillar.zhi === KU_ZHI[element] && !congJu[pillar.zhi]) congJu[pillar.zhi] = element;
   }));
-  const branchElements = pillars.map((pillar) => congJu[pillar.zhi] ?? GAN_WUXING[pillar.hiddenGanDetails?.[0]?.gan]);
-  const outsideRoots = pillars.filter((pillar) => !congJu[pillar.zhi]).flatMap((pillar) => (pillar.hiddenGanDetails ?? [])
+  // 地支的印被财冲克、印根拔去的，论从时这一支按冲它的财论（任注「三申冲去一寅，丙火之根已拔」戊寅 庚申 丙申 丙申，
+  // 「巳亥逢冲破印，格成弃命从杀」癸巳 乙卯 己亥 癸酉）；禄刃、日主坐下的印冲不去。条件见函数说明。
+  const chongVictims = pillars.map((pillar) => {
+    const attacker = CHONG_BY[pillar.zhi];
+    if (!attacker || congJu[pillar.zhi] || pillar.key === 'day' || supportStems.length > 1 || yinStems.length) return null;
+    if (GAN_WUXING[pillar.hiddenGanDetails?.[0]?.gan] !== GENERATED_BY[dayWuxing]) return null;
+    const attackers = pillars.filter((other) => other.zhi === attacker).length;
+    return attackers && attackers >= pillars.filter((other) => other.zhi === pillar.zhi).length ? ZHI_WUXING[attacker] : null;
+  });
+  // 拔去之后日主与帮身之干都再无一点根，才算拔尽（「丙火之根已拔，比肩亦不能为力」「连根拔尽」）；
+  // 局外还有余气、库根的（丙申 庚寅 丙辰 戊戌，戌中丁火）不作此论。
+  const rootedApart = (gan, skip) => pillars.some((pillar, index) => !skip(pillar, index)
+    && (pillar.hiddenGanDetails ?? []).some((detail) => GAN_WUXING[detail.gan] === GAN_WUXING[gan]));
+  const uprooted = chongVictims.some(Boolean)
+    && !rootedApart(dayGan, (pillar, index) => congJu[pillar.zhi] || chongVictims[index])
+    && supportStems.every((stem) => !rootedApart(stem.gan, (pillar, index) => chongVictims[index]));
+  const brokenYin = uprooted ? chongVictims : pillars.map(() => null);
+  const branchElements = pillars.map((pillar, index) => congJu[pillar.zhi] ?? brokenYin[index] ?? GAN_WUXING[pillar.hiddenGanDetails?.[0]?.gan]);
+  const outsideRoots = pillars.filter((pillar, index) => !congJu[pillar.zhi] && !brokenYin[index]).flatMap((pillar) => (pillar.hiddenGanDetails ?? [])
     .map((detail, index) => (GAN_WUXING[detail.gan] !== dayWuxing ? null : {
       key: pillar.key,
       zhi: pillar.zhi,
@@ -455,9 +478,10 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     }))
     .filter(Boolean));
   const faintRoots = outsideRoots.filter((root) => root.faint);
-  const yinRootedOutside = (gan) => pillars.some((pillar) => !congJu[pillar.zhi]
+  const yinRootedOutside = (gan) => pillars.some((pillar, index) => !congJu[pillar.zhi] && !brokenYin[index]
     && (pillar.hiddenGanDetails ?? []).some((detail) => GAN_WUXING[detail.gan] === GAN_WUXING[gan]));
-  const rootedGan = (gan) => pillars.some((pillar) => (pillar.hiddenGanDetails ?? []).some((detail) => GAN_WUXING[detail.gan] === GAN_WUXING[gan]));
+  const rootedGan = (gan) => pillars.some((pillar, index) => !brokenYin[index]
+    && (pillar.hiddenGanDetails ?? []).some((detail) => GAN_WUXING[detail.gan] === GAN_WUXING[gan]));
   // 一气而天干有克它的字通根，势被制住，不作一气论（「三逢辰支，通根身库……甲乙并透，通根制土」）。
   const yiQiElement = new Set(branchElements).size === 1 ? branchElements[0] : null;
   const yiQi = Boolean(yiQiElement)
@@ -497,7 +521,8 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     const stemPart = supportStems.length
       ? [looseStems.length ? `${stemsText(looseStems)}虚浮无根` : '', shallowStems.length ? `${stemsText(shallowStems)}根浅` : ''].filter(Boolean).join('，')
       : '天干无印比相帮';
-    const branchPart = yiQi ? `四支都是${branchElements[0]}（${strength.roles[branchElements[0]]}）` : '四支本气都是食伤财官';
+    const chongText = brokenYin.map((element, index) => (element ? `${pillars[index].zhi}被${CHONG_BY[pillars[index].zhi]}冲，印根已拔` : null)).filter(Boolean).join('，');
+    const branchPart = `${chongText ? `${chongText}，余支` : '四支'}${yiQi ? `都是${branchElements[0]}（${strength.roles[branchElements[0]]}）` : '本气都是食伤财官'}`;
     const faintPart = faintRoots.length ? `只有${[...new Set(faintRoots.map((root) => root.zhi))].join('、')}中一点微根` : '没有得力之根';
     const together = outer.filter((role) => roleShare[role] >= 20);
     const shiPart = dominantShare >= 35 ? `${dominant}占 ${Math.round(dominantShare)}% 独旺`
