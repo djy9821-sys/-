@@ -23,6 +23,8 @@ export const ZIWEI_PALACES = Object.freeze(['命宫', '身宫', '兄弟', '夫�
 export const ZIWEI_PALACE_ALIASES = Object.freeze({ 交友: '仆役', 奴仆: '仆役', 事业: '官禄', 兄弟宫: '兄弟', 夫妻宫: '夫妻', 子女宫: '子女', 财帛宫: '财帛', 疾厄宫: '疾厄', 迁移宫: '迁移', 仆役宫: '仆役', 官禄宫: '官禄', 田宅宫: '田宅', 福德宫: '福德', 父母宫: '父母' });
 export const ZIWEI_BRIGHTNESS = Object.freeze(['庙', '旺', '得', '利', '平', '不', '陷']);
 export const ZIWEI_MUTAGENS = Object.freeze(['禄', '权', '科', '忌']);
+/** 五行局（排盘库 fiveElementsClass 的写法）：《全书》「金人遇坎」「土到东南」的「金人」「土人」就是金四局、土五局的人。 */
+export const ZIWEI_BUREAUS = Object.freeze(['水二局', '木三局', '金四局', '土五局', '火六局']);
 export const ZIWEI_STARS = Object.freeze([
   '紫微', '天机', '太阳', '武曲', '天同', '廉贞', '天府', '太阴', '贪狼', '巨门', '天相', '天梁', '七杀', '破军',
   '左辅', '右弼', '文昌', '文曲', '禄存', '天马', '擎羊', '陀罗', '火星', '铃星', '天魁', '天钺', '地空', '地劫',
@@ -77,6 +79,12 @@ export const APPLIES_KEYS = Object.freeze({
     yearGans: GAN,
     yearZhi: ZHI,
     yearZhis: ZHI,
+    // 五行局（排盘库按命宫干支纳音定）：「金人遇坎命须伤」写 bureau: "金四局"，「水木二局之人」写 bureau: ["水二局", "木三局"]（数组任一）。
+    bureau: ZIWEI_BUREAUS,
+    bureaus: ZIWEI_BUREAUS,
+    // 生时地支（排盘用的时辰；晚子时按安星口径算子）：「生在寅午戌申子辰六阳时」写 hourZhi: ["寅", "午", "戌", "申", "子", "辰"]。
+    hourZhi: ZHI,
+    hourZhis: ZHI,
   }),
   bazi: Object.freeze({
     dayGan: GAN,
