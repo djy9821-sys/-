@@ -630,6 +630,40 @@ const TOPIC_RULES = Object.freeze({
         : { level: 'mixed', title: '有鬼神之事', text: `官鬼旺相，${sons.length || sonsHold ? '幸子孙制鬼，祭祷可解' : '按所疑之神祭送'}；疯痨气蛊之类与鬼神无干，惟节饮食、远色欲、息气养神。` };
     return { score, floor: allWeak, points: [`鬼神：${notes.join('；')}`], notices: [SPIRIT_NOTICE], verdict };
   },
+  // 终身财福章（卷四）：占终身财福看世、财、福三者。只收原文明断、又有占例可对的三条，替别人问的不论：
+  // - 「世居空位，终身作事无成」：世旺（带旺匪空）、世动（动不为空）、日冲（冲空则实）、得日月动爻来生的不论——
+  //   占终身财福得水地比「世爻虽空，月建合之，亥日生之……卯年一定成家」；得山雷颐「财爻持世，虽有未日扶拱，不宜旬空，
+  //   且卦中无火生助，占身命之最忌也，难许成家」（只有比扶、没有来生的仍作空）。原书断语斩截，倾向至多偏弱。
+  // - 「财爻持世而自强自旺，多自成家」：得水泽节「旺财临世，平素手有余钱」，后「富冠一乡」。
+  // - 「兄爻持世，永无发福之秋」（得地天泰，世临兄弟辰土休囚化退，「后当夫头」）；世旺的不论（占寿得中孚，世兄弟未土
+  //   「巳日生之，月建扶之……必享长年」）。父母持世「才高利寡」原书自己也不一概论（得归妹「此岂可谓父母持身，辛勤劳碌耶」），不收。
+  life: ({ lines, time, shiLine, proxy }) => {
+    if (proxy) return null;
+    let score = 0;
+    let cap = false;
+    const notes = [];
+    const shi = assessStrength(shiLine, time);
+    const monthRelation = relationOf(shiLine.element, ZHI_ELEMENT[time.monthZhi]);
+    const dayRelation = relationOf(shiLine.element, ZHI_ELEMENT[time.dayZhi]);
+    if (shi.marks.includes('旬空') && !shiLine.isMoving && !shi.marks.includes('日冲') && shi.level !== '旺相') {
+      const born = monthRelation === 'generated' || dayRelation === 'generated'
+        || lines.some((line) => line.isMoving && GENERATES[line.element] === shiLine.element);
+      if (!born) {
+        cap = true;
+        notes.push('世居空位，又无日月动爻来生，终身作事无成');
+      }
+    }
+    const monthWang = !shi.marks.includes('月破') && (shiLine.zhi === time.monthZhi || monthRelation === 'same' || monthRelation === 'generated');
+    if (shiLine.relative === '妻财' && monthWang) {
+      score += 2;
+      notes.push('旺财持世，自强自旺，多自成家');
+    }
+    if (shiLine.relative === '兄弟' && shi.level !== '旺相') {
+      score -= 2;
+      notes.push('兄爻持世而不旺，永无发福之秋');
+    }
+    return { score, cap, points: notes.length ? [`终身财福（终身财福章）：${notes.join('；')}`] : [], notices: [] };
+  },
   // 千金赋：占流年，以官为鬼，不宜官鬼持世；泽水困占例：世空而忌神动，出空遭伤。替别人问以那人的用神为主。
   year: ({ lines, shiLine, yong, proxy }) => {
     const person = proxy ? yong : shiLine;
