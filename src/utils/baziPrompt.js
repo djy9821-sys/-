@@ -12,6 +12,7 @@ import { getShensha, SHENSHA_SOURCES } from './baziShensha.js';
 import { cite } from '../data/classics.js';
 import { analyzeStrength, favorBasisOf } from './baziStrength.js';
 import { describeDaYunFavor, describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks, juOfZhi } from './baziYearMarks.js';
+import { describeQuYun, quYunQuoteText } from './baziQuYun.js';
 import { PROMPT_CLASSICS_LIMIT, classicsPromptLines } from './classicsPrompt.js';
 
 export { PROMPT_CLASSICS_LIMIT };
@@ -126,12 +127,19 @@ const daYunFavorShort = (item, favor) => {
   return `；喜忌：天干${item.gan}${favor.gan.element}${FAVOR_WORD[favor.gan.tone]}，地支${item.zhi}${favor.zhi.element}${FAVOR_WORD[favor.zhi.tone]}${cover}`;
 };
 
-const daYunLines = (chart, selectedDaYun, favorBasis = null) => {
+/** 格局取运的上下文：月支（正官格「与地支刑冲」皆不利）与透出的正官天干（禄劫用官「怕官星之逢合」）。 */
+const quYunContextOf = (chart) => ({
+  monthZhi: chart.pillars.find((pillar) => pillar.key === 'month')?.zhi ?? null,
+  guanGans: chart.pillars.filter((pillar) => pillar.key !== 'day' && pillar.ganShiShen === '正官').map((pillar) => pillar.gan),
+});
+
+const daYunLines = (chart, selectedDaYun, favorBasis = null, quYun = null) => {
   const { yun } = chart;
   const lines = [
     `- ${yun.forward ? '顺排' : '逆排'}，出生后 ${yun.startYear} 年 ${yun.startMonth} 个月 ${yun.startDay} 天起运，交运日 ${yun.startSolar.split(' ')[0]}`,
   ];
   if (favorBasis) lines.push(`- 各步喜忌按${favorBasis.source === 'special' ? `${favorBasis.specialName.replace(/^疑似/, '')}论` : '「旺衰参考」一节的扶抑喜忌'}；大运以地支为重，运干喜而运支忌又克运干的（截脚）整步运按忌，运干喜而生运支之忌的（喜泄于忌）也按忌，运干喜而克住运支之忌的（喜盖忌）按喜（《滴天髓·岁运》任注）`);
+  if (quYun) lines.push(`- 格局取运（${quYunQuoteText(quYun)}）：另按原书各格取运篇给每步运干、运支的十神标喜忌，与扶抑喜忌并列，说法不同时请一并权衡`);
   // 只列到百岁左右，足够分析使用。运支与原局凑齐三会方、三合局的注明（程序的大运喜忌按局的五行论）。
   const natalZhis = chart.pillars.map((pillar) => pillar.zhi).filter(Boolean);
   yun.dayun.filter((item) => item.startAge < 100).forEach((item) => {
@@ -139,7 +147,9 @@ const daYunLines = (chart, selectedDaYun, favorBasis = null) => {
     const ju = juOfZhi(item.zhi, natalZhis);
     const juNote = ju ? `，运支${item.zhi}与原局${ju.others.join('')}会成${ju.name}` : '';
     const favorNote = favorBasis ? daYunFavorShort(item, getDaYunMarks(item, { strength: favorBasis, chart }).favor) : '';
-    lines.push(`- ${item.startAge}–${item.endAge} 虚岁（${item.startYear}–${item.endYear}）${item.ganZhi}，天干十神${item.ganShiShen}${juNote}${favorNote}${marks.length ? `  ← ${marks.join('、')}` : ''}`);
+    const quYunLine = quYun ? describeQuYun(item, quYun, quYunContextOf(chart)) : null;
+    const quYunNote = quYunLine ? `；取运：${quYunLine.text}` : '';
+    lines.push(`- ${item.startAge}–${item.endAge} 虚岁（${item.startYear}–${item.endYear}）${item.ganZhi}，天干十神${item.ganShiShen}${juNote}${favorNote}${quYunNote}${marks.length ? `  ← ${marks.join('、')}` : ''}`);
   });
   const xiaoYun = yun.xiaoYun;
   if (xiaoYun?.years?.length) {
@@ -282,7 +292,7 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
   const favorBasis = favorBasisOf(strength, judge.special);
   sections.push(['【出生信息】', ...birthLines(chart, personName)].join('\n'));
   sections.push([chart.timeUnknown ? '【本命三柱（时辰不详）】' : '【本命四柱】', ...natalLines(chart)].join('\n'));
-  sections.push(['【大运】', ...daYunLines(chart, daYun, favorBasis)].join('\n'));
+  sections.push(['【大运】', ...daYunLines(chart, daYun, favorBasis, judge.chengBai?.quYun ?? null)].join('\n'));
   sections.push(['【旺衰参考（程序估算）】', ...strengthLines(chart, strength, judge.special)].join('\n'));
   sections.push(['【格局与组合（程序初判）】', ...patternLines(judge)].join('\n'));
   const liuqin = analyzeLiuqin(chart, strength, { special: judge.special });
@@ -311,11 +321,16 @@ export const buildBaziPrompt = ({ chart, scope = 'natal', personName = '', selec
     const yearSummary = liuNian ? describeYearSummary(liuNian, { chart, daYun, strength: favorBasis, marks }) : null;
     // 大运以地支为重，截脚的整步运按忌论（见 getDaYunMarks）。
     const daYunFavor = daYun && !isXiaoYun ? describeDaYunFavor(daYun, getDaYunMarks(daYun, { strength: favorBasis, chart }).favor) : '';
+    const quYun = judge.chengBai?.quYun ?? null;
+    const daYunQuYun = daYun && !isXiaoYun && quYun ? describeQuYun(daYun, quYun, quYunContextOf(chart)) : null;
+    const liuNianQuYun = liuNian && quYun ? describeQuYun(liuNian, quYun, quYunContextOf(chart)) : null;
     sections.push([
       '【所选运限】',
       ...(favorBasis.source === 'special' ? [`- 运限喜忌按${favorBasis.specialName.replace(/^疑似/, '')}论（程序认出${favorBasis.specialName}；若不成格，以扶抑喜忌为准）`] : []),
       ...layers.map((layer) => layer.text),
       ...(daYunFavor ? [`- 大运喜忌：${daYunFavor}`] : []),
+      ...(daYunQuYun ? [`- 大运按格局取运（${quYunQuoteText(quYun)}）：${daYunQuYun.text}`] : []),
+      ...(liuNianQuYun ? [`- 流年按格局取运：${liuNianQuYun.text}`] : []),
       ...(yearMarks ? [`- 流年标注：${yearMarks}`] : []),
       ...(yearSummary ? [`- 流年提要（程序合成，供参考）：${yearSummary.headline}。${yearSummary.text}`] : []),
       ...(almanac ? [almanac] : []),
