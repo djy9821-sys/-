@@ -303,6 +303,27 @@ test('论从时三会方之外那一行的墓库支随方论：壬辰 辛亥 戊
   assert.equal(judgeByPillars('甲申 丙子 庚辰 戊寅').judge.special, null);
 });
 
+test('印被财冲克、印根拔去也作从论：任注「三申冲去一寅，丙火之根已拔」「巳亥逢冲破印，格成弃命从杀」；禄刃与日主坐下之印冲不去', () => {
+  // 书上「只得从其弱势，顺财之性，以比肩为病……丙寅帮身，刑丧破耗」。
+  const sanShen = judgeByPillars('戊寅 庚申 丙申 丙申').judge.special;
+  assert.equal(sanShen.name, '疑似从财格');
+  assert.match(sanShen.basis, /^寅被申冲，印根已拔，余支都是金（财），日主丙火没有得力之根，时干丙虚浮无根/);
+  assert.ok(sanShen.unfavorable.some((item) => item.element === '火'), '以比肩为病');
+  // 书上壬子运连登科甲，辛亥运仕途平坦，庚戌运「土金并旺，水木两伤」。
+  const poYin = judgeByPillars('癸巳 乙卯 己亥 癸酉').judge.special;
+  assert.equal(poYin.name, '疑似从杀格');
+  assert.match(poYin.basis, /^巳被亥冲，印根已拔，余支本气都是食伤财官/);
+  assert.ok(poYin.favorable.some((item) => item.element === '水'));
+  assert.ok(poYin.unfavorable.some((item) => item.element === '土'));
+  // 禄被冲（庚申 庚辰 甲戌 丙寅「最喜寅时禄旺」）、日主坐下之印被冲（甲子 乙亥 己巳 丁卯「巳亥虽冲破印，喜卯木仍能生火」）、
+  // 天干帮身两位的（丁酉 癸卯 丙辰 丙申「卯酉逢冲……虽赖时干丙火之助」）任注都不作从。
+  assert.equal(judgeByPillars('庚申 庚辰 甲戌 丙寅').judge.special, null);
+  assert.equal(judgeByPillars('甲子 乙亥 己巳 丁卯').judge.special, null);
+  assert.equal(judgeByPillars('丁酉 癸卯 丙辰 丙申').judge.special, null);
+  // 拔去之后局外还有一点根的不算拔尽：丙申 庚寅 丙辰 戊戌，戌中丁火仍是日主与年干丙火之根。
+  assert.equal(judgeByPillars('丙申 庚寅 丙辰 戊戌').judge.special, null);
+});
+
 test('四支一气不拘微根、日主坐库仍能盘根、假化与化气有余宜泄：任注从象、化象、假化、顺局、反局诸造', () => {
   // 「蟠根在未，余气在辰，似乎财多身弱，但四柱皆财，其势必从」，丙火为用。
   const cai = judgeByPillars('戊戌 丙辰 乙未 丙戌').judge.special;
