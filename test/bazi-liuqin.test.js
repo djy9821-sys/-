@@ -187,6 +187,7 @@ test('妻宫坐喜神却被克它的一支冲去，按克妻看；被它克的�
   const chong = itemOf(liuqinOf(chartByPillars('甲寅 壬申 癸巳 癸亥')), 'spouse');
   assert.equal(chong.tone, 'bad');
   assert.match(chong.ren.text, /^妻宫（日支）虽坐喜神，却被水冲去/);
+  assert.doesNotMatch(chong.verdict, /逢冲，古法主变动/, '断语已说被冲去，不再附「逢冲」一句');
   // 丁未 乙巳 丁酉 癸卯「最喜坐下酉金冲去卯木，生起癸水……得妻财万仞」：酉金克卯木，被冲去的是卯，妻宫照坐财论。
   const you = itemOf(liuqinOf(chartByPillars('丁未 乙巳 丁酉 癸卯')), 'spouse');
   assert.equal(you.tone, 'good');
