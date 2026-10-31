@@ -242,7 +242,7 @@ test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算�
   const ctx = ziweiPalaceContextOf(palace, { gender: 'female' });
   assert.deepEqual(ctx, {
     module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], jia: [], meet: ['紫微', '七杀', '文曲', '天巫', '天官'], palace: ['命宫', '身宫'], branches: ['亥'],
-    brightness: ['旺', '平'], mutagen: ['权', '忌'], meetMutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女', yearGan: null, yearZhi: null, doujun: [], borrowedStars: [], empty: [],
+    brightness: ['旺', '平'], mutagen: ['权', '忌'], meetMutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女', yearGan: null, yearZhi: null, bureau: null, hourZhi: null, doujun: [], borrowedStars: [], empty: [],
     flowStars: [], flowMutagens: [], flow: [], natalStars: ['紫微', '七杀', '文曲', '天巫', '天官'], natalMeet: ['紫微', '七杀', '文曲', '天巫', '天官'], natalMutagens: ['权', '忌'],
   });
   assert.deepEqual(ziweiPalaceContextOf({ name: '交友', earthlyBranch: '辰', majorStars: [] }, { gender: '男' }).palace, ['仆役']);
@@ -543,9 +543,9 @@ test('空宫借对宫：对宫按地支相冲找；没有主星的宫把对宫�
 });
 
 test('生年干支：「壬甲生人」「寅午戌生人」按排盘的年柱判；不传生年就不判这类条件', () => {
-  assert.deepEqual(ziweiNatalOf({ rawDates: { chineseDate: { yearly: ['庚', '午'] } } }), { yearGan: '庚', yearZhi: '午' });
-  assert.deepEqual(ziweiNatalOf({ chineseDate: '壬申 辛亥 甲子 丙寅' }), { yearGan: '壬', yearZhi: '申' });
-  assert.deepEqual(ziweiNatalOf(null), { yearGan: null, yearZhi: null });
+  assert.deepEqual(ziweiNatalOf({ rawDates: { chineseDate: { yearly: ['庚', '午'], hourly: ['丙', '子'] } }, fiveElementsClass: '金四局' }), { yearGan: '庚', yearZhi: '午', bureau: '金四局', hourZhi: '子' });
+  assert.deepEqual(ziweiNatalOf({ chineseDate: '壬申 辛亥 甲子 丙寅' }), { yearGan: '壬', yearZhi: '申', bureau: null, hourZhi: '寅' });
+  assert.deepEqual(ziweiNatalOf(null), { yearGan: null, yearZhi: null, bureau: null, hourZhi: null });
   const lib = buildLibrary([{
     classic: 'ziwei', section: '测试', edition: '测试',
     entries: [
@@ -568,6 +568,44 @@ test('生年干支：「壬甲生人」「寅午戌生人」按排盘的年柱�
   // ziweiPalaceHits / ziweiLimitPalaceHits 的 natal 选项一路传到上下文
   assert.deepEqual(ziweiPalaceHits(lib, [tanlang], ['命宫'], { natal: { yearZhi: '午' } }).map(({ entry }) => entry.id), ['ziwei.y.002']);
   assert.deepEqual(ziweiPalaceHits(lib, [tanlang], ['命宫']), []);
+});
+
+test('五行局与生时：「金人遇坎命须伤」按排盘的五行局判（bureau），「六阳时生」按生时地支判（hourZhi）；不传就不判', () => {
+  const lib = buildLibrary([{
+    classic: 'ziwei', section: '测试', edition: '测试',
+    entries: [
+      { id: 'ziwei.j.001', title: '金人遇坎', original: '金人遇坎命须伤', status: 'translated', applies: [{ module: 'ziwei', limit: '大限', branches: ['子'], bureau: '金四局' }] },
+      { id: 'ziwei.j.002', title: '水木二局', original: '水木之人', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', bureaus: ['水二局', '木三局'] }] },
+      { id: 'ziwei.j.003', title: '泛论命宫', original: '丙', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫' }] },
+      { id: 'ziwei.j.004', title: '六阳时安命阳宫', original: '凡男女生在寅午戌申子辰六阳时，安命在此六宫者吉', status: 'translated', applies: [{ module: 'ziwei', palace: '命宫', branches: ['寅', '午', '戌', '申', '子', '辰'], hourZhi: ['寅', '午', '戌', '申', '子', '辰'] }] },
+    ],
+  }]);
+  const zi = { index: 10, name: '财帛', earthlyBranch: '子', majorStars: [{ name: '天同' }] };
+  // 金四局的人大限行到子宫：命中「金人遇坎」，说明里写五行局
+  const jin = matchEntries(lib, ziweiPalaceContextOf(zi, { limit: '大限', natal: { yearGan: '庚', yearZhi: '午', bureau: '金四局' } }));
+  assert.deepEqual(jin.map(({ entry }) => entry.id), ['ziwei.j.001']);
+  assert.equal(jin[0].reason, '运限·大限，地支·子，五行局·金四局');
+  // 木三局的人同样行到子宫不中；金四局看本命层、或行到午宫也不中；不传五行局判不了
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(zi, { limit: '大限', natal: { bureau: '木三局' } })), []);
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(zi, { natal: { bureau: '金四局' } })), []);
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf({ ...zi, earthlyBranch: '午' }, { limit: '大限', natal: { bureau: '金四局' } })), []);
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(zi, { limit: '大限' })), []);
+  // 数组任一：水二局、木三局的命宫都中「水木二局」，金四局的只剩泛论
+  const ming = { index: 0, name: '命宫', earthlyBranch: '寅', majorStars: [{ name: '紫微' }] };
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(ming, { natal: { bureau: '木三局' } })).map(({ entry }) => entry.id), ['ziwei.j.002', 'ziwei.j.003']);
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(ming, { natal: { bureau: '金四局' } })).map(({ entry }) => entry.id), ['ziwei.j.003']);
+  // 生时：寅宫安命、午时生的中「六阳时安命阳宫」（排在泛论前），卯时生的、不传生时的都只剩泛论
+  const yang = matchEntries(lib, ziweiPalaceContextOf(ming, { natal: { hourZhi: '午' } }));
+  assert.deepEqual(yang.map(({ entry }) => entry.id), ['ziwei.j.004', 'ziwei.j.003']);
+  assert.equal(yang[0].reason, '宫位·命宫，地支·寅，时支·午');
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(ming, { natal: { hourZhi: '卯' } })).map(({ entry }) => entry.id), ['ziwei.j.003']);
+  assert.deepEqual(matchEntries(lib, ziweiPalaceContextOf(ming)).map(({ entry }) => entry.id), ['ziwei.j.003']);
+  // 排盘结果的 fiveElementsClass 一路传到上下文
+  const chart = createZiweiHoroscope({ calendarType: 'solar', birthDate: '1985-06-01', timeIndex: 6, gender: 'male' });
+  assert.equal(chart.fiveElementsClass, '土五局');
+  assert.deepEqual([ziweiNatalOf(chart).bureau, ziweiNatalOf(chart).hourZhi], ['土五局', '午']);
+  const ctx = ziweiPalaceContextOf(chart.palaces[0], { natal: ziweiNatalOf(chart) });
+  assert.deepEqual([ctx.bureau, ctx.hourZhi], ['土五局', '午']);
 });
 
 test('三方四正：对宫与两个三合宫；「会」「拱」「照」的条件 meet（任一）、meetAll（都在）看本宫连三方四正的主星辅星', () => {
