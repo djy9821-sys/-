@@ -311,6 +311,9 @@ export const determinePattern = (chart, summary = null) => {
  *   从哪一神：食伤、财、官杀里占得最多的一方到三成五为从儿、从财、从杀，否则为从势。
  *   官杀独旺而月令本气是食伤的不作从杀：当令的食伤制杀（任注「两杀并透，支会杀局，喜其辰土当令制杀，辰中木有余气而生身」，
  *   丙申 壬辰 丙子 壬辰 用土；辛亥 壬辰 丙申 己亥 己丑、戊子土运反吉）。
+ *   日主坐禄、只因禄支会入他局才算无根的，也不作从论：禄是日主最得力之根，会局夺不走（庚戌 乙酉 甲寅 庚午，寅午戌会火局而甲坐寅禄，
+ *   任注不作从，「子运冲破火局……益我日主之气；辰年湿土……培日主之根源也」；与化气「日主虽临旺地……不能从合」同理）；
+ *   坐库的照旧随局（癸亥 乙卯 己未 丁卯，「未土又会木局，不得不从杀矣」）。
  * - 专旺、从强（「旺极者似X」）：打分到极强（或同党占八成以上），而且四支本气都是印比，不见食伤、财、官杀之根。
  *   日主本气的三合、三会局齐全而全局不见官杀的（方局篇「支全寅卯辰，东方一气」「丁卯 甲辰 甲寅 乙亥……格名曲直仁寿」），
  *   打分不到极强也作专旺，局外的同气余气支（火局的未、木局的辰……）随局论（「支全火局，木从火势，格成炎上」）；
@@ -426,6 +429,9 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     // 丙申 壬辰 丙子 壬辰 用土）。
     const monthMainRole = ROLE_OF[byKey.month?.hiddenGanDetails?.[0]?.shiShen];
     if (name === '从杀格' && monthMainRole === '食伤') return null;
+    // 日主坐禄，只因这一支会入他局才算无根的，不作从论：禄是日主最得力之根，会局夺不走（庚戌 乙酉 甲寅 庚午，甲坐寅禄而寅午戌会火局，
+    // 任注不作从，「子运冲破火局……益我日主之气；辰年湿土……培日主之根源也」）；坐库的照旧随局（己未而亥卯未会木局，「未土又会木局，不得不从杀矣」）。
+    if (LU[dayGan] === byKey.day?.zhi && ju[byKey.day.zhi]) return null;
     const juText = [...new Set(Object.values(ju))].map((element) => `${Object.keys(ju).filter((zhi) => ju[zhi] === element).join('')}会成${element}局`).join('、');
     const rootText = (score?.roots ?? []).map((root) => `${root.zhi}中${root.gan}`).join('、');
     const byBranches = congByBranches && !congByRatio && !congByScore;
