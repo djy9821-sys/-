@@ -309,6 +309,8 @@ export const determinePattern = (chart, summary = null) => {
  *   寅申巳亥的余气）至多一处且不在日支（「天干木火，全赖未中一点微根」，日主坐库仍能盘根），四支一气的不拘微根；
  *   天干帮身至多两个（有印则只能是这一个，还要财星透出克印或财占三成），也作从论（「四柱皆财，其势必从」）。
  *   从哪一神：食伤、财、官杀里占得最多的一方到三成五为从儿、从财、从杀，否则为从势。
+ *   官杀独旺而月令本气是食伤的不作从杀：当令的食伤制杀（任注「两杀并透，支会杀局，喜其辰土当令制杀，辰中木有余气而生身」，
+ *   丙申 壬辰 丙子 壬辰 用土；辛亥 壬辰 丙申 己亥 己丑、戊子土运反吉）。
  * - 专旺、从强（「旺极者似X」）：打分到极强（或同党占八成以上），而且四支本气都是印比，不见食伤、财、官杀之根。
  *   日主本气的三合、三会局齐全而全局不见官杀的（方局篇「支全寅卯辰，东方一气」「丁卯 甲辰 甲寅 乙亥……格名曲直仁寿」），
  *   打分不到极强也作专旺，局外的同气余气支（火局的未、木局的辰……）随局论（「支全火局，木从火势，格成炎上」）；
@@ -420,6 +422,10 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     const dominantShare = roleShare[dominant];
     const nameOf = { 财: '从财格', 官杀: '从杀格', 食伤: '从儿格' };
     const name = dominantShare >= 35 ? nameOf[dominant] : '从势格';
+    // 官杀独旺而月令本气是食伤的，当令的食伤制杀，日主不从（任注「两杀并透，支会杀局，喜其辰土当令制杀，辰中木有余气而生身」，
+    // 丙申 壬辰 丙子 壬辰 用土）。
+    const monthMainRole = ROLE_OF[byKey.month?.hiddenGanDetails?.[0]?.shiShen];
+    if (name === '从杀格' && monthMainRole === '食伤') return null;
     const juText = [...new Set(Object.values(ju))].map((element) => `${Object.keys(ju).filter((zhi) => ju[zhi] === element).join('')}会成${element}局`).join('、');
     const rootText = (score?.roots ?? []).map((root) => `${root.zhi}中${root.gan}`).join('、');
     const byBranches = congByBranches && !congByRatio && !congByScore;
