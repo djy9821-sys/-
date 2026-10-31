@@ -105,7 +105,7 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster, 
                 {strength.hint && <p className="mt-2 rounded-lg bg-[#b06a1f]/[0.08] px-2.5 py-1.5 text-xs text-[#7f4b12]">{strength.hint}</p>}
             </div>
 
-            {strength.basis && <p className="text-xs leading-5 text-[#514941]" data-testid="bazi-strength-basis"><b>取用思路</b>：{strength.basis}{strength.tiaoHouNote ? `；${strength.tiaoHouNote}` : ''}。</p>}
+            {strength.basis && <p className="text-xs leading-5 text-[#514941]" data-testid="bazi-strength-basis"><b>取用思路</b>：{strength.basis}{strength.tiaoHouNote ? `；${strength.tiaoHouNote}` : ''}{strength.godsNote ? `；${strength.godsNote}` : ''}。</p>}
             <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                     <p className="text-xs font-bold text-[#245a52]">喜用参考</p>
