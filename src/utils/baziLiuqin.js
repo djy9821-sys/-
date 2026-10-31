@@ -24,7 +24,7 @@
  */
 import { findRelations, getZhiPairKinds } from './baziRelations.js';
 import { elementToneOf, favorBasisOf } from './baziStrength.js';
-import { getDaYunMarks, juOfZhi } from './baziYearMarks.js';
+import { fangOfYunZhi, getDaYunMarks, juOfZhi } from './baziYearMarks.js';
 
 const GAN_HE = { 甲: '己', 己: '甲', 乙: '庚', 庚: '乙', 丙: '辛', 辛: '丙', 丁: '壬', 壬: '丁', 戊: '癸', 癸: '戊' };
 const GAN_WUXING = { 甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水' };
@@ -459,7 +459,8 @@ export const liuqinOfYun = (chart, strength, ganZhi, { special = null, liuqin = 
   const zhi = chars.find((char) => ZHI_WUXING[char]) ?? null;
   const natalZhis = chart.pillars.map((pillar) => pillar.zhi).filter(Boolean);
   let overall;
-  let zhiElement = zhi ? (juOfZhi(zhi, natalZhis)?.element ?? ZHI_WUXING[zhi]) : null;
+  // 与大运喜忌同一口径：凑成三会三合的按局，四库按方（未作火……，见 fangOfYunZhi），只给一个字的也照此。
+  let zhiElement = zhi ? (juOfZhi(zhi, natalZhis)?.element ?? fangOfYunZhi(gan, zhi)?.element ?? ZHI_WUXING[zhi]) : null;
   if (gan && zhi) {
     const favor = getDaYunMarks({ gan, zhi, ganZhi }, { strength: basis, chart }).favor;
     overall = favor.overall;
