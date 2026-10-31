@@ -118,9 +118,9 @@ const CASES = [
   { id: '183', name: '占墓穴', date: '2002-8-5', hex: '雷天大壮', lines: [], topic: 'gravesite', book: '吉', miss: '此占只问穴在何处（「世在四爻，穴在中段」），地之吉凶早经法眼与久占许吉；程序按寻地章「六冲卦……必无气脉」断偏弱' },
   { id: '184', name: '占以父柩附葬祖茔', date: '2007-1-2', hex: '地雷复', lines: [1], topic: 'gravesite', book: '凶' },
   { id: '186', name: '占终身财福', date: '2001-10-15', hex: '水地比', lines: [6], topic: 'life', subject: 'self', book: '吉' },
-  { id: '187', name: '占终身财福', date: '2007-10-4', hex: '山雷颐', lines: [], topic: 'life', subject: 'self', book: '凶', near: true },
-  { id: '188', name: '占终身财福', date: '2004-7-6', hex: '水泽节', lines: [], topic: 'life', subject: 'self', book: '吉', near: true },
-  { id: '190', name: '占终身财福', date: '2001-8-17', hex: '地天泰', lines: [3], topic: 'life', subject: 'self', book: '凶', near: true },
+  { id: '187', name: '占终身财福', date: '2007-10-4', hex: '山雷颐', lines: [], topic: 'life', subject: 'self', book: '凶' },
+  { id: '188', name: '占终身财福', date: '2004-7-6', hex: '水泽节', lines: [], topic: 'life', subject: 'self', book: '吉' },
+  { id: '190', name: '占终身财福', date: '2001-8-17', hex: '地天泰', lines: [3], topic: 'life', subject: 'self', book: '凶' },
   { id: '192', name: '占终身除功名外何事可为', date: '2004-6-3', hex: '天风姤', lines: [2], topic: 'life', subject: 'self', book: '吉' },
   { id: '193', name: '占财福', date: '2002-7-7', hex: '地火明夷', lines: [4], topic: 'life', subject: 'self', book: '凶', near: true },
   { id: '195', name: '再占功名', date: '2001-9-26', hex: '火雷噬嗑', lines: [1, 5], topic: 'career', book: '吉' },
@@ -195,10 +195,10 @@ CASES.filter((item) => !item.miss).forEach((item) => {
   });
 });
 
-test('人事占例：同档的不少于 109 例，断反的只有列明缘故的几例', () => {
+test('人事占例：同档的不少于 112 例，断反的只有列明缘故的几例', () => {
   const results = CASES.map((item) => ({ item, level: judgeCase(item).verdict.level }));
   const exact = results.filter(({ item, level }) => level === LEVEL[item.book]).length;
   const reversed = results.filter(({ item, level }) => opposite(level, LEVEL[item.book])).map(({ item }) => item.id);
-  assert.ok(exact >= 109, `同档 ${exact} 例`);
+  assert.ok(exact >= 112, `同档 ${exact} 例`);
   assert.deepEqual(reversed.sort(), CASES.filter((item) => item.miss).map((item) => item.id).sort());
 });
