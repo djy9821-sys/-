@@ -664,6 +664,30 @@ const TOPIC_RULES = Object.freeze({
     }
     return { score, cap, points: notes.length ? [`终身财福（终身财福章）：${notes.join('；')}`] : [], notices: [] };
   },
+  // 乡试会试章（卷五）：占考试中否，父母为文章，官星为功名，世为自己。收两条明文、又有占例可对的：
+  // - 「父官持世而旺相，或临日月，或日月动爻生扶……名登龙虎」「占功名之必中者……若非旺父生身，定是旺官持世」：
+  //   旺父持世已按用神持世算；官星持世而旺相、临日月，或在日月动爻合成的官局里，另加重（占会试得艮之益「寅木旺官持世……
+  //   一定高捷」；戌月甲寅日占会试能联捷否得小过「世爻随官……日月合成官局，旺相当时，卦之全美」）。
+  // - 「化出鬼爻克世者更凶」：世动化出官鬼回头克世，倾向至多偏弱（占乡试得离之既济「因变出子水之鬼回头克世，客死于途中」）。
+  study: ({ lines, time, shiLine, proxy }) => {
+    if (proxy) return null;
+    let score = 0;
+    let cap = false;
+    const notes = [];
+    const shi = assessStrength(shiLine, time);
+    if (shiLine.relative === '官鬼' && !shi.marks.includes('月破')) {
+      const inJu = sanHeFramesOf(lines, time).some((frame) => frame.element === shiLine.element && frame.positions.includes(shiLine.position));
+      if (shi.level === '旺相' || shiLine.zhi === time.monthZhi || shiLine.zhi === time.dayZhi || inJu) {
+        score += 3;
+        notes.push(`旺官持世${inJu ? '（日月动爻合成官局）' : ''}，功名可望`);
+      }
+    }
+    if (shiLine.isMoving && shiLine.changed?.relative === '官鬼' && changeFlagsOf(shiLine, time).backCtrl) {
+      cap = true;
+      notes.push('世动化出官鬼回头克世，化鬼更凶');
+    }
+    return { score, cap, points: notes.length ? [`考试中否（乡试会试章）：${notes.join('；')}`] : [], notices: [] };
+  },
   // 千金赋：占流年，以官为鬼，不宜官鬼持世；泽水困占例：世空而忌神动，出空遭伤。替别人问以那人的用神为主。
   year: ({ lines, shiLine, yong, proxy }) => {
     const person = proxy ? yong : shiLine;
