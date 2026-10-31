@@ -301,6 +301,9 @@ test('论从时三会方之外那一行的墓库支随方论：壬辰 辛亥 戊
   assert.equal(strength.band, '偏弱');
   // 三合局里本来就有库的不受影响；专旺仍按原来的余气支、墓库支条件（另见上面炎上、稼穑诸造）。
   assert.equal(judgeByPillars('甲申 丙子 庚辰 戊寅').judge.special, null);
+  // 月令当令的库、日主坐下本气同类的库不随方：月令丑土、坐下丑土都是己土本气之根。
+  assert.equal(judgeByPillars('庚戌 己丑 己酉 壬申').judge.special, null);
+  assert.equal(judgeByPillars('丁酉 庚戌 己丑 壬申').judge.special, null);
 });
 
 test('印被财冲克、印根拔去也作从论：任注「三申冲去一寅，丙火之根已拔」「巳亥逢冲破印，格成弃命从杀」；禄刃与日主坐下之印冲不去', () => {
