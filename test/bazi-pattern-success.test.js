@@ -15,6 +15,15 @@ const judge = (year, month, day, hourIndex, gender = 'male') => {
 
 const quotes = (chengBai) => [...chengBai.success, ...chengBai.failure, ...chengBai.flaw, ...chengBai.rescue].map((item) => item.quote);
 
+/** 原书命造：按四柱找一个同干支的日子排盘再判成败。 */
+const bookJudge = (pillars) => {
+  const date = findSolarDateByPillars(pillars);
+  assert.ok(date, pillars.join(' '));
+  const chart = buildBaziChart({ calendarType: 'solar', year: date.year, month: date.month, day: date.day, hourIndex: date.hourIndex ?? 6, gender: 'male' });
+  const result = judgeBaziPattern(chart, analyzeStrength(chart));
+  return { pattern: result.pattern, chengBai: result.chengBai };
+};
+
 test('原文按格局分组，八类格名都能归类', () => {
   assert.deepEqual(Object.keys(CHENG_BAI_QUOTES.成), ['正官格', '财格', '印格', '食神格', '七杀格', '伤官格', '羊刃格', '建禄月劫']);
   assert.equal(chengBaiGroupOf({ kind: 'regular', tenGod: '偏财' }), '财格');
@@ -60,10 +69,12 @@ test('正官格：官逢财印无刑冲为成；逢伤、刑冲、杂煞为败�
 });
 
 test('财格：财生官旺、食生身强为成；财轻比重、财透七杀为败；食化、官制、食神制杀、合杀为救', () => {
+  // 论财「用食而兼用印者，食与印而不相碍……反是则减福矣」：年丙印与月庚食紧挨相克，成中有败
   const sheng = judge(1966, 12, 25, 4);
   assert.equal(sheng.pillars, '丙午 庚子 戊午 丙辰');
-  assert.equal(sheng.chengBai.verdict, '成');
+  assert.equal(sheng.chengBai.verdict, '成中有败');
   assert.ok(quotes(sheng.chengBai).includes('财逢食生而身强带比'));
+  assert.ok(quotes(sheng.chengBai).includes('食与印相碍则减福（论财）'));
 
   // 财透七杀而印亦透：论财「有财用煞印者，党煞为忌，印以化之，格成富局」，败中有成
   const qisha = judge(1960, 1, 2, 1);
@@ -103,8 +114,14 @@ test('印格：官印双全、身印两旺泄秀为成；印轻逢财、身强�
   assert.equal(cai.chengBai.verdict, '败');
   assert.ok(quotes(cai.chengBai).includes('印轻逢财'));
 
-  const heavy = judge(1960, 1, 14, 1);
-  assert.equal(heavy.pillars, '己亥 丁丑 辛丑 己丑');
+  // 论印绶「身轻印重……有所不足，始为有情」：比劫只占一成，身的分量不把印生身算进去，透煞反成
+  const light = judge(1960, 1, 14, 1);
+  assert.equal(light.pillars, '己亥 丁丑 辛丑 己丑');
+  assert.equal(light.chengBai.verdict, '成');
+  assert.ok(quotes(light.chengBai).includes('用偏官者……必身重印轻，或身轻印重，有所不足，始为有情（论印绶）'));
+  // 比劫、印都重才是「身印重而七其煞，非孤则贫」
+  const heavy = bookJudge(['庚子', '己丑', '庚戌', '丙子']);
+  assert.equal(heavy.chengBai.verdict, '败');
   assert.ok(quotes(heavy.chengBai).includes('身强印重而透煞'));
 
   const hecai = judge(1984, 8, 26, 7);
@@ -152,8 +169,12 @@ test('七杀格：食伤制、印化、阳刃为成；逢财无制为败；制�
   assert.equal(cai.chengBai.verdict, '败');
   assert.ok(quotes(cai.chengBai).includes('七煞逢财无制'));
 
-  const flaw = judge(1962, 4, 14, 1);
-  assert.equal(flaw.pillars, '壬寅 甲辰 壬午 辛丑');
+  // 论偏官「煞重身轻，用食则身不能当，不若专而朝印」：身弱的食印并透不作夺食论
+  const chaoYin = judge(1962, 4, 14, 1);
+  assert.equal(chaoYin.pillars, '壬寅 甲辰 壬午 辛丑');
+  assert.equal(chaoYin.chengBai.verdict, '成');
+  assert.ok(quotes(chaoYin.chengBai).includes('煞重身轻，用食则身不能当，不若专而朝印（论偏官）'));
+  const flaw = bookJudge(['壬戌', '丁未', '辛丑', '戊子']);
   assert.equal(flaw.chengBai.verdict, '成中有败');
   assert.ok(quotes(flaw.chengBai).includes('七煞逢食制，而又逢印'));
 
@@ -207,11 +228,13 @@ test('羊刃格与建禄月劫：官杀财印为成；无官杀、无财官、�
   assert.equal(renFlaw.pillars, '甲辰 丁卯 甲戌 辛未');
   assert.equal(renFlaw.chengBai.verdict, '成中有败');
 
+  // 论建禄月劫「若透伤食，便为破格」：透官又透食神，成中有败
   const lu = judge(1960, 3, 8, 1);
   assert.equal(lu.pillars, '庚子 己卯 乙未 丁丑');
   assert.equal(lu.pattern.name, '建禄格');
-  assert.equal(lu.chengBai.verdict, '成');
+  assert.equal(lu.chengBai.verdict, '成中有败');
   assert.ok(quotes(lu.chengBai).includes('透财而逢食伤'));
+  assert.ok(quotes(lu.chengBai).includes('建禄月劫透官，而遇伤'));
 
   // 无财官而食伤透、身不弱：论建禄月劫「无财官而用伤食，泄其太过，亦为秀气」
   const luXie = judge(1960, 5, 20, 7);
@@ -233,15 +256,6 @@ test('羊刃格与建禄月劫：官杀财印为成；无官杀、无财官、�
   assert.equal(hesha.chengBai.verdict, '成中有败');
   assert.ok(!quotes(hesha.chengBai).includes('用财带煞而煞被合'));
 });
-
-/** 原书命造：按四柱找一个同干支的日子排盘再判成败。 */
-const bookJudge = (pillars) => {
-  const date = findSolarDateByPillars(pillars);
-  assert.ok(date, pillars.join(' '));
-  const chart = buildBaziChart({ calendarType: 'solar', year: date.year, month: date.month, day: date.day, hourIndex: date.hourIndex ?? 6, gender: 'male' });
-  const result = judgeBaziPattern(chart, analyzeStrength(chart));
-  return { pattern: result.pattern, chengBai: result.chengBai };
-};
 
 test('《子平真诠》各格命造的成败：合煞留官、财用煞印、印护、裁损、取清、泄秀、去官留煞', () => {
   // 论印绶「辛亥 庚子 甲辰 乙亥，此合煞留官也」：月干庚与时干乙隔日干仍合
@@ -288,6 +302,60 @@ test('《子平真诠》各格命造的成败：合煞留官、财用煞印、�
   const fan = bookJudge(['丁丑', '壬寅', '己巳', '丙寅']);
   assert.equal(fan.chengBai.verdict, '败中有成');
   assert.ok(quotes(fan.chengBai).includes('官逢伤克（论正官：巳丑会金伤官）'));
+});
+
+test('《子平真诠》八格各论补的成败条：论印绶、论财、论食神、论偏官、论伤官、论阳刃、论建禄月劫各以原书命造为准', () => {
+  // 论印绶：茅状元「身轻印重」、马参政「身重印轻」用煞皆成；朱尚书「壬为戊伤，壬不伤官」、临淮侯「己为乙制，己不碍官」；
+  // 「壬子 癸卯 丙子 己亥，此官煞有制也」；汪侍郎「印重身强，透财以抑太过」
+  const mao = bookJudge(['己巳', '癸酉', '癸未', '庚申']);
+  assert.equal(mao.chengBai.verdict, '成');
+  assert.ok(quotes(mao.chengBai).includes('用偏官者……必身重印轻，或身轻印重，有所不足，始为有情（论印绶）'));
+  assert.ok(quotes(bookJudge(['壬寅', '戊申', '壬辰', '壬寅']).chengBai).includes('印轻逢煞'));
+  const zhu = bookJudge(['丙戌', '戊戌', '辛未', '壬辰']);
+  assert.equal(zhu.chengBai.verdict, '成');
+  assert.ok(quotes(zhu.chengBai).includes('官印双全；带伤食而贵者，壬为戊伤，己为乙制，不碍官也（论印绶）'));
+  assert.equal(bookJudge(['乙亥', '己卯', '丁酉', '壬寅']).chengBai.verdict, '成');
+  const youZhi = bookJudge(['壬子', '癸卯', '丙子', '己亥']);
+  assert.equal(youZhi.chengBai.verdict, '成');
+  assert.ok(quotes(youZhi.chengBai).includes('印而透兼官煞者……或有制，皆为贵格（论印绶）'));
+  assert.ok(quotes(youZhi.chengBai).includes('用煞而兼带伤食者，则用煞而有制，生身而有泄，不论身旺印重，皆为贵格（论印绶）'));
+  assert.ok(quotes(bookJudge(['辛酉', '丙申', '壬申', '辛亥']).chengBai).includes('印多逢财而财透根轻'));
+  // 论财：吴榜眼「庚与丙隔一戊而不相克」、平江伯食印并透皆成；章丞相 甲子 壬申 己亥 辛未 官食隔着财，不作透官身弱论
+  const wu = bookJudge(['庚戌', '戊子', '戊子', '丙辰']);
+  assert.equal(wu.chengBai.verdict, '成');
+  assert.ok(quotes(wu.chengBai).includes('用食而兼用印者，食与印而不相碍，皆贵格（论财）'));
+  assert.equal(bookJudge(['壬辰', '乙巳', '癸巳', '辛酉']).chengBai.verdict, '成');
+  assert.equal(bookJudge(['甲子', '壬申', '己亥', '辛未']).chengBai.verdict, '成');
+  // 论食神：钱参政「夏火太炎，而木焦透印不碍」；龚知县「偏正叠出，富贵不巨」
+  const qian = bookJudge(['丙午', '癸巳', '甲子', '丙寅']);
+  assert.equal(qian.chengBai.verdict, '成');
+  assert.ok(quotes(qian.chengBai).includes('夏火太炎，而木焦透印不碍（论食神）'));
+  assert.match(bookJudge(['甲午', '丁卯', '癸丑', '丙辰']).chengBai.summary, /财偏正叠出，富贵不巨/);
+  // 论偏官周丞相「食被印制，不能伏煞，而财以去印存食」：成败篇归败中有成
+  const zhou = bookJudge(['戊戌', '甲子', '丁未', '庚戌']);
+  assert.equal(zhou.chengBai.verdict, '败中有成');
+  assert.ok(quotes(zhou.chengBai).includes('逢财以去印存食'));
+  // 论伤官都统制「财印两清」、罗状元「化伤为财」、某丞相「戊甲为辅」用官不以财印相邻为碍
+  assert.ok(quotes(bookJudge(['丁酉', '己酉', '戊子', '壬子']).chengBai).includes('伤官兼用财印……只要干头两清而不相碍（论伤官）'));
+  const luo = bookJudge(['甲子', '乙亥', '辛未', '戊子']);
+  assert.ok(['成', '成中有败'].includes(luo.chengBai.verdict));
+  const cheng = bookJudge(['戊申', '甲子', '庚午', '丁丑']);
+  assert.equal(cheng.chengBai.verdict, '成');
+  assert.ok(!quotes(cheng.chengBai).some((quote) => quote.includes('财印不并用')));
+  // 论阳刃「羊刃露煞，透刃无成……七煞有贪合忘克之意」：乙庚合而杀不制刃
+  const renHe = bookJudge(['癸巳', '乙卯', '甲申', '庚午']);
+  assert.equal(renHe.chengBai.verdict, '败');
+  assert.ok(quotes(renHe.chengBai).includes('羊刃露煞，透刃无成（论阳刃）'));
+  // 论建禄月劫王总兵「庚合乙，而去伤存官」；「用财而不透伤食，难于发福」；「化劫为财」；「两官竞出，亦须制伏」
+  const wang = bookJudge(['己酉', '乙亥', '壬戌', '庚子']);
+  assert.equal(wang.chengBai.verdict, '败中有成');
+  assert.ok(quotes(wang.chengBai).includes('用官，遇伤而伤被合'));
+  const caiNoShi = bookJudge(['庚寅', '甲申', '辛丑', '甲午']);
+  assert.equal(caiNoShi.chengBai.verdict, '败');
+  assert.ok(quotes(caiNoShi.chengBai).includes('禄劫用财，须带伤食……用财而不透伤食，难于发福（论建禄月劫）'));
+  const huaJie = bookJudge(['壬辰', '甲辰', '己酉', '甲子']);
+  assert.ok(quotes(huaJie.chengBai).includes('化劫为财，与化劫为生，尤为秀气（论建禄月劫）'));
+  assert.ok(quotes(huaJie.chengBai).includes('两官竞出，亦须制伏，所谓争正官，不可无伤也（论建禄月劫）'));
 });
 
 test('相神（论相神紧要「官逢财生，则官为用，财为相」）：成格、救应各条记下辅成此格的那一位，写进成败说明', () => {
