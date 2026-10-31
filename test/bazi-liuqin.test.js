@@ -129,6 +129,20 @@ test('火炎土燥先断子息艰难（男女命同），水气稍有或土不�
   assert.equal(notZao.tone, 'good');
 });
 
+test('火炎土燥也先断克妻（任注「局中全无湿气……所以克两妻」「四柱全无水气……克三妻五子」）；从、化、专旺顺其燥势，不作此论', () => {
+  // 乙未 辛巳 戊戌 丁巳：日支戌是比劫，身旺比劫为喜，旧法看作「妻宫坐喜神」，与书相反。
+  const zao = itemOf(liuqinOf(chartByPillars('乙未 辛巳 戊戌 丁巳')), 'spouse');
+  assert.equal(zao.tone, 'bad');
+  assert.equal(zao.ren.rule.cond, '火炎土燥，局中全无湿气');
+  assert.equal(zao.ren.text, '任注：火炎土燥，局中全无湿气，古法主克妻');
+  // 丁酉 丁未 戊戌 丁巳：「重叠印绶，四柱全无水气，燥土不能泄火生金，克三妻五子」。
+  assert.equal(itemOf(liuqinOf(chartByPillars('丁酉 丁未 戊戌 丁巳')), 'spouse').ren.rule.cond, '火炎土燥，局中全无湿气');
+  // 丙午 甲午 丙午 甲午：炎上，顺其火势，克妻一条不看燥（子息仍按「火炎土燥无子」）。
+  const yanShang = liuqinOf(chartByPillars('丙午 甲午 丙午 甲午'));
+  assert.notEqual(itemOf(yanShang, 'spouse').ren.rule?.cond, '火炎土燥，局中全无湿气');
+  assert.equal(itemOf(yanShang, 'children').ren.rule.cond, '火炎土燥，局中全无湿气');
+});
+
 test('「见财星」要财星够得着印，财印相隔的不算；印重的杀印相生不作「女多子少」', () => {
   // 甲子 丙寅 戊寅 己未：杀旺用丙火印，财藏年支子水，既不透干、不在印下，也不冲印（任注「喜其财印相隔，生生不悖」，夫妇齐眉，生六子皆登科第）。
   const liuqin = liuqinOf(chartByPillars('甲子 丙寅 戊寅 己未'));
