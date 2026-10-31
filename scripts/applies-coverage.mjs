@@ -182,7 +182,9 @@ const targetedZiweiContext = (cond) => {
   const palaceBranch = toArray(cond.branches).length ? pickOne(toArray(cond.branches)) : null;
   const at = palaceBranch ? (ZHI.indexOf(palaceBranch) - 2 + 12) % 12 : (flankedAt ? flankedAt[1] : null); // 从寅起算的宫序
   let month = pickInt(1, 12);
-  let timeIndex = pickInt(0, 11);
+  // 条件写了生时地支的（「六阳时生人」），时辰先按它挑；命宫地支再靠月份凑。
+  const wantedHours = toArray(cond.hourZhi ?? cond.hourZhis);
+  let timeIndex = wantedHours.length ? ZHI.indexOf(pickOne(wantedHours)) : pickInt(0, 11);
   if (flankedAt && at === flankedAt[1]) {
     if (jia.includes('左辅')) {
       month = flankedAt[0];
@@ -196,8 +198,11 @@ const targetedZiweiContext = (cond) => {
     else if (stars.includes('左辅')) month = ((at - 2 + 12) % 12) + 1;
     if (stars.includes('文昌')) timeIndex = (8 - at + 12) % 12;
     else if (stars.includes('文曲')) timeIndex = (at - 2 + 12) % 12;
-    // 条件写的是命宫在某支：命宫 = 寅起数到生月，再逆数到生时，时辰挑到让命宫落在那一支（昌曲已占用时辰的除外）
-    else if (toArray(cond.palace).includes('命宫')) timeIndex = (month - 1 - at + 24) % 12;
+    // 条件写的是命宫在某支：命宫 = 寅起数到生月，再逆数到生时，时辰挑到让命宫落在那一支（昌曲已占用时辰的除外）；时辰已按生时条件定了的改挑月份
+    else if (toArray(cond.palace).includes('命宫')) {
+      if (wantedHours.length) month = ((at + timeIndex) % 12) + 1;
+      else timeIndex = (month - 1 - at + 24) % 12;
+    }
   }
   const example = cond.pattern && random() < 0.5 ? ziweiPatternExampleOf(cond.pattern) : null;
   const horoscope = example
