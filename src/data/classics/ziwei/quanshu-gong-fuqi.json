@@ -334,6 +334,15 @@
           "module": "ziwei",
           "palace": "夫妻",
           "star": "文曲"
+        },
+        {
+          "module": "ziwei",
+          "palace": "夫妻",
+          "star": "文曲",
+          "meet": [
+            "太阴"
+          ],
+          "note": "文曲相生会太阴"
         }
       ],
       "tags": [
