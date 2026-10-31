@@ -361,7 +361,8 @@ export const determinePattern = (chart, summary = null) => {
  *   任注不作从，「子运冲破火局……益我日主之气；辰年湿土……培日主之根源也」；与化气「日主虽临旺地……不能从合」同理）；
  *   坐库的照旧随局（癸亥 乙卯 己未 丁卯，「未土又会木局，不得不从杀矣」）。
  *   三会方之外那一行的墓库支也随方论（壬辰 辛亥 戊子 癸丑「支类北方，水势汪洋……土太衰者，似火也」，辰为水库，戊土不作有根；
- *   加这一条后滴天髓 510 造只此一造改判从财，岁运同 608 → 610、反 194 → 191）。
+ *   加这一条后滴天髓 510 造只此一造改判从财，岁运同 608 → 610、反 194 → 191）。月令当令的库不随方，日主坐下的库本气是日主同类的
+ *   也不随（普查 1940–2030 年 6540 盘，庚戌 己丑 己酉 壬申、丁酉 庚戌 己丑 壬申 之类月令或坐下丑土是己土本气之根的，原会判从儿）。
  *   地支的印被财冲克（申冲寅、酉冲卯、亥冲巳、子冲午），冲者不少于被冲者，这一支不在月令、日支，也不是日主的禄刃，
  *   天干帮身至多一位、不透印，拔去之后日主与帮身之干都再无一点根的，印根拔尽，这一支按冲它的财论
  *   （「三申冲去一寅，丙火之根已拔，比肩亦不能为力」「喜其巳亥逢冲破印，格成弃命从杀」；510 造只改判这两造，
@@ -455,9 +456,12 @@ export const detectSpecialPattern = (chart, strength, summary) => {
   const ju = juElementsOf(pillars.map((pillar) => pillar.zhi));
   // 论从时，三会方之外那一行的墓库支也随方论（任注「支类北方，水势汪洋……土太衰者，似火也」：壬辰 辛亥 戊子 癸丑，
   // 辰是水库，又与子拱水，戊土不作有根）。只在这里用，专旺另有余气支、墓库支随局的条件。
+  // 月令当令不随方；日主坐下的库若本气是日主同类，也不随方（「日主坐下库根」仍能盘根）。
   const congJu = { ...ju };
   Object.values(ju).forEach((element) => pillars.forEach((pillar) => {
-    if (pillar.zhi === KU_ZHI[element] && !congJu[pillar.zhi]) congJu[pillar.zhi] = element;
+    if (pillar.zhi !== KU_ZHI[element] || congJu[pillar.zhi] || pillar.key === 'month') return;
+    if (pillar.key === 'day' && GAN_WUXING[pillar.hiddenGanDetails?.[0]?.gan] === dayWuxing) return;
+    congJu[pillar.zhi] = element;
   }));
   // 库支随月令之神：月令本气是食伤财官、又透出天干，库里藏的正是这一行（辰藏水、戌藏火、未藏木、丑藏金），
   // 库的本气戊己既不是日主同类、也不透出的，论从时这一支随月令之神论（条件与命例见函数说明）。
