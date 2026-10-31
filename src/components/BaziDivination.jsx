@@ -56,6 +56,7 @@ import { getShensha, SHENSHA_ORDER, SHENSHA_SOURCES } from '../utils/baziShensha
 import { cite } from '../data/classics';
 import { analyzeStrength, favorBasisOf } from '../utils/baziStrength';
 import { judgeBaziPattern } from '../utils/baziPattern';
+import { describeQuYun } from '../utils/baziQuYun';
 import { analyzeLiuqin } from '../utils/baziLiuqin';
 
 // 摘要卡上的格局成败小标签（《子平真诠》口径）。
@@ -514,6 +515,14 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
             return null;
         }
     }, [selectedLiuNian, baziResult, daYunPillar, strength, selectedYearMarks]);
+    // 格局取运（《子平真诠》各格取运篇）：按成败判定记下的那一条给所选大运、流年的十神标喜忌，与扶抑喜忌并列。
+    const quYun = patternJudge?.chengBai?.quYun ?? null;
+    const quYunContext = useMemo(() => (baziResult ? {
+        monthZhi: baziResult.pillars.find((pillar) => pillar.key === 'month')?.zhi ?? null,
+        guanGans: baziResult.pillars.filter((pillar) => pillar.key !== 'day' && pillar.ganShiShen === '正官').map((pillar) => pillar.gan),
+    } : null), [baziResult]);
+    const selectedDaYunQuYun = useMemo(() => (quYun && quYunContext && selectedDaYun && !selectedDaYun.isXiaoYun ? describeQuYun(selectedDaYun, quYun, quYunContext) : null), [quYun, quYunContext, selectedDaYun]);
+    const selectedLiuNianQuYun = useMemo(() => (quYun && quYunContext && selectedLiuNian ? describeQuYun(selectedLiuNian, quYun, quYunContext) : null), [quYun, quYunContext, selectedLiuNian]);
 
     const selectionRelations = useMemo(() => {
         if (!selectedLiuRi) return [];
@@ -1463,6 +1472,12 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                                 <button type="button" onClick={viewProfessionalSelection} className="hidden min-h-11 rounded-lg bg-[#2d6b62] px-3 text-xs font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#75b4aa] sm:inline-flex sm:items-center">查看专业盘 ↑</button>
                                                             </div>
                                                         </div>
+                                                        {selectedDaYunQuYun && (
+                                                            <p className="mt-2 rounded-lg border border-[#cbbfac]/70 bg-[#e9dfcd]/40 px-3 py-2 text-xs leading-5 text-[#514941]" data-testid="bazi-dayun-quyun">
+                                                                <b className="font-serif text-[#3b342e]">按格局取运</b>（{quYun.source}「{quYun.texts.join('；')}」）：{selectedDaYun.ganZhi}运，{selectedDaYunQuYun.text}。
+                                                                <span className="block text-[11px] leading-4 text-[#81776b]">这是《子平真诠》「即以所就之格，分而配之」的配运口径，与上面按旺衰取的喜忌并列参考；原书没写到的十神标「原书未言」。</span>
+                                                            </p>
+                                                        )}
                                                         <ul className="mt-3 grid grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-5">
                                                             {visibleLiuNian.map((liuNian) => {
                                                                 const isSelected = selectedLiuNian?.year === liuNian.year;
@@ -1497,6 +1512,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                         {selectedLiuNian && selectedYearMarks && (
                                                             <p className="mt-3 rounded-lg bg-[#e9dfcd]/50 px-3 py-2 text-xs leading-5 text-[#514941]">
                                                                 <b className="font-serif text-[#3b342e]">{selectedLiuNian.year} {selectedLiuNian.ganZhi}流年</b>：{describeYearMarks(selectedLiuNian, selectedYearMarks) || '与本命年支、日柱没有特别的冲合'}
+                                                                {selectedLiuNianQuYun && <span className="block" data-testid="bazi-year-quyun">按格局取运：{selectedLiuNianQuYun.text}。</span>}
                                                             </p>
                                                         )}
                                                         {selectedYearSummary && (
