@@ -290,6 +290,22 @@ test('《子平真诠》各格命造的成败：合煞留官、财用煞印、�
   assert.ok(quotes(fan.chengBai).includes('官逢伤克（论正官：巳丑会金伤官）'));
 });
 
+test('相神（论相神紧要「官逢财生，则官为用，财为相」）：成格、救应各条记下辅成此格的那一位，写进成败说明', () => {
+  // 薛相公「壬印戊财，以乙隔之」：正官格，相神财、印；寅申冲另算一条败，巳申合解之
+  const xue = bookJudge(['甲申', '壬申', '乙巳', '戊寅']);
+  assert.deepEqual(xue.chengBai.xiangShen, ['财', '印']);
+  assert.match(xue.chengBai.summary, /相神：财、印。$/);
+  // 论相神紧要「煞逢食制，则煞为用，食为相」；「合伤存官以成格者，全赖于壬之相」——合去忌神的那一干也是相
+  assert.deepEqual(bookJudge(['乙亥', '乙酉', '乙卯', '丁丑']).chengBai.xiangShen, ['食伤']);
+  assert.deepEqual(bookJudge(['庚寅', '乙酉', '甲子', '戊辰']).chengBai.xiangShen, ['财', '比劫']);
+  // 曾参政财格佩印，相神印（申中壬为暗煞，也列出）；常国公弃食就煞印，相神七杀、印；一平章合煞留官，相神正官
+  assert.deepEqual(bookJudge(['乙未', '甲申', '丙申', '庚寅']).chengBai.xiangShen, ['印', '七杀']);
+  assert.deepEqual(bookJudge(['辛卯', '辛卯', '癸酉', '己未']).chengBai.xiangShen, ['七杀', '印']);
+  assert.deepEqual(bookJudge(['辛丑', '庚寅', '甲辰', '乙亥']).chengBai.xiangShen, ['正官']);
+  // 败格不列相神
+  assert.deepEqual(bookJudge(['辛丑', '庚子', '癸未', '癸丑']).chengBai.xiangShen, []);
+});
+
 test('待详辨：天干不构成原书条件时只列透出的十神，不下结论；要点里带出处', () => {
   const qianlong = judge(1711, 9, 25, 0);
   assert.equal(qianlong.pillars, '辛卯 丁酉 庚午 丙子');
