@@ -16,8 +16,8 @@ export const MUTAGEN_LAYER_META = Object.freeze([
   Object.freeze({ key: 'hourly', label: '时', name: '流时', layerColor: '#078f9d' }),
 ]);
 
-// 排盘库（iztro）默认的十干四化：九干与《紫微斗数全书》「安禄权科忌四星变化诀」相同；壬干全书作「壬梁紫府武」（天府化科），
-// 这里与今人排盘一致用左辅化科（界面上注明）。
+// 十干四化按《紫微斗数全书》「安禄权科忌四星变化诀」：九干与排盘库（iztro）默认相同；壬干全书作「壬梁紫府武」（天府化科），
+// 今人排盘多用左辅化科，这里按全书用天府（排盘库已在 ziweiBrightness.js 里 config 成同样的表；界面与词典注明差异）。
 export const MUTAGEN_STAR_MAP = Object.freeze({
   '甲': { lu: '廉贞', quan: '破军', ke: '武曲', ji: '太阳' },
   '乙': { lu: '天机', quan: '天梁', ke: '紫微', ji: '太阴' },
@@ -27,7 +27,7 @@ export const MUTAGEN_STAR_MAP = Object.freeze({
   '己': { lu: '武曲', quan: '贪狼', ke: '天梁', ji: '文曲' },
   '庚': { lu: '太阳', quan: '武曲', ke: '太阴', ji: '天同' },
   '辛': { lu: '巨门', quan: '太阳', ke: '文曲', ji: '文昌' },
-  '壬': { lu: '天梁', quan: '紫微', ke: '左辅', ji: '武曲' },
+  '壬': { lu: '天梁', quan: '紫微', ke: '天府', ji: '武曲' },
   '癸': { lu: '破军', quan: '巨门', ke: '太阴', ji: '贪狼' },
 });
 
