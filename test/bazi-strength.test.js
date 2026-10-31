@@ -107,8 +107,10 @@ test('身弱官杀重：取印化杀（印透干无根而杀重有源，仍算�
   const huoJu = analyzeStrength(chartByPillars('庚戌 乙酉 甲寅 庚午'));
   assert.equal(huoJu.band, '偏弱');
   assert.match(huoJu.basis, /食伤又会成局，制之以威不若化之以德，取印化杀生身/);
-  assert.deepEqual(elements(huoJu.favorable.filter((item) => !item.tiaoHou)), ['木', '水']);
-  assert.deepEqual(elements(huoJu.unfavorable), ['金', '土']);
+  assert.deepEqual(elements(huoJu.favorable), ['木', '水']);
+  // 扶抑明指火为病：调候宜火也不列喜用，火列进忌神。
+  assert.deepEqual(elements(huoJu.unfavorable), ['金', '土', '火']);
+  assert.equal(huoJu.tiaoHouNote, '调候宜火，但扶抑以火为病，不作喜用');
 
   // 找病时透干的字另加半分：地支土气（3.6）略多于金（3.5），但庚金并透，才是病。
   // 任注「庚金并透，通根砍伐……更妙丙火独透，制杀扶身」，用火。
@@ -164,8 +166,10 @@ test('身旺：印多取财破印；比劫多取官杀，官杀无力取食伤�
   assert.equal(bijie.basis, '身旺比劫多，取官杀制劫，食伤、财次之');
   assert.deepEqual(elements(bijie.favorable), ['火', '木']);
   assert.equal(bijie.tiaoHouNote, '冬月寒冷，调候为急：火有力有根，扶抑虽嫌火，仍取火为先');
-  // 用神火、喜神木；水克火、金为火所克，为忌。
+  // 用神火、喜神木；水克火、金为火所克，为忌。扶抑列作次选的食伤、财因此转忌，另写一句说明。
   assert.deepEqual(elements(bijie.unfavorable), ['水', '金']);
+  assert.equal(bijie.godsNote, '食伤为用神所克、财克用神，不列喜用');
+  assert.equal(yinDuo.godsNote, '', '次选都在喜用里的不写');
 
   const wuli = chartOf(1985, 1, 4, 0);
   assert.equal(ganZhiOf(wuli), '甲子 丙子 癸卯 壬子');
@@ -230,6 +234,17 @@ test('旺极宜泄：丙午 甲午 丁巳 丙午 5 分极强，先取食伤；�
   assert.deepEqual(result.tiaoHou.stems, ['壬', '庚', '癸']);
   assert.deepEqual(elements(result.unfavorable), ['木', '水']);
   assert.equal(result.tiaoHouNote, '调候宜水，但水为用神所克，以用神为重，不作喜用');
+  // 旺极只可顺其势而泄，食伤只藏支中也放第一位：壬寅 壬寅 甲寅 壬申「木旺金缺，必要有火为佳」，寅中丙火为用，申金为火所克不列喜用；
+  // 癸未 癸亥 壬子 戊申「只可顺其势，不可逆其流。所嫌未戊两字激水之性」，木泄为先，土为忌。
+  const jiaWang = analyzeStrength(chartByPillars('壬寅 壬寅 甲寅 壬申'));
+  assert.equal(jiaWang.band, '极强');
+  assert.equal(jiaWang.favorable[0].element, '火');
+  assert.equal(jiaWang.favorable[0].usable, false);
+  assert.ok(elements(jiaWang.unfavorable).includes('金'));
+  const renWang = analyzeStrength(chartByPillars('癸未 癸亥 壬子 戊申'));
+  assert.equal(renWang.band, '极强');
+  assert.equal(renWang.favorable[0].element, '木');
+  assert.ok(elements(renWang.unfavorable).includes('土'));
 });
 
 test('寒暖调候为急：冬月、正月宜火，夏月宜水，这一火、水有力有根时取为第一（任注《寒暖》）', () => {
@@ -321,7 +336,9 @@ test('燥土不载金：未、戌坐下生金不算有力，日主是土而通�
   // 癸卯 乙卯 甲寅 辛未：「辛金之君无能为矣，当存君之子，以癸水为用」——辛坐未不算有力，扶抑不以金为先。
   const jia = analyzeStrength(chartByPillars('癸卯 乙卯 甲寅 辛未'));
   assert.notEqual(jia.favorable[0].element, '金');
-  assert.equal(jia.favorable.at(-1).element, '金', '无力的字排在最后');
+  // 木旺极先取火泄秀，无力的辛金为火所克，不列喜用。
+  assert.ok(!elements(jia.favorable).includes('金'), '无力的辛金不列喜用');
+  assert.equal(jia.godsNote, '官杀为用神所克，不列喜用');
   // 癸卯 乙卯 己卯 辛未：「未土通根有余，足以用辛金制杀」——日主己土通根于未，辛金仍算有载，用金。
   const ji = analyzeStrength(chartByPillars('癸卯 乙卯 己卯 辛未'));
   assert.equal(ji.favorable[0].element, '金');
