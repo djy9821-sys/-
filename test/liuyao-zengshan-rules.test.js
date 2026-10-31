@@ -362,3 +362,14 @@ test('功名诸章：子孙持世，子孙克官，休问功名，倾向至多�
   // 只论功名：同一卦问求财不加这一条
   assert.doesNotMatch(allText(bookCase('水天需', [], '2001-10-31', { topic: 'wealth' })), /休问功名/);
 });
+
+test('婚姻章：女占而子孙持世，克夫之神，未成者不成、已成者伤夫，倾向至多偏弱；男占不论', () => {
+  // 巳月己亥日女占夫妇将来和好否得需之大过：「女占夫，不宜子孙持世，乃克夫之象……必有生离」
+  const female = bookCase('水天需', [1, 4], '2001-6-5', { topic: 'love', gender: 'female' });
+  assert.match(allText(female), /女占而子孙持世，克夫之象，未成者不成，已成者伤夫/);
+  assert.equal(female.verdict.level, 'bad');
+  // 巳月丁未日男占夫妻偕老否得无妄之观，世亦临子孙：「不独偕老，且许贤比周南」
+  const male = bookCase('天雷无妄', [1, 4], '2003-6-3', { topic: 'love', gender: 'male' });
+  assert.doesNotMatch(allText(male), /克夫/);
+  assert.equal(male.verdict.level, 'good');
+});
