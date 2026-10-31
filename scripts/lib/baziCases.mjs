@@ -89,6 +89,9 @@ export const samePatternFamily = (special, expected) => {
   if (!special || !expected) return false;
   if (special === expected || special.includes(expected)) return true;
   if (expected === '化气格') return /化.格/.test(special);
+  // 化气格两干的次序不论：程序写「壬丁化木格」（日干在前），原书写「丁壬化木格」
+  const huaKey = (name) => { const m = name.match(/([甲乙丙丁戊己庚辛壬癸])([甲乙丙丁戊己庚辛壬癸])(化[木火土金水]格)/); return m ? [m[1], m[2]].sort().join('') + m[3] : null; };
+  if (huaKey(special) && huaKey(special) === huaKey(expected)) return true;
   return STRONG_SPECIALS.test(expected) && STRONG_SPECIALS.test(special);
 };
 
@@ -99,11 +102,16 @@ const SPECIAL_EXPECTED = /从|专旺|曲直|炎上|稼穑|从革|润下|化.格|
  */
 export const sameRegularPattern = (program, expected) => Boolean(program && expected)
   && (patternNamesOf(program).includes(expected) || patternNamesOf(expected).includes(program));
-/** 成败的对照：全同算 same；成 / 成中有败、败 / 败中有成算 near；成与败相反算 reversed。 */
+/**
+ * 成败的对照：全同算 same；结局同向算 near——原书「败中有成」是破格得救终归于成（合煞留官、合财存食都在此例），
+ * 「成中有败」是成格而有损终归于败（杂气正官财印相合「不上七品」）；成与败中有成、败与成中有败之外的都算 reversed；
+ * 程序答「待详辨」的不比（null）。
+ */
+const CHENG_BAI_GOOD = new Set(['成', '败中有成']);
 export const chengBaiCheck = (program, expected) => {
-  if (!program || !expected) return null;
+  if (!program || !expected || program === '待详辨') return null;
   if (program === expected) return 'same';
-  return program[0] === expected[0] ? 'near' : 'reversed';
+  return CHENG_BAI_GOOD.has(program) === CHENG_BAI_GOOD.has(expected) ? 'near' : 'reversed';
 };
 
 /** 十神或十神类别 → 相对日主的五行。 */
