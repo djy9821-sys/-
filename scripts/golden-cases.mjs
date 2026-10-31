@@ -63,7 +63,11 @@ export const summarizeBazi = (input) => {
     strength: { band: strength.band, ratio: Number(strength.ratio.toFixed(4)), deLing: strength.deLing, favorable: strength.favorable, unfavorable: strength.unfavorable },
     pattern: { pattern: pattern.pattern, special: pattern.special, traits: pattern.traits },
     chengBai: pattern.chengBai
-      ? { group: pattern.chengBai.group, verdict: pattern.chengBai.verdict, success: pattern.chengBai.success.map((item) => item.quote), failure: pattern.chengBai.failure.map((item) => item.quote), flaw: pattern.chengBai.flaw.map((item) => item.quote), rescue: pattern.chengBai.rescue.map((item) => item.quote) }
+      ? {
+        group: pattern.chengBai.group, verdict: pattern.chengBai.verdict, success: pattern.chengBai.success.map((item) => item.quote), failure: pattern.chengBai.failure.map((item) => item.quote), flaw: pattern.chengBai.flaw.map((item) => item.quote), rescue: pattern.chengBai.rescue.map((item) => item.quote),
+        // 格局取运：原书各格取运篇配出的条文与各类十神的喜忌
+        quYun: pattern.chengBai.quYun ? { section: pattern.chengBai.quYun.section, texts: pattern.chengBai.quYun.texts, favor: pattern.chengBai.quYun.favor } : null,
+      }
       : null,
   };
 };
