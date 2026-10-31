@@ -13,6 +13,8 @@ import { cite } from '../data/classics.js';
 import { getGanPairKinds, getZhiPairKinds } from './baziRelations.js';
 
 const REN = { 甲: '卯', 丙: '午', 戊: '午', 庚: '酉', 壬: '子' };
+/** 十神 → 相神归类（官、杀分开，财、印、食伤、比劫按类） */
+const ROLE_LABEL = { 正官: '正官', 七杀: '七杀', 正财: '财', 偏财: '财', 正印: '印', 偏印: '印', 食神: '食伤', 伤官: '食伤', 比肩: '比劫', 劫财: '比劫' };
 const GENERATES = { 木: '火', 火: '土', 土: '金', 金: '水', 水: '木' };
 const CONTROLS = { 木: '土', 土: '水', 水: '火', 火: '金', 金: '木' };
 /** 半合、三合所成之局的五行（生地＋帝旺、帝旺＋墓库、生地＋墓库都算到局里）。 */
@@ -126,6 +128,9 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
   }));
   /** 地支会局成某一类（只看会局） */
   const juHas = (role) => juRoles.has(role);
+  /** 月支以外的地支本气是某一类（论建禄月劫「有用官而财助者」李知府：壬官透而酉中辛财助之） */
+  const benQiRoles = new Set(summary.hidden.filter((item) => item.rank === 0 && item.key !== 'month').map((item) => ROLE_LABEL[item.shiShen]).filter(Boolean));
+  const benQiHas = (role) => benQiRoles.has(role);
   const monthHidden = month ? summary.hidden.filter((item) => item.key === 'month').map((item) => item.shiShen) : [];
 
   const hasRen = Boolean(REN[dayGan]) && summary.pillars.some((pillar) => pillar.key !== 'month' && pillar.zhi === REN[dayGan]);
@@ -136,20 +141,24 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
   const failure = [];
   const flaw = [];
   const rescue = [];
-  const add = (list, text, quote) => list.push({ text, quote });
+  /** @param xiang 这一条里辅成此格的相神（论相神紧要「如官逢财生，则官为用，财为相」），十神或十神类别 */
+  const add = (list, text, quote, xiang = []) => list.push({ text, quote, xiang });
+  // 合去某干的那一干就是相神（论相神紧要「合伤存官以成格者，全赖于壬之相」）
+  const partnersOf = (list) => [...new Set(list.flatMap((stem) => stems.filter((other) => other.key !== stem.key && canMerge(stem, other) && getGanPairKinds(stem.gan, other.gan).includes('合')).map((other) => ROLE_LABEL[other.shiShen]).filter(Boolean)))];
   const q = CHENG_BAI_QUOTES;
 
   switch (group) {
     case '正官格': {
       const guard = hasRole('财') || hasRole('印');
-      if (guard && !monthClashed && !has('伤官')) add(success, `正官得${hasRole('财') ? `财（${whereRole('财')}）` : ''}${hasRole('财') && hasRole('印') ? '、' : ''}${hasRole('印') ? `印（${whereRole('印')}）` : ''}相随，月令${month.zhi}无刑冲。`, '官逢财印，又无刑冲破害，官格成也');
+      // 刑冲另算一条败（下面），财印相随的成格条件照记：薛相公「壬印戊财，以乙隔之」，寅申冲、巳申合而仍大贵
+      if (guard && !has('伤官')) add(success, `正官得${hasRole('财') ? `财（${whereRole('财')}）` : ''}${hasRole('财') && hasRole('印') ? '、' : ''}${hasRole('印') ? `印（${whereRole('印')}）` : ''}相随${monthClashed ? '' : `，月令${month.zhi}无刑冲`}。`, '官逢财印，又无刑冲破害，官格成也', [hasRole('财') ? '财' : null, hasRole('印') ? '印' : null].filter(Boolean));
       if (has('伤官')) {
         add(failure, `伤官透于${where('伤官')}，克正官。`, '官逢伤克');
-        if (hasRole('印')) add(rescue, `印星透于${whereRole('印')}，制伤护官。`, '官逢伤而透印以解之');
+        if (hasRole('印')) add(rescue, `印星透于${whereRole('印')}，制伤护官。`, '官逢伤而透印以解之', ['印']);
       } else if (juHas('食伤')) {
         // 范太傅「支其巳丑会金伤官，丙丁解之」：地支会成食伤局也是逢伤，印透则解
         add(failure, '地支会成食伤之局，伤及正官。', '官逢伤克（论正官：巳丑会金伤官）');
-        if (hasRole('印')) add(rescue, `印星透于${whereRole('印')}，制伤护官。`, '官逢伤而透印以解之');
+        if (hasRole('印')) add(rescue, `印星透于${whereRole('印')}，制伤护官。`, '官逢伤而透印以解之', ['印']);
       }
       // 杂气正官「壬财丁印，二者相合，仍以孤官无辅，所以不上七品」：辅官的财、印自相合去，官失其辅；
       // 范太傅「丙丁并透，用一而足，以丁合壬而财去」——还剩一个印没被合的，不算孤官
@@ -165,36 +174,36 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
       if (has('七杀')) {
         add(failure, `七杀透于${where('七杀')}，官杀混杂。`, '杂煞');
         const merged = stemMerged('七杀');
-        if (merged.length) add(rescue, `${stemsText(merged)}之杀被合去，官格清。`, '杂煞而合煞以清之');
+        if (merged.length) add(rescue, `${stemsText(merged)}之杀被合去，官格清。`, '杂煞而合煞以清之', partnersOf(merged));
       }
       const merged = stemMerged('正官');
       if (guard && !failure.length && merged.length) add(flaw, `正官${stemsText(merged)}被合。`, '透官而又逢合');
       break;
     }
     case '财格': {
-      if (has('正官')) add(success, `财生正官（${where('正官')}）。`, '财生官旺');
+      if (has('正官')) add(success, `财生正官（${where('正官')}）。`, '财生官旺', ['正官']);
       // 吴榜眼「庚与丙隔一戊而不相克」：戊戊比肩透而食神生财，身虽未强亦以带比论
-      if (hasRole('食伤') && (strong || hasRole('比劫'))) add(success, `食伤（${whereRole('食伤')}）生财，${strong ? `日主${bandText}` : `比劫（${whereRole('比劫')}）帮身`}。`, '财逢食生而身强带比');
+      if (hasRole('食伤') && (strong || hasRole('比劫'))) add(success, `食伤（${whereRole('食伤')}）生财，${strong ? `日主${bandText}` : `比劫（${whereRole('比劫')}）帮身`}。`, '财逢食生而身强带比', ['食伤']);
       // 论财「有财格佩印者，盖孤财不贵，佩印帮身，即以取贵」：财、印不紧挨（年月相邻）才是位置妥贴
       if (hasRole('印') && hasRole('财')) {
         if (adjacentPair(transparentRole('财'), transparentRole('印'))) add(flaw, `财（${whereRole('财')}）与印（${whereRole('印')}）年月相邻，财印相克。`, '财格透印而位置不妥（论财）');
-        else add(success, `财透而印（${whereRole('印')}）亦透，两不相邻。`, '财格透印而位置妥贴，两不相克');
+        else add(success, `财透而印（${whereRole('印')}）亦透，两不相邻。`, '财格透印而位置妥贴，两不相克', ['印']);
       }
       // 论财「壬生午月，癸生巳月，单透财而亦贵，以月令有暗官也」
-      if (hasRole('财') && !has('正官') && !has('七杀') && monthHidden.some((name) => name === '正官' || name === '七杀')) add(success, `财透于${whereRole('财')}，月令${month.zhi}藏官。`, '单透财而亦贵，以月令有暗官也（论财）');
+      if (hasRole('财') && !has('正官') && !has('七杀') && monthHidden.some((name) => name === '正官' || name === '七杀')) add(success, `财透于${whereRole('财')}，月令${month.zhi}藏官。`, '单透财而亦贵，以月令有暗官也（论财）', [monthHidden.includes('正官') ? '正官' : '七杀']);
       const jieHeavy = hasRole('比劫') && (roleShare['比劫'] ?? 0) > (roleShare['财'] ?? 0);
       if (jieHeavy) {
         add(failure, `比劫透于${whereRole('比劫')}，比劫 ${Math.round(roleShare['比劫'])}% 重于财 ${Math.round(roleShare['财'])}%。`, '财轻比重');
-        if (hasRole('食伤')) add(rescue, `食伤透于${whereRole('食伤')}，化比劫生财。`, '财逢劫而透食以化之');
-        if (has('正官')) add(rescue, `正官透于${where('正官')}，制比劫护财。`, '生官以制之');
+        if (hasRole('食伤')) add(rescue, `食伤透于${whereRole('食伤')}，化比劫生财。`, '财逢劫而透食以化之', ['食伤']);
+        if (has('正官')) add(rescue, `正官透于${where('正官')}，制比劫护财。`, '生官以制之', ['正官']);
       }
       if (has('七杀')) {
         add(failure, `七杀透于${where('七杀')}，财党杀攻身。`, '财透七煞');
-        if (has('食神')) add(rescue, `食神透于${where('食神')}，制杀生财。`, '逢煞而食神制煞以生财');
+        if (has('食神')) add(rescue, `食神透于${where('食神')}，制杀生财。`, '逢煞而食神制煞以生财', ['食伤']);
         const merged = stemMerged('七杀');
-        if (merged.length) add(rescue, `${stemsText(merged)}之杀被合去。`, '存财而合煞');
+        if (merged.length) add(rescue, `${stemsText(merged)}之杀被合去。`, '存财而合煞', partnersOf(merged));
         // 赵侍郎「有财用煞印者，党煞为忌，印以化之，格成富局」
-        if (hasRole('印')) add(rescue, `印星透于${whereRole('印')}，化杀生身。`, '财用煞印，印以化之（论财）');
+        if (hasRole('印')) add(rescue, `印星透于${whereRole('印')}，化杀生身。`, '财用煞印，印以化之（论财）', ['七杀', '印']);
       }
       if (has('正官') && !failure.length) {
         if (has('伤官')) add(flaw, `伤官透于${where('伤官')}，伤及所生之官。`, '财旺生官，而又逢伤');
@@ -205,49 +214,49 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
     }
     case '印格': {
       const yinLight = (roleShare['印'] ?? 0) < 20;
-      if (yinLight && has('七杀')) add(success, `印星不重，七杀（${where('七杀')}）生印。`, '印轻逢煞');
-      if (has('正官')) add(success, `正官透于${where('正官')}，官印双全。`, '官印双全');
-      if (strong && hasRole('食伤')) add(success, `身印两旺，食伤（${whereRole('食伤')}）泄秀。`, '身印两旺而用食伤泄气');
-      if (strong && (roleShare['印'] ?? 0) >= 30 && hasRole('财') && (roleShare['财'] ?? 0) < 15) add(success, `印多，财（${whereRole('财')}）透而根轻，损印有度。`, '印多逢财而财透根轻');
+      if (yinLight && has('七杀')) add(success, `印星不重，七杀（${where('七杀')}）生印。`, '印轻逢煞', ['七杀']);
+      if (has('正官')) add(success, `正官透于${where('正官')}，官印双全。`, '官印双全', ['正官']);
+      if (strong && hasRole('食伤')) add(success, `身印两旺，食伤（${whereRole('食伤')}）泄秀。`, '身印两旺而用食伤泄气', ['食伤']);
+      if (strong && (roleShare['印'] ?? 0) >= 30 && hasRole('财') && (roleShare['财'] ?? 0) < 15) add(success, `印多，财（${whereRole('财')}）透而根轻，损印有度。`, '印多逢财而财透根轻', ['财']);
       if (yinLight && hasRole('财')) {
         add(failure, `印星不重而财透于${whereRole('财')}，财破印。`, '印轻逢财');
-        if (hasRole('比劫')) add(rescue, `比劫透于${whereRole('比劫')}，制财护印。`, '印逢财而劫财以解之');
+        if (hasRole('比劫')) add(rescue, `比劫透于${whereRole('比劫')}，制财护印。`, '印逢财而劫财以解之', ['比劫']);
         const merged = roleMerged('财');
-        if (merged.length) add(rescue, `财${stemsText(merged)}被合去。`, '合财而存印');
+        if (merged.length) add(rescue, `财${stemsText(merged)}被合去。`, '合财而存印', partnersOf(merged));
       }
       if (strong && (roleShare['印'] ?? 0) >= 30 && has('七杀')) {
         add(failure, `身强印重，七杀透于${where('七杀')}反生印。`, '身强印重而透煞');
         // 论印绶「辛亥 庚子 甲辰 乙亥，此合煞留官也」
         const merged = stemMerged('七杀');
-        if (merged.length) add(rescue, `${stemsText(merged)}之杀被合去${has('正官') ? '，留官' : ''}。`, '合煞留官（论印绶）');
+        if (merged.length) add(rescue, `${stemsText(merged)}之杀被合去${has('正官') ? '，留官' : ''}。`, '合煞留官（论印绶）', has('正官') ? ['正官'] : partnersOf(merged));
       }
       // 论印绶「更有印透七煞，而劫财以存煞印，亦有贵格」
-      if (has('七杀') && hasRole('财') && hasRole('比劫') && !failure.length) add(success, `七杀（${where('七杀')}）透而财（${whereRole('财')}）亦透，劫财（${whereRole('比劫')}）制财以存煞印。`, '印透七煞，而劫财以存煞印（论印绶）');
+      if (has('七杀') && hasRole('财') && hasRole('比劫') && !failure.length) add(success, `七杀（${where('七杀')}）透而财（${whereRole('财')}）亦透，劫财（${whereRole('比劫')}）制财以存煞印。`, '印透七煞，而劫财以存煞印（论印绶）', ['七杀', '比劫']);
       if (!failure.length && hasRole('食伤') && hasRole('财')) {
         // 牛监簿「乙合庚而不生丙」、「己未 甲戌 辛未 癸巳，此合财存食之贵也」：食伤或财被合去，便不成财坏印
         const foodMerged = roleMerged('食伤');
         const wealthMerged = roleMerged('财');
-        if (foodMerged.length) add(rescue, `食伤${stemsText(foodMerged)}被合而不生财。`, '食被合而不生财（论印绶）');
-        else if (wealthMerged.length) add(rescue, `财${stemsText(wealthMerged)}被合去。`, '合财存食（论印绶）');
+        if (foodMerged.length) add(rescue, `食伤${stemsText(foodMerged)}被合而不生财。`, '食被合而不生财（论印绶）', partnersOf(foodMerged));
+        else if (wealthMerged.length) add(rescue, `财${stemsText(wealthMerged)}被合去。`, '合财存食（论印绶）', ['食伤']);
         else add(flaw, `食伤泄秀而财（${whereRole('财')}）又露，财坏印。`, '印透食以泄气，而又遇财露');
       }
       break;
     }
     case '食神格': {
-      if (hasRole('财') && !has('七杀')) add(success, `食神生财（${whereRole('财')}）。`, '食神生财');
-      if (has('七杀') && !hasRole('财')) add(success, `食神制杀（${where('七杀')}）而不见财。`, '食带煞而无财');
-      if (has('七杀') && hasRole('印')) add(success, `杀印（${where('七杀')}、${whereRole('印')}）并透，弃食就杀。`, '弃食就煞而透印');
+      if (hasRole('财') && !has('七杀')) add(success, `食神生财（${whereRole('财')}）。`, '食神生财', ['财']);
+      if (has('七杀') && !hasRole('财')) add(success, `食神制杀（${where('七杀')}）而不见财。`, '食带煞而无财', ['七杀']);
+      if (has('七杀') && hasRole('印')) add(success, `杀印（${where('七杀')}、${whereRole('印')}）并透，弃食就杀。`, '弃食就煞而透印', ['七杀', '印']);
       if (has('偏印')) {
         add(failure, `偏印透于${where('偏印')}，枭神夺食。`, '食神逢枭');
-        if (has('七杀')) add(rescue, `七杀透于${where('七杀')}，弃食就杀成格。`, '食逢枭而就煞以成格');
-        if (hasRole('财')) add(rescue, `财透于${whereRole('财')}，制枭护食。`, '生财以护食');
+        if (has('七杀')) add(rescue, `七杀透于${where('七杀')}，弃食就杀成格。`, '食逢枭而就煞以成格', ['七杀']);
+        if (hasRole('财')) add(rescue, `财透于${whereRole('财')}，制枭护食。`, '生财以护食', ['财']);
       }
       if (hasRole('财') && has('七杀')) {
         add(failure, `财（${whereRole('财')}）与七杀（${where('七杀')}）并露，财生杀。`, '生财露煞');
         // 刘提督「食神透煞，本忌见财，而财先煞后，食以间之，而财不能党煞，亦可就贵」
         const foodAtMonth = transparent('食神').some((stem) => stem.key === 'month');
         const apart = transparentRole('财').every((stem) => stem.key === 'year') && transparent('七杀').every((stem) => stem.key === 'time');
-        if (foodAtMonth && apart) add(rescue, '财在年、杀在时，食神居中间之，财不能党杀。', '财先煞后，食以间之（论食神）');
+        if (foodAtMonth && apart) add(rescue, '财在年、杀在时，食神居中间之，财不能党杀。', '财先煞后，食以间之（论食神）', ['七杀']);
       }
       if (!failure.length && has('七杀') && hasRole('印') && hasRole('财')) add(flaw, `杀印并透又见财（${whereRole('财')}）。`, '食神带煞印，而又逢财');
       break;
@@ -256,9 +265,9 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
       const zhi = has('食神') || has('伤官');
       // 「乙亥 乙酉 乙卯 丁丑，极等之贵也」：日主中和而食神制杀亦成，只要不弱
       const notWeak = strength.band !== '偏弱' && strength.band !== '极弱';
-      if (notWeak && zhi) add(success, `身${bandText}，食伤（${whereRole('食伤')}）制杀。`, '身强七煞逢制');
-      if (hasRole('印')) add(success, `印星透于${whereRole('印')}，化杀生身。`, '煞用印化（论偏官）');
-      if (hasRen) add(success, `日主坐刃（${REN[dayGan]}），刃杀相济。`, '煞用阳刃（论偏官）');
+      if (notWeak && zhi) add(success, `身${bandText}，食伤（${whereRole('食伤')}）制杀。`, '身强七煞逢制', ['食伤']);
+      if (hasRole('印')) add(success, `印星透于${whereRole('印')}，化杀生身。`, '煞用印化（论偏官）', ['印']);
+      if (hasRen) add(success, `日主坐刃（${REN[dayGan]}），刃杀相济。`, '煞用阳刃（论偏官）', ['比劫']);
       // 何参政「煞印有情」、刘运使「煞又化印……借财以清格」：有印化煞的，见财不作无制论
       if (hasRole('财') && !zhi && !hasRole('印')) {
         add(failure, `财透于${whereRole('财')}而七杀无食伤制。`, '七煞逢财无制');
@@ -268,29 +277,29 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
         const guanMerged = stemMerged('正官');
         const guanHurt = has('伤官');
         add(flaw, `正官透于${where('正官')}，官杀混杂。`, '官煞混杂（论偏官）');
-        if (guanMerged.length || guanHurt) add(rescue, `${guanMerged.length ? `正官${stemsText(guanMerged)}被合去` : `伤官（${where('伤官')}）克去正官`}，去官留杀。`, '去官留煞（论偏官）');
+        if (guanMerged.length || guanHurt) add(rescue, `${guanMerged.length ? `正官${stemsText(guanMerged)}被合去` : `伤官（${where('伤官')}）克去正官`}，去官留杀。`, '去官留煞（论偏官）', guanMerged.length ? partnersOf(guanMerged) : ['食伤']);
       }
       if (!failure.length && zhi && hasRole('印')) {
         add(flaw, `食伤制杀而印（${whereRole('印')}）又夺食。`, '七煞逢食制，而又逢印');
-        if (hasRole('财')) add(rescue, `财透于${whereRole('财')}，去印存食。`, '逢财以去印存食');
+        if (hasRole('财')) add(rescue, `财透于${whereRole('财')}，去印存食。`, '逢财以去印存食', ['财']);
       }
       break;
     }
     case '伤官格': {
-      if (hasRole('财') && !has('七杀')) add(success, `伤官生财（${whereRole('财')}）。`, '伤官生财');
-      if (hasRole('印') && weak) add(success, `身${bandText}，印（${whereRole('印')}）制伤护身。`, '伤官佩印');
-      if (has('七杀') && !hasRole('财')) add(success, `伤官驾杀（${where('七杀')}）而不见财。`, '伤官带煞而无财');
+      if (hasRole('财') && !has('七杀')) add(success, `伤官生财（${whereRole('财')}）。`, '伤官生财', ['财']);
+      if (hasRole('印') && weak) add(success, `身${bandText}，印（${whereRole('印')}）制伤护身。`, '伤官佩印', ['印']);
+      if (has('七杀') && !hasRole('财')) add(success, `伤官驾杀（${where('七杀')}）而不见财。`, '伤官带煞而无财', ['七杀']);
       if (has('正官')) {
-        if (shangGuanJinShui) add(success, `金水伤官见官（${where('正官')}），原书所许。`, '伤官非金水而见官（金水伤官例外）');
+        if (shangGuanJinShui) add(success, `金水伤官见官（${where('正官')}），原书所许。`, '伤官非金水而见官（金水伤官例外）', ['正官']);
         else {
           add(failure, `正官透于${where('正官')}，伤官见官。`, '伤官非金水而见官');
-          if (hasRole('印')) add(rescue, `印星透于${whereRole('印')}，制伤护官。`, '官逢伤而透印以解之');
+          if (hasRole('印')) add(rescue, `印星透于${whereRole('印')}，制伤护官。`, '官逢伤而透印以解之', ['印']);
         }
       }
       if (hasRole('财') && has('七杀')) {
         add(failure, `伤官生财（${whereRole('财')}）而七杀（${where('七杀')}）又透，财生杀。`, '生财生带煞');
         const merged = stemMerged('七杀');
-        if (merged.length) add(rescue, `${stemsText(merged)}之杀被合去。`, '伤官生财透煞而煞逢合');
+        if (merged.length) add(rescue, `${stemsText(merged)}之杀被合去。`, '伤官生财透煞而煞逢合', partnersOf(merged));
       }
       if (hasRole('印') && strong && (roleShare['食伤'] ?? 0) < 15) add(failure, `身强伤轻而印（${whereRole('印')}）又制伤。`, '佩印而伤轻身旺');
       if (!failure.length && hasRole('财')) {
@@ -304,46 +313,48 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
       const guanShaStem = has('正官') || has('七杀');
       const guanSha = guanShaStem || juHas('官杀');
       const shiShang = has('伤官') || has('食神');
-      if (guanSha && (hasRole('财') || hasRole('印')) && !shiShang) add(success, `官杀（${guanShaStem ? whereRole('官杀') : '地支'}）制刃，财印（${[hasRole('财') ? whereRole('财') : '', hasRole('印') ? whereRole('印') : ''].filter(Boolean).join('、')}）相随，不见伤官。`, '阳刃透官煞而露财印，不见伤官');
+      if (guanSha && (hasRole('财') || hasRole('印')) && !shiShang) add(success, `官杀（${guanShaStem ? whereRole('官杀') : '地支'}）制刃，财印（${[hasRole('财') ? whereRole('财') : '', hasRole('印') ? whereRole('印') : ''].filter(Boolean).join('、')}）相随，不见伤官。`, '阳刃透官煞而露财印，不见伤官', [has('七杀') ? '七杀' : has('正官') ? '正官' : '官杀']);
       if (!guanSha) add(failure, '天干地支不见官杀，刃无所制。', '阳刃无官煞');
       if (guanSha && shiShang) {
         // 论阳刃「然亦有官煞制刃，带伤食而贵，何也？或是印护，或是煞太重而裁损之，官煞轻而取清之」
         const hurt = transparentRole('食伤');
         const hurtMerged = roleMerged('食伤');
         const shaStems = transparent('七杀');
-        if (hasRole('印') && (hurtMerged.length || (roleShare['印'] ?? 0) >= 20)) add(success, `伤食（${stemsText(hurt)}）${hurtMerged.length ? `被${whereRole('印')}合去` : `被重印（${whereRole('印')}）制住`}，官杀得护。`, '官煞制刃带伤食而贵：印护（论阳刃）');
-        else if (shaStems.length >= 2) add(success, `七杀两透（${stemsText(shaStems)}），太重，伤食（${stemsText(hurt)}）裁损之。`, '官煞制刃带伤食而贵：煞太重而裁损之（论阳刃）');
-        else if (has('正官') && has('七杀') && (stemMerged('正官').length || stemMerged('七杀').length)) add(success, `官杀并透而${stemsText([...stemMerged('正官'), ...stemMerged('七杀')])}被合去，官杀纯而不杂。`, '官煞制刃带伤食而贵：官煞轻而取清之（论阳刃）');
+        if (hasRole('印') && (hurtMerged.length || (roleShare['印'] ?? 0) >= 20)) add(success, `伤食（${stemsText(hurt)}）${hurtMerged.length ? `被${whereRole('印')}合去` : `被重印（${whereRole('印')}）制住`}，官杀得护。`, '官煞制刃带伤食而贵：印护（论阳刃）', [has('七杀') ? '七杀' : has('正官') ? '正官' : '官杀', '印']);
+        else if (shaStems.length >= 2) add(success, `七杀两透（${stemsText(shaStems)}），太重，伤食（${stemsText(hurt)}）裁损之。`, '官煞制刃带伤食而贵：煞太重而裁损之（论阳刃）', ['七杀', '食伤']);
+        else if (has('正官') && has('七杀') && (stemMerged('正官').length || stemMerged('七杀').length)) add(success, `官杀并透而${stemsText([...stemMerged('正官'), ...stemMerged('七杀')])}被合去，官杀纯而不杂。`, '官煞制刃带伤食而贵：官煞轻而取清之（论阳刃）', [stemMerged('正官').length ? '七杀' : '正官']);
         else add(flaw, `官杀被伤食（${stemsText(hurt)}）克。`, '阳刃透官，而又被伤');
       }
       break;
     }
     case '建禄月劫': {
-      if (has('正官') && (hasRole('财') || hasRole('印'))) add(success, `正官透于${where('正官')}，财印相随。`, '透官而逢财印');
-      if (hasRole('财') && hasRole('食伤')) add(success, `财（${whereRole('财')}）透而食伤（${whereRole('食伤')}）生之。`, '透财而逢食伤');
-      if (has('七杀') && hasRole('食伤')) add(success, `七杀透于${where('七杀')}，食伤制伏。`, '透煞而遇制伏');
+      // 李知府「有用官而财助者」（丁酉 丙午 丁巳 壬寅）：酉中辛财在地支助官也算
+      if (has('正官') && (hasRole('财') || hasRole('印') || benQiHas('财'))) add(success, `正官透于${where('正官')}，财印相随。`, '透官而逢财印', ['正官']);
+      // 高尚书「即以劫财之金，化为生财之水」：申子会水局是食伤；娄参政「卯未会局以制伏」
+      if (hasRole('财') && (hasRole('食伤') || juHas('食伤'))) add(success, `财（${whereRole('财')}）透而食伤（${hasRole('食伤') ? whereRole('食伤') : '地支会局'}）生之。`, '透财而逢食伤', ['财', '食伤']);
+      if (has('七杀') && (hasRole('食伤') || juHas('食伤'))) add(success, `七杀透于${where('七杀')}，食伤${hasRole('食伤') ? '' : '会局'}制伏。`, '透煞而遇制伏', ['七杀', '食伤']);
       if (!hasRole('财') && !hasRole('官杀')) {
         // 张状元「甲子 丙寅 甲子 丙寅，木火通明」、「癸卯 庚申 庚子 庚辰，金水相涵」：禄劫无财官而用伤食泄其太过，亦为秀气
-        if (hasRole('食伤') && !weak) add(success, `无财官而食伤（${whereRole('食伤')}）透，泄其太过。`, '禄劫之格，无财官而用伤食，泄其太过，亦为秀气（论建禄月劫）');
+        if (hasRole('食伤') && !weak) add(success, `无财官而食伤（${whereRole('食伤')}）透，泄其太过。`, '禄劫之格，无财官而用伤食，泄其太过，亦为秀气（论建禄月劫）', ['食伤']);
         else add(failure, '天干不见财官，禄劫无所用。', '无财官');
       }
-      if (has('七杀') && hasRole('印') && !hasRole('食伤')) add(failure, `七杀（${where('七杀')}）与印（${whereRole('印')}）并透而无制。`, '透煞印');
+      if (has('七杀') && hasRole('印') && !hasRole('食伤') && !juHas('食伤')) add(failure, `七杀（${where('七杀')}）与印（${whereRole('印')}）并透而无制。`, '透煞印');
       // 一平章「辛丑 庚寅 甲辰 乙亥，合煞留官也」、「辛亥 庚寅 甲申 丙寅，制煞留官也」
       if (has('正官') && has('七杀')) {
         add(flaw, `正官（${where('正官')}）与七杀（${where('七杀')}）并透，官杀混杂。`, '官煞混杂');
         const merged = stemMerged('七杀');
-        if (merged.length) add(rescue, `七杀${stemsText(merged)}被合去，留官。`, '合煞留官（论建禄月劫）');
-        else if (hasRole('食伤')) add(rescue, `食伤（${whereRole('食伤')}）制杀，留官。`, '制煞留官（论建禄月劫）');
+        if (merged.length) add(rescue, `七杀${stemsText(merged)}被合去，留官。`, '合煞留官（论建禄月劫）', ['正官']);
+        else if (hasRole('食伤')) add(rescue, `食伤（${whereRole('食伤')}）制杀，留官。`, '制煞留官（论建禄月劫）', ['正官']);
       }
       if (has('正官') && has('伤官')) {
         add(flaw, `透官而伤官（${where('伤官')}）克之。`, '建禄月劫透官，而遇伤');
         const merged = stemMerged('伤官');
-        if (merged.length) add(rescue, `伤官${stemsText(merged)}被合。`, '用官，遇伤而伤被合');
+        if (merged.length) add(rescue, `伤官${stemsText(merged)}被合。`, '用官，遇伤而伤被合', ['正官', ...partnersOf(merged)]);
       }
       if (hasRole('财') && has('七杀')) {
         add(flaw, `透财而七杀（${where('七杀')}）又透。`, '透财而遇煞');
         const merged = stemMerged('七杀');
-        if (merged.length) add(rescue, `七杀${stemsText(merged)}被合。`, '用财带煞而煞被合');
+        if (merged.length) add(rescue, `七杀${stemsText(merged)}被合。`, '用财带煞而煞被合', ['财', ...partnersOf(merged)]);
       }
       break;
     }
@@ -365,7 +376,9 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
     : [part('成', success), part('成中有败', flaw), part('救应', rescue)];
   const parts = ordered.filter(Boolean);
   const seenText = stems.length ? `天干透出${stems.map((stem) => `${stem.shiShen}（${stem.name}${stem.gan}）`).join('、')}，` : '';
-  const summaryText = parts.length ? parts.join('') : `${seenText}未构成原书所列的成格或破格条件，需看地支与全局。`;
+  // 相神（论相神紧要「月令既得用神，则别位亦必有相……辅我用神者是也」）：成格、救应各条里辅成此格的那一位
+  const xiangShen = verdict === '败' ? [] : [...new Set([...success, ...rescue].flatMap((item) => item.xiang ?? []))];
+  const summaryText = (parts.length ? parts.join('') : `${seenText}未构成原书所列的成格或破格条件，需看地支与全局。`) + (xiangShen.length ? `相神：${xiangShen.join('、')}。` : '');
 
   return {
     group,
@@ -374,6 +387,7 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
     failure,
     flaw,
     rescue,
+    xiangShen,
     summary: summaryText,
     source: cite(CHENG_BAI_SOURCE.classic, CHENG_BAI_SOURCE.section),
     quotes: { 成: q.成[group], 败: q.败[group] },
