@@ -246,7 +246,7 @@ test('古籍命例校准：旺衰与书上大体一致、极少相反；喜用�
     assert.ok((useGod.reversed ?? 0) / total(useGod) <= 0.25, summary);
     const named = (pattern.same ?? 0) + (pattern.miss ?? 0);
     assert.ok(named === 0 || (pattern.same ?? 0) / named >= 0.6, summary);
-    // 运中六亲（原书应在某步运的妻、子、父母、兄弟吉凶；写明哪步运的按「此运六亲」比）：138 条同 90、反 28。
+    // 运中六亲（原书应在某步运的妻、子、父母、兄弟吉凶；写明哪步运的按「此运六亲」比）：138 条同 94、反 24。
     const liuqinYun = results.flatMap(({ checks }) => checks?.liuqinYun ?? []).reduce((acc, check) => ({ ...acc, [check]: (acc[check] ?? 0) + 1 }), {});
     assert.ok((liuqinYun.same ?? 0) / total(liuqinYun) >= 0.55, `运中六亲 ${JSON.stringify(liuqinYun)}`);
     assert.ok((liuqinYun.reversed ?? 0) / total(liuqinYun) <= 0.25, `运中六亲 ${JSON.stringify(liuqinYun)}`);
