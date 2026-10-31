@@ -284,6 +284,13 @@ test('从格看地支、化气看化神得势：任注从象、化象、顺局�
     .forEach((text) => assert.equal(judgeByPillars(text).judge.special, null, text));
 });
 
+test('四支一气都是官杀、天干比劫全无根的，三透也从杀（子平真诠李侍郎「乙酉、乙酉、乙酉、甲申」）；财一气的三透不从', () => {
+  const li = judgeByPillars('乙酉 乙酉 乙酉 甲申').judge.special;
+  assert.equal(li.name, '疑似从杀格');
+  assert.match(li.basis, /四支都是金（官杀）/);
+  assert.equal(judgeByPillars('辛卯 辛卯 辛卯 辛卯').judge.special, null, '四柱辛卯，财一气，任注不作从');
+});
+
 test('论从时三会方之外那一行的墓库支随方论：壬辰 辛亥 戊子 癸丑「支类北方，水势汪洋……土太衰者，似火也」', () => {
   // 亥子丑会北方，辰是水库、又与子拱水，戊土不作有根；书上甲寅、乙卯运「名成利遂」，一交丙运「刑妻克子」，丁丑运亡。
   const { judge, strength } = judgeByPillars('壬辰 辛亥 戊子 癸丑');
