@@ -30,7 +30,7 @@
  * - 身旺：看印、比劫哪一方多——印多取财破印（财星有力，官星又透出有力、不比印重的，身旺足以用官；
  *   印在比劫两倍以上而财星、食伤都无力的是「母多灭子」，顺母之性，取比劫帮身）；
  *   比劫多取官杀制劫（官杀无力就取食伤泄秀；3.3 分以上「太旺」的，官杀逆其旺势，先取食伤泄秀）；
- *   旺极（4 分及以上）先取食伤泄秀；
+ *   旺极（4 分及以上）先取食伤泄秀，食伤只藏支中也放第一位（「只可顺其势，不可逆其流」「木旺金缺，必要有火为佳」）；
  * - 中和：任注没有不取用神的，2.15 分及以上按偏旺取，以下按偏弱取（取用思路里写明「中和略偏旺／弱」）；
  *   官杀两透有力而食伤又透出的是「克泄交加」（「天干两杀通根辰支，年干乙木……正克泄交加」，取羊刃帮身），2.15 分以上也按偏弱取，
  *   只有官杀两透而无食伤的仍可「身旺用官」（「此以丁火为源头……身旺用官」）。
@@ -42,7 +42,8 @@
  * 身旺比劫多而官杀当令、扶抑正取官杀制劫的，调候的食伤不急（「午火真神得用」，庚申 壬午 辛酉 癸巳 用火，壬癸反嫌其「覆之」）。
  *
  * 喜忌按用神定（用、喜、忌、仇、闲）：取定用神（喜用第一位）后，用神与生用神者（喜神）为喜；克用神者（忌神）、
- * 用神所克者（仇神，即生忌神者）为忌；用神所生者为闲神，扶抑本就取它的仍列喜用。
+ * 用神所克者（仇神，即生忌神者）为忌；用神所生者为闲神，扶抑本就取它的仍列喜用。扶抑列作次选却因此转为忌神的
+ * （身旺取官杀制劫时的食伤），另写一句 godsNote 说明；扶抑明指为病的一行（「反以火为病」）调候也不列喜用，并列进忌神。
  * 拿《滴天髓阐微》任注命造对照：按书上的用神看书上点名吉凶的大运、流年，同用神的九成吉、用神所生的八成多吉、
  * 生用神的七成吉，克用神的七成凶、用神所克的六成凶——任注论岁运就是看它与用神的生克。
  *
@@ -317,6 +318,8 @@ const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts 
     const heaviest = [output, wealth, officer].sort((a, b) => weightOf(b) - weightOf(a))[0];
     let favorable;
     let basis;
+    /** 扶抑明指为病的一行（「反以火为病」），调候也不再把它列进喜用。 */
+    let sick = null;
     if (heaviest === wealth) {
       favorable = [dayWuxing, yin];
       basis = '身弱财重，取比劫帮身，印次之';
@@ -326,6 +329,7 @@ const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts 
         // （任注「干透两庚，正当秋令，支会火局，虽制杀有功，而克泄并见……不喜会火局也，反以火为病矣。故子运辰年，大魁天下」）。
         favorable = [yin, dayWuxing];
         basis = '身弱官杀重，印星无力而食伤又会成局，制之以威不若化之以德，取印化杀生身，比劫帮身，食伤反为病';
+        sick = output;
       } else if (!usable.has(yin) && usable.has(output) && weightOf(output) >= XIE_HEAVY_SCORE) {
         // 官杀重、印无力而食伤也重：克泄交加，再取食伤制杀便泄得更狠，先以比劫帮身（任注「金寒水冷，过于泄气，全赖酉时扶身……
         // 天干丁火不过取其敌寒解冻，非用丁火也。用神必在酉金」；「月时两透壬水，日主三面受敌……全赖午火旺刃当权为用，更喜戌之燥土，制水会火」）。
@@ -344,7 +348,7 @@ const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts 
     }
     favorable = usableFirst(favorable);
     const unfavorable = byScoreDesc([output, wealth, officer].filter((element) => !favorable.includes(element)));
-    return { favorable, unfavorable, basis };
+    return { favorable, unfavorable, basis, sick };
   }
 
   let favorable;
@@ -388,8 +392,9 @@ const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts 
     basis = usable.has(officer) ? '身旺比劫多，取官杀制劫，食伤、财次之' : '身旺比劫多，官杀无力，取食伤泄秀';
   }
   if (total >= STRENGTH_BOUNDS.extremeStrong) {
-    favorable = [output, ...favorable.filter((element) => element !== output)];
-    basis = '旺极宜泄，先取食伤泄秀';
+    // 旺极只可顺其势而泄（「只可顺其势，不可逆其流」），食伤哪怕只藏在支中（寅中丙火）也放第一位，不因无力退后
+    // （任注「木旺金缺，必要有火为佳」，壬寅 壬寅 甲寅 壬申；癸未 癸亥 壬子 戊申「所嫌未戊两字激水之性」，壬戌、己未土运皆凶）。
+    return { favorable: [output, ...usableFirst(favorable.filter((element) => element !== output))], unfavorable: byScoreDesc([yin, dayWuxing]), basis: '旺极宜泄，先取食伤泄秀' };
   }
   favorable = usableFirst(favorable);
   return { favorable, unfavorable: byScoreDesc([yin, dayWuxing]), basis };
@@ -456,7 +461,6 @@ export const analyzeStrength = (chart) => {
   // 四支会成的三合、三会局（不论帮身还是他党），取用时「支会火局」一类条件用。
   const juElements = new Set(SAN_HE_JU.filter((item) => item.zhis.every((zhi) => chart.pillars.some((pillar) => pillar.zhi === zhi))).map((item) => item.wuxing));
   const fuYi = supportAndRestrain({ band, total: score.total, scores, dayWuxing, usable, touCounts, juElements });
-  const { basis } = fuYi;
   let { favorable } = fuYi;
   let urgent = null;
   /** 寒暖本该为急、却让位于扶抑的缘由（任注），写进调候说明。 */
@@ -478,18 +482,23 @@ export const analyzeStrength = (chart) => {
     }
     else if (couldUrge && zhenShenDeYong) yielded = `${URGENT_TIAOHOU[byKey.month.zhi].label}本宜${element}，但比劫多而官杀当令，扶抑正取官杀制劫（任注「真神得用」），${element}泄身不急`;
     if (urgent) favorable = [element, ...favorable.filter((item) => item !== element)];
-    else if (!favorable.includes(element)) favorable = [...favorable, element];
+    else if (!favorable.includes(element) && fuYi.sick !== element) favorable = [...favorable, element];
   }
   const gods = godsAroundYong(favorable);
   favorable = gods.favorable;
-  const unfavorable = gods.unfavorable;
+  // 扶抑明指为病的一行（「反以火为病」）也列进忌神。
+  const unfavorable = fuYi.sick && !gods.unfavorable.includes(fuYi.sick) ? [...gods.unfavorable, fuYi.sick] : gods.unfavorable;
   const yong = favorable[0];
+  // 扶抑列作次选、却克用神或为用神所克而转为忌神的（身旺取官杀制劫时的食伤、用食伤制杀时的印），另写一句说明，免得「次之」与忌神相左。
+  const demoted = fuYi.favorable.filter((element) => !favorable.includes(element) && unfavorable.includes(element));
+  const godsNote = demoted.length ? `${demoted.map((element) => `${roles[element]}${CONTROLS[element] === yong ? '克用神' : '为用神所克'}`).join('、')}，不列喜用` : '';
 
   let tiaoHouNote = '';
   if (tiaoHou) {
     const element = tiaoHou.element;
     if (urgent) tiaoHouNote = `${urgent.label}，调候为急：${element}有力有根，${fuYi.unfavorable.includes(element) ? `扶抑虽嫌${element}，仍` : ''}取${element}为先`;
     else if (yielded) tiaoHouNote = `${yielded}${unfavorable.includes(element) ? '，列为忌神' : favorable.includes(element) ? '，只同列喜用' : ''}`;
+    else if (fuYi.sick === element) tiaoHouNote = `调候宜${element}，但扶抑以${element}为病，不作喜用`;
     else if (yong === element || fuYi.favorable[0] === element) tiaoHouNote = `调候宜${element}，与扶抑取用一致`;
     else if (favorable.includes(element)) tiaoHouNote = `调候宜${element}，${element}${GENERATES[element] === yong ? '生用神' : '与用神相生'}，同列喜用`;
     else if (unfavorable.includes(element)) tiaoHouNote = `调候宜${element}，但${element}${CONTROLS[element] === yong ? '克用神' : '为用神所克'}，以用神为重，不作喜用`;
@@ -518,8 +527,9 @@ export const analyzeStrength = (chart) => {
     deDi,
     deShi,
     tiaoHou,
-    basis,
+    basis: fuYi.basis,
     tiaoHouNote,
+    godsNote,
     favorable: favorable.map(describe),
     unfavorable: unfavorable.map(describe),
   };
