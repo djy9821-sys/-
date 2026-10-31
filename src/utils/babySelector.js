@@ -177,6 +177,8 @@ export const findBestConceptionDates = async (type, limit = 3, today = new Date(
                 console.error(e);
             }
         }
+        // 每排一张紫微盘要几十毫秒，七天八十多张一口气算完会让页面卡住好几秒；每算完一天让出一次，「正在遍历」的转圈才转得动。
+        await new Promise((resolve) => setTimeout(resolve, 0));
     }
 
     // Sort by Score DESC
