@@ -362,10 +362,13 @@ export const determinePattern = (chart, summary = null) => {
  *   坐库的照旧随局（癸亥 乙卯 己未 丁卯，「未土又会木局，不得不从杀矣」）。
  *   三会方之外那一行的墓库支也随方论（壬辰 辛亥 戊子 癸丑「支类北方，水势汪洋……土太衰者，似火也」，辰为水库，戊土不作有根；
  *   加这一条后滴天髓 510 造只此一造改判从财，岁运同 608 → 610、反 194 → 191）。
- *   地支的印被财冲克（申冲寅、酉冲卯、亥冲巳、子冲午），冲者不少于被冲者，这一支又不在日支，天干帮身至多一位、不透印，
- *   拔去之后日主与帮身之干都再无一点根的，印根拔尽，这一支按冲它的财论（「三申冲去一寅，丙火之根已拔，比肩亦不能为力」「喜其巳亥逢冲破印，格成弃命从杀」
- *   「嫩木逢金，紧贴相冲，连根拔尽……格成从杀」；510 造只改判这三造，岁运同 612 → 615、反 185 → 182，格局漏判 12 → 11）。
- *   禄刃之根被冲不算（甲坐寅禄、丙午月刃被冲的，任注都不作从），日主坐下的印也不算（「巳亥虽冲破印，喜卯木仍能生火」）。
+ *   地支的印被财冲克（申冲寅、酉冲卯、亥冲巳、子冲午），冲者不少于被冲者，这一支不在月令、日支，也不是日主的禄刃，
+ *   天干帮身至多一位、不透印，拔去之后日主与帮身之干都再无一点根的，印根拔尽，这一支按冲它的财论
+ *   （「三申冲去一寅，丙火之根已拔，比肩亦不能为力」「喜其巳亥逢冲破印，格成弃命从杀」；510 造只改判这两造，
+ *   岁运同 612 → 615、反 185 → 182，格局漏判 12 → 11）。禄刃之根被冲不算（甲坐寅禄、丙午月刃被冲的，任注都不作从；
+ *   戊己的禄刃巳午本气虽是印，也是日主之根），日主坐下的印也不算（「巳亥虽冲破印，喜卯木仍能生火」）。
+ *   月令之印不论：月令当令，衰神冲旺反激其怒（「旺者冲衰衰者拔，衰神冲旺旺神发」）；任注 丁丑 壬寅 丙申 壬辰
+ *   「嫩木逢金，紧贴相冲，连根拔尽」虽是月令被冲，放开月令后普查，卯月两酉夹冲一类也会判从，暂不收。
  *   库支随月令之神：月令本气是食伤财官、又透出天干，库里藏的正是这一行（辰藏水、戌藏火、未藏木、丑藏金），库的本气戊己
  *   不是日主同类、也不透出的，论从时这一支随月令之神论（任注「辰土，乃水之库，木之余气，能蓄水养木，不能生金」；
  *   壬寅 辛亥 辛亥 壬辰「壬水当权……格取从儿」，丙辰运「官印齐来」、戊戌年「冲动印绶，破其伤官，不禄」——辰中之印不透，冲开才发；
@@ -470,10 +473,11 @@ export const detectSpecialPattern = (chart, strength, summary) => {
   }
   Object.assign(congJu, kuSuiLing);
   // 地支的印被财冲克、印根拔去的，论从时这一支按冲它的财论（任注「三申冲去一寅，丙火之根已拔」戊寅 庚申 丙申 丙申，
-  // 「巳亥逢冲破印，格成弃命从杀」癸巳 乙卯 己亥 癸酉）；禄刃、日主坐下的印冲不去。条件见函数说明。
+  // 「巳亥逢冲破印，格成弃命从杀」癸巳 乙卯 己亥 癸酉）；月令、日支与日主的禄刃冲不去。条件见函数说明。
   const chongVictims = pillars.map((pillar) => {
     const attacker = CHONG_BY[pillar.zhi];
-    if (!attacker || congJu[pillar.zhi] || pillar.key === 'day' || supportStems.length > 1 || yinStems.length) return null;
+    if (!attacker || congJu[pillar.zhi] || pillar.key === 'day' || pillar.key === 'month' || supportStems.length > 1 || yinStems.length) return null;
+    if (pillar.zhi === LU[dayGan] || pillar.zhi === REN[dayGan]) return null;
     if (GAN_WUXING[pillar.hiddenGanDetails?.[0]?.gan] !== GENERATED_BY[dayWuxing]) return null;
     const attackers = pillars.filter((other) => other.zhi === attacker).length;
     return attackers && attackers >= pillars.filter((other) => other.zhi === pillar.zhi).length ? ZHI_WUXING[attacker] : null;
