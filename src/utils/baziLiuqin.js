@@ -370,11 +370,11 @@ const renReadingOf = (key, { female, ctx, basis, pillars, scores, byKey, stars, 
   return { source, tone: star.tone, rule: null, god: null, text: `任注「全凭日主之爱憎」：${tail}` };
 };
 
-/** 宫位逢冲、星合日主，另提一句。 */
-const notesOf = (key, stars, palaces) => {
+/** 宫位逢冲、星合日主，另提一句；断语里已经说了「被冲去」的不再重复。 */
+const notesOf = (key, stars, palaces, renText = '') => {
   const notes = [];
   const clash = palaces.find((palace) => !palace.missing && palace.clash);
-  if (clash) notes.push(`${clash.label}逢冲，古法主变动`);
+  if (clash && !renText.includes('冲去')) notes.push(`${clash.label}逢冲，古法主变动`);
   if (key === 'spouse' && stars.some((star) => star.he.some((line) => line.includes('与日主')))) notes.push('星来合日主，古法以为有情');
   return notes;
 };
@@ -418,7 +418,7 @@ export const analyzeLiuqin = (chart, strength, { special = null } = {}) => {
     const ren = neutralBand
       ? { source: null, tone: 'neutral', rule: null, god: null, text: '旺衰中和，喜忌不显，先看星宫有无冲合；吉凶要等岁运引动再论' }
       : renReadingOf(item.key, { female, ctx, basis, pillars, scores, byKey, stars, palaces });
-    const verdict = `${[ren.text, ...notesOf(item.key, stars, palaces)].join('；')}。`;
+    const verdict = `${[ren.text, ...notesOf(item.key, stars, palaces, ren.text)].join('；')}。`;
     return { key: item.key, kind: item.kind, title: item.title, classic: item.classic, stars, palaces, ren, tone: ren.tone, verdict };
   });
 
