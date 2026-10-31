@@ -151,7 +151,9 @@ test('回头克：化回头冲克如逢仇敌；临日月逢伤待时，寡不�
   assert.equal(officer.verdict.level, 'bad');
   // 占谒贵（酉月丙寅日，蛊之蒙）：世临月建之官，被午火回头之克，须待子日冲去午火
   const visit = bookCase('山风蛊', [3], '2006-10-4', { topic: 'career' });
-  assert.match(allText(visit), /用神临月建，逢伤亦伤，却有待时之用，待子日冲去克神/);
+  assert.match(allText(visit), /用神临月建，逢伤亦伤，却有待时之用，目下不成，待子日冲去克神则必成/);
+  // 月将章其七「待至冲去伤爻之日……图事必成」：回头克不扣分，原书「定得见」
+  assert.equal(visit.verdict.level, 'good');
   // 占病（申月戊午日，遁之姤）：世爻午火临日辰，申金月建生亥水回头克世
   const ill = bookCase('天山遁', [2], '2001-8-23', { topic: 'health', subject: 'self' });
   assert.match(allText(ill), /用神虽临日辰，而克神得月建生扶，寡不敌众/);
@@ -237,4 +239,78 @@ test('行人三合冲开而来；世爻独发与日月共成三合；寻地世�
   const rebury = bookCase('地雷复', [1], '2007-1-2', { topic: 'gravesite' });
   assert.match(allText(rebury), /世爻动而化破、化墓绝、化退或化回头克，但逢一者，皆非吉地/);
   assert.equal(rebury.verdict.level, 'bad');
+});
+
+test('六冲章：用神旺虽冲不破、失陷凶而又凶；卦体的世应冲合不重复计分；静应不旺克不动世（动静生克章）', () => {
+  // 占流年（未月癸亥日，艮为山）：「官星持世，长生于亥日，业已成矣」，不以六冲、申金应爻克世为嫌
+  const year = bookCase('艮为山', [], '2005-8-7', { topic: 'career' });
+  assert.match(allText(year), /本卦六冲本主散、不久，但用神旺相，虽冲不破/);
+  assert.match(allText(year), /应爻虽克世，而安静不旺，克之不动/);
+  assert.match(allText(year), /世应相冲（六冲卦体）/);
+  assert.equal(year.verdict.level, 'good');
+  // 占子久出不归（酉月乙未日，坤为地）：「虽是六冲卦，此子必归」——行人用神旺相安静，冲动之日必归
+  const son = bookCase('坤为地', [], '2001-9-29', { topic: 'travel', subject: 'children' });
+  assert.match(allText(son), /用神旺相安静，静待冲动之卯日必归/);
+  assert.equal(son.verdict.level, 'good');
+  // 六合卦的世应相合同理只记卦体
+  const he = bookCase('天地否', [], '2026-10-26', { topic: 'wealth' });
+  assert.match(allText(he), /世应相合（六合卦体）/);
+});
+
+test('日辰章：用神临日辰，单个动爻克不为害，仇神同动生忌神则寡不敌众；伏神自身空破被克终不能出', () => {
+  // 占借贷（未月丁卯日，火地晋）：「虽则兄爻持世而曰无财，所喜卯日即是财星」——酉金兄爻暗动不克临日辰之财
+  const loan = bookCase('火地晋', [], '2006-8-6', { topic: 'wealth' });
+  assert.match(allText(loan), /兄弟己酉（四爻）暗动为忌神，但用神临日辰，如山如冈，逢动爻之克亦不为害/);
+  assert.equal(loan.verdict.level, 'good');
+  // 占母血崩（戌月己卯日，同人之解）：卯木父母临日辰，但戌土、丑土仇神同动生申金忌神，「父母爻既无水养，且化退神」
+  const mother = bookCase('天火同人', [2, 3, 5, 6], '2001-10-24', { topic: 'health', subject: 'parents' });
+  assert.match(allText(mother), /妻财壬申（五爻）发动为忌神克用神/);
+  assert.equal(mother.verdict.level, 'bad');
+  // 占求财再占（辰月乙卯日，睽之损）：「子财空伏于五爻未土之下，伏而又空，空而被克，知其无财而无疑也」
+  const again = bookCase('火泽睽', [4], '2001-4-22', { topic: 'wealth' });
+  assert.match(allText(again), /伏神休囚值空破、被日月冲克、墓绝于日月飞爻，虽则日月动爻冲克飞神，伏而又空、空而被克者，虽有如无，终不能出/);
+  assert.equal(again.verdict.level, 'bad');
+  // 占子病（酉月丙辰日，地风升）：只是休囚无气的伏神，飞神丑土旬空，「空下伏神，易于引拔」
+  const child = bookCase('地风升', [], '2004-10-4', { topic: 'health', subject: 'children' });
+  assert.match(allText(child), /伏神易出（飞神空破衰墓）/);
+});
+
+test('六合章：用神在局内被合不作局克论；官局生应出现无情至多偏弱；旬空章动不为空', () => {
+  // 占父近病（卯月癸酉日，萃之否）：「未土父爻动化进神，戌值旬空，近病逢空即愈」，不以亥卯未木局克父为嫌
+  const father = bookCase('泽地萃', [6], '2001-3-11', { topic: 'health', subject: 'parents', illness: 'recent' });
+  assert.match(allText(father), /亥卯未合成木局，用神在局内，随局合住，不以局克用神论/);
+  assert.match(allText(father), /用遇旬空，近病何须忧虑/);
+  assert.equal(father.verdict.level, 'good');
+  // 占官缺得否（申月乙亥日，井之节）：「巳酉丑合成官局而生应爻，不来生世，正所谓出现无情，此缺不得」
+  const post = bookCase('水风井', [1, 3], '2002-9-4', { topic: 'career' });
+  assert.match(allText(post), /却生应爻不生世，出现无情，利于他人，所求不得/);
+  assert.equal(post.verdict.level, 'bad');
+  // 占本人婚姻（子月癸酉日，恒之鼎）：「酉官持世，戌土财爻动而生世……戌土虽值旬空，动不为空，明日出空之日，求之必允」
+  const marry = bookCase('雷风恒', [6], '2002-1-5', { topic: 'love', gender: 'male' });
+  assert.match(allText(marry), /旬空，但有气（动、冲、生扶），不为空，出空即实/);
+  assert.match(allText(marry), /用神临应而生世，用神来就我/);
+  assert.match(allText(marry), /世持官鬼、应持妻财，阴阳得位/);
+  assert.equal(marry.verdict.level, 'good');
+  // 占女家婚事（寅月丙午日，临之既济）：「财被回头克，又逢丑土之克……婚姻虽成，终有他变」
+  const bride = bookCase('地泽临', [2, 3, 5], '2001-2-12', { topic: 'love', gender: 'female' });
+  assert.match(allText(bride), /妻财癸亥（五爻）动而化回头克，财官不能相生，婚姻虽成，终有他变/);
+});
+
+test('产妇无忌即无碍；行人化出必到；世化回头克定见凶危、世被日辰克受累；寻地六冲必无气脉', () => {
+  // 占妹临产（午月戊辰日，火地晋）：「月令克之，日建生之，许之无碍」
+  const birth = bookCase('火地晋', [], '2001-7-4', { topic: 'maternity', subject: 'siblings' });
+  assert.match(allText(birth), /兄鬼不动，用神不临空破墓绝，又无动爻克制，许之无碍/);
+  assert.equal(birth.verdict.level, 'good');
+  // 占主人何日回（寅月癸亥日，大畜之泰）：「子水财爻化出巳火父，动爻不克变爻，巳日必到」
+  const master = bookCase('山天大畜', [5], '2001-3-1', { topic: 'travel', subject: 'parents' });
+  assert.match(allText(master), /用神由动爻化出，动爻不克变爻，巳日必到/);
+  assert.equal(master.verdict.level, 'good');
+  // 占开铺（寅月辛酉日，艮之明夷）：「独嫌日辰克世，世化回头之克，生少克多，又是六冲卦」
+  const shop = bookCase('艮为山', [1, 6], '2001-2-27', { topic: 'wealth' });
+  assert.match(allText(shop), /世爻被日辰克而不旺，问卦人自身受累/);
+  assert.equal(shop.verdict.level, 'bad');
+  // 寻地章「若得六冲卦……冲者散也，必无气脉」：六冲卦不变合的至多偏弱
+  const site = bookCase('乾为天', [], '2026-10-26', { topic: 'gravesite' });
+  assert.match(allText(site), /卦逢六冲，飞砂走石，必无气脉/);
+  assert.equal(site.verdict.level, 'bad');
 });
