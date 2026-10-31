@@ -541,7 +541,7 @@ export const ziweiPalaceContextOf = (palace, { gender = null, limit = '本命', 
 
 /**
  * 流年斗君所在的本命宫序（卷一安流年斗君诀：太岁宫中起正月，逆数至生月止，又从生月起子时，顺数至生时安斗君）。
- * 与排盘库算流月正月的口径一致（生月是闰月且生日过十五的按下一月算）。
+ * 生月是闰月的按下一月算（《全书》「凡有闰月具要依此为例」，与安命同一口径，见 ziweiBirth.js）。
  * @param {object} horoscope iztro 排盘结果（rawDates.lunarDate、rawDates.chineseDate.hourly）
  * @param {number} yearlyIndex 流年命宫（太岁宫）的宫序（horoscope().yearly.index）
  * @returns {number|null}
@@ -551,7 +551,7 @@ export const ziweiDoujunIndex = (horoscope, yearlyIndex) => {
   const hourBranch = horoscope?.rawDates?.chineseDate?.hourly?.[1];
   const hour = HOUR_BRANCHES.indexOf(hourBranch);
   if (!Number.isInteger(yearlyIndex) || !Number.isInteger(lunar?.lunarMonth) || hour < 0) return null;
-  const leapAddition = lunar.isLeap && lunar.lunarDay > 15 ? 1 : 0;
+  const leapAddition = lunar.isLeap && lunar.lunarMonth < 12 ? 1 : 0;
   return (((yearlyIndex - (lunar.lunarMonth + leapAddition) + hour + 1) % 12) + 12) % 12;
 };
 
