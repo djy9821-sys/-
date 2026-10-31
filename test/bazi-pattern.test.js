@@ -269,6 +269,10 @@ test('从格看地支、化气看化神得势：任注从象、化象、顺局�
   assert.equal(zhiSha.judge.special, null);
   assert.equal(zhiSha.strength.favorable[0].element, '土');
   assert.equal(judgeByPillars('辛亥 壬辰 丙申 己亥').judge.special, null, '「火衰极者似金」，己丑、戊子土运反吉，按扶抑用食伤制杀');
+  // 日主坐禄、禄支会入他局的不作从：庚戌 乙酉 甲寅 庚午，寅午戌会火局而甲坐寅禄，任注「子运冲破火局……益我日主之气」，不从杀。
+  const zuoLu = judgeByPillars('庚戌 乙酉 甲寅 庚午');
+  assert.equal(zuoLu.judge.special, null);
+  assert.equal(zuoLu.strength.favorable[0].element, '木');
   // 化气：「土旺乘权，克去壬水，又无比劫，合神更真」；「丙火透而通根，化火斯真」（月令不是化神，化神得势）。
   assert.equal(judgeByPillars('戊辰 壬戌 甲辰 己巳').judge.special.name, '疑似甲己化土格');
   const huo = judgeByPillars('丙戌 戊戌 癸巳 壬戌').judge.special;
