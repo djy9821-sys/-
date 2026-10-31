@@ -102,6 +102,14 @@ test('身弱官杀重：取印化杀（印透干无根而杀重有源，仍算�
   assert.match(jiaoJia.basis, /克泄交加，取比劫帮身，食伤制杀次之/);
   assert.deepEqual(elements(jiaoJia.favorable).slice(0, 2), ['水', '木']);
 
+  // 庚戌 乙酉 甲寅 庚午：印无力而寅午戌会成火局（食伤局），不再用食伤制杀——「制之以威，不若化之以德……不喜会火局也，反以火为病矣」，
+  // 仍取印化杀、比劫帮身（任注「子运冲破火局……益我日主之气」）；火只按《穷通宝鉴》调候附在末尾。
+  const huoJu = analyzeStrength(chartByPillars('庚戌 乙酉 甲寅 庚午'));
+  assert.equal(huoJu.band, '偏弱');
+  assert.match(huoJu.basis, /食伤又会成局，制之以威不若化之以德，取印化杀生身/);
+  assert.deepEqual(elements(huoJu.favorable.filter((item) => !item.tiaoHou)), ['木', '水']);
+  assert.deepEqual(elements(huoJu.unfavorable), ['金', '土']);
+
   // 找病时透干的字另加半分：地支土气（3.6）略多于金（3.5），但庚金并透，才是病。
   // 任注「庚金并透，通根砍伐……更妙丙火独透，制杀扶身」，用火。
   const jia = analyzeStrength(chartByPillars('庚申 庚辰 甲戌 丙寅'));
