@@ -23,6 +23,10 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   // 格局与择日两节都在。
   await expect(result.getByRole('heading', { name: /格局与命局组合/ })).toBeVisible();
   await expect(result.getByRole('heading', { name: /择日参考/ })).toBeVisible();
+  // 格局取运：此造正官格（庚官透、壬印透而辛杀杂），当前大运默认选中，按《子平真诠·论正官取运》给运干运支的十神标喜忌。
+  const quYun = result.getByTestId('bazi-dayun-quyun');
+  await expect(quYun).toContainText('按格局取运');
+  await expect(quYun).toContainText('论正官取运');
   // 六亲宫星：星照子平列（财为妻星、官杀为子女星），断语按任注推。此造身弱用印，官杀金旺又见财星土——
   // 任注「官杀旺而用印，见财星」；比劫木四柱不见，但身弱喜比劫（「全凭日主之爱憎」）。
   await expect(result.getByRole('heading', { name: /六亲宫星/ })).toBeVisible();
