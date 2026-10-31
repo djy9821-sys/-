@@ -324,6 +324,17 @@ test('印被财冲克、印根拔去也作从论：任注「三申冲去一寅�
   assert.equal(judgeByPillars('丙申 庚寅 丙辰 戊戌').judge.special, null);
 });
 
+test('论从时库支随月令之神：壬寅 辛亥 辛亥 壬辰「壬水当权……格取从儿」，辰为水库「能蓄水养木，不能生金」', () => {
+  // 书上甲寅运登科发甲、乙卯运出守黄堂，丙辰运「官印齐来」、戊戌年「冲动印绶，破其伤官，不禄」。
+  const { judge } = judgeByPillars('壬寅 辛亥 辛亥 壬辰');
+  assert.equal(judge.special.name, '疑似从儿格');
+  assert.match(judge.special.basis, /^辰为水库，随月令亥水论，四支本气都是食伤财官，日主辛金没有得力之根，月干辛虚浮无根/);
+  assert.deepEqual(godsOf(judge.special.unfavorable), ['土印', '火官杀']);
+  // 库的本气是日主同类的（癸卯 乙卯 己卯 辛未，未中己土是日主之根），日主坐下有印的（丁亥 辛亥 辛未 壬辰「用神在土不在火」）都不作从。
+  assert.equal(judgeByPillars('癸卯 乙卯 己卯 辛未').judge.special, null);
+  assert.equal(judgeByPillars('丁亥 辛亥 辛未 壬辰').judge.special, null);
+});
+
 test('四支一气不拘微根、日主坐库仍能盘根、假化与化气有余宜泄：任注从象、化象、假化、顺局、反局诸造', () => {
   // 「蟠根在未，余气在辰，似乎财多身弱，但四柱皆财，其势必从」，丙火为用。
   const cai = judgeByPillars('戊戌 丙辰 乙未 丙戌').judge.special;
