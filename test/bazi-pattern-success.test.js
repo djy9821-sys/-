@@ -36,8 +36,9 @@ test('原文按格局分组，八类格名都能归类', () => {
 });
 
 test('正官格：官逢财印无刑冲为成；逢伤、刑冲、杂煞为败；透印、会合、合煞为救', () => {
-  const cheng = judge(1960, 6, 2, 1);
-  assert.equal(cheng.pillars, '庚子 辛巳 辛酉 己丑');
+  // 庚子 辛巳 辛酉 己丑 的巳酉丑会成金局、丙不透干，按论用神变化化为劫，不再是正官格；换一张同月的
+  const cheng = judge(1960, 6, 2, 7);
+  assert.equal(cheng.pillars, '庚子 辛巳 辛酉 乙未');
   assert.equal(cheng.pattern.name, '正官格');
   assert.equal(cheng.chengBai.verdict, '成');
   assert.ok(quotes(cheng.chengBai).includes('官逢财印，又无刑冲破害，官格成也'));
@@ -124,8 +125,9 @@ test('印格：官印双全、身印两旺泄秀为成；印轻逢财、身强�
   assert.equal(heavy.chengBai.verdict, '败');
   assert.ok(quotes(heavy.chengBai).includes('身强印重而透煞'));
 
-  const hecai = judge(1984, 8, 26, 7);
-  assert.equal(hecai.pillars, '甲子 壬申 壬辰 丁未');
+  // 甲子 壬申 壬辰 丁未 的申子辰会成水局、庚不透干，化为劫（羊刃格），不再是印格；换一张
+  const hecai = judge(1985, 4, 8, 1);
+  assert.equal(hecai.pillars, '乙丑 庚辰 丁丑 辛丑');
   assert.equal(hecai.chengBai.verdict, '败中有成');
   assert.ok(quotes(hecai.chengBai).includes('合财而存印'));
 });
