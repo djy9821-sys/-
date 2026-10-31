@@ -6267,6 +6267,121 @@
         "verdict": "凶",
         "outcome": "客死于途中。"
       }
+    },
+    {
+      "id": "liuyao.zengshan.237",
+      "name": "《增删卜易》占例：占援例",
+      "source": {
+        "classic": "zengshan",
+        "section": "援例章",
+        "entry": "zengshan.zhanfa.551"
+      },
+      "cast": {
+        "date": "丑月乙卯日",
+        "dayGanZhi": "乙卯",
+        "hexagram": "雷地豫",
+        "changed": "天地否",
+        "movingLines": [
+          5,
+          6
+        ],
+        "topic": "求名"
+      },
+      "original": "如丑月乙卯日占援例，得豫之否卦。断曰：财动生官，不宜世临月破，破而被克，有官不能享也。后竟捐纳，名成身丧。",
+      "vernacular": "例如丑月乙卯日占援例，得豫变否。断说：财动生官，却不宜世遇月破，破而受克，有官也不能享。后来果然捐纳，得名后身亡。",
+      "notes": "底本PDF第282页，卷四书内第70页。",
+      "status": "translated",
+      "expected": {
+        "yongShen": "官鬼",
+        "verdict": "凶",
+        "outcome": "后竟捐纳，名成身丧。"
+      }
+    },
+    {
+      "id": "liuyao.zengshan.238",
+      "name": "《增删卜易》占例：占上书",
+      "source": {
+        "classic": "zengshan",
+        "section": "占面圣上书叩阍献策条陈劾奏章",
+        "entry": "zengshan.zhanfa.569"
+      },
+      "cast": {
+        "date": "申月戊辰日",
+        "dayGanZhi": "戊辰",
+        "hexagram": "风泽中孚",
+        "changed": "山泽损",
+        "movingLines": [
+          5
+        ],
+        "topic": "仕宦"
+      },
+      "original": "如申月戊辰日占上书，得中孚之损。断曰：五位巳火生世，不宜巳火受克，此书宜止。问曰：有害否？余曰：巳火虽则不能生世，卦中无克世之爻，利害皆无。后上之，果不准行。",
+      "vernacular": "例如申月戊辰日占上书，得中孚变损。断说：五爻巳火生世，却受克，这奏书宜停止。问有没有害，我说：巳火虽不能生世，卦中也无克世之爻，无利也无害。后来上奏，果然没有获准。",
+      "notes": "底本PDF第291页，卷五书内第3页。",
+      "status": "translated",
+      "expected": {
+        "yongShen": "父母",
+        "verdict": "平",
+        "outcome": "后上之，果不准行。"
+      }
+    },
+    {
+      "id": "liuyao.zengshan.239",
+      "name": "《增删卜易》占例：占具文伸枉保全功名",
+      "source": {
+        "classic": "zengshan",
+        "section": "占面圣上书叩阍献策条陈劾奏章",
+        "entry": "zengshan.zhanfa.572"
+      },
+      "cast": {
+        "date": "丑月丙辰日",
+        "dayGanZhi": "丙辰",
+        "hexagram": "雷天大壮",
+        "changed": "泽天夬",
+        "movingLines": [
+          5
+        ],
+        "topic": "仕宦"
+      },
+      "original": "如丑月丙辰日出具文伸枉保全功名，得大壮之夬卦。父母持世，月建文书极旺，但不宜子动伤官。七八月申金得令之秋，功名坏矣。果蒙上台题保，未蒙准行，八月削职。此乃为名，文旺亦属无益。",
+      "vernacular": "例如丑月丙辰日，为出具文书申冤、保全功名而占，得大壮变夬。父母持世，临月建，文书极旺，却不宜子孙动伤官。七八月申金得令时，功名就坏了。果然获上司题请保全，却未获准，八月被削职。这是为名，文旺也无益。",
+      "notes": "底本PDF第292页，卷五书内第4页。",
+      "status": "translated",
+      "expected": {
+        "yongShen": "官鬼",
+        "verdict": "凶",
+        "timing": "七八月申金得令之秋",
+        "outcome": "果蒙上台题保，未蒙准行，八月削职。"
+      }
+    },
+    {
+      "id": "liuyao.zengshan.240",
+      "name": "《增删卜易》占例：占迟悮军粮被参劾",
+      "source": {
+        "classic": "zengshan",
+        "section": "防参劾虑大计章",
+        "entry": "zengshan.zhanfa.574"
+      },
+      "cast": {
+        "date": "未月戊申",
+        "dayGanZhi": "戊申",
+        "hexagram": "雷火丰",
+        "changed": "火山旅",
+        "movingLines": [
+          1,
+          6
+        ],
+        "topic": "仕宦"
+      },
+      "original": "如未月戊申自占因迟悮军粮已被参劾，得丰之旅。断曰：世临日建，月建生之，动出戌官又来相生，官爵无恙。诸人不以为然，岂知因获奇功，保本随奏，功名仍复保全。或曰：卯木子孙发动，如何不克官？余曰：木绝于申，所以有救。",
+      "vernacular": "例如未月戊申，自占因耽误军粮已被弹劾，得丰变旅。断说：世临日建，月建生世，动出戌官又相生，官爵无损。众人不信，没想到因获奇功，保全奏本随之上奏，功名仍获保全。有人问：卯木子孙发动，为何不克官？我说：木绝于申，所以有救。",
+      "notes": "底本PDF第293页，卷五书内第5页。正文占日「戊申」未附「日」字，照录。",
+      "status": "translated",
+      "expected": {
+        "yongShen": "官鬼",
+        "verdict": "吉",
+        "outcome": "因获奇功，保本随奏，功名仍复保全。"
+      }
     }
   ]
 }
