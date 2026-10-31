@@ -1,0 +1,402 @@
+{
+  "classic": "ziwei",
+  "volume": "卷一",
+  "section": "重补斗数彀率",
+  "edition": "据维基文库《紫微斗数全书》卷一（https://zh.wikisource.org/wiki/紫微斗數全書/卷一；固定修订 oldid=7913704），2026年10月31日所见录文；繁体转简体逐字核对，未参用现代注译本。",
+  "contributor": "codex",
+  "entries": [
+    {
+      "id": "ziwei.quanshu.goulv.001",
+      "title": "重补斗数彀率·其一",
+      "original": "诸星吉多逢凶也吉，诸星恶多逢吉也凶。",
+      "vernacular": "诸星以吉为多，遇凶也吉；以恶为多，遇吉也凶。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "通论吉凶多寡。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.002",
+      "title": "重补斗数彀率·其二",
+      "original": "星更缠度，数分定局。",
+      "vernacular": "星曜轮换所行的度数，数有各自确定的格局。",
+      "notes": "",
+      "doubts": [
+        "「星更缠度」照录，缠度的具体分法未见本句说明。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "通论星度与定局。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.003",
+      "title": "重补斗数彀率·其三",
+      "original": "重在看星得垣受制，方可论人祸福穷通。",
+      "vernacular": "要着重看星曜是否得垣、受制，才可论人的祸福穷通。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "通论得垣受制。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.004",
+      "title": "重补斗数彀率·其四",
+      "original": "大概以身命为祸福之柄，以根源为穷通之机。",
+      "vernacular": "大体以身、命为祸福的关键，以根源为穷通的枢纽。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "身命根源总论。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.005",
+      "title": "重补斗数彀率·其五",
+      "original": "紫微在命辅弼同垣，其贵必矣，财印夹命日月夹财，其富何疑。",
+      "vernacular": "紫微坐命，辅弼同垣，必定显贵；财印夹命、日月夹财，富有又有什么疑问？",
+      "notes": "财、印指武曲、天相；辅弼指左辅、右弼。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "allStars": [
+            "紫微",
+            "左辅",
+            "右弼"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "jia": [
+            "武曲",
+            "天相"
+          ],
+          "note": "财印为武曲、天相。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "财帛",
+          "jia": [
+            "太阳",
+            "太阴"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.006",
+      "title": "重补斗数彀率·其六",
+      "original": "荫福临不怕凶冲，日月会不如合照。",
+      "vernacular": "荫福临宫，不怕凶星来冲；日月相会，不如合照。",
+      "notes": "荫、福指天梁、天同；日月指太阳、太阴。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "stars": [
+            "天梁",
+            "天同"
+          ],
+          "note": "荫福任一颗临宫，凶冲另论。"
+        },
+        {
+          "module": "ziwei",
+          "meetAll": [
+            "太阳",
+            "太阴"
+          ],
+          "note": "日月合照。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.007",
+      "title": "重补斗数彀率·其七",
+      "original": "贪狼居子乃为泛水桃花，天刑遭贪必主风流刑杖。",
+      "vernacular": "贪狼居子，就是泛水桃花；天刑遇贪狼，必主因风流而受刑杖。",
+      "notes": "泛水桃花：贪狼居子的说法。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "star": "贪狼",
+          "branches": [
+            "子"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "allStars": [
+            "天刑",
+            "贪狼"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.008",
+      "title": "重补斗数彀率·其八",
+      "original": "紫微坐命库则曰金舆捧栉辇，临官安文曜号为衣锦惹天香。",
+      "vernacular": "紫微坐命库，称为金舆捧栉辇；临官安文曜，称为衣锦惹天香。",
+      "notes": "金舆捧栉辇、衣锦惹天香：原赋格名，保留不扩写。",
+      "doubts": [
+        "「金舆捧栉辇」文义可疑，暂保留格名。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "「命库」「临官安文曜」所指位置未定，不据后世说法硬配。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.009",
+      "title": "重补斗数彀率·其九",
+      "original": "太阴合文曲于妻宫翰林清异，太阳会文昌于官禄金殿传胪。",
+      "vernacular": "太阴与文曲合于妻宫，可为清贵的翰林；太阳会文昌于官禄，可在金殿传胪。",
+      "notes": "翰林：官署与文职官名；传胪：殿试宣布名次。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "夫妻",
+          "allStars": [
+            "太阴",
+            "文曲"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "官禄",
+          "star": "太阳",
+          "meet": [
+            "文昌"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.010",
+      "title": "重补斗数彀率·其十",
+      "original": "禄合守田财为烂谷堆金，财荫居迁移为高商豪客。",
+      "vernacular": "禄合守田宅、财帛，可有烂谷堆金之富；财荫居迁移，可为大商豪客。",
+      "notes": "烂谷堆金：积谷与金钱极多；财荫通常指武曲、天梁。",
+      "doubts": [
+        "「禄合」是否涉化禄未明；「财荫居迁移」与武曲天梁不能同宫的安星位置不合，保留待核。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "「禄合」所合何星未明；财荫若指武曲、天梁，按安星法不能同宫，不硬编迁移同守。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.011",
+      "title": "重补斗数彀率·其十一",
+      "original": "耗居败地沿途丐求，贪会旺宫终身鼠窃。",
+      "vernacular": "耗星居败地，沿路乞讨；贪狼会旺宫，终身偷窃。",
+      "notes": "",
+      "doubts": [
+        "「贪会旺宫终身鼠窃」与通常庙旺论不合，照录，不改作陷宫。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "「耗」所指及「败地」「贪会旺宫」的具体限制未明，未据字面套一般庙旺。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.012",
+      "title": "重补斗数彀率·其十二",
+      "original": "杀居绝地生成三十二之颜回，日在旺宫可学八百年之彭祖。",
+      "vernacular": "七杀居绝地，会像三十二岁的颜回；太阳在旺宫，可学八百岁的彭祖。",
+      "notes": "颜回、彭祖：此处分别借称短寿、长寿；数字照录。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "绝地与旺宫未明是长生十二神还是星曜庙旺，暂不硬配。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.013",
+      "title": "重补斗数彀率·其十三",
+      "original": "巨暗同垣于身命疾厄羸瘦其躯，凶星交会于相貌迁移伤刑其面。",
+      "vernacular": "巨暗同垣于身、命、疾厄，身体瘦弱；凶星交会于相貌、迁移，面容受伤。",
+      "notes": "相貌宫：此处宫名，通行又称父母宫。",
+      "doubts": [
+        "「巨暗」或为巨门暗曜的复称，不能确认是两星，不编同宫条件。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "「巨暗同垣」所指星组存疑；凶星相貌迁移未指名。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.014",
+      "title": "重补斗数彀率·其十四",
+      "original": "大耗会廉贞于官禄枷杻囚徒，官符会刑杀于迁移离乡远配。",
+      "vernacular": "大耗会廉贞于官禄，会成为戴枷锁的囚徒；官符会刑杀于迁移，会离乡远配。",
+      "notes": "枷杻：刑具；远配：流放远方。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "大耗、官符和刑杀类别的组合不能完整编码。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.015",
+      "title": "重补斗数彀率·其十五",
+      "original": "七杀临于陷地流年必见死亡，耗杀忌逢破军火铃嫌逢太岁。",
+      "vernacular": "七杀落陷，流年必见死亡；耗杀忌逢破军，火铃不宜遇太岁。",
+      "notes": "",
+      "doubts": [
+        "「耗杀忌逢破军」是否应断为「耗杀忌，逢破军」未定，保留原次序。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "star": "七杀",
+          "brightness": "陷",
+          "note": "后句「耗杀忌逢破军」断句存疑。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "stars": [
+            "火星",
+            "铃星"
+          ],
+          "note": "火星、铃星任一颗；太岁。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.016",
+      "title": "重补斗数彀率·其十六",
+      "original": "奏书博士并流禄以尽乎吉祥，力士将军与青龙以显其威福。",
+      "vernacular": "奏书、博士并见流禄，尽显吉祥；力士、将军与青龙同见，显出威福。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "流禄与博士十二神的并临，当前不能完整编码。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.017",
+      "title": "重补斗数彀率·其十七",
+      "original": "童子限弱水上浮沤，老人限衰风中燃烛。",
+      "vernacular": "儿童的运限衰弱，如水上浮沤；老人的运限衰弱，如风中燃烛。",
+      "notes": "浮沤：水面泡沫。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "note": "须为童子或老人，并审限弱、限衰；未提供具体星名。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "note": "须为童子或老人，并审限弱、限衰；未提供具体星名。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.018",
+      "title": "重补斗数彀率·其十八",
+      "original": "遇杀必惊，流年最紧。",
+      "vernacular": "遇杀必有惊险，流年最为要紧。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "note": "流年遇杀通论，未点杀名。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.019",
+      "title": "重补斗数彀率·其十九",
+      "original": "人生发达限元最怕浮沉，一世迍邅命限逢乎驳杂。",
+      "vernacular": "人要发达，限元最怕起落不定；命限驳杂，一生就困顿不顺。",
+      "notes": "限元：运限；迍邅：困顿不顺。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "note": "命限驳杂总论。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "note": "命限驳杂总论。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.goulv.020",
+      "title": "重补斗数彀率·其二十",
+      "original": "论而至此允矣玄微。",
+      "vernacular": "论到这里，确实深奥精微。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "赋末结语。"
+        }
+      ],
+      "status": "translated"
+    }
+  ]
+}
