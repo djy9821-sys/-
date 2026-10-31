@@ -688,6 +688,14 @@ const TOPIC_RULES = Object.freeze({
     }
     return { score, cap, points: notes.length ? [`考试中否（乡试会试章）：${notes.join('；')}`] : [], notices: [] };
   },
+  // 功名诸章（卷三升选候补章、升选何方章、在任吉凶章，卷五终身功名有无章）：子孙克官，「子孙持世，休望荣除」
+  // 「子孙持世、子孙发动，不得」「凡得子孙持世，子孙发动，终非庙廊之贵客」——子孙持世，倾向至多偏弱
+  // （占终身功名有无得需「子孙持世，休问功名……终身不许成名」；占得差否得夬「子孙持世，此差不得」）。
+  // 子孙发动已作忌神克用神算过，这里只论持世；替别人问的不论。
+  career: ({ shiLine, proxy }) => {
+    if (proxy || shiLine.relative !== '子孙') return null;
+    return { score: 0, cap: true, points: ['功名（升选候补章、终身功名有无章）：子孙持世，子孙克官，休问功名'], notices: [] };
+  },
   // 千金赋：占流年，以官为鬼，不宜官鬼持世；泽水困占例：世空而忌神动，出空遭伤。替别人问以那人的用神为主。
   year: ({ lines, shiLine, yong, proxy }) => {
     const person = proxy ? yong : shiLine;
