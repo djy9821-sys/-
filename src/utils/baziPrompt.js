@@ -167,7 +167,7 @@ const strengthLines = (chart, strength, special = null) => {
     `- 得势：${score.stems.length ? score.stems.map((item) => `${item.name.replace('柱', '干')}${item.gan}（${item.role}）`).join('、') : '否'}`,
   ];
   if (strength.tiaoHou) lines.push(`- 调候（${strength.tiaoHou.source}）：${strength.tiaoHou.text}${strength.tiaoHou.season ? `，${strength.tiaoHou.season}` : ''}${strength.tiaoHou.presenceText ? `；${strength.tiaoHou.presenceText}` : ''}`);
-  if (strength.basis) lines.push(`- 取用思路：${strength.basis}${strength.tiaoHouNote ? `；${strength.tiaoHouNote}` : ''}`);
+  if (strength.basis) lines.push(`- 取用思路：${strength.basis}${strength.tiaoHouNote ? `；${strength.tiaoHouNote}` : ''}${strength.godsNote ? `；${strength.godsNote}` : ''}`);
   if (strength.favorable.length) lines.push(`- 喜用参考：${elementList(strength.favorable)}`);
   if (strength.unfavorable.length) lines.push(`- 忌神参考：${elementList(strength.unfavorable)}`);
   if (strength.hint) lines.push(`- 提示：${strength.hint}`);
