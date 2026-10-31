@@ -489,8 +489,9 @@ export const analyzeStrength = (chart) => {
   // 扶抑明指为病的一行（「反以火为病」）也列进忌神。
   const unfavorable = fuYi.sick && !gods.unfavorable.includes(fuYi.sick) ? [...gods.unfavorable, fuYi.sick] : gods.unfavorable;
   const yong = favorable[0];
-  // 扶抑列作次选、却克用神或为用神所克而转为忌神的（身旺取官杀制劫时的食伤、用食伤制杀时的印），另写一句说明，免得「次之」与忌神相左。
-  const demoted = fuYi.favorable.filter((element) => !favorable.includes(element) && unfavorable.includes(element));
+  // 扶抑列作次选、却克用神或为用神所克而转为忌神的（身旺取官杀制劫时的食伤、用食伤制杀时的印），另写一句说明，免得「次之」与忌神相左；
+  // 调候那一行的去留调候说明里已经讲了，不重复。
+  const demoted = fuYi.favorable.filter((element) => !favorable.includes(element) && unfavorable.includes(element) && element !== tiaoHou?.element);
   const godsNote = demoted.length ? `${demoted.map((element) => `${roles[element]}${CONTROLS[element] === yong ? '克用神' : '为用神所克'}`).join('、')}，不列喜用` : '';
 
   let tiaoHouNote = '';
