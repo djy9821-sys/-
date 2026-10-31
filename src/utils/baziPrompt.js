@@ -125,7 +125,8 @@ const daYunFavorShort = (item, favor) => {
   if (!favor) return '';
   const cover = favor.cover ? `（${favor.cover.kind}，${COVER_SHORT[favor.cover.kind] ?? ''}）` : '';
   const fang = favor.zhi.fang ? `（${favor.zhi.fang.note}）` : '';
-  return `；喜忌：天干${item.gan}${favor.gan.element}${FAVOR_WORD[favor.gan.tone]}，地支${item.zhi}${fang}${favor.zhi.element}${FAVOR_WORD[favor.zhi.tone]}${cover}`;
+  const he = favor.gan.he ? `（合${favor.gan.he.label}化${favor.gan.he.hua}，贪合助忌）` : '';
+  return `；喜忌：天干${item.gan}${favor.gan.element}${he}${FAVOR_WORD[favor.gan.tone]}，地支${item.zhi}${fang}${favor.zhi.element}${FAVOR_WORD[favor.zhi.tone]}${cover}`;
 };
 
 /** 格局取运的上下文：月支（正官格「与地支刑冲」皆不利）与透出的正官天干（禄劫用官「怕官星之逢合」）。 */
