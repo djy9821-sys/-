@@ -57,7 +57,7 @@ import { cite } from '../data/classics';
 import { analyzeStrength, favorBasisOf } from '../utils/baziStrength';
 import { judgeBaziPattern } from '../utils/baziPattern';
 import { describeQuYun } from '../utils/baziQuYun';
-import { analyzeLiuqin } from '../utils/baziLiuqin';
+import { analyzeLiuqin, liuqinOfYun } from '../utils/baziLiuqin';
 
 // 摘要卡上的格局成败小标签（《子平真诠》口径）。
 const CHENG_BAI_CHIP = {
@@ -74,6 +74,11 @@ import { buildShareCardModel, renderBaziShareCard } from '../utils/baziShareCard
 // 大运卡片底边、流年按钮右上角的喜忌颜色。
 const FAVOR_CLASS = { good: 'bg-[#2d6b62]', bad: 'bg-[#a33b30]', neutral: 'bg-[#b9ad98]', mixed: 'bg-[linear-gradient(90deg,#2d6b62_50%,#a33b30_50%)]' };
 const FAVOR_TEXT = { good: '喜', bad: '忌', neutral: '平', mixed: '喜忌参半' };
+const YUN_LIUQIN_BADGE = {
+    good: { className: 'bg-[#2d6b62] text-white', label: '利' },
+    bad: { className: 'bg-[#a33b30] text-white', label: '不利' },
+    neutral: { className: 'bg-[#8a8074] text-white', label: '平' },
+};
 const YEAR_BADGE_CLASS = {
     clash: 'bg-[#a33b30] text-white', punish: 'bg-[#b06a1f] text-white', harm: 'bg-[#6b4f8a] text-white',
     echo: 'bg-[#315f7d] text-white', break: 'bg-[#8a8074] text-white',
@@ -523,6 +528,16 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     } : null), [baziResult]);
     const selectedDaYunQuYun = useMemo(() => (quYun && quYunContext && selectedDaYun && !selectedDaYun.isXiaoYun ? describeQuYun(selectedDaYun, quYun, quYunContext) : null), [quYun, quYunContext, selectedDaYun]);
     const selectedLiuNianQuYun = useMemo(() => (quYun && quYunContext && selectedLiuNian ? describeQuYun(selectedLiuNian, quYun, quYunContext) : null), [quYun, quYunContext, selectedLiuNian]);
+    // 此运六亲：所选大运对妻（夫）、子女、父母、兄弟的引动（按此运喜忌、克星、冲刑宫位推，见 liuqinOfYun）；小运不论。
+    const selectedDaYunLiuqin = useMemo(() => {
+        if (!baziResult || !strength || !selectedDaYun || selectedDaYun.isXiaoYun) return null;
+        try {
+            return liuqinOfYun(baziResult, strength, selectedDaYun.ganZhi, { special: patternJudge?.special ?? null, liuqin });
+        } catch (error) {
+            console.error('此运六亲推算失败:', error);
+            return null;
+        }
+    }, [baziResult, strength, selectedDaYun, patternJudge, liuqin]);
 
     const selectionRelations = useMemo(() => {
         if (!selectedLiuRi) return [];
@@ -1477,6 +1492,23 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                                 <b className="font-serif text-[#3b342e]">按格局取运</b>（{quYun.source}「{quYun.texts.join('；')}」）：{selectedDaYun.ganZhi}运，{selectedDaYunQuYun.text}。
                                                                 <span className="block text-[11px] leading-4 text-[#81776b]">这是《子平真诠》「即以所就之格，分而配之」的配运口径，与上面按旺衰取的喜忌并列参考；原书没写到的十神标「原书未言」。</span>
                                                             </p>
+                                                        )}
+                                                        {selectedDaYunLiuqin && (
+                                                            <div className="mt-2 rounded-lg border border-[#cbbfac]/70 bg-[#fffaf0]/80 px-3 py-2 text-xs leading-5 text-[#514941]" data-testid="bazi-dayun-liuqin">
+                                                                <p><b className="font-serif text-[#3b342e]">此运六亲</b>（{selectedDaYun.ganZhi}运，程序初判）</p>
+                                                                <ul className="mt-1 space-y-1">
+                                                                    {selectedDaYunLiuqin.items.map((item) => {
+                                                                        const badge = YUN_LIUQIN_BADGE[item.tone] ?? YUN_LIUQIN_BADGE.neutral;
+                                                                        return (
+                                                                            <li key={item.key} className="flex items-start gap-1.5">
+                                                                                <span className={`mt-0.5 inline-flex shrink-0 rounded px-1 text-[10px] font-bold leading-4 ${badge.className}`}>{badge.label}</span>
+                                                                                <span>{item.text}</span>
+                                                                            </li>
+                                                                        );
+                                                                    })}
+                                                                </ul>
+                                                                <span className="mt-1 block text-[11px] leading-4 text-[#81776b]">任注论运中六亲多就岁运喜忌说：「交己未，妻子皆伤」是忌运连及六亲，「壬运克丙坏印，丁外艰」是运克其星。这里按此运喜忌、运干支克其星、运支冲刑其宫推，只作参考。</span>
+                                                            </div>
                                                         )}
                                                         <ul className="mt-3 grid grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-5">
                                                             {visibleLiuNian.map((liuNian) => {
