@@ -367,6 +367,8 @@ export const BAZI_CASE_USE_GOD = Object.freeze(['木', '火', '土', '金', '水
 /** 八字命例 expected.yun：原书点名的大运、流年及其吉凶（「至癸巳运，连登甲第」「丑运……夫妇皆亡」）。 */
 export const BAZI_CASE_YUN_KIND = Object.freeze(['大运', '流年']);
 export const BAZI_CASE_YUN_VERDICT = Object.freeze(['吉', '凶', '平']);
+/** 八字命例 expected.chengBai：原书按《子平真诠·论用神成败救应》说这个格成、败、成中有败、败中有成（只在写了月令取的格 pattern 时写）。 */
+export const BAZI_CASE_CHENG_BAI = Object.freeze(['成', '败', '成中有败', '败中有成']);
 /**
  * 八字命例 expected.useGodWhy：原书取这个用神的理由归哪一类（只在写了 useGod 时写），回归里按类看程序哪一类取得不准。
  * 扶抑：身强取克泄、身弱取生扶；调候：寒暖燥湿；通关：两神相战取居中者；病药：取制忌神（病）之神；
@@ -489,6 +491,10 @@ export const validateCasesDoc = (doc, ctx = {}) => {
       const { expected } = entry;
       if (expected.strength !== undefined && !BAZI_CASE_STRENGTH.includes(expected.strength)) errors.push(`${where}: expected.strength 须是 ${BAZI_CASE_STRENGTH.join('/')}（原书明说的日主旺衰）`);
       if (expected.pattern !== undefined && !BAZI_PATTERN_VOCAB.includes(expected.pattern)) errors.push(`${where}: expected.pattern「${expected.pattern}」不是程序认得的格局名（见 src/data/classics/patternNames.js）`);
+      if (expected.chengBai !== undefined) {
+        if (!BAZI_CASE_CHENG_BAI.includes(expected.chengBai)) errors.push(`${where}: expected.chengBai 须是 ${BAZI_CASE_CHENG_BAI.join('/')}`);
+        if (expected.pattern === undefined) errors.push(`${where}: expected.chengBai 只在写了 pattern（月令取的格）时写`);
+      }
       if (expected.useGod !== undefined) {
         const gods = Array.isArray(expected.useGod) ? expected.useGod : [expected.useGod];
         if (!gods.length || gods.some((god) => !BAZI_CASE_USE_GOD.includes(god))) errors.push(`${where}: expected.useGod 须是五行（木火土金水）或十神（比劫、印、食伤、财、官杀，或正官、七杀等），可写数组`);
@@ -546,7 +552,7 @@ export const validateCasesDoc = (doc, ctx = {}) => {
         }
       }
       Object.keys(expected).forEach((key) => {
-        if (!['strength', 'pattern', 'useGod', 'useGodWhy', 'outcome', 'yun', 'liuqin'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
+        if (!['strength', 'pattern', 'chengBai', 'useGod', 'useGodWhy', 'outcome', 'yun', 'liuqin'].includes(key)) errors.push(`${where}: expected 未知字段 ${key}`);
       });
     } else if (entry.expected !== undefined && doc.module === 'liuyao') {
       const { expected } = entry;
