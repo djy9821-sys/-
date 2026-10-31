@@ -114,6 +114,23 @@ export const chengBaiCheck = (program, expected) => {
   return CHENG_BAI_GOOD.has(program) === CHENG_BAI_GOOD.has(expected) ? 'near' : 'reversed';
 };
 
+/** 相神的归类：正官、七杀各自一类，财、印、食伤、比劫按类；「官杀」通官、杀。 */
+const XIANG_CLASS = { 正官: '正官', 七杀: '七杀', 官杀: '官杀', 正财: '财', 偏财: '财', 财: '财', 财星: '财', 正印: '印', 偏印: '印', 印: '印', 印绶: '印', 枭: '印', 食神: '食伤', 伤官: '食伤', 食伤: '食伤', 比肩: '比劫', 劫财: '比劫', 比劫: '比劫', 羊刃: '比劫', 阳刃: '比劫' };
+const xiangMatches = (program, expected) => program === expected || (expected === '官杀' && (program === '正官' || program === '七杀')) || (program === '官杀' && (expected === '正官' || expected === '七杀'));
+/**
+ * 格局取用的对照：命例写的用（相神）与程序成败判给出的相神比——全部对上算 same，对上一部分算 near，一个都没对上算 miss；
+ * 程序没给相神（败格、待详辨）也算 miss。
+ */
+const GROUP_OWN = { 正官格: '正官', 七杀格: '七杀', 财格: '财', 印格: '印', 食神格: '食伤', 伤官格: '食伤', 羊刃格: '比劫', 建禄月劫: '比劫' };
+export const xiangShenCheck = (program, expected, group = null, verdict = null) => {
+  const want = [...new Set((expected ?? []).map((god) => XIANG_CLASS[god] ?? god))];
+  // 原书「用正官」「用七杀」说的是格本身的用神（论用神「用神者，八字中所用之神」），格成了就算对上
+  const got = [...new Set([...(program ?? []), ...(group && (verdict === '成' || verdict === '败中有成') ? [GROUP_OWN[group]] : [])].filter(Boolean).map((god) => XIANG_CLASS[god] ?? god))];
+  if (!want.length) return null;
+  const hit = want.filter((god) => got.some((item) => xiangMatches(item, god)));
+  return hit.length === want.length ? 'same' : hit.length ? 'near' : 'miss';
+};
+
 /** 十神或十神类别 → 相对日主的五行。 */
 export const useGodElement = (god, dayWuxing) => {
   if (Object.values(GENERATES).includes(god)) return god;
@@ -226,12 +243,18 @@ export const evaluateBaziCase = (entry) => {
   const specialUnfavorable = judge.special?.unfavorable?.map((item) => item.element) ?? null;
   const useGodSource = specialFavorable?.length ? 'special' : 'fuyi';
   if (expected.useGod) {
-    const gods = (Array.isArray(expected.useGod) ? expected.useGod : [expected.useGod]).map((god) => useGodElement(god, dayWuxing)).filter(Boolean);
-    const fav = useGodSource === 'special' ? specialFavorable : favorable;
-    const unfav = useGodSource === 'special' ? specialUnfavorable : unfavorable;
-    checks.useGod = fav[0] && gods.includes(fav[0]) ? 'same'
-      : fav.slice(0, 2).some((element) => gods.includes(element)) ? 'near'
-        : gods[0] && unfav.includes(gods[0]) ? 'reversed' : 'miss';
+    const godList = Array.isArray(expected.useGod) ? expected.useGod : [expected.useGod];
+    // 《子平真诠》命造按格局取的「用」是相神（论相神紧要「官逢财生，则官为用，财为相」），拿程序成败判里的相神比，不拿扶抑喜忌比；
+    // 任注说「格局」时多指五行取用（「金水伤官喜火……取水为用」），仍按喜忌比
+    if (entry.source?.classic === 'ziping' && expected.useGodWhy?.kind === '格局' && judge.chengBai && !special) checks.useGod = xiangShenCheck(judge.chengBai.xiangShen, godList, judge.chengBai.group, judge.chengBai.verdict);
+    else {
+      const gods = godList.map((god) => useGodElement(god, dayWuxing)).filter(Boolean);
+      const fav = useGodSource === 'special' ? specialFavorable : favorable;
+      const unfav = useGodSource === 'special' ? specialUnfavorable : unfavorable;
+      checks.useGod = fav[0] && gods.includes(fav[0]) ? 'same'
+        : fav.slice(0, 2).some((element) => gods.includes(element)) ? 'near'
+          : gods[0] && unfav.includes(gods[0]) ? 'reversed' : 'miss';
+    }
   }
   // 岁运：原书说吉、凶的那几步运（年），程序按同一套喜忌（认出特殊格局就按此格论）判；原书说「平」的不比。
   const yun = (expected.yun ?? []).map((item) => {
