@@ -284,6 +284,18 @@ test('从格看地支、化气看化神得势：任注从象、化象、顺局�
     .forEach((text) => assert.equal(judgeByPillars(text).judge.special, null, text));
 });
 
+test('论从时三会方之外那一行的墓库支随方论：壬辰 辛亥 戊子 癸丑「支类北方，水势汪洋……土太衰者，似火也」', () => {
+  // 亥子丑会北方，辰是水库、又与子拱水，戊土不作有根；书上甲寅、乙卯运「名成利遂」，一交丙运「刑妻克子」，丁丑运亡。
+  const { judge, strength } = judgeByPillars('壬辰 辛亥 戊子 癸丑');
+  assert.equal(judge.special.name, '疑似从财格');
+  assert.match(judge.special.basis, /^亥子丑辰会成水局，四支都是水（财），日主戊土没有得力之根/);
+  assert.equal(judge.special.unfavorable[0].element, '土');
+  assert.ok(judge.special.favorable.some((item) => item.element === '木'), '从财，官杀泄财亦可：甲寅、乙卯运为喜');
+  assert.equal(strength.band, '偏弱');
+  // 三合局里本来就有库的不受影响；专旺仍按原来的余气支、墓库支条件（另见上面炎上、稼穑诸造）。
+  assert.equal(judgeByPillars('甲申 丙子 庚辰 戊寅').judge.special, null);
+});
+
 test('四支一气不拘微根、日主坐库仍能盘根、假化与化气有余宜泄：任注从象、化象、假化、顺局、反局诸造', () => {
   // 「蟠根在未，余气在辰，似乎财多身弱，但四柱皆财，其势必从」，丙火为用。
   const cai = judgeByPillars('戊戌 丙辰 乙未 丙戌').judge.special;
