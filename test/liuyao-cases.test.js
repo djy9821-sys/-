@@ -18,12 +18,12 @@ import { HEXAGRAM_MAP } from '../src/utils/hexagramLogic.js';
 const CASES = [
   { id: '002', name: '占父近病', date: '2001-4-15', hex: '乾为天', lines: [4], topic: 'health', subject: 'parents', illness: 'recent', book: '吉' },
   { id: '004', name: '占自身病', date: '2001-6-1', hex: '泽风大过', lines: [5, 6], topic: 'health', subject: 'self', book: '凶' },
-  { id: '008', name: '占求财', date: '2001-2-16', hex: '火天大有', lines: [], topic: 'wealth', book: '吉', near: true },
-  { id: '009', name: '占谒贵', date: '2006-10-4', hex: '山风蛊', lines: [3], topic: 'career', book: '吉', near: true },
+  { id: '008', name: '占求财', date: '2001-2-16', hex: '火天大有', lines: [], topic: 'wealth', book: '吉' },
+  { id: '009', name: '占谒贵', date: '2006-10-4', hex: '山风蛊', lines: [3], topic: 'career', book: '吉' },
   { id: '010', name: '占官之升迁', date: '2007-3-3', hex: '艮为山', lines: [1, 3], topic: 'career', book: '吉' },
   { id: '011', name: '占弟被讼', date: '2001-6-13', hex: '泽水困', lines: [3, 5], topic: 'lawsuit', subject: 'siblings', book: '凶' },
   { id: '012', name: '占开铺', date: '2001-2-27', hex: '艮为山', lines: [1, 6], topic: 'wealth', book: '凶' },
-  { id: '013', name: '占妹临产', date: '2001-7-4', hex: '火地晋', lines: [], topic: 'maternity', subject: 'siblings', book: '吉', near: true },
+  { id: '013', name: '占妹临产', date: '2001-7-4', hex: '火地晋', lines: [], topic: 'maternity', subject: 'siblings', book: '吉' },
   { id: '014', name: '占病', date: '2001-8-23', hex: '天山遁', lines: [2], topic: 'health', subject: 'self', book: '凶' },
   { id: '015', name: '占仆何日回', date: '2001-5-24', hex: '泽天夬', lines: [3, 6], topic: 'travel', subject: 'staff', book: '凶' },
   { id: '016', name: '占出行', date: '2002-9-5', hex: '地火明夷', lines: [1, 4], topic: 'travel', subject: 'self', book: '凶' },
@@ -31,7 +31,7 @@ const CASES = [
   { id: '018', name: '占风水', date: '2005-3-31', hex: '泽水困', lines: [1, 4], topic: 'gravesite', book: '吉' },
   { id: '020', name: '占财', date: '2001-6-4', hex: '风雷益', lines: [], topic: 'wealth', book: '吉' },
   { id: '021', name: '占出外贸易', date: '2001-6-22', hex: '雷风恒', lines: [2, 3], topic: 'wealth', book: '吉' },
-  { id: '022', name: '占子久出不归', date: '2001-9-29', hex: '坤为地', lines: [], topic: 'travel', subject: 'children', book: '吉', near: true },
+  { id: '022', name: '占子久出不归', date: '2001-9-29', hex: '坤为地', lines: [], topic: 'travel', subject: 'children', book: '吉' },
   { id: '024', name: '占父子蒙拿问', date: '2001-8-20', hex: '巽为风', lines: [2, 3, 5, 6], topic: 'lawsuit', subject: 'self', book: '凶' },
   { id: '026', name: '占女痘', date: '2001-2-25', hex: '坤为地', lines: [2], topic: 'health', subject: 'children', book: '吉', near: true },
   { id: '027', name: '代卜长辈功名', date: '2001-3-19', hex: '巽为风', lines: [1, 4], topic: 'career', book: '凶' },
@@ -52,7 +52,7 @@ const CASES = [
   { id: '055', name: '占子存亡', date: '2002-9-5', hex: '风地观', lines: [4, 6], topic: 'children', book: '吉' },
   { id: '056', name: '占乡试', date: '2001-8-8', hex: '雷风恒', lines: [5], topic: 'study', book: '吉' },
   { id: '057', name: '占求婚', date: '2007-4-1', hex: '火雷噬嗑', lines: [1, 4, 5, 6], topic: 'love', gender: 'male', book: '吉', near: true },
-  { id: '058', name: '占自陈', date: '2001-10-8', hex: '地水师', lines: [1, 2, 3], topic: 'career', book: '凶', near: true },
+  { id: '058', name: '占自陈', date: '2001-10-8', hex: '地水师', lines: [1, 2, 3], topic: 'career', book: '凶' },
   { id: '059', name: '占迎父能否相遇', date: '2001-1-23', hex: '水山蹇', lines: [4, 5, 6], topic: 'travel', subject: 'parents', book: '吉' },
   { id: '060', name: '占冬令得关差', date: '2005-11-5', hex: '水泽节', lines: [3], topic: 'career', book: '吉' },
   { id: '061', name: '占终得出仕', date: '2006-8-6', hex: '天火同人', lines: [6], topic: 'career', book: '吉', miss: '问终身能否出仕：原书以子孙化退不克官、辰年冲去戌土而许之，远期之事不论眼下用神休囚旬空；程序仍按眼下旺衰断' },
@@ -60,7 +60,7 @@ const CASES = [
   { id: '063', name: '占妻病服药', date: '2003-1-30', hex: '地泽临', lines: [3], topic: 'health', subject: 'spouse', gender: 'male', book: '凶', near: true },
   { id: '064', name: '占久病', date: '2003-11-6', hex: '乾为天', lines: [6], topic: 'health', subject: 'self', illness: 'chronic', book: '凶' },
   { id: '065', name: '占母血崩', date: '2002-11-7', hex: '天火同人', lines: [1, 2, 3, 5, 6], topic: 'health', subject: 'parents', book: '凶' },
-  { id: '066', name: '占父近病', date: '2001-3-11', hex: '泽地萃', lines: [6], topic: 'health', subject: 'parents', illness: 'recent', book: '吉', near: true },
+  { id: '066', name: '占父近病', date: '2001-3-11', hex: '泽地萃', lines: [6], topic: 'health', subject: 'parents', illness: 'recent', book: '吉' },
   { id: '067', name: '占流年', date: '2001-4-20', hex: '泽水困', lines: [5], topic: 'year', subject: 'self', book: '凶' },
   { id: '068', name: '占妻母病', date: '2001-5-2', hex: '泽雷随', lines: [1, 6], topic: 'health', subject: 'parents', book: '凶' },
   { id: '069', name: '占出行', date: '2001-8-20', hex: '水雷屯', lines: [2], topic: 'travel', subject: 'self', book: '平', near: true },
@@ -70,7 +70,7 @@ const CASES = [
   { id: '074', name: '占考试中否', date: '2005-10-8', hex: '兑为泽', lines: [1, 6], topic: 'study', book: '吉' },
   { id: '075', name: '占母何时来', date: '2001-7-13', hex: '火天大有', lines: [1, 4, 5, 6], topic: 'travel', subject: 'parents', book: '凶', near: true },
   { id: '076', name: '占开金银器皿铺', date: '2001-7-7', hex: '火雷噬嗑', lines: [4, 5, 6], topic: 'wealth', book: '吉' },
-  { id: '078', name: '占夫病', date: '2001-9-2', hex: '天火同人', lines: [5], topic: 'health', subject: 'spouse', gender: 'female', book: '吉', near: true },
+  { id: '078', name: '占夫病', date: '2001-9-2', hex: '天火同人', lines: [5], topic: 'health', subject: 'spouse', gender: 'female', book: '吉' },
   { id: '079', name: '占会试能联捷否', date: '2001-10-18', hex: '雷山小过', lines: [4, 6], topic: 'study', book: '吉', near: true },
   { id: '080', name: '占病', date: '2004-9-7', hex: '雷风恒', lines: [], topic: 'health', subject: 'self', book: '吉' },
   { id: '081', name: '占已定重罪可蒙赦否', date: '2006-8-7', hex: '山风蛊', lines: [1, 3], topic: 'lawsuit', subject: 'self', book: '吉' },
@@ -78,22 +78,22 @@ const CASES = [
   { id: '089', name: '占求财', date: '2001-8-5', hex: '风天小畜', lines: [], topic: 'wealth', book: '吉' },
   { id: '090', name: '占升迁', date: '2001-7-30', hex: '地水师', lines: [5, 6], topic: 'career', book: '吉' },
   { id: '091', name: '占子何时脱厄', date: '2002-12-4', hex: '雷地豫', lines: [1, 2], topic: 'general', subject: 'children', book: '吉' },
-  { id: '092', name: '占流年', date: '2005-8-7', hex: '艮为山', lines: [], topic: 'career', book: '吉', near: true },
+  { id: '092', name: '占流年', date: '2005-8-7', hex: '艮为山', lines: [], topic: 'career', book: '吉' },
   { id: '130', name: '占子嗣多少', date: '2001-3-1', hex: '坤为地', lines: [3, 6], topic: 'children', book: '凶' },
   { id: '131', name: '占子嗣', date: '2005-9-4', hex: '地雷复', lines: [], topic: 'children', book: '吉' },
   { id: '132', name: '占子孙有无', date: '2001-12-3', hex: '水雷屯', lines: [2], topic: 'children', book: '凶', miss: '子孙化子孙，老年无子者主抚他人之子（子嗣章其九）；程序不知问卦人年纪' },
   { id: '133', name: '占子易养否', date: '2004-12-3', hex: '天风姤', lines: [2, 5], topic: 'children', book: '凶' },
-  { id: '134', name: '占官缺得否', date: '2002-9-4', hex: '水风井', lines: [1, 3], topic: 'career', book: '凶', near: true },
+  { id: '134', name: '占官缺得否', date: '2002-9-4', hex: '水风井', lines: [1, 3], topic: 'career', book: '凶' },
   { id: '135', name: '占得差否', date: '2002-9-7', hex: '泽天夬', lines: [], topic: 'career', book: '凶', near: true },
   { id: '137', name: '占何月补官', date: '2001-10-25', hex: '水山蹇', lines: [1, 2], topic: 'career', book: '吉', near: true },
   { id: '138', name: '占任职地方', date: '2007-8-3', hex: '雷泽归妹', lines: [1], topic: 'career', book: '吉' },
   { id: '139', name: '占在任平安否', date: '2004-3-4', hex: '山雷颐', lines: [4], topic: 'year', subject: 'self', book: '平' },
-  { id: '141', name: '占借贷', date: '2006-8-6', hex: '火地晋', lines: [], topic: 'wealth', book: '吉', near: true },
+  { id: '141', name: '占借贷', date: '2006-8-6', hex: '火地晋', lines: [], topic: 'wealth', book: '吉' },
   { id: '142', name: '占求财', date: '2005-6-2', hex: '水火既济', lines: [1, 2, 3, 6], topic: 'wealth', book: '吉' },
-  { id: '143', name: '占本人婚姻', date: '2002-1-5', hex: '雷风恒', lines: [6], topic: 'love', gender: 'male', book: '吉', near: true },
+  { id: '143', name: '占本人婚姻', date: '2002-1-5', hex: '雷风恒', lines: [6], topic: 'love', gender: 'male', book: '吉' },
   { id: '144', name: '占女家婚事', date: '2001-2-12', hex: '地泽临', lines: [2, 3, 5], topic: 'love', gender: 'female', book: '凶', near: true },
-  { id: '145', name: '占夫妇将来和好否', date: '2001-6-5', hex: '水天需', lines: [1, 4], topic: 'love', gender: 'female', book: '凶', miss: '女占夫妇和好：原书看子孙持世克夫、应爻化合于他人；程序把申子辰水局生官鬼算作吉' },
-  { id: '148', name: '占孕男女', date: '2001-5-5', hex: '雷山小过', lines: [3], topic: 'children', book: '吉', near: true },
+  { id: '145', name: '占夫妇将来和好否', date: '2001-6-5', hex: '水天需', lines: [1, 4], topic: 'love', gender: 'female', book: '凶', near: true, note: '女占夫妇和好：原书看子孙持世克夫、应爻化合于他人；程序把申子辰水局生官鬼算作吉，只是子孙动克夫扣了分，判平' },
+  { id: '148', name: '占孕男女', date: '2001-5-5', hex: '雷山小过', lines: [3], topic: 'children', book: '吉', miss: '兼问孕之男女与产母平安：原书以「兄爻虽动，不克变出之财爻」断产母无虞、以阳动变阴断生女，没有看子孙；程序按子女孕育以子孙为用神，子孙伏而空破被克，断偏弱。野鹤自言两事宜分占' },
   { id: '149', name: '占妻孕平安否', date: '2003-1-2', hex: '雷火丰', lines: [1], topic: 'maternity', subject: 'spouse', book: '凶' },
   { id: '150', name: '占防流兵', date: '2007-6-3', hex: '地泽临', lines: [4, 6], topic: 'refuge', subject: 'self', book: '吉' },
   { id: '151', name: '占通乡避乱', date: '2001-5-23', hex: '乾为天', lines: [5], topic: 'refuge', subject: 'self', book: '平', near: true },
@@ -101,10 +101,10 @@ const CASES = [
   { id: '153', name: '占仆人何日回', date: '2005-12-6', hex: '泽火革', lines: [2], topic: 'travel', subject: 'staff', book: '吉' },
   { id: '154', name: '占伯何日来', date: '2001-8-3', hex: '水雷屯', lines: [4], topic: 'travel', subject: 'parents', book: '吉' },
   { id: '155', name: '占父远去何日回', date: '2001-1-7', hex: '天泽履', lines: [], topic: 'travel', subject: 'parents', book: '吉' },
-  { id: '156', name: '占主人何日回', date: '2001-3-1', hex: '山天大畜', lines: [5], topic: 'travel', subject: 'parents', book: '吉', near: true },
+  { id: '156', name: '占主人何日回', date: '2001-3-1', hex: '山天大畜', lines: [5], topic: 'travel', subject: 'parents', book: '吉' },
   { id: '157', name: '占夫还往他省去否', date: '2005-12-6', hex: '雷天大壮', lines: [1, 5], topic: 'travel', subject: 'spouse', gender: 'female', book: '吉' },
   { id: '158', name: '占一路平安否', date: '2004-11-3', hex: '山风蛊', lines: [5], topic: 'travel', subject: 'self', book: '平', near: true },
-  { id: '159', name: '占子近病', date: '2005-9-3', hex: '雷风恒', lines: [3], topic: 'health', subject: 'children', illness: 'recent', book: '平' },
+  { id: '159', name: '占子近病', date: '2005-9-3', hex: '雷风恒', lines: [3], topic: 'health', subject: 'children', illness: 'recent', book: '平', near: true, note: '原书「幸得子孙值旬空，近病即愈，恐其难过午年」：所问的近病是愈，远期凶；程序答所问，判偏吉' },
   { id: '160', name: '占子病', date: '2001-8-17', hex: '天山遁', lines: [], topic: 'health', subject: 'children', book: '吉' },
   { id: '167', name: '占父病吃人参好否', date: '2001-3-5', hex: '泽地萃', lines: [6], topic: 'health', subject: 'parents', book: '凶', near: true },
   { id: '172', name: '占家内井有碍否', date: '2001-9-12', hex: '地水师', lines: [1], topic: 'home', book: '吉', near: true },
@@ -113,7 +113,7 @@ const CASES = [
   { id: '179', name: '占墓地', date: '2001-2-24', hex: '山雷颐', lines: [4, 5], topic: 'gravesite', book: '吉' },
   { id: '180', name: '占墓地', date: '2001-3-26', hex: '巽为风', lines: [5, 6], topic: 'gravesite', book: '凶' },
   { id: '182', name: '占何时得墓地', date: '2001-4-22', hex: '地雷复', lines: [5], topic: 'gravesite', book: '平' },
-  { id: '183', name: '占墓穴', date: '2002-8-5', hex: '雷天大壮', lines: [], topic: 'gravesite', book: '吉', near: true },
+  { id: '183', name: '占墓穴', date: '2002-8-5', hex: '雷天大壮', lines: [], topic: 'gravesite', book: '吉', miss: '此占只问穴在何处（「世在四爻，穴在中段」），地之吉凶早经法眼与久占许吉；程序按寻地章「六冲卦……必无气脉」断偏弱' },
   { id: '184', name: '占以父柩附葬祖茔', date: '2007-1-2', hex: '地雷复', lines: [1], topic: 'gravesite', book: '凶' },
 ];
 
@@ -137,10 +137,10 @@ CASES.filter((item) => !item.miss).forEach((item) => {
   });
 });
 
-test('人事占例：同档的不少于 64 例，断反的只有列明缘故的几例', () => {
+test('人事占例：同档的不少于 74 例，断反的只有列明缘故的几例', () => {
   const results = CASES.map((item) => ({ item, level: judgeCase(item).verdict.level }));
   const exact = results.filter(({ item, level }) => level === LEVEL[item.book]).length;
   const reversed = results.filter(({ item, level }) => opposite(level, LEVEL[item.book])).map(({ item }) => item.id);
-  assert.ok(exact >= 64, `同档 ${exact} 例`);
+  assert.ok(exact >= 74, `同档 ${exact} 例`);
   assert.deepEqual(reversed.sort(), CASES.filter((item) => item.miss).map((item) => item.id).sort());
 });
