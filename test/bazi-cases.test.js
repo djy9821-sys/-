@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateBaziCase, findSolarDateByPillars, liuqinScopeOf, liuqinVerdictOf, samePatternFamily, useGodElement, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
+import { chengBaiCheck, evaluateBaziCase, findSolarDateByPillars, liuqinScopeOf, liuqinVerdictOf, samePatternFamily, sameRegularPattern, useGodElement, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 
 test('八字命例：按四柱找日子（时柱可缺），找不到或干支不合法时为 null', () => {
@@ -53,6 +53,36 @@ test('八字命例：十神或类别换成五行；排盘四柱与命例一致�
   assert.equal(hua.checks.strength, undefined);
   const unknown = evaluateBaziCase({ id: 'bazi.test.002', pillars: ['甲子', '甲子', '甲子', '甲子'], expected: { strength: '旺' } });
   assert.match(unknown.error, /找不到/);
+});
+
+test('《子平真诠》式命例：写月令取的格与成败的，比程序的月令格与成败判', () => {
+  // 月令格的同义：财格也算正财格、偏财格，印绶格也算正印格；杂气正财格也算正财格。
+  assert.ok(sameRegularPattern('正财格', '财格'));
+  assert.ok(sameRegularPattern('偏财格', '财格'));
+  assert.ok(sameRegularPattern('杂气正财格', '正财格'));
+  assert.ok(sameRegularPattern('正印格', '印绶格'));
+  assert.ok(!sameRegularPattern('正财格', '正官格'));
+  assert.ok(!sameRegularPattern(null, '正官格'));
+  assert.equal(chengBaiCheck('成', '成'), 'same');
+  assert.equal(chengBaiCheck('成', '成中有败'), 'near');
+  assert.equal(chengBaiCheck('败中有成', '败'), 'near');
+  assert.equal(chengBaiCheck('成', '败'), 'reversed');
+  assert.equal(chengBaiCheck(null, '成'), null);
+  // 戊辰 丙辰 乙卯 甲申：月支辰本气戊透年干，正财格；食伤生财而身强带比，成。
+  const base = { id: 'bazi.test.ziping', pillars: ['戊辰', '丙辰', '乙卯', '甲申'], original: '测试' };
+  const ok = evaluateBaziCase({ ...base, expected: { pattern: '财格', chengBai: '成', useGod: '财' } });
+  assert.equal(ok.program.pattern, '正财格');
+  assert.equal(ok.program.chengBai, '成');
+  assert.equal(ok.checks.pattern, 'same');
+  assert.equal(ok.checks.chengBai, 'same');
+  const near = evaluateBaziCase({ ...base, expected: { pattern: '正财格', chengBai: '成中有败' } });
+  assert.deepEqual([near.checks.pattern, near.checks.chengBai], ['same', 'near']);
+  const reversed = evaluateBaziCase({ ...base, expected: { pattern: '正财格', chengBai: '败' } });
+  assert.deepEqual([reversed.checks.pattern, reversed.checks.chengBai], ['same', 'reversed']);
+  // 格取得不同时不比成败。
+  const miss = evaluateBaziCase({ ...base, expected: { pattern: '正官格', chengBai: '成' } });
+  assert.equal(miss.checks.pattern, 'miss');
+  assert.equal(miss.checks.chengBai, undefined);
 });
 
 test('八字命例的岁运：原书点名的大运、流年按程序喜忌判吉凶，干支各算一票', () => {
