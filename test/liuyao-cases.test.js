@@ -86,7 +86,7 @@ const CASES = [
   { id: '132', name: '占子孙有无', date: '2001-12-3', hex: '水雷屯', lines: [2], topic: 'children', book: '凶', miss: '子孙化子孙，老年无子者主抚他人之子（子嗣章其九）；程序不知问卦人年纪' },
   { id: '133', name: '占子易养否', date: '2004-12-3', hex: '天风姤', lines: [2, 5], topic: 'children', book: '凶' },
   { id: '134', name: '占官缺得否', date: '2002-9-4', hex: '水风井', lines: [1, 3], topic: 'career', book: '凶' },
-  { id: '135', name: '占得差否', date: '2002-9-7', hex: '泽天夬', lines: [], topic: 'career', book: '凶', near: true },
+  { id: '135', name: '占得差否', date: '2002-9-7', hex: '泽天夬', lines: [], topic: 'career', book: '凶' },
   { id: '137', name: '占何月补官', date: '2001-10-25', hex: '水山蹇', lines: [1, 2], topic: 'career', book: '吉', near: true },
   { id: '138', name: '占任职地方', date: '2007-8-3', hex: '雷泽归妹', lines: [1], topic: 'career', book: '吉' },
   { id: '139', name: '占在任平安否', date: '2004-3-4', hex: '山雷颐', lines: [4], topic: 'year', subject: 'self', book: '平' },
@@ -129,7 +129,7 @@ const CASES = [
   { id: '198', name: '占终身财福', date: '2001-3-21', hex: '泽火革', lines: [4, 6], topic: 'life', subject: 'self', book: '凶' },
   { id: '199', name: '占终身功名有无', date: '2007-5-1', hex: '地火明夷', lines: [4], topic: 'career', book: '吉' },
   { id: '200', name: '占终身功名有无', date: '2001-11-1', hex: '山风蛊', lines: [], topic: 'career', book: '吉' },
-  { id: '201', name: '占终身功名有无', date: '2001-10-31', hex: '水天需', lines: [], topic: 'career', book: '凶', near: true },
+  { id: '201', name: '占终身功名有无', date: '2001-10-31', hex: '水天需', lines: [], topic: 'career', book: '凶' },
   { id: '202', name: '占终身功名', date: '2004-6-5', hex: '火山旅', lines: [], topic: 'career', book: '凶' },
   { id: '203', name: '占寿', date: '2001-4-12', hex: '风泽中孚', lines: [], topic: 'life', subject: 'self', book: '吉' },
   { id: '205', name: '占寿', date: '2001-4-22', hex: '风泽中孚', lines: [4, 5], topic: 'life', subject: 'self', book: '凶', near: true },
@@ -195,10 +195,10 @@ CASES.filter((item) => !item.miss).forEach((item) => {
   });
 });
 
-test('人事占例：同档的不少于 115 例，断反的只有列明缘故的几例', () => {
+test('人事占例：同档的不少于 117 例，断反的只有列明缘故的几例', () => {
   const results = CASES.map((item) => ({ item, level: judgeCase(item).verdict.level }));
   const exact = results.filter(({ item, level }) => level === LEVEL[item.book]).length;
   const reversed = results.filter(({ item, level }) => opposite(level, LEVEL[item.book])).map(({ item }) => item.id);
-  assert.ok(exact >= 115, `同档 ${exact} 例`);
+  assert.ok(exact >= 117, `同档 ${exact} 例`);
   assert.deepEqual(reversed.sort(), CASES.filter((item) => item.miss).map((item) => item.id).sort());
 });
