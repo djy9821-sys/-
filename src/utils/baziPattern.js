@@ -350,7 +350,8 @@ export const determinePattern = (chart, summary = null) => {
  *   另一条看地支：四支本气（三合、三会齐全的按局论，「支全火局」「支全寅卯辰，东方一气」「未土又会木局」）
  *   都是食伤财官，日主在局外没有得力之根（本气、禄、寅申巳亥中的长生），微根（辰戌丑未所藏的余气、墓库，
  *   寅申巳亥的余气）至多一处且不在日支（「天干木火，全赖未中一点微根」，日主坐库仍能盘根），四支一气的不拘微根；
- *   天干帮身至多两个（有印则只能是这一个，还要财星透出克印或财占三成），也作从论（「四柱皆财，其势必从」）。
+ *   天干帮身至多两个（有印则只能是这一个，还要财星透出克印或财占三成），也作从论（「四柱皆财，其势必从」）；
+ *   四支一气都是官杀而天干比劫全无根的，三透也从（子平真诠李侍郎「乙酉、乙酉、乙酉、甲申」从杀；财、食伤一气的三透不从）。
  *   从哪一神：食伤、财、官杀里占得最多的一方到三成五为从儿、从财、从杀，否则为从势。
  *   官杀独旺而月令本气是食伤的不作从杀：当令的食伤制杀（任注「两杀并透，支会杀局，喜其辰土当令制杀，辰中木有余气而生身」，
  *   丙申 壬辰 丙子 壬辰 用土；辛亥 壬辰 丙申 己亥 己丑、戊子土运反吉）。
@@ -465,7 +466,10 @@ export const detectSpecialPattern = (chart, strength, summary) => {
     && branchElements.every((element) => ['食伤', '财', '官杀'].includes(strength.roles[element]))
     && faintRoots.length === outsideRoots.length
     && (yiQi || (faintRoots.length <= 1 && !faintRoots.some((root) => root.key === 'day')))
-    && supportStems.length <= 2
+    // 四支一气都是官杀、天干比劫全都无根的，三透也从（子平真诠李侍郎「乙酉、乙酉、乙酉、甲申」从杀，「运喜财官，不宜身旺」；
+    // 任注「虽天干三透甲乙，而地支不载，木凋金锐，用土以从之」）；财、食伤一气的三透不从（辛卯四柱、壬寅四柱，任注不作从）。
+    && (supportStems.length <= 2 || (yiQi && strength.roles[yiQiElement] === '官杀' && supportStems.length === 3
+      && !yinStems.length && supportStems.every((stem) => !rootedGan(stem.gan))))
     // 天干有印的，只能是这一个帮身之干，还要财星占到三成、足以坏印，或财星透出克这个无根之印
     // （「时干丁火，被年上癸水克去」；印在局外地支有根的，如寅中戊土，透财也克不去）；印比各一的，任注仍取印比。
     && (!yinStems.length || (supportStems.length === 1 && (roleShare['财'] >= 30
