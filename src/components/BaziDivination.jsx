@@ -67,7 +67,7 @@ const CHENG_BAI_CHIP = {
     败中有成: 'border-[#315f7d]/40 bg-[#315f7d]/[0.08] text-[#2b4f68]',
     default: 'border-[#cbbfac] text-[#5f574f]',
 };
-import { describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks, zhiFavorText } from '../utils/baziYearMarks';
+import { describeYearMarks, describeYearSummary, ganFavorText, getDaYunMarks, getLiuNianMarks, zhiFavorText } from '../utils/baziYearMarks';
 import { buildBaziShareUrl } from '../utils/baziLink';
 import { buildShareCardModel, renderBaziShareCard } from '../utils/baziShareCard';
 
@@ -1450,7 +1450,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                                     {favor && (
                                                                         // 色条单独裁成卡片的圆角：卡片本身不裁，顶上的「当前」才不会被切掉一半。
                                                                         <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
-                                                                            <span className="absolute inset-x-0 bottom-0 flex h-1" role="img" aria-label={`天干${favor.gan.element}${FAVOR_TEXT[favor.gan.tone]}，${zhiFavorText(daYun.zhi, favor.zhi)}${FAVOR_TEXT[favor.zhi.tone]}${favor.cover ? `；${favor.cover.text}` : ''}`}>
+                                                                            <span className="absolute inset-x-0 bottom-0 flex h-1" role="img" aria-label={`${ganFavorText(daYun.gan, favor.gan)}${FAVOR_TEXT[favor.gan.tone]}，${zhiFavorText(daYun.zhi, favor.zhi)}${FAVOR_TEXT[favor.zhi.tone]}${favor.cover ? `；${favor.cover.text}` : ''}`}>
                                                                                 <span className={`flex-1 ${FAVOR_CLASS[favor.gan.tone]}`} /><span className={`flex-1 ${FAVOR_CLASS[favor.zhi.tone]}`} />
                                                                             </span>
                                                                         </span>
