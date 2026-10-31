@@ -69,6 +69,24 @@ test('大运以地支为重：截脚整步运按忌论，盖头吉凶减半（�
   assert.equal(jiaXu.favor.cover.kind, '盖头', '甲木忌而戌土喜、木克土');
   assert.equal(jiaXu.favor.overall, 'mixed', '「虽有十分之吉，亦减其半」');
   assert.equal(getDaYunMarks({ gan: '丙', zhi: '午' }, { strength, chart }).favor.cover, null);
+  // 喜盖忌：运干喜而克住运支之忌（戊土喜、子水忌，土克水），任注「辛卯庚寅盖头，逢金不能生火坏印，名利两全」，整步运按喜论。
+  const wuZi = getDaYunMarks({ gan: '戊', zhi: '子' }, { strength, chart });
+  assert.equal(wuZi.favor.cover.kind, '喜盖忌');
+  assert.equal(wuZi.favor.overall, 'good');
+  assert.match(describeDaYunFavor({ gan: '戊', zhi: '子' }, wuZi.favor), /盖头：天干土喜而克住地支之水忌.*整步运按喜论$/);
+  // 喜泄于忌：运干喜而生运支之忌。这盘喜土火、忌木水，喜神生不到忌神，换一张喜金水、忌木的盘（戊辰 丙辰 乙卯 甲申）。
+  const xieChart = buildBaziChart({ calendarType: 'solar', year: 1988, month: 4, day: 30, hourIndex: 8, gender: 'male' });
+  const xieStrength = analyzeStrength(xieChart);
+  const favorable = xieStrength.favorable.map((item) => item.element);
+  const unfavorable = xieStrength.unfavorable.map((item) => item.element);
+  assert.ok(favorable.includes('金') && favorable.includes('水') && unfavorable.includes('木'), `喜金水、忌木：${favorable.join('')} / ${unfavorable.join('')}`);
+  const renYin = getDaYunMarks({ gan: '壬', zhi: '寅' }, { strength: xieStrength, chart: xieChart });
+  assert.equal(renYin.favor.cover.kind, '喜泄于忌', '壬水喜而生寅木之忌');
+  assert.equal(renYin.favor.overall, 'bad', '任注「癸卯壬寅，离间喜神，功名蹭蹬」');
+  assert.match(describeDaYunFavor({ gan: '壬', zhi: '寅' }, renYin.favor), /天干水喜而生地支之木忌，喜神泄气、忌神得生.*整步运按忌论$/);
+  const gengYin = getDaYunMarks({ gan: '庚', zhi: '寅' }, { strength: xieStrength, chart: xieChart });
+  assert.equal(gengYin.favor.cover.kind, '喜盖忌', '庚金喜而克住寅木之忌');
+  assert.equal(gengYin.favor.overall, 'good');
   // 流年以天干为重，不论盖头截脚。
   const year = getLiuNianMarks(liuNianOf('戊寅'), { chart, strength });
   assert.equal(year.favor.cover, null);
