@@ -94,7 +94,7 @@ const CASES = [
   { id: '142', name: '占求财', date: '2005-6-2', hex: '水火既济', lines: [1, 2, 3, 6], topic: 'wealth', book: '吉' },
   { id: '143', name: '占本人婚姻', date: '2002-1-5', hex: '雷风恒', lines: [6], topic: 'love', gender: 'male', book: '吉' },
   { id: '144', name: '占女家婚事', date: '2001-2-12', hex: '地泽临', lines: [2, 3, 5], topic: 'love', gender: 'female', book: '凶', near: true },
-  { id: '145', name: '占夫妇将来和好否', date: '2001-6-5', hex: '水天需', lines: [1, 4], topic: 'love', gender: 'female', book: '凶', near: true, note: '女占夫妇和好：原书看子孙持世克夫、应爻化合于他人；程序把申子辰水局生官鬼算作吉，只是子孙动克夫扣了分，判平' },
+  { id: '145', name: '占夫妇将来和好否', date: '2001-6-5', hex: '水天需', lines: [1, 4], topic: 'love', gender: 'female', book: '凶' },
   { id: '148', name: '占孕男女', date: '2001-5-5', hex: '雷山小过', lines: [3], topic: 'children', book: '吉', miss: '兼问孕之男女与产母平安：原书以「兄爻虽动，不克变出之财爻」断产母无虞、以阳动变阴断生女，没有看子孙；程序按子女孕育以子孙为用神，子孙伏而空破被克，断偏弱。野鹤自言两事宜分占' },
   { id: '149', name: '占妻孕平安否', date: '2003-1-2', hex: '雷火丰', lines: [1], topic: 'maternity', subject: 'spouse', book: '凶' },
   { id: '150', name: '占防流兵', date: '2007-6-3', hex: '地泽临', lines: [4, 6], topic: 'refuge', subject: 'self', book: '吉' },
@@ -195,10 +195,10 @@ CASES.filter((item) => !item.miss).forEach((item) => {
   });
 });
 
-test('人事占例：同档的不少于 117 例，断反的只有列明缘故的几例', () => {
+test('人事占例：同档的不少于 118 例，断反的只有列明缘故的几例', () => {
   const results = CASES.map((item) => ({ item, level: judgeCase(item).verdict.level }));
   const exact = results.filter(({ item, level }) => level === LEVEL[item.book]).length;
   const reversed = results.filter(({ item, level }) => opposite(level, LEVEL[item.book])).map(({ item }) => item.id);
-  assert.ok(exact >= 117, `同档 ${exact} 例`);
+  assert.ok(exact >= 118, `同档 ${exact} 例`);
   assert.deepEqual(reversed.sort(), CASES.filter((item) => item.miss).map((item) => item.id).sort());
 });
