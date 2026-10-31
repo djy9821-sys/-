@@ -17,7 +17,8 @@
  *   地支与原局凑齐三会方、三合局的按局的五行；大运截脚——干喜、支忌而克干——按凶），与原书同记 same，程序判平记 near，
  *   相反记 reversed；原书说平的不比。
  * - 六亲：命例 expected.liuqin 里原书说吉、凶的妻（夫）、子女、父、母、兄弟，拿结果页「六亲宫星」那一亲的倾向（按任注推）比，
- *   口径同岁运。原书应在某步运、某个流年的（「一交丙运，刑妻克子」，条目写了 yun 或原句提到运、流年）记作运中应事，另列一行。
+ *   口径同岁运。原书应在某步运、某个流年的（「一交丙运，刑妻克子」，条目写了 yun 或原句提到运、流年）记作运中应事，另列一行；
+ *   条目写了 yun 的拿结果页「此运六亲」（liuqinOfYun：此运喜忌、克星、冲刑宫位）比，没写的仍看原局倾向。
  * 调权重时用它看逐条差异；一致率的下限写在 test/bazi-cases.test.js 里（命例够 40 条才跑）。
  */
 import process from 'node:process';
@@ -58,7 +59,7 @@ results.forEach((result) => {
 });
 if (Object.keys(byWhy).length) console.log(`喜用按原书取用理由：${Object.entries(byWhy).map(([kind, counts]) => `${kind}（${fmt(counts)}）`).join('；')}`);
 console.log(`六亲（原局）：${fmt(tally.liuqin)}`);
-console.log(`六亲（运中应事，按原局倾向）：${fmt(tally.liuqinYun)}`);
+console.log(`六亲（运中应事，写明哪步运的按此运六亲）：${fmt(tally.liuqinYun)}`);
 
 const errors = results.filter((result) => result.error);
 if (errors.length) {
