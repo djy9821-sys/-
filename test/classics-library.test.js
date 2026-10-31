@@ -42,13 +42,14 @@ test('仓库数据能合成索引：每条带书名、篇名、出处，按书�
 });
 
 test('八字上下文：日干、月令、十神（透干 + 藏干）、神煞、格名同义展开、季节、合冲刑害、性别', () => {
-  const { chart, strength, judge, relations } = chartOf(1960, 6, 2, 1);
+  // 庚子 辛巳 辛酉 乙未：巳酉半合而丑不在，不成金局，仍是正官格（丑时的巳酉丑全局按论用神变化化为劫）
+  const { chart, strength, judge, relations } = chartOf(1960, 6, 2, 7);
   const ctx = baziContextOf({ chart, strength, judge, relations });
   assert.equal(ctx.module, 'bazi');
   assert.equal(ctx.dayGan, '辛');
   assert.equal(ctx.monthZhi, '巳');
   assert.ok(ctx.tenGod.includes('正官') && ctx.tenGod.includes('比肩') && ctx.tenGod.includes('偏印'));
-  assert.deepEqual(ctx.transparent.sort(), ['劫财', '比肩', '偏印'].sort());
+  assert.deepEqual(ctx.transparent.sort(), ['劫财', '比肩', '偏财'].sort());
   assert.ok(ctx.shensha.includes('天德贵人'));
   assert.deepEqual(ctx.pattern, ['正官格']);
   assert.deepEqual(ctx.season, ['夏']);
@@ -73,12 +74,12 @@ test('格名同义展开', () => {
 });
 
 test('真实命盘能从仓库数据里匹配到条目：正官格命中《子平真诠》成败两段，乾隆命中《三命通会》论天乙贵人', () => {
-  const guan = baziContextOf(chartOf(1960, 6, 2, 1));
+  const guan = baziContextOf(chartOf(1960, 6, 2, 7));
   const hits = matchEntries(library, guan);
   const ids = hits.map(({ entry }) => entry.id);
   assert.ok(ids.includes('ziping.chengbai.001') && ids.includes('ziping.chengbai.002'), ids.join());
   const isTianYi = (id) => id.startsWith('sanming.shensha.tianyi.');
-  assert.ok(ids.some(isTianYi), '时柱丑为年干庚的天乙贵人');
+  assert.ok(ids.some(isTianYi), '时柱未为年干庚的天乙贵人');
   const noTianYi = matchEntries(library, { module: 'bazi', shensha: ['文昌贵人'] }).map(({ entry }) => entry.id);
   assert.ok(!noTianYi.some(isTianYi));
   const first = hits.find(({ entry }) => entry.id === 'ziping.chengbai.001');
