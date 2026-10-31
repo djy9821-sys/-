@@ -8,7 +8,9 @@
  *   · 寅申巳亥中余气透出为用神变化，但化神又被他干所克则不失本格（「乙生申月透壬化印而又透戊……格成正官」）；
  *     「土随火」，申中不论戊（马参政命壬生申月透戊，书仍作印格）；
  *   · 辰戌丑未为水火金木之库，库中之气以同类天干透出论（「甲透未库」「辰中暗煞，壬以透之」），
- *     兼透时取透而又会支者（「透干会支，取其清者用之」）。
+ *     兼透时取透而又会支者（「透干会支，取其清者用之」）；
+ *   · 月支与它支会成三合全局而本气不透干的，月令之神随局而化（「丁生亥月，本为正官，支全卯未，则化为印」
+ *     「丙生寅月……甲不透干而会午会戌，则化为劫」），化神被透干所克则不化（「又或透壬，则仍为印，而格不破」）。
  *   用 test/bazi-ziping-examples.test.js 的《子平真诠》八格各论命例逐一核对。
  * - 特殊格局（从格、专旺、化气）只在五行比例极端时给出"疑似"提示，需要人工确认。
  * - 命局特点：按天干透出的十神与五行力量识别常见组合（伤官见官、官杀混杂、
@@ -204,6 +206,41 @@ const summarize = (chart, strength) => {
 
 const describeStems = (stems) => stems.map((stem) => `${stem.name}${stem.gan}`).join('、');
 
+/** 三合局的旺支（中神）：局齐全时月令之神随它的本气论。 */
+const SAN_HE_WANG = { 木: '卯', 火: '午', 金: '酉', 水: '子' };
+
+/**
+ * 月支与它支会成三合全局而化格（论用神变化）；不化时返回 null。
+ * 局的十神按旺支本气算（亥卯未看卯中乙，寅午戌看午中丁……）；化为日主同气的，旺支是阳干之刃则为羊刃格，否则月劫格。
+ */
+const sanHeHuaOf = (chart, month, stems, main) => {
+  const dayGan = chart.dayMaster.gan;
+  const pillars = chart.pillars ?? [];
+  const otherZhis = pillars.filter((pillar) => pillar.key !== 'month').map((pillar) => pillar.zhi);
+  const ju = SAN_HE.find((item) => item.zhis.includes(month.zhi) && item.zhis.every((zhi) => zhi === month.zhi || otherZhis.includes(zhi)));
+  // 子午卯酉本就是局的旺支，局的五行与月令本气一样，无所谓化
+  if (!ju || !main || WANG_MONTHS.has(month.zhi)) return null;
+  if (stems.some((stem) => stem.gan === main.gan)) return null;
+  const restrainer = stems.find((stem) => KE[GAN_WUXING[stem.gan]] === ju.wuxing);
+  if (restrainer) return null;
+  const wangZhi = SAN_HE_WANG[ju.wuxing];
+  const wangPillar = pillars.find((pillar) => pillar.zhi === wangZhi);
+  const wangGan = wangPillar?.hiddenGanDetails?.[0];
+  if (!wangGan) return null;
+  const role = ROLE_OF[wangGan.shiShen];
+  const quote = { 比劫: '甲不透干而会午会戌，则化为劫', 印: '本为正官，支全卯未，则化为印', 食伤: '会午会戌，则月劫化为月生', 官杀: '藏庚透壬，会子会辰，则化为煞', 财: '凡此之类，皆用神之变化也' }[role];
+  const others = ju.zhis.filter((zhi) => zhi !== month.zhi).join('');
+  const juName = `${ju.zhis.join('')}${ju.wuxing}局`;
+  const basis = `月支${month.zhi}本气${main.gan}（${main.shiShen}）不透干，而与${others}会成${juName}，月令之神随局化为${wangGan.shiShen}（论用神变化「${quote}」）。`;
+  const common = { monthZhi: month.zhi, basis, hua: { from: main.shiShen, ju: juName, to: wangGan.shiShen } };
+  if (ju.wuxing === chart.dayMaster.wuxing) {
+    if (REN[dayGan] === wangZhi) return { name: '羊刃格', kind: 'ren', tenGod: '劫财', ...common };
+    return { name: '月劫格', kind: 'jie', tenGod: '劫财', ...common };
+  }
+  if (!(wangGan.shiShen in PATTERN_NAME)) return null;
+  return { name: PATTERN_NAME[wangGan.shiShen], kind: 'regular', tenGod: wangGan.shiShen, source: '会局', transparent: stems.some((stem) => GAN_WUXING[stem.gan] === ju.wuxing), ...common };
+};
+
 /** 月令取格。 */
 export const determinePattern = (chart, summary = null) => {
   const info = summary ?? summarize(chart, null);
@@ -213,6 +250,12 @@ export const determinePattern = (chart, summary = null) => {
   if (!month) return null;
   const hiddenNames = ['本气', '中气', '余气'];
   const main = month.hiddenGanDetails[0];
+
+  // 《子平真诠·论用神变化》：月支与它支会成三合全局，月令之神随局而化——「丁生亥月，本为正官，支全卯未，则化为印」、
+  // 「乙生寅月……会午会戌，则月劫化为月生」、「丙生寅月，本为印绶，甲不透干而会午会戌，则化为劫」。
+  // 本气透干的不化（「甲不透干」才化）；化神被透干所克的也不化——「又或透壬，则仍为印，而格不破」「逢壬化煞而又透戊……仍为财格」。
+  const hua = sanHeHuaOf(chart, month, stems, main);
+  if (hua) return hua;
 
   if (LU[dayGan] === month.zhi) {
     return { name: '建禄格', kind: 'lu', tenGod: '比肩', monthZhi: month.zhi, basis: `月支${month.zhi}为日主${dayGan}的禄位，日主当令得气。` };
