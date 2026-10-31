@@ -6,7 +6,8 @@
  * 女命以官杀为夫、食伤为子女（子平女命通行取法）。宫位逢冲、星被别的天干合去，另作提示。
  *
  * 吉凶按任铁樵《滴天髓阐微·六亲论》的注推（任氏以为六亲不能专执星论，要看日主衰旺与用神）：
- * - 妻（男命）：先看任注论克妻、不克的几条（财神轻而无官、比劫多，主克妻；财神重而身弱、无比劫，主克妻；
+ * - 妻（男命）：火炎土燥、局中全无湿气的（从、化、专旺除外），先断克妻（任注「乙未 辛巳 戊戌 丁巳」「局中全无湿气……所以克两妻」，
+ *   「丁酉 丁未 戊戌 丁巳」「四柱全无水气，燥土不能泄火生金，克三妻五子」）。再看任注论克妻、不克的几条（财神轻而无官、比劫多，主克妻；财神重而身弱、无比劫，主克妻；
  *   官杀旺而用印、见财星，主妻陋而克；劫刃重、财轻、有食伤而逢枭印，妻有凶险；劫刃旺而财轻、有食伤，妻贤不克），
  *   都不合时看妻宫（日支）坐喜坐忌，宫不分喜忌再看财星喜忌（「清者，喜神即是财星」）；坐喜神却被紧贴、克它的一支冲去的
  *   按克妻看（「巳亥逢冲，群劫纷争，所以连克三妻」；冲它的支被它克的不算，「坐下酉金冲去卯木……得妻财万仞」；
@@ -237,6 +238,8 @@ const godStateOf = (pillars, scores, element) => {
  * cond 是任注的条件；verdict 是给人看的断语，把「必」「凶死」「妻陋」这类重话换成「古法主……」的平实说法，original 记任注原话。
  */
 const QI_RULES = [
+  // 从、化、专旺顺其燥势（「顺其火土之性」），不作此论。
+  { when: ({ zao, special }) => zao && !special, tone: 'bad', cond: '火炎土燥，局中全无湿气', verdict: '克妻', original: '局中全无湿气……所以克两妻' },
   { when: ({ bi, cai, shi, yin }) => bi.heavy && cai.light && shi.has && !yin.has, tone: 'good', cond: '劫刃旺而财轻，有食伤', verdict: '妻贤不克', original: '妻贤不克' },
   { when: ({ bi, cai, shi, yin }) => bi.heavy && cai.light && shi.has && yin.has, tone: 'bad', cond: '劫刃重，财星轻，有食伤而逢枭印', verdict: '妻有凶险', original: '主妻遭凶死' },
   { when: ({ bi, cai, guan }) => cai.light && guan.none && bi.heavy, tone: 'bad', cond: '财神轻而无官，比劫多', verdict: '克妻', original: '主克妻' },
@@ -411,6 +414,7 @@ export const analyzeLiuqin = (chart, strength, { special = null } = {}) => {
     // 火炎土燥（见 ZAO_RULE）：日干不是壬癸，水 0 分，无辰、丑湿土，火重、土也不轻。
     zao: !['壬', '癸'].includes(byKey.day?.gan) && !((scores.水 ?? 0) > 0) && !pillars.some((pillar) => pillar.zhi === '辰' || pillar.zhi === '丑')
       && (scores.火 ?? 0) >= AMOUNT.heavy && (scores.土 ?? 0) >= ZAO_EARTH,
+    special: basis.source === 'special',
   };
 
   const items = relativesOf(female).map((item) => {
