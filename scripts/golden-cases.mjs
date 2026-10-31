@@ -105,7 +105,7 @@ export const summarizeLiuYao = (item) => {
 export const ZIWEI_CASES = [
   { id: 'quanshu-example', note: '庚辰年七月十七寅时女命', input: { calendarType: 'solar', birthDate: '2000-08-16', timeIndex: 2, gender: 'female' } },
   { id: 'male-forward', note: '1990-05-20 午时男命', input: { calendarType: 'solar', birthDate: '1990-05-20', timeIndex: 6, gender: 'male' } },
-  { id: 'leap-early', note: '闰二月初十（按二月）', input: { calendarType: 'lunar', birthDate: '2023-02-10', timeIndex: 6, gender: 'male', isLeapMonth: true } },
+  { id: 'leap-early', note: '闰二月初十（全书闰月一律按下月：按三月）', input: { calendarType: 'lunar', birthDate: '2023-02-10', timeIndex: 6, gender: 'male', isLeapMonth: true } },
   { id: 'leap-late', note: '闰二月二十（按三月）', input: { calendarType: 'lunar', birthDate: '2023-02-20', timeIndex: 6, gender: 'male', isLeapMonth: true } },
   { id: 'between-lichun-newyear', note: '立春后正月初一前', input: { calendarType: 'solar', birthDate: '2026-02-10', timeIndex: 4, gender: 'female' } },
   { id: 'late-zi-next', note: '七月廿九晚子时换次日', input: { calendarType: 'solar', birthDate: '2000-08-28', timeIndex: 12, gender: 'female' } },
