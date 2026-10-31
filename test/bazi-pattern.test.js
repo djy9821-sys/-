@@ -322,6 +322,9 @@ test('印被财冲克、印根拔去也作从论：任注「三申冲去一寅�
   assert.equal(judgeByPillars('丁酉 癸卯 丙辰 丙申').judge.special, null);
   // 拔去之后局外还有一点根的不算拔尽：丙申 庚寅 丙辰 戊戌，戌中丁火仍是日主与年干丙火之根。
   assert.equal(judgeByPillars('丙申 庚寅 丙辰 戊戌').judge.special, null);
+  // 午是己土之禄（本气虽是印），冲不去；月令之印当令，两酉夹冲也不拔（「衰神冲旺旺神发」）。
+  assert.equal(judgeByPillars('己巳 庚午 己亥 甲子').judge.special, null);
+  assert.equal(judgeByPillars('己酉 丁卯 丁酉 庚子').judge.special, null);
 });
 
 test('论从时库支随月令之神：壬寅 辛亥 辛亥 壬辰「壬水当权……格取从儿」，辰为水库「能蓄水养木，不能生金」', () => {
