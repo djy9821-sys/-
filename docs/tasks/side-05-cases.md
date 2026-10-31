@@ -243,6 +243,21 @@
 - 每条只加 `useGodWhy` 一个字段，其余一律不动。
 - 分支：从第十一批的分支开出 `side/05-cases-bazi-b9`，先 merge `origin/claude/round8-collab`；每一百造提交一次，跑 `node scripts/validate-data.mjs` 与 `node scripts/bazi-cases.mjs`。PR 附表：各类理由多少造，以及每类里程序一致、相反各多少（看「喜用按原书取用理由」一行）。
 
+## 第十三批：《子平真诠》命造（八字月令格与成败的回归）
+
+《子平真诠》八格各论里夹着九十多个有名有姓的命造（「薛相公命，甲申、壬申、乙巳、戊寅」「金人状元命」「宣参国命」……），每造都说了取什么格、成不成、用什么、为什么；程序的月令取格与成败判（`baziPattern.js`、`baziPatternSuccess.js`）正是照《论用神成败救应》写的，这批命造拿来对照最合适。主线已给回归加上月令格与成败的对照（`node scripts/bazi-cases.mjs` 的「格局」「成败」两行；`expected.chengBai` 已进校验）。
+
+- 来源：古籍库里已录好的原文，不用另找书——`src/data/classics/bazi/ziping-bage.json`（92 处四柱）、`ziping-ganzhi.json`、`ziping-xingyun.json`（各一两处，在 `side/02-ziping-xingyun` 分支上，PR #63）。按原文里出现的四柱逐个建条目，一造一条；同一造在两章出现的只录一次，`notes` 写明另见何章。
+- 条目：`id` 用 `bazi.ziping.NNN`（三位连号）；`name` 写原书称呼（「薛相公命」「金人状元命」「某造」）；`source` 写 `{ "classic": "ziping", "section": "论正官", "entry": "ziping.bage.002" }`（`entry` 是原文所在条目 id）；`birth` 写 `{ "calendar": "unknown", "gender": "male" }`（原书不载生年与性别，一律按男命；明说女命的写 female）；`pillars` 照原书四柱；`original` 摘原书说这一造的那几句（从「如某命」起到说完这一造为止），`vernacular` 逐句白话，`status` 写 `translated`。
+- `expected`：
+  - `pattern`：原书说的格，写程序名（正官格、七杀格、正财格 / 偏财格 / 财格、正印格 / 印格、食神格、伤官格、建禄格、羊刃格、月劫格；杂气的写「杂气正官格」之类）。原书只说「用官」「官格」的写「正官格」；说「财格」不分正偏的写「财格」。
+  - `chengBai`：原书按成败说的，写 成 / 败 / 成中有败 / 败中有成（「大贵之格」「最为贵格」是成；「破格」「所以不上七品」「孤官无辅」是败或成中有败——照原书的字眼归类，`notes` 里摘那句）；原书没说成败的不写。
+  - `useGod`：原书说用什么就写什么（「并用财印」写 `["财", "印"]`；「用官」写「正官」）；`useGodWhy` 一律 `{ "kind": "格局", "quote": "原书那句" }`。
+  - `yun`：原书点了行运吉凶的（八格各论的「取运」各章、论行运章里说到某造行某运如何），照第八批的写法记大运与吉凶；没点的不写。
+  - `outcome`：原书说的结局原文摘句（「位至三公」「不上七品」「大贵」）。
+- 不要替沈氏推断：原书没说的格、成败、用神一概不写；原文里对这一造的疑难（「却不知」「岂非破格」的转折）照录进 `notes`。
+- 分支：从 `origin/claude/round10-ui-polish` 开 `side/05-cases-ziping`，只改 `src/data/cases/bazi.json`（追加在末尾，不动前面的条目）；每三十造提交一次，跑 `node scripts/validate-data.mjs` 与 `node scripts/bazi-cases.mjs`。PR 的 base 选 `claude/round10-ui-polish`，PR 里附表：各格几造、成败各几造、程序月令格一致 / 不一致各几造、成败一致 / 相近 / 相反各几造（照脚本输出抄），以及四柱按 1600–2100 年找不到日子的（脚本会列）。
+
 ## 步骤 / 验收 / 禁止
 
 分支 `side/05-cases`；按来源分 PR。校验脚本与 CI 通过；抽查 10% 核对四柱与原书一致、来源可查。只产出 JSON，不碰代码，不改金样（金样由主线从这些命例生成）。
