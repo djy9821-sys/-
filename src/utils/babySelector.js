@@ -1,5 +1,4 @@
-import { astro } from 'iztro';
-import './ziweiBrightness.js'; // 星曜庙旺按《紫微斗数全书》改正三格（见该文件）
+import { createZiweiHoroscope } from './ziweiBirth.js'; // 安星、庙旺、四化、闰月、长生都走主线同一口径（全书）
 
 // Helper to check if a star is in a list
 const hasStar = (stars, name) => stars.some(s => s.name === name);
@@ -146,7 +145,7 @@ export const findBestConceptionDates = async (type, limit = 3, today = new Date(
         // Check 12 hours (0, 2, 4 ... 22)
         for (let h = 0; h < 24; h += 2) {
             try {
-                const horoscope = astro.bySolar(dateStr, h / 2, '男', true, 'zh-CN'); // Assume Male for pattern check (patterns are mostly gender neutral for these archetypes)
+                const horoscope = createZiweiHoroscope({ calendarType: 'solar', birthDate: dateStr, timeIndex: h / 2, gender: 'male' }); // Assume Male for pattern check (patterns are mostly gender neutral for these archetypes)
 
                 const { score, desc } = scoreBabyChart(type, horoscope);
 

@@ -34,6 +34,14 @@ test('晚子时流派：不换日写入 zi=s，换次日（默认）不占参数
   assert.equal(exact.data.timeMode, 'exact');
 });
 
+test('公历 31 日的链接打得开，农历日最多 30', () => {
+  const solar31 = decodeZiweiLink('cal=s&d=2023-03-31&g=m&h=6');
+  assert.ok(solar31, '公历 3 月 31 日');
+  assert.equal(solar31.birthDate, '2023-03-31');
+  assert.equal(decodeZiweiLink('cal=l&d=2023-03-31&g=m&h=6'), null, '农历没有三十一');
+  assert.equal(decodeZiweiLink('cal=s&d=2023-03-32&g=m&h=6'), null);
+});
+
 test('农历闰月与精确时间：出生地、时区、夏令时都在链接里', () => {
   const lunar = encodeZiweiLink({ calendarType: 'lunar', birthDate: '1990-05-20', isLeapMonth: true, gender: 'female', timeMode: 'shichen', hourIndex: 12 }, { name: '甲乙丙丁戊己庚辛壬癸甲乙丙丁戊己庚辛壬癸多出来的' });
   const lunarRecord = decodeZiweiLink(lunar);

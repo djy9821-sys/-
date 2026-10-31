@@ -165,10 +165,11 @@ export const decodeZiweiLink = (query) => {
   const date = DATE_PATTERN.exec(params.get('d') ?? '');
   if (!date) return null;
   const [year, month, day] = date.slice(1).map(Number);
-  if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 30) return null;
+  const calendarType = params.get('cal') === 'l' ? 'lunar' : 'solar';
+  // 公历有 31 日，农历最多 30 日（原来一律按 30 卡，公历 31 日的分享链接打不开）。
+  if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1 || day > (calendarType === 'lunar' ? 30 : 31)) return null;
   const gender = params.get('g') === 'f' ? 'female' : params.get('g') === 'm' ? 'male' : null;
   if (!gender) return null;
-  const calendarType = params.get('cal') === 'l' ? 'lunar' : 'solar';
   const clock = params.get('c');
   const exact = clock && parseClockTime(clock) ? clock : null;
   const hourIndex = exact ? 0 : Number(params.get('h'));

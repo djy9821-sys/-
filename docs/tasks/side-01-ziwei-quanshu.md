@@ -48,6 +48,40 @@
 - 每条改动在 PR 里列：条目 id、原文那半句、原条件、新条件。改完跑 `node scripts/validate-data.mjs`、`node scripts/applies-coverage.mjs`（「重试仍未命中」应为 0：脚本会按条件挑生年、性别、安辅弼的月份、安昌曲与命宫的时辰定向排盘重试，还命不中的多半是条件写错了）、`npm test`。
 - 分支从 `origin/claude/round8-collab` 新开 `side/01-ziwei-quanshu-b7`，PR 的 base 选 `claude/round8-collab`；只改 `src/data/classics/ziwei/*.json`。
 
+### 第 8 批：卷三论限诸篇与卷一补遗（Codex）
+
+对照维基文库《紫微斗数全书》目录，还没录的篇目（都不长，合起来一批）：
+
+| 篇目（维基文库卷次） | 文件 | id 前缀 | 预计条目 |
+| --- | --- | --- | --- |
+| 卷一·重补斗数彀率 | `quanshu-chongbu-doushu-goulv.json` | `ziwei.quanshu.goulv.` | 10–20 |
+| 卷一·增补太微赋 | `quanshu-zengbu-taiwei-fu.json` | `ziwei.quanshu.zengbutaiwei.` | 10–20 |
+| 卷一·十二宫诸星得地富贵论 | `quanshu-shiergong-dedi-fugui-lun.json` | `ziwei.quanshu.dedifugui.` | 12 |
+| 卷一·十二宫诸星失陷贫贱论 | `quanshu-shiergong-shixian-pinjian-lun.json` | `ziwei.quanshu.shixianpinjian.` | 12 |
+| 卷三·谈星要论 | `quanshu-tanxing-yaolun.json` | `ziwei.quanshu.tanxing.` | 5–10 |
+| 卷三·论人命入格 | `quanshu-lun-renming-ruge.json` | `ziwei.quanshu.ruge.` | 6 |
+| 卷三·论格星数高下 | `quanshu-lun-gexing-shu-gaoxia.json` | `ziwei.quanshu.gexingshu.` | 5–10 |
+| 卷三·论男女命同异 | `quanshu-lun-nannv-ming-tongyi.json` | `ziwei.quanshu.nannvtongyi.` | 2–4 |
+| 卷三·论小儿命、定小儿生时诀、论小儿克亲 | `quanshu-lun-xiaoer.json` | `ziwei.quanshu.xiaoer.` | 5–8 |
+| 卷三·论人生时安命吉凶、论人生时要审的确 | `quanshu-lun-shengshi.json` | `ziwei.quanshu.shengshi.` | 2–4 |
+| 卷三·论命先贫后富 | `quanshu-lun-ming-xianpin-houfu.json` | `ziwei.quanshu.xianpinhoufu.` | 2–3 |
+| 卷三·论阴骘延寿 | `quanshu-lun-yinzhi-yanshou.json` | `ziwei.quanshu.yinzhi.` | 1–2 |
+| 卷三·论大小限星辰过十二宫遇十二支所忌诀 | `quanshu-lun-xian-shierzhi-suoji.json` | `ziwei.quanshu.xiansuoji.` | 9（一句歌诀连它的「假如」一条） |
+| 卷三·论立命行限宫歌（含后面「论太岁小限星辰庙陷遇十二宫中吉凶」子～亥十二宫各三段） | `quanshu-lun-liming-xingxian-gong-ge.json` | `ziwei.quanshu.xingxiange.` | 1 + 36 |
+
+程序新加了两个键（见 README「适用条件」表，主线已推到 `claude/round10-ui-polish`）：`bureau`（五行局：水二局 / 木三局 / 金四局 / 土五局 / 火六局）、`hourZhi`（生时地支）。这批怎么写条件：
+
+- 「论大小限星辰过十二宫遇十二支所忌诀」每句一条：`yearZhi` 写生年支，`limit` 按「岁限」写大限、小限、流年各一条，`branches` 写忌行的限宫地支（「子命忌寅申」写 `yearZhi: "子", limit: "大限", branches: ["寅", "申"]`，另两层同），点了星的加 `star`（「申人铃火灾殃重」加 `star: ["火星", "铃星"]`，「戌亥羊陀须避忌」加 `star: ["擎羊", "陀罗"]`）；「天罗地网」辰戌照字面写地支；末四句总歌只写 `note`。
+- 「论立命行限宫歌」开头八句：`bureau` + `limit`（大限、小限两条）+ `branches`，八卦按后天方位转地支：坎＝子、离＝午、艮＝丑寅、兑＝酉、震＝卯、巽＝辰巳（「金人遇坎命须伤」写 `bureau: "金四局", limit: "大限", branches: ["子"]`）。
+- 后面十二宫各三段（「子年太岁并小限到子宫入庙化吉」「……不入庙化凶」「子年太岁所值吉凶星」）：一段一条。「太岁到子宫」就是流年命宫在子，写 `limit: "流年", branches: ["子"]`，小限另写一条 `limit: "小限"`；段里「七杀破军在子宫守岁限癸庚己生人发福」拆成 `star: ["七杀", "破军"]`（任一颗，note 写明）+ `yearGan: ["癸", "庚", "己"]`，一个星组一条；「所值吉凶星」段吉星一条、凶星一条（都是任一颗，note 写明），凶星里的「忌星」「忌宿」写 `mutagen: "忌"` 另成一条。「紫微在子宫守命及岁限」这种带「守命」的另加一条 `palace: "命宫"`。
+- 「论人生时安命吉凶」：`palace: "命宫", branches: [寅午戌申子辰], hourZhi: [寅午戌申子辰]` 一条，六阴支一条；「反此则少遂」写 `branches` 六阳 + `hourZhi` 六阴、及其反，各一条。「论小儿克亲」「定小儿生时诀」用 `yearZhi` + `hourZhi`、或只 `hourZhi`（任一）。「论人生时要审的确」只 `note`。
+- 「十二宫诸星得地富贵论」「失陷贫贱论」照「得地合格诀」「失陷破格诀」两篇的写法：`palace: "命宫"` + `branches` + `stars`（原文列的几颗任一，note 写「任一颗」），点了生年的加 `yearGan` / `yearZhi` 另成一条。
+- 谈星要论、论人命入格、论格星数高下、论男女命同异、论命先贫后富、论阴骘延寿是看法通论，照「论大限」「论二限太岁」的写法：讲运限的写 `limit`，讲命宫的写 `palace: "命宫"`，编不出的只 `note`。「论人命入格」六句里「入格」指程序认得的格局，写 `pattern` 不好点名（哪一格都算），只写 `palace: "命宫"` + `note`。
+- 重补斗数彀率、增补太微赋是赋文，照太微赋、骨髓赋的写法一句一条（同宫 `allStars`，夹 `jia`，会照 `meet` / `meetAll`，先按安星法想一想会不会在三方四正）。
+- 原文照维基文库录文转简体逐字校对；录文里混进的白话（如十二宫论兄弟篇廉贞条末句「兄弟感情融洽，但兄弟不多」）不进 `original`，写进 `doubts` 说明。
+
+动手前先把第 7 批审查的三条小改推到 `side/01-ziwei-quanshu-b7`（PR #64 会自动更新，单独一个提交）：`tongyuan.015` 写 `palace: 命宫, star: 紫微, mutagen: [权, 禄], stars: [擎羊, 陀罗]`；`tongyuan.231` 去掉 `branches: ["子"]`；`gongxiongdi.006` 末句白话移到 `doubts`。然后从 `origin/side/01-ziwei-quanshu-b7` 开 `side/01-ziwei-quanshu-b8`，先 `git merge origin/claude/round10-ui-polish`（新键要靠它校验），只新增上表文件；PR 的 base 选 `claude/round10-ui-polish`，PR 里按篇列条目数、来源、待确认。`node scripts/validate-data.mjs`、`node scripts/applies-coverage.mjs`（「重试仍未命中」应为 0）、`npm test` 都要过。
+
 ## 来源
 
 公版古籍。可用：维基文库、国学导航、殆知阁的《紫微斗数全书》文本（ctext.org 声明禁止抓取，不要用）；条件允许时参校明万历刻本影印或清刻本。繁体文本转简体后逐字校对。**不得使用任何现代校注本、白话本或网文的译文。**
