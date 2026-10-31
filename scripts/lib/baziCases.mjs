@@ -105,14 +105,20 @@ export const useGodElement = (god, dayWuxing) => {
 /**
  * 原书点名的一步大运或一个流年，按程序的喜忌归成吉、凶、平：干支各算一票，喜多为吉、忌多为凶，相抵或不分喜忌为平；
  * 原书只说「丑运」「辛运」的只看这一个字。地支与原局凑齐三会方、三合局的，按局的五行算（与结果页的大运流年喜忌同一口径，见 juOfZhi）。
- * 大运天干喜、地支忌而克天干的是截脚（任注「支不载干，则十年皆否」），按凶论（与结果页 getDaYunMarks 同一口径）。
+ * 大运天干喜、地支忌的三种定论（与结果页 getDaYunMarks 同一口径，见 baziYearMarks.js 的 coverOf）：地支克天干是截脚
+ * （任注「支不载干，则十年皆否」），按凶论；天干克地支是喜盖忌（「辛卯庚寅盖头，逢金不能生火坏印」），按吉论；
+ * 天干生地支是喜泄于忌（「金不通根，木得长生」），按凶论。
  * @param {string[]} [natalZhis] 原局地支
- * @param {string} [kind] 大运或流年；截脚只论大运
+ * @param {string} [kind] 大运或流年；盖头截脚只论大运
  */
 export const yunVerdictOf = (ganZhi, favorable, unfavorable, natalZhis = [], kind = '大运') => {
   const elements = [...ganZhi].map((char) => WUXING_OF_GAN[char] ?? juOfZhi(char, natalZhis)?.element ?? WUXING_OF_ZHI[char]);
   const tones = elements.map((element) => (favorable.includes(element) ? 1 : unfavorable.includes(element) ? -1 : 0));
-  if (kind !== '流年' && ganZhi.length === 2 && tones[0] === 1 && tones[1] === -1 && CONTROLS[elements[1]] === elements[0]) return '凶';
+  if (kind !== '流年' && ganZhi.length === 2 && tones[0] === 1 && tones[1] === -1) {
+    if (CONTROLS[elements[1]] === elements[0]) return '凶';
+    if (CONTROLS[elements[0]] === elements[1]) return '吉';
+    if (GENERATES[elements[0]] === elements[1]) return '凶';
+  }
   const sum = tones.reduce((total, tone) => total + tone, 0);
   return sum > 0 ? '吉' : sum < 0 ? '凶' : '平';
 };
