@@ -66,16 +66,28 @@ export const juOfZhi = (zhi, zhis = []) => {
 };
 
 const CONTROLS = { 木: '土', 火: '金', 土: '水', 金: '木', 水: '火' };
+const GENERATES = { 木: '火', 火: '土', 土: '金', 金: '水', 水: '木' };
 
 /**
- * 大运的盖头、截脚（《滴天髓·岁运》任注）：运「以地支为重，要天干不背」。
+ * 大运干支一喜一忌时的四种情形（《滴天髓·岁运》任注）：运「以地支为重，要天干不背」。
  * - 截脚：天干是喜，地支是忌而克天干（喜木运遇甲申、乙酉），「支不载干，则十年皆否」，整步运按忌论。
- * - 盖头：地支是喜，天干是忌而克地支（喜木运遇庚寅、辛卯），「虽有十分之吉，亦减其半」，仍是喜忌参半。
- * 地支与原局会局的，按局的五行看克不克。
+ * - 忌盖喜：地支是喜，天干是忌而克地支（喜木运遇庚寅、辛卯），「虽有十分之吉，亦减其半」，仍是喜忌参半。
+ * - 喜盖忌：天干是喜而克地支之忌（用金运遇庚寅、辛卯），忌神被压住，整步运按喜论——任注「辛卯庚寅盖头，逢金不能生火坏印，
+ *   名利两全」（辛卯 丙申 癸卯 壬戌，以申金为用、丙火为病）；任注命造里这种运三分之二书吉。
+ * - 喜泄于忌：天干是喜而生地支之忌（喜水运遇壬寅、癸卯），喜神泄气、忌神得生，整步运按忌论——任注「初运癸卯壬寅，离间喜神，
+ *   功名蹭蹬，困苦刑伤」（丁酉 甲辰 戊戌 戊午，用酉金，水生木离间土金）、「辛亥运金不通根，木得长生，忽患风疾而卒」
+ *   （壬辰 甲辰 庚午 丙戌，用土，木为病）；任注命造里这种运没有一步书吉。
+ * 其余一喜一忌的组合（支生干、干生支而干忌支喜……）任注吉凶各半，仍作参半。地支与原局会局的，按局的五行看生克。
  */
 const coverOf = (gan, zhi) => {
   if (gan.tone === 'good' && zhi.tone === 'bad' && CONTROLS[zhi.element] === gan.element) {
     return { kind: '截脚', text: `截脚：地支${zhi.element}克天干${gan.element}，任注「支不载干，则十年皆否」，整步运按忌论` };
+  }
+  if (gan.tone === 'good' && zhi.tone === 'bad' && CONTROLS[gan.element] === zhi.element) {
+    return { kind: '喜盖忌', text: `盖头：天干${gan.element}喜而克住地支之${zhi.element}忌，任注「辛卯庚寅盖头，逢金不能生火坏印」，整步运按喜论` };
+  }
+  if (gan.tone === 'good' && zhi.tone === 'bad' && GENERATES[gan.element] === zhi.element) {
+    return { kind: '喜泄于忌', text: `天干${gan.element}喜而生地支之${zhi.element}忌，喜神泄气、忌神得生，任注「金不通根，木得长生」，整步运按忌论` };
   }
   if (gan.tone === 'bad' && zhi.tone === 'good' && CONTROLS[gan.element] === zhi.element) {
     return { kind: '盖头', text: `盖头：天干${gan.element}克地支${zhi.element}，任注「虽有十分之吉，亦减其半」` };
@@ -83,12 +95,15 @@ const coverOf = (gan, zhi) => {
   return null;
 };
 
+/** 盖头截脚四种情形里整步运的定论：截脚、喜泄于忌按忌，喜盖忌按喜；忌盖喜仍参半（没有定论）。 */
+const COVER_OVERALL = Object.freeze({ 截脚: 'bad', 喜泄于忌: 'bad', 喜盖忌: 'good' });
+
 /**
  * 某柱天干、地支对日主的喜忌。
  * @param {object} item 大运或流年（gan、zhi）
  * @param {object} strength analyzeStrength 的结果
  * @param {{ zhis?: string[], daYun?: boolean }} [options] 与之会局的地支（原局四支，流年再加大运支）；地支凑齐会局的按局的五行论。
- *   daYun 为真时看盖头、截脚（见 coverOf），截脚的整步运按忌论。
+ *   daYun 为真时看盖头、截脚（见 coverOf）：截脚、喜泄于忌的整步运按忌论，喜盖忌的按喜论。
  */
 export const describeFavor = (item, strength, { zhis = [], daYun = false } = {}) => {
   if (!item?.gan || !strength) return null;
@@ -96,7 +111,7 @@ export const describeFavor = (item, strength, { zhis = [], daYun = false } = {})
   const ju = juOfZhi(item.zhi, zhis);
   const zhi = ju ? { ...elementToneOf(ju.element, strength), ju } : elementToneOf(ZHI_WUXING[item.zhi], strength);
   const cover = daYun ? coverOf(gan, zhi) : null;
-  return { gan, zhi, cover, overall: cover?.kind === '截脚' ? 'bad' : overallTone(gan, zhi) };
+  return { gan, zhi, cover, overall: COVER_OVERALL[cover?.kind] ?? overallTone(gan, zhi) };
 };
 
 const natalZhisOf = (chart) => (chart?.pillars ?? []).map((pillar) => pillar.zhi).filter(Boolean);
