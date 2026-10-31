@@ -136,6 +136,14 @@ test('八字命例的岁运：原书点名的大运、流年按程序喜忌判�
   assert.equal(yunVerdictOf('辛丑', ['木', '水'], ['金', '土']), '凶', '辛丑运干不是水，丑仍按土');
   assert.equal(yunVerdictOf('癸丑', ['木', '水'], ['金', '土'], [], '流年'), '平');
   assert.equal(yunVerdictOf('甲辰', ['木', '水'], ['金', '土']), '吉');
+  // 贪合助忌：运干是喜，却与原局忌神天干相合、所化也是忌，作平——任注「乙运合庚助虐，罢职回家」（戊子 庚申 壬寅 辛丑，用木，忌金）；
+  // 合的是喜神、日干，或流年，都不论。
+  const stems = [{ key: 'year', gan: '戊' }, { key: 'month', gan: '庚' }, { key: 'time', gan: '辛' }];
+  assert.equal(yunVerdictOf('乙', ['木', '火', '水'], ['金', '土'], [], '大运', stems), '平');
+  assert.equal(yunVerdictOf('乙', ['木', '火', '水'], ['金', '土']), '吉', '原局没有庚，照旧是喜');
+  assert.equal(yunVerdictOf('乙', ['木', '火', '水'], ['金', '土'], [], '流年', stems), '吉');
+  assert.equal(yunVerdictOf('乙', ['木', '金'], ['土'], [], '大运', stems), '吉', '庚是喜神，不作贪合助忌');
+  assert.equal(yunVerdictOf('乙', ['木', '火', '水'], ['金', '土'], [], '大运', [{ key: 'day', gan: '庚' }]), '吉', '合日干的不论');
   // 任注：「至丁卯运，克去辛金，破其丑土，所谓有病得药……接运丙寅，体用皆宜，仕至黄堂」。
   const good = evaluateBaziCase({
     id: 'bazi.test.005',
