@@ -1159,11 +1159,15 @@
       "chengBai": {
         "group": "财格",
         "verdict": "败",
-        "success": [],
+        "success": [
+          "单透财而亦贵，以月令有暗官也（论财）"
+        ],
         "failure": [
           "财轻比重"
         ],
-        "flaw": [],
+        "flaw": [
+          "财格透印而位置不妥（论财）"
+        ],
         "rescue": []
       }
     }
@@ -1525,10 +1529,14 @@
       },
       "chengBai": {
         "group": "财格",
-        "verdict": "待详辨",
-        "success": [],
+        "verdict": "成中有败",
+        "success": [
+          "单透财而亦贵，以月令有暗官也（论财）"
+        ],
         "failure": [],
-        "flaw": [],
+        "flaw": [
+          "财格透印而位置不妥（论财）"
+        ],
         "rescue": []
       }
     }
