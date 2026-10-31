@@ -264,6 +264,11 @@ test('从格看地支、化气看化神得势：任注从象、化象、顺局�
   // 「喜其支会财局」：申子辰会成水局，辰中戊土之根作水论。
   const er2 = judgeByPillars('庚子 庚辰 戊申 辛酉');
   assert.equal(er2.judge.special.name, '疑似从儿格');
+  // 官杀独旺而月令本气是食伤的不作从杀：「丙申 壬辰 丙子 壬辰：两杀并透，支会杀局，喜其辰土当令制杀，辰中木有余气而生身」，用土。
+  const zhiSha = judgeByPillars('丙申 壬辰 丙子 壬辰');
+  assert.equal(zhiSha.judge.special, null);
+  assert.equal(zhiSha.strength.favorable[0].element, '土');
+  assert.equal(judgeByPillars('辛亥 壬辰 丙申 己亥').judge.special, null, '「火衰极者似金」，己丑、戊子土运反吉，按扶抑用食伤制杀');
   // 化气：「土旺乘权，克去壬水，又无比劫，合神更真」；「丙火透而通根，化火斯真」（月令不是化神，化神得势）。
   assert.equal(judgeByPillars('戊辰 壬戌 甲辰 己巳').judge.special.name, '疑似甲己化土格');
   const huo = judgeByPillars('丙戌 戊戌 癸巳 壬戌').judge.special;
