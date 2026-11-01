@@ -58,7 +58,7 @@ const shenshaSourceLines = (chart) => {
       return `- ${name}：${cite(source.classic, source.section)}。${source.rule}${source.variant ? `（${source.variant}）` : ''}`;
     });
   if (!lines.length) return ['- 本命四柱未见本程序收录的神煞。'];
-  return [...lines, `神煞口诀主要取自${cite('sanming')}，禄取${cite('yuanhai')}，红鸾天喜取${cite('xieji')}；请以这些古籍的本义解释，吉凶仍以五行喜忌为主。`];
+  return [...lines, `神煞查法多据${cite('sanming')}（卷篇见各条），红鸾天喜据${cite('xieji')}，请以这些古籍的本义解释；标「通行查法」的几种古籍未见专篇，只按通行排盘列出，不要说成古籍原文。吉凶仍以五行喜忌为主。`];
 };
 
 const birthLines = (chart, personName) => {
