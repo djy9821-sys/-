@@ -36,7 +36,7 @@ test('八字命例存档后可完整还原（含真太阳时设置）', () => {
   assert.equal(record.data.longitude, 115.65);
 
   const restored = recordToBaziForm({ ...record, id: 'x', createdAt: 1 });
-  assert.deepEqual(restored, { ...form, longitude: '115.65' });
+  assert.deepEqual(restored, { ...form, longitude: '115.65', yearBoundary: 'lichun' });
 });
 
 test('紫微档案可直接带入八字，闰月转为负数月份', () => {

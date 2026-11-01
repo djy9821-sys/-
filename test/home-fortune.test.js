@@ -155,7 +155,7 @@ test('晚子时保留换日提示', () => {
   );
 
   assert.match(result.dateLabel, /晚子时/);
-  assert.match(result.dayBoundaryNote, /次日换日/);
+  assert.match(result.dayBoundaryNote, /晚子时换次日/);
 });
 
 test('坏日期和无效类型抛出明确错误', () => {

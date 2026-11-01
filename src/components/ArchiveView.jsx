@@ -20,6 +20,7 @@ import { archiveManager } from '../utils/archiveManager';
 import { parseClockTime, recordToBaziForm } from '../utils/baziRecord';
 import { describeLiuYaoRecord, isLiuYaoRecord } from '../utils/liuyaoRecord';
 import { track } from '../utils/analytics';
+import { isNativeShell } from '../utils/nativeShell';
 
 const GROUP_META = {
     self: { label: '自己', icon: User },
@@ -248,7 +249,7 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
 
     const handleBackup = () => {
         archiveManager.exportData();
-        setNotice({ type: 'success', message: `已下载 ${records.length} 条档案的 JSON 备份。` });
+        setNotice({ type: 'success', message: isNativeShell() ? `已打开系统分享面板保存 ${records.length} 条档案的 JSON 备份：可存到「文件」或发给自己。` : `已下载 ${records.length} 条档案的 JSON 备份。` });
         track('archive_export', { count: records.length });
     };
 

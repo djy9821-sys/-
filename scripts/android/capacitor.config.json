@@ -1,0 +1,10 @@
+{
+  "appId": "online.gushupaiapp.app",
+  "appName": "古书派",
+  "webDir": "dist",
+  "backgroundColor": "#07110f",
+  "android": {
+    "includePlugins": ["@capacitor/app", "@capacitor/share", "@capacitor/filesystem"],
+    "allowMixedContent": false
+  }
+}

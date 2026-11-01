@@ -146,11 +146,11 @@ export default function PlaceSetting({ tone = 'paper', now = new Date(), classNa
                     {lead}{description.set ? description.detail : `按设备时间计算时辰。在国内以外的地方，或离东经 120° 较远时，设置所在地可按真太阳时定时辰`}
                 </span>
                 {canLocate && (
-                    <button type="button" onClick={locate} disabled={locating} aria-busy={locating} className={`inline-flex items-center gap-1 font-bold underline-offset-2 hover:underline disabled:opacity-60 ${styles.link}`}>
+                    <button type="button" onClick={locate} disabled={locating} aria-busy={locating} className={`-my-1.5 inline-flex min-h-8 items-center gap-1 px-1 font-bold underline-offset-2 hover:underline disabled:opacity-60 ${styles.link}`}>
                         <LocateFixed className="size-3.5" aria-hidden="true" />{locating ? '定位中…' : '用当前定位'}
                     </button>
                 )}
-                <button type="button" onClick={toggleOpen} aria-expanded={open} className={`font-bold underline-offset-2 hover:underline ${styles.link}`}>
+                <button type="button" onClick={toggleOpen} aria-expanded={open} className={`-my-1.5 inline-flex min-h-8 items-center px-1 font-bold underline-offset-2 hover:underline ${styles.link}`}>
                     {open ? '收起' : description.set ? '修改所在地' : '手动设置'}
                 </button>
             </p>

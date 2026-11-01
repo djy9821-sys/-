@@ -236,6 +236,13 @@ export const describeGanZhi = (ganZhi, dayGan) => {
   };
 };
 
+/** 按正月初一换年时的年柱：干支另取，其余字段与 getPillar 同一口径（十神、藏干、十二长生、旬空、纳音）。 */
+const buildYearPillarFromGanZhi = (ganZhi, dayGan, definition) => {
+  const described = describeGanZhi(ganZhi, dayGan);
+  const { diShiBasis: _basis, ...rest } = described;
+  return { key: definition.key, name: definition.name, ...rest, wuxing: { gan: rest.ganWuxing, zhi: rest.zhiWuxing } };
+};
+
 const buildLiuNian = (liuNian, currentBaziYear, dayGan, sourceDaYunIndex, ageOffset = 0) => {
   const ganZhi = liuNian.getGanZhi();
   const gan = ganZhi.slice(0, 1);
@@ -375,6 +382,11 @@ const validateInput = (input) => {
   if (daySect !== 1 && daySect !== 2) {
     throw new Error('子时换日流派必须是1或2');
   }
+  // 年柱分界：子平法以立春换年（默认）；另一派以农历正月初一换年。两派只在立春与正月初一之间出生的人身上有差别。
+  const yearBoundary = input.yearBoundary == null ? 'lichun' : input.yearBoundary;
+  if (yearBoundary !== 'lichun' && yearBoundary !== 'chunjie') {
+    throw new Error('年柱分界必须是 lichun（立春）或 chunjie（正月初一）');
+  }
 
   const gender = input.gender === 'female' ? 'female' : input.gender === 'male' ? 'male' : null;
   if (!gender) {
@@ -401,7 +413,28 @@ const validateInput = (input) => {
     hourOption,
     gender,
     daySect,
+    yearBoundary,
   };
+};
+
+export const YEAR_BOUNDARY_OPTIONS = Object.freeze([
+  { value: 'lichun', label: '立春换年', note: '子平法通行口径' },
+  { value: 'chunjie', label: '正月初一换年', note: '按农历新年' },
+]);
+
+/**
+ * 两种年柱分界在这个出生日上是否不同：立春（按日，正午）与农历正月初一各取一个年干支。
+ * 给录入页决定要不要显示「年柱分界」开关；无效日期返回 null。
+ */
+export const getYearBoundaryInfo = (calendarType, year, month, day) => {
+  try {
+    const lunar = calendarType === 'lunar' ? Lunar.fromYmdHms(year, month, day, 12, 0, 0) : Solar.fromYmdHms(year, month, day, 12, 0, 0).getLunar();
+    const lichun = lunar.getYearInGanZhiByLiChun();
+    const chunjie = lunar.getYearInGanZhi();
+    return { lichun, chunjie, differs: lichun !== chunjie };
+  } catch {
+    return null;
+  }
 };
 
 /** 出生日期（公历或农历）对应的公历日期；无效时返回 null。 */
@@ -563,12 +596,24 @@ export const buildBaziChart = (input, now = new Date()) => {
 
   const eightChar = lunar.getEightChar();
   eightChar.setSect(normalized.daySect);
+  const dayMasterGan = eightChar.getDayGan();
+  // 年柱：lunar-javascript 的八字按立春（精确到时刻）换年；选「正月初一」时用农历年干支另排年柱。
+  const yearBoundary = {
+    mode: normalized.yearBoundary,
+    lichun: eightChar.getYear(),
+    chunjie: lunar.getYearInGanZhi(),
+  };
+  yearBoundary.differs = yearBoundary.lichun !== yearBoundary.chunjie;
+  const useChunjieYear = normalized.yearBoundary === 'chunjie' && yearBoundary.differs;
   const rawPillars = PILLAR_DEFINITIONS
-    .map((definition) => (timeUnknown && definition.key === 'time' ? UNKNOWN_TIME_PILLAR : getPillar(eightChar, definition)));
+    .map((definition) => {
+      if (timeUnknown && definition.key === 'time') return UNKNOWN_TIME_PILLAR;
+      if (useChunjieYear && definition.key === 'year') return buildYearPillarFromGanZhi(yearBoundary.chunjie, dayMasterGan, definition);
+      return getPillar(eightChar, definition);
+    });
   const shenshaContext = buildShenshaContext(rawPillars);
   const withShensha = (item) => ({ ...item, shensha: getShensha(item, shenshaContext) });
   const pillars = rawPillars.map(withShensha);
-  const dayMasterGan = eightChar.getDayGan();
   const surfaceWuxingCount = { '木': 0, '火': 0, '土': 0, '金': 0, '水': 0 };
   pillars.forEach(({ ganWuxing, zhiWuxing }) => {
     if (ganWuxing) surfaceWuxingCount[ganWuxing] += 1;
@@ -620,6 +665,7 @@ export const buildBaziChart = (input, now = new Date()) => {
       hourOption: normalized.hourOption ? { ...normalized.hourOption } : null,
     },
     timeInfo,
+    yearBoundary,
     pillars,
     shenshaContext,
     extras: {
@@ -655,7 +701,7 @@ export const buildBaziChart = (input, now = new Date()) => {
       yearChinese: lunar.getYearInChinese(),
       monthChinese: lunar.getMonthInChinese(),
       dayChinese: lunar.getDayInChinese(),
-      zodiac: lunar.getYearShengXiaoExact(),
+      zodiac: useChunjieYear ? lunar.getYearShengXiao() : lunar.getYearShengXiaoExact(),
       zodiacExact: lunar.getYearShengXiaoExact(),
     },
     yun: {

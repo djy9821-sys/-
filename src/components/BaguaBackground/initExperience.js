@@ -40,9 +40,24 @@ function setStatus(state, vortex = false) {
 }
 
 const sound = createSoundscape();
-const experience = createBaguaExperience(canvas, (state, vortex) => {
-  setStatus(state, vortex);
+// 没有 WebGL（老手机、浏览器关了硬件加速）时 three.js 建不出画布：别让整页报错，
+// 提示一句，起卦仍可用下方「点击生一爻」。
+const noop = () => false;
+const FALLBACK_EXPERIENCE = Object.freeze({
+  dispose() {}, state: 'hidden', vortex: false,
+  summon: noop, flatten: noop, rise: noop, flattenBack: noop, reset: noop, toggleVortex: noop,
+  moveSeed() {}, setSeedIntensity() {}, guide() {}, manualGuide() {}, scaleBy() {},
+  screenToWorld: () => ({ x: 0, y: 0 }),
 });
+let experience = FALLBACK_EXPERIENCE;
+try {
+  experience = createBaguaExperience(canvas, (state, vortex) => {
+    setStatus(state, vortex);
+  });
+} catch (error) {
+  console.warn('[bagua] 3D 画面初始化失败', error);
+  showError('这台设备暂时显示不了 3D 画面，仍可点下方「点击生一爻」起卦。');
+}
 
 let mediaPipeCamera = null;
 let hands = null;

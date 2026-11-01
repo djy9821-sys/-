@@ -1,0 +1,566 @@
+{
+  "classic": "ziwei",
+  "volume": "卷一",
+  "section": "十二宫诸星得地富贵论",
+  "edition": "据维基文库《紫微斗数全书》卷一（https://zh.wikisource.org/wiki/紫微斗數全書/卷一；固定修订 oldid=7913704），2026年10月31日所见录文；繁体转简体逐字核对，未参用现代注译本。",
+  "contributor": "codex",
+  "entries": [
+    {
+      "id": "ziwei.quanshu.dedifugui.001",
+      "title": "十二宫诸星得地富贵论·其一",
+      "original": "子宫得地太阴星，杀破昌贪文曲明，",
+      "vernacular": "太阴在子宫得地，七杀、破军、文昌、贪狼、文曲也明亮。",
+      "notes": "杀、破、昌、贪为七杀、破军、文昌、贪狼的简称。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "子"
+          ],
+          "stars": [
+            "太阴",
+            "七杀",
+            "破军",
+            "文昌",
+            "贪狼",
+            "文曲"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.002",
+      "title": "十二宫诸星得地富贵论·其二",
+      "original": "丑未紫破朝日月，未贞梁丑福非轻，",
+      "vernacular": "丑未宫的紫微、破军朝向日月；廉贞在未、天梁在丑，福分都不轻。",
+      "notes": "日月：太阳、太阴。",
+      "doubts": [
+        "「未贞梁丑」按未宫廉贞、丑宫天梁断读；「丑未紫破朝日月」与安星法不能直接相合。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "未"
+          ],
+          "stars": [
+            "廉贞"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "丑"
+          ],
+          "stars": [
+            "天梁"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "note": "紫破朝日月：紫微与日月不在三方四正，且此处断句存疑，不硬配。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.003",
+      "title": "十二宫诸星得地富贵论·其三",
+      "original": "寅宫最喜逢阳巨，七杀天同梁文清，",
+      "vernacular": "寅宫最喜太阳、巨门，七杀、天同、天梁、文曜也清美。",
+      "notes": "阳、巨、梁指太阳、巨门、天梁。",
+      "doubts": [
+        "「梁文清」的「文」未明指文昌还是文曲。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "寅"
+          ],
+          "stars": [
+            "太阳",
+            "巨门",
+            "七杀",
+            "天同",
+            "天梁"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "note": "「文清」未定是文昌还是文曲，未补具体星名。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.004",
+      "title": "十二宫诸星得地富贵论·其四",
+      "original": "卯上巨机为贵格，武曲守卯福丰盈，",
+      "vernacular": "巨门、天机在卯，是贵格；武曲守卯，福分丰足。",
+      "notes": "巨机：巨门、天机。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯"
+          ],
+          "stars": [
+            "巨门",
+            "天机",
+            "武曲"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.005",
+      "title": "十二宫诸星得地富贵论·其五",
+      "original": "辰戍机梁非小补，戍宫天府累千金，",
+      "vernacular": "天机、天梁在辰戌，帮助不小；天府在戌宫，可以积累千金。",
+      "notes": "机梁：天机、天梁。",
+      "doubts": [
+        "录文「辰戍」「戍宫」照录；条件用地支戌。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "辰",
+            "戌"
+          ],
+          "stars": [
+            "天机",
+            "天梁"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "戌"
+          ],
+          "stars": [
+            "天府"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.006",
+      "title": "十二宫诸星得地富贵论·其六",
+      "original": "巳亥天机天相贵，午宫紫府梁俱荣，",
+      "vernacular": "天机、天相在巳亥显贵；紫微、天府、天梁在午宫都荣显。",
+      "notes": "紫府：紫微、天府。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "巳",
+            "亥"
+          ],
+          "stars": [
+            "天机",
+            "天相"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "午"
+          ],
+          "stars": [
+            "紫微",
+            "天府",
+            "天梁"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.007",
+      "title": "十二宫诸星得地富贵论·其七",
+      "original": "申宫贞巨阴杀美，酉戍亥上太阴停，",
+      "vernacular": "廉贞、巨门、太阴、七杀在申宫为美；太阴停在酉戌亥宫。",
+      "notes": "贞、阴、杀指廉贞、太阴、七杀。",
+      "doubts": [
+        "录文「酉戍亥」的戍照录；后半句只有星位，白话不另添吉断。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "申"
+          ],
+          "stars": [
+            "廉贞",
+            "巨门",
+            "太阴",
+            "七杀"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "酉",
+            "戌",
+            "亥"
+          ],
+          "stars": [
+            "太阴"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.008",
+      "title": "十二宫诸星得地富贵论·其八",
+      "original": "卯辰巳午阳正照，紫府巨宿巳亥兴，",
+      "vernacular": "太阳在卯辰巳午正照；紫微、天府、巨门在巳亥兴盛。",
+      "notes": "巨宿：巨门。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯",
+            "辰",
+            "巳",
+            "午"
+          ],
+          "stars": [
+            "太阳"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "巳",
+            "亥"
+          ],
+          "stars": [
+            "紫微",
+            "天府",
+            "巨门"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.009",
+      "title": "十二宫诸星得地富贵论·其九",
+      "original": "亥宫天府天梁吉，子宫机宿亦中平，",
+      "vernacular": "天府、天梁在亥宫吉利；天机在子宫也算中平。",
+      "notes": "机宿：天机。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "亥"
+          ],
+          "stars": [
+            "天府",
+            "天梁"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "子"
+          ],
+          "stars": [
+            "天机"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.010",
+      "title": "十二宫诸星得地富贵论·其十",
+      "original": "七杀子午逢左右，文曲加之格最清，",
+      "vernacular": "七杀在子午逢左辅、右弼，再加文曲，格局最清。",
+      "notes": "左右：左辅、右弼。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "子",
+            "午"
+          ],
+          "star": "七杀",
+          "meetAll": [
+            "左辅",
+            "右弼",
+            "文曲"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.011",
+      "title": "十二宫诸星得地富贵论·其十一",
+      "original": "廉坐中宫逢辅弼，更兼化吉祸尤兴。",
+      "vernacular": "廉贞坐中宫逢辅弼，再兼化吉，祸事尤其兴起。",
+      "notes": "辅弼：左辅、右弼。",
+      "doubts": [
+        "「中宫」「祸尤兴」均照录；后者与化吉语境相反，疑有讹字，未改作福。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "「中宫」未明，且化吉而祸兴文义可疑，不硬配。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.012",
+      "title": "十二宫诸星得地富贵论·其十二",
+      "original": "武曲巳亥逢，六甲帅边庭，",
+      "vernacular": "武曲在巳亥，甲年生人可统帅边庭。",
+      "notes": "六甲：甲年生人；边庭：边境。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "巳",
+            "亥"
+          ],
+          "stars": [
+            "武曲"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "巳",
+            "亥"
+          ],
+          "stars": [
+            "武曲"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。",
+          "yearGan": "甲"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.013",
+      "title": "十二宫诸星得地富贵论·其十三",
+      "original": "贪狼居卯酉，遇火作公卿，",
+      "vernacular": "贪狼居卯酉，遇火星可为公卿。",
+      "notes": "公卿：高官的统称。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯",
+            "酉"
+          ],
+          "star": "贪狼",
+          "meet": [
+            "火星"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.014",
+      "title": "十二宫诸星得地富贵论·其十四",
+      "original": "天机坐卯贵，寅月六丁荣，",
+      "vernacular": "天机坐卯为贵；寅月、丁年生人荣显。",
+      "notes": "六丁：丁年生人。",
+      "doubts": [
+        "「寅月」是否实指正月，未见本句说明，保留待核。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯"
+          ],
+          "stars": [
+            "天机"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "note": "「寅月六丁荣」的寅月条件尚无月份键，不省掉寅月只配丁年。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.015",
+      "title": "十二宫诸星得地富贵论·其十五",
+      "original": "巨卯逢左右，六乙立边庭，",
+      "vernacular": "巨门在卯逢左右，乙年生人可立功边庭。",
+      "notes": "六乙：乙年生人。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯"
+          ],
+          "star": "巨门",
+          "meetAll": [
+            "左辅",
+            "右弼"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯"
+          ],
+          "star": "巨门",
+          "meetAll": [
+            "左辅",
+            "右弼"
+          ],
+          "yearGan": "乙"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.016",
+      "title": "十二宫诸星得地富贵论·其十六",
+      "original": "巨坐寅申位，偏喜甲庚生，",
+      "vernacular": "巨门坐寅申，特别喜甲、庚年生人。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "寅",
+            "申"
+          ],
+          "stars": [
+            "巨门"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "寅",
+            "申"
+          ],
+          "stars": [
+            "巨门"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。",
+          "yearGan": [
+            "甲",
+            "庚"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.017",
+      "title": "十二宫诸星得地富贵论·其十七",
+      "original": "二宫逢七杀，左右会昌星，",
+      "vernacular": "这两宫逢七杀，左右又会文昌。",
+      "notes": "二宫：承前寅申二宫。",
+      "doubts": [
+        "本句未另写结局，白话不补贵断。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "寅",
+            "申"
+          ],
+          "star": "七杀",
+          "meetAll": [
+            "左辅",
+            "右弼",
+            "文昌"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dedifugui.018",
+      "title": "十二宫诸星得地富贵论·其十八",
+      "original": "辰戍遇三宿，必主位公卿。",
+      "vernacular": "辰戌遇三宿，必主位至公卿。",
+      "notes": "公卿：高官的统称。",
+      "doubts": [
+        "「三宿」所指不明；「辰戍」照录，未径改原文。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "「三宿」究指哪三颗未明，不自行选三颗星。"
+        }
+      ],
+      "status": "translated"
+    }
+  ]
+}

@@ -2,11 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildBaziChart } from '../src/utils/baziChart.js';
-import { analyzeStrength } from '../src/utils/baziStrength.js';
+import { analyzeStrength, favorBasisOf } from '../src/utils/baziStrength.js';
+import { judgeBaziPattern } from '../src/utils/baziPattern.js';
 import { buildShenshaContext, getShensha } from '../src/utils/baziShensha.js';
 import * as yearMarks from '../src/utils/baziYearMarks.js';
 
-const { describeTaiSui, describeYearMarks, getDaYunMarks, getLiuNianMarks } = yearMarks;
+const { describeDaYunFavor, describeTaiSui, describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks, juOfZhi } = yearMarks;
 
 const NOW = new Date('2026-10-26T10:00:00');
 // 1998-01-02 辰时男：丁丑 壬子 己酉 戊辰
@@ -50,11 +51,124 @@ test('流年标记：岁运并临、日柱伏吟反吟、冲日支与喜忌', ()
   assert.equal(quiet.badge, null);
 });
 
+test('四库作大运地支按方论：未作火（南方燥土），癸丑作水、甲辰作木；流年不论', () => {
+  const { fangOfYunZhi } = yearMarks;
+  assert.deepEqual(fangOfYunZhi('己', '未'), { element: '火', note: '南方燥土，作火论' });
+  assert.equal(fangOfYunZhi('癸', '丑').element, '水');
+  assert.equal(fangOfYunZhi('辛', '丑'), null);
+  assert.equal(fangOfYunZhi('甲', '辰').element, '木');
+  assert.equal(fangOfYunZhi('庚', '戌'), null, '戌燥土夺水，仍按土');
+  // 丁丑 壬子 己酉 戊辰：己土身弱，喜火（印）土（比劫），忌水（财）木（官杀）
+  const jiWei = getDaYunMarks({ gan: '己', zhi: '未' }, { strength, chart });
+  assert.equal(jiWei.favor.zhi.element, '火');
+  assert.equal(jiWei.favor.zhi.tone, 'good');
+  assert.match(describeDaYunFavor({ gan: '己', zhi: '未' }, jiWei.favor), /地支未（南方燥土，作火论）火喜/);
+  // 流年不按方论，未仍是土
+  assert.equal(getLiuNianMarks(liuNianOf('己未'), { chart, strength }).favor.zhi.element, '土');
+});
+
+test('大运天干贪合助忌：喜神与原局忌神相合、所化也是忌，不作喜论（任注「乙运合庚助虐」「乙丑合庚，晦火生金」）', () => {
+  // 丁丑 壬子 己酉 戊辰：喜土火，忌木水。丁未运丁火本是喜，却与月干壬水相合化木，木水皆忌。
+  const dingWei = getDaYunMarks({ gan: '丁', zhi: '未' }, { strength, chart });
+  assert.equal(dingWei.favor.gan.tone, 'neutral');
+  assert.deepEqual(dingWei.favor.gan.he, { partner: { key: 'month', gan: '壬' }, hua: '木', label: '月干壬' });
+  assert.equal(dingWei.favor.overall, 'good', '运支未作火，仍是喜');
+  assert.equal(describeDaYunFavor({ gan: '丁', zhi: '未' }, dingWei.favor),
+    '天干丁火（与月干壬相合化木，贪合助忌，不作喜论）平（印） · 地支未（南方燥土，作火论）火喜（印）');
+  // 丁亥运：干平、支亥水忌，整步运按忌；没有贪合的丙火运干照旧是喜。
+  assert.equal(getDaYunMarks({ gan: '丁', zhi: '亥' }, { strength, chart }).favor.overall, 'bad');
+  assert.equal(getDaYunMarks({ gan: '丙', zhi: '午' }, { strength, chart }).favor.gan.he, undefined);
+  // 不给原局（没有 chart）或是流年的，不论贪合。
+  assert.equal(getDaYunMarks({ gan: '丁', zhi: '未' }, { strength }).favor.gan.tone, 'good');
+  assert.equal(getLiuNianMarks(liuNianOf('丁未'), { chart, strength }).favor.gan.tone, 'good');
+  const { tanHeOf } = yearMarks;
+  const toneOf = (element) => (['木', '火', '水'].includes(element) ? 'good' : ['金', '土'].includes(element) ? 'bad' : 'neutral');
+  assert.equal(tanHeOf('乙', [{ key: 'month', gan: '庚' }], toneOf).label, '月干庚');
+  assert.equal(tanHeOf('甲', [{ key: 'month', gan: '己' }], toneOf).hua, '土');
+  assert.equal(tanHeOf('庚', [{ key: 'month', gan: '乙' }], toneOf), null, '运干是忌的不论');
+});
+
 test('大运喜忌与岁运反吟', () => {
   const daYun = getDaYunMarks({ gan: '丙', zhi: '午' }, { strength });
   assert.equal(daYun.favor.overall, 'good');
   const marks = getLiuNianMarks(liuNianOf('壬子'), { chart, daYun: { ganZhi: '丙午', gan: '丙', zhi: '午' }, strength });
   assert.ok(marks.labels.includes('岁运反吟'));
+});
+
+test('大运以地支为重：截脚整步运按忌论，盖头吉凶减半（《滴天髓·岁运》任注）', () => {
+  // 丁丑 壬子 己酉 戊辰：喜土火，忌木水。
+  const wuYin = getDaYunMarks({ gan: '戊', zhi: '寅' }, { strength, chart });
+  assert.equal(wuYin.favor.cover.kind, '截脚', '戊土喜而寅木忌、木克土');
+  assert.equal(wuYin.favor.overall, 'bad', '「支不载干，则十年皆否」');
+  assert.equal(describeDaYunFavor({ gan: '戊', zhi: '寅' }, wuYin.favor),
+    '天干戊土喜（比劫） · 地支寅木忌（官杀）；截脚：地支木克天干土，任注「支不载干，则十年皆否」，整步运按忌论');
+  const jiaXu = getDaYunMarks({ gan: '甲', zhi: '戌' }, { strength, chart });
+  assert.equal(jiaXu.favor.cover.kind, '盖头', '甲木忌而戌土喜、木克土');
+  assert.equal(jiaXu.favor.overall, 'mixed', '「虽有十分之吉，亦减其半」');
+  assert.equal(getDaYunMarks({ gan: '丙', zhi: '午' }, { strength, chart }).favor.cover, null);
+  // 喜盖忌：运干喜而克住运支之忌（戊土喜、子水忌，土克水），任注「辛卯庚寅盖头，逢金不能生火坏印，名利两全」，整步运按喜论。
+  const wuZi = getDaYunMarks({ gan: '戊', zhi: '子' }, { strength, chart });
+  assert.equal(wuZi.favor.cover.kind, '喜盖忌');
+  assert.equal(wuZi.favor.overall, 'good');
+  assert.match(describeDaYunFavor({ gan: '戊', zhi: '子' }, wuZi.favor), /盖头：天干土喜而克住地支之水忌.*整步运按喜论$/);
+  // 喜泄于忌：运干喜而生运支之忌。这盘喜土火、忌木水，喜神生不到忌神，换一张喜金水、忌木的盘（戊辰 丙辰 乙卯 甲申）。
+  const xieChart = buildBaziChart({ calendarType: 'solar', year: 1988, month: 4, day: 30, hourIndex: 8, gender: 'male' });
+  const xieStrength = analyzeStrength(xieChart);
+  const favorable = xieStrength.favorable.map((item) => item.element);
+  const unfavorable = xieStrength.unfavorable.map((item) => item.element);
+  assert.ok(favorable.includes('金') && favorable.includes('水') && unfavorable.includes('木'), `喜金水、忌木：${favorable.join('')} / ${unfavorable.join('')}`);
+  const renYin = getDaYunMarks({ gan: '壬', zhi: '寅' }, { strength: xieStrength, chart: xieChart });
+  assert.equal(renYin.favor.cover.kind, '喜泄于忌', '壬水喜而生寅木之忌');
+  assert.equal(renYin.favor.overall, 'bad', '任注「癸卯壬寅，离间喜神，功名蹭蹬」');
+  assert.match(describeDaYunFavor({ gan: '壬', zhi: '寅' }, renYin.favor), /天干水喜而生地支之木忌，喜神泄气、忌神得生.*整步运按忌论$/);
+  const gengYin = getDaYunMarks({ gan: '庚', zhi: '寅' }, { strength: xieStrength, chart: xieChart });
+  assert.equal(gengYin.favor.cover.kind, '喜盖忌', '庚金喜而克住寅木之忌');
+  assert.equal(gengYin.favor.overall, 'good');
+  // 流年以天干为重，不论盖头截脚。
+  const year = getLiuNianMarks(liuNianOf('戊寅'), { chart, strength });
+  assert.equal(year.favor.cover, null);
+  assert.equal(year.favor.overall, 'mixed');
+});
+
+test('运、年的地支与原局凑齐三会方、三合局的，按局的五行论喜忌（《滴天髓·岁运》任注「支全金局」「支类西方」）', () => {
+  assert.equal(juOfZhi('丑', ['巳', '酉', '戌']).name, '巳酉丑三合金局');
+  assert.deepEqual(juOfZhi('丑', ['巳', '酉', '戌']).others, ['巳', '酉']);
+  assert.equal(juOfZhi('戌', ['申', '酉']).name, '申酉戌三会金方');
+  assert.equal(juOfZhi('辰', ['寅', '卯', '申', '子']).kind, '三会', '方与局都凑齐时取方');
+  assert.equal(juOfZhi('丑', ['巳', '戌']), null, '只凑齐两字（半合）的不算');
+  assert.equal(juOfZhi('丑', []), null);
+
+  // 丁丑 壬子 己酉 戊辰：己土偏弱，用神土，喜土火；木克土、水为土所克，为忌；金为土所生，是闲神。
+  const xinHai = getDaYunMarks({ gan: '辛', zhi: '亥' }, { strength, chart });
+  assert.equal(xinHai.favor.zhi.ju.name, '亥子丑三会水方');
+  assert.equal(xinHai.favor.zhi.element, '水');
+  assert.equal(getDaYunMarks({ gan: '辛', zhi: '亥' }, { strength }).favor.zhi.ju, undefined, '不给原局就不论会局');
+  // 乙巳流年：巳本是火（喜），与原局酉丑会成金局，作金论（闲神），不再算喜。
+  const yiSi = getLiuNianMarks(liuNianOf('乙巳'), { chart, strength });
+  assert.equal(yiSi.favor.zhi.tone, 'neutral');
+  assert.equal(describeYearMarks(liuNianOf('乙巳'), yiSi), '天干乙木忌（官杀） · 地支巳会成巳酉丑三合金局，金平（食伤）');
+  // 甲申流年：申本是金（闲神），与原局子辰会成水局，作水论（忌）。
+  const jiaShen = getLiuNianMarks(liuNianOf('甲申'), { chart, strength });
+  assert.equal(jiaShen.favor.zhi.tone, 'bad');
+  assert.equal(jiaShen.favor.overall, 'bad');
+  assert.equal(describeYearMarks(liuNianOf('甲申'), jiaShen), '天干甲木忌（官杀） · 地支申会成申子辰三合水局，水忌（财）');
+  const summary = describeYearSummary({ ...liuNianOf('甲申'), ganShiShen: '正官', hiddenShiShens: ['伤官'] }, { chart, strength });
+  assert.ok(summary.text.includes('地支申会成申子辰三合水局，水为忌神（财），'), summary.text);
+  assert.ok(!summary.text.includes('藏干主气'), '会局的不再说本支藏干');
+  // 流年地支与大运地支、原局一起凑：原局只有子，大运申、流年辰，凑成申子辰。
+  const chen = getLiuNianMarks(liuNianOf('壬辰'), { chart: { pillars: [{ key: 'year', zhi: '子' }] }, daYun: { ganZhi: '戊申', gan: '戊', zhi: '申' }, strength });
+  assert.equal(chen.favor.zhi.ju.name, '申子辰三合水局');
+});
+
+test('认出疑似从格的盘，大运喜忌按此格论：甲戌运戌与原局寅午会成火局，按从儿论为喜', () => {
+  const chart2 = buildBaziChart({ calendarType: 'solar', year: 1975, month: 2, day: 26, gender: 'male', hourIndex: 6 }, NOW);
+  const strength2 = analyzeStrength(chart2);
+  const basis = favorBasisOf(strength2, judgeBaziPattern(chart2, strength2).special);
+  const jiaXu = { gan: '甲', zhi: '戌' };
+  assert.equal(getDaYunMarks(jiaXu, { strength: strength2, chart: chart2 }).favor.overall, 'bad', '扶抑：木火都是忌');
+  const marks = getDaYunMarks(jiaXu, { strength: basis, chart: chart2 });
+  assert.equal(marks.favor.overall, 'good');
+  assert.equal(marks.favor.zhi.ju.name, '寅午戌三合火局');
 });
 
 test('新增神煞：国印、金舆、天医、孤辰寡宿、魁罡、阴差阳错、十恶大败', () => {
@@ -98,8 +212,8 @@ test('流年提要：十神主题、地支喜忌、太岁提醒与总体倾向',
   assert.equal(nextSummary.tone, 'mixed');
 
   // 没有标注时补一句总体倾向；忌神流年为宜守。
-  const plain = describeYearSummary({ ...liuNianOf('庚子'), ganShiShen: '伤官', hiddenShiShens: ['偏财'] }, { chart, strength });
-  assert.match(plain.text, /为伤官，为忌神/);
+  const plain = describeYearSummary({ ...liuNianOf('甲子'), ganShiShen: '正官', hiddenShiShens: ['偏财'] }, { chart, strength });
+  assert.match(plain.text, /为正官，为忌神/);
   assert.match(plain.text, /地支子水为忌神（财，藏干主气偏财）/);
   assert.equal(plain.tone, 'bad');
   assert.equal(plain.headline, '宜守不宜攻');
