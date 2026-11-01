@@ -533,7 +533,8 @@ const MIXED_TIMING_TOPICS = new Set(['career', 'study', 'lawsuit']);
 
 /**
  * 应期（《增删卜易·各门类应期总注章》）：先看用神的特别之象——伏藏、入墓（「入三墓俱喜冲开」）、逢合（「遇六合亦宜相击」）、
- * 月破（「月破喜逢填合」）、旬空（「旬空最爱填冲」）、化进化退（「申动化酉……有应申月日，有应巳月日」「酉动化申，有应申月日，有应寅月日」）、
+ * 月破（「月破喜逢填合」）、旬空（「旬空最爱填冲」）、化回头克（月将章「待至冲去伤爻之日」）、动而化空（冲空、填实之日）、
+ * 化进化退（「申动化酉……有应申月日，有应巳月日」「酉动化申，有应申月日，有应寅月日」）、
  * 太旺（「太旺者逢墓逢冲」）；再看忌神克用神（「大象吉而受克，须待克神受克」「大象凶而受克，须防克者逢生」）、
  * 元神贪合（占父近病「须待丑日冲去未土而午火无合可贪」）；最后是动静的常例（「静而逢值逢冲」「动而逢合逢值」），与上面重复的不再列；
  * 用神休囚的补一句「衰绝者遇生遇旺」。远事定之以年月，近事应之于月日（其十六）。至多三条；when 记下所指的地支与年、月、日，供回归对照。
@@ -571,6 +572,14 @@ const timingOf = (yong, strength, { time, movers = [], level = 'mixed', topic = 
       state = item(`用神月破，出月之后，逢${ZHI_HARMONY[zhi]}（合）、${zhi}（填实）之${span}应之（「月破喜逢填合」）`, [ZHI_HARMONY[zhi], zhi]);
     } else if (strength.emptyKind && strength.emptyKind !== '破空') {
       state = item(`用神旬空，逢${zhi}（填实）、${ZHI_CLASH[zhi]}（冲空）之${span}应之（「旬空最爱填冲」）`, [zhi, ZHI_CLASH[zhi]]);
+    } else if (flags.backCtrl) {
+      // 月将章其七「占事者目下不成，待至冲去伤爻之日，则不受其伤矣」：占谒贵世爻被午火回头克，「须待子日冲去午火，方得拜谒」
+      const to = yong.changed.zhi;
+      state = item(`用神化${to}回头克，待${ZHI_CLASH[to]}之${span}冲去${to}（「待至冲去伤爻之日，则不受其伤」）`, [ZHI_CLASH[to]]);
+    } else if (yong.isMoving && yong.changed && time.xunKong.includes(yong.changed.zhi)) {
+      // 动而化空，出空之日应（旬空章）；占父病「未父化戌父，戌父旬空……明日辰日，冲空即愈」
+      const to = yong.changed.zhi;
+      state = item(`用神化出${to}旬空，逢${to}（填实）、${ZHI_CLASH[to]}（冲空）之${span}应之（「旬空最爱填冲」）`, [to, ZHI_CLASH[to]]);
     } else if (flags.advance) {
       state = item(`用神化进神，逢${zhi}（值）、${ZHI_HARMONY[zhi]}（合）之${span}应之（「化进神逢值逢合」）`, [zhi, ZHI_HARMONY[zhi]]);
     } else if (flags.retreat) {
