@@ -373,3 +373,20 @@ test('婚姻章：女占而子孙持世，克夫之神，未成者不成、已�
   assert.doesNotMatch(allText(male), /克夫/);
   assert.equal(male.verdict.level, 'good');
 });
+
+test('千金赋：动爻化墓而有日月帮扶不作无力，待冲开墓库；化绝仍生不起；功名身命贸易之类元神受伤，用神虽旺而无根', () => {
+  // 亥月甲寅日三占南行得大有之大壮：「巳火之官动而生世，目下虽被衰入墓，明年三月冲开戌墓……旺相而生世矣」（其九十七「动爻何妨空破」）
+  const south = bookCase('火天大有', [6], '2003-12-7', { topic: 'travel', subject: 'self' });
+  assert.match(allText(south), /官鬼己巳（上爻）发动为元神，有力（[^）]*化墓而有日月帮扶，待辰冲开墓库）/);
+  assert.notEqual(south.verdict.level, 'bad');
+  // 巳月壬申日占开店贸易得坤之剥：「虽则子动生财，生之不起」——化绝不在此列
+  const shop = bookCase('坤为地', [6], '2001-5-9', { topic: 'wealth' });
+  assert.match(allText(shop), /子孙癸酉（上爻）发动为元神，但无力（化绝），见生不生/);
+  assert.equal(shop.verdict.level, 'bad');
+  // 午月庚寅日占掣签得大畜之中孚：「独嫌子水月破，动而化绝……世爻寅木无水滋生，乃为凶兆」（其九十五「水木须宜寻根」）
+  const lot = bookCase('山天大畜', [3, 5], '2005-7-5', { topic: 'career' });
+  assert.match(allText(lot), /元神妻财丙子（五爻）发动而受伤，用神虽旺而无根，难以长久/);
+  assert.notEqual(lot.verdict.level, 'good');
+  // 考试不是要长久的事，同一卦问考试不加这一条
+  assert.doesNotMatch(allText(bookCase('山天大畜', [3, 5], '2005-7-5', { topic: 'study' })), /水木须宜寻根/);
+});
