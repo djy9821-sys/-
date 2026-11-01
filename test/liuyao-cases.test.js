@@ -195,10 +195,10 @@ CASES.filter((item) => !item.miss).forEach((item) => {
   });
 });
 
-test('人事占例：同档的不少于 118 例，断反的只有列明缘故的几例', () => {
+test('人事占例：同档的不少于 119 例，断反的只有列明缘故的几例', () => {
   const results = CASES.map((item) => ({ item, level: judgeCase(item).verdict.level }));
   const exact = results.filter(({ item, level }) => level === LEVEL[item.book]).length;
   const reversed = results.filter(({ item, level }) => opposite(level, LEVEL[item.book])).map(({ item }) => item.id);
-  assert.ok(exact >= 118, `同档 ${exact} 例`);
+  assert.ok(exact >= 119, `同档 ${exact} 例`);
   assert.deepEqual(reversed.sort(), CASES.filter((item) => item.miss).map((item) => item.id).sort());
 });
