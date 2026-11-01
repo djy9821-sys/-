@@ -6,6 +6,7 @@ import { judgeLiuYao, LIUYAO_TOPICS } from '../src/utils/liuyaoJudge.js';
 import { liuyaoReadingContextOf } from '../src/data/classics/library.js';
 import { LIUYAO_TOPIC_PENDING } from '../src/data/classics/topicNames.js';
 import { normalizeLiuYaoTopic } from '../src/utils/liuyaoRecord.js';
+import { HEXAGRAM_MAP } from '../src/utils/hexagramLogic.js';
 
 // 2026-10-26 13:47：戊戌月 癸酉日，旬空戌亥。
 const castAt = new Date(2026, 9, 26, 13, 47);
@@ -113,4 +114,25 @@ test('祖坟：以父母为用神；冲克父母之爻按五行六神断所伤�
   assert.match(pointOf(snake.judge, '祖坟：'), /所伤之由：.*[克冲]父母，恐蛇蚁为巢/);
   const calm = findCast('ancestral', (reading, judge) => !reading.movingPositions.length && judge.points.some((point) => point.includes('久后自安')));
   assert.ok(calm, '应能找到六爻安静、父母有气的卦');
+});
+
+test('子嗣：子孙化子孙列出子嗣章的几种应法，分本宫、他宫；不改倾向；问子嗣先说清问什么（《增删卜易·子嗣章》）', () => {
+  // 子嗣章占例：亥月庚子日，占子孙有无，得屯之节——世爻子孙化子孙，「此公年逾六旬……后立侄孙承嗣」，屯、节同属坎宫。
+  const bits = Object.fromEntries(Object.entries(HEXAGRAM_MAP).map(([key, hexagram]) => [hexagram.name, [...key].reverse().map(Number)]));
+  const values = bits['水雷屯'].map((bit, i) => (i === 1 ? (bit ? 9 : 6) : (bit ? 7 : 8)));
+  const zhun = judgeLiuYao(buildLiuYaoReading(values, new Date(2001, 11, 3, 12, 0), { topic: 'children' }));
+  const text = zhun.points.find((point) => point.startsWith('子孙化子孙')) ?? '';
+  assert.match(text, /老年无子得此，主抚他人之子为子/);
+  assert.match(text, /变卦水泽节与本卦同属坎宫，是化出本宫，若应在抚子，古法主立族中孙侄/);
+  assert.match(text, /子化子，双生有准/);
+  assert.match(zhun.notices.join(''), /易告未来，不告已往/);
+  // 程序不知问卦人的年纪，只列古法，不改倾向（这一卦仍按用神旺相、化进神判偏吉）
+  assert.equal(zhun.verdict.level, 'good');
+
+  const other = findCast('children', (reading, judge) => judge.points.some((point) => point.includes('化出他宫')));
+  assert.ok(other, '应能找到子孙化子孙而变卦属他宫的卦');
+  assert.match(other.judge.points.find((point) => point.startsWith('子孙化子孙')), /属[乾坎艮震巽离坤兑]宫，是化出他宫，若应在抚子，古法主立异姓之子/);
+  const plain = findCast('children', (reading) => !reading.lines.some((line) => line.isMoving && line.relative === '子孙'));
+  assert.ok(!plain.judge.points.some((point) => point.startsWith('子孙化子孙')));
+  assert.match(plain.judge.notices.join(''), /子嗣章/);
 });
