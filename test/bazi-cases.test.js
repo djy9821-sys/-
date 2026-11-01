@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateBaziCase, findSolarDateByPillars, liuqinScopeOf, liuqinVerdictOf, samePatternFamily, useGodElement, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
+import { chengBaiCheck, evaluateBaziCase, findSolarDateByPillars, liuqinScopeOf, liuqinVerdictOf, samePatternFamily, sameRegularPattern, useGodElement, xiangShenCheck, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
 
 test('八字命例：按四柱找日子（时柱可缺），找不到或干支不合法时为 null', () => {
@@ -55,6 +55,59 @@ test('八字命例：十神或类别换成五行；排盘四柱与命例一致�
   assert.match(unknown.error, /找不到/);
 });
 
+test('《子平真诠》式命例：写月令取的格与成败的，比程序的月令格与成败判', () => {
+  // 月令格的同义：财格也算正财格、偏财格，印绶格也算正印格；杂气正财格也算正财格。
+  assert.ok(sameRegularPattern('正财格', '财格'));
+  assert.ok(sameRegularPattern('偏财格', '财格'));
+  assert.ok(sameRegularPattern('杂气正财格', '正财格'));
+  assert.ok(sameRegularPattern('正印格', '印绶格'));
+  assert.ok(!sameRegularPattern('正财格', '正官格'));
+  assert.ok(!sameRegularPattern(null, '正官格'));
+  // 成败按结局同向算近似：败中有成终归于成（合煞留官、合财存食），成中有败终归于败（杂气正官财印相合「不上七品」）
+  assert.equal(chengBaiCheck('成', '成'), 'same');
+  assert.equal(chengBaiCheck('败中有成', '成'), 'near');
+  assert.equal(chengBaiCheck('成中有败', '败'), 'near');
+  assert.equal(chengBaiCheck('成', '成中有败'), 'reversed');
+  assert.equal(chengBaiCheck('败中有成', '败'), 'reversed');
+  assert.equal(chengBaiCheck('成', '败'), 'reversed');
+  assert.equal(chengBaiCheck('待详辨', '成'), null);
+  assert.equal(chengBaiCheck(null, '成'), null);
+  // 化气格两干次序不论
+  assert.ok(samePatternFamily('疑似壬丁化木格', '丁壬化木格'));
+  assert.ok(!samePatternFamily('疑似壬丁化木格', '甲己化土格'));
+  // 戊辰 丙辰 乙卯 甲申：月支辰本气戊透年干，正财格；食伤生财而身强带比，成。
+  const base = { id: 'bazi.test.ziping', pillars: ['戊辰', '丙辰', '乙卯', '甲申'], original: '测试' };
+  const ok = evaluateBaziCase({ ...base, expected: { pattern: '财格', chengBai: '成', useGod: '财' } });
+  assert.equal(ok.program.pattern, '正财格');
+  assert.equal(ok.program.chengBai, '成');
+  assert.equal(ok.checks.pattern, 'same');
+  assert.equal(ok.checks.chengBai, 'same');
+  const near = evaluateBaziCase({ ...base, expected: { pattern: '正财格', chengBai: '败中有成' } });
+  assert.deepEqual([near.checks.pattern, near.checks.chengBai], ['same', 'near']);
+  const reversed = evaluateBaziCase({ ...base, expected: { pattern: '正财格', chengBai: '败' } });
+  assert.deepEqual([reversed.checks.pattern, reversed.checks.chengBai], ['same', 'reversed']);
+  // 格取得不同时不比成败。
+  const miss = evaluateBaziCase({ ...base, expected: { pattern: '正官格', chengBai: '成' } });
+  assert.equal(miss.checks.pattern, 'miss');
+  assert.equal(miss.checks.chengBai, undefined);
+  // 《子平真诠》命造按格局取的用（相神）与程序成败判的相神比：正官、七杀分开，财印食伤按类，「官杀」通官杀；格本身的用神在格成时算对上
+  assert.equal(xiangShenCheck(['财', '印'], ['财', '印']), 'same');
+  assert.equal(xiangShenCheck(['财'], ['正财']), 'same');
+  assert.equal(xiangShenCheck(['食伤'], ['食神']), 'same');
+  assert.equal(xiangShenCheck(['正官'], ['官杀']), 'same');
+  assert.equal(xiangShenCheck(['正官'], ['七杀']), 'miss');
+  assert.equal(xiangShenCheck(['财'], ['财', '七杀']), 'near');
+  assert.equal(xiangShenCheck([], ['财']), 'miss');
+  assert.equal(xiangShenCheck([], ['七杀'], '七杀格', '败中有成'), 'same');
+  assert.equal(xiangShenCheck([], ['七杀'], '七杀格', '败'), 'miss');
+  // 薛相公（子平真诠命造）：正官格相神财、印
+  const xue = evaluateBaziCase({ id: 'bazi.ziping.test', source: { classic: 'ziping' }, pillars: ['甲申', '壬申', '乙巳', '戊寅'], original: '测试', expected: { pattern: '正官格', useGod: ['财', '印'], useGodWhy: { kind: '格局', quote: '壬印戊财' } } });
+  assert.equal(xue.checks.useGod, 'same');
+  // 不是子平真诠的命造，或理由不是格局的，仍按喜忌比
+  const fuyi = evaluateBaziCase({ id: 'bazi.ditian.test', source: { classic: 'ditian' }, pillars: ['甲申', '壬申', '乙巳', '戊寅'], original: '测试', expected: { useGod: ['财', '印'], useGodWhy: { kind: '格局', quote: '测试' } } });
+  assert.notEqual(fuyi.checks.useGod, undefined);
+});
+
 test('八字命例的岁运：原书点名的大运、流年按程序喜忌判吉凶，干支各算一票', () => {
   assert.equal(yunVerdictOf('丁卯', ['木', '火', '水'], ['土', '金']), '吉');
   assert.equal(yunVerdictOf('己巳', ['木', '火', '水'], ['土', '金']), '平', '干忌支喜，相抵');
@@ -65,8 +118,32 @@ test('八字命例的岁运：原书点名的大运、流年按程序喜忌判�
   // 截脚：运干是喜、运支是忌又克运干（喜木运遇甲申），任注「支不载干，则十年皆否」，大运按凶论；流年不论截脚。
   assert.equal(yunVerdictOf('甲申', ['木', '水'], ['金', '土']), '凶');
   assert.equal(yunVerdictOf('甲申', ['木', '水'], ['金', '土'], [], '流年'), '平');
-  // 盖头（喜木运遇庚寅）「虽有十分之吉，亦减其半」，仍是相抵。
+  // 忌盖喜（喜木运遇庚寅）「虽有十分之吉，亦减其半」，仍是相抵。
   assert.equal(yunVerdictOf('庚寅', ['木', '水'], ['金', '土']), '平');
+  // 喜盖忌（用金运遇庚寅，金克木忌）任注「辛卯庚寅盖头，逢金不能生火坏印」，大运按吉论；喜泄于忌（喜水运遇壬寅，水生木忌）
+  // 任注「癸卯壬寅，离间喜神」「金不通根，木得长生」，大运按凶论；流年都不论。
+  assert.equal(yunVerdictOf('庚寅', ['金', '水'], ['木', '火']), '吉');
+  assert.equal(yunVerdictOf('壬寅', ['金', '水'], ['木', '火']), '凶');
+  assert.equal(yunVerdictOf('庚寅', ['金', '水'], ['木', '火'], [], '流年'), '平');
+  assert.equal(yunVerdictOf('壬寅', ['金', '水'], ['木', '火'], [], '流年'), '平');
+  // 干忌支喜的支生干（喜木运遇癸卯之类）任注吉凶各半，仍相抵。
+  assert.equal(yunVerdictOf('辛亥', ['水', '木'], ['金', '土']), '平');
+  // 四库运支按方论：未为南方燥土作火（「辛未运转南方，丙火得地，生根」），癸丑作水（「癸丑北方湿土，亦作水论」），
+  // 甲辰作木（「癸卯甲辰东方木地」）；其余四库仍按土，流年不论。
+  assert.equal(yunVerdictOf('己未', ['金', '水'], ['火', '土']), '凶');
+  assert.equal(yunVerdictOf('未', ['火', '木'], ['水', '金']), '吉', '原书只说「未运」的也作火');
+  assert.equal(yunVerdictOf('癸丑', ['木', '水'], ['金', '土']), '吉');
+  assert.equal(yunVerdictOf('辛丑', ['木', '水'], ['金', '土']), '凶', '辛丑运干不是水，丑仍按土');
+  assert.equal(yunVerdictOf('癸丑', ['木', '水'], ['金', '土'], [], '流年'), '平');
+  assert.equal(yunVerdictOf('甲辰', ['木', '水'], ['金', '土']), '吉');
+  // 贪合助忌：运干是喜，却与原局忌神天干相合、所化也是忌，作平——任注「乙运合庚助虐，罢职回家」（戊子 庚申 壬寅 辛丑，用木，忌金）；
+  // 合的是喜神、日干，或流年，都不论。
+  const stems = [{ key: 'year', gan: '戊' }, { key: 'month', gan: '庚' }, { key: 'time', gan: '辛' }];
+  assert.equal(yunVerdictOf('乙', ['木', '火', '水'], ['金', '土'], [], '大运', stems), '平');
+  assert.equal(yunVerdictOf('乙', ['木', '火', '水'], ['金', '土']), '吉', '原局没有庚，照旧是喜');
+  assert.equal(yunVerdictOf('乙', ['木', '火', '水'], ['金', '土'], [], '流年', stems), '吉');
+  assert.equal(yunVerdictOf('乙', ['木', '金'], ['土'], [], '大运', stems), '吉', '庚是喜神，不作贪合助忌');
+  assert.equal(yunVerdictOf('乙', ['木', '火', '水'], ['金', '土'], [], '大运', [{ key: 'day', gan: '庚' }]), '吉', '合日干的不论');
   // 任注：「至丁卯运，克去辛金，破其丑土，所谓有病得药……接运丙寅，体用皆宜，仕至黄堂」。
   const good = evaluateBaziCase({
     id: 'bazi.test.005',
@@ -177,4 +254,8 @@ test('古籍命例校准：旺衰与书上大体一致、极少相反；喜用�
     assert.ok((useGod.reversed ?? 0) / total(useGod) <= 0.25, summary);
     const named = (pattern.same ?? 0) + (pattern.miss ?? 0);
     assert.ok(named === 0 || (pattern.same ?? 0) / named >= 0.6, summary);
+    // 运中六亲（原书应在某步运的妻、子、父母、兄弟吉凶；写明哪步运的按「此运六亲」比）：138 条同 94、反 24。
+    const liuqinYun = results.flatMap(({ checks }) => checks?.liuqinYun ?? []).reduce((acc, check) => ({ ...acc, [check]: (acc[check] ?? 0) + 1 }), {});
+    assert.ok((liuqinYun.same ?? 0) / total(liuqinYun) >= 0.55, `运中六亲 ${JSON.stringify(liuqinYun)}`);
+    assert.ok((liuqinYun.reversed ?? 0) / total(liuqinYun) <= 0.25, `运中六亲 ${JSON.stringify(liuqinYun)}`);
   });

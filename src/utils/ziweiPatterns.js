@@ -303,6 +303,23 @@ const strictRules = [
     },
   },
   {
+    id: 'sun-moon-both-bright',
+    name: '日月并明格',
+    // 前批注在卷三太阳太阴条下：「日巳月酉，丑宫命步蟾宫」；又「日月守命不如照合并明」。
+    // 按安星法太阳在巳则太阴必在酉（紫微在申），丑宫命坐天梁，日在官禄、月在财帛拱照。
+    source: makeSource(
+      QUANSHU_TONGYUAN,
+      '太阳太阴',
+      '定贵局「日月并明：见前批注」；前批注：日巳月酉，丑宫命步蟾宫。',
+    ),
+    evaluate: (facts) => {
+      const sun = findMajorStar([facts.byBranch.get('巳')], '太阳');
+      const moon = findMajorStar([facts.byBranch.get('酉')], '太阴');
+      if (facts.root.earthlyBranch !== '丑' || !sun || !moon) return null;
+      return ['命宫地支为丑', describeStar(sun), describeStar(moon)];
+    },
+  },
+  {
     id: 'sun-moon-together',
     name: '日月同临格',
     source: makeSource(
@@ -368,9 +385,16 @@ const describeIn = (palace, name) => {
 };
 const quanshu = (group, name, text) => ({ ...QUANSHU_SOURCES[group], section: `${group}·${name}`, rule: text });
 
+/** 地支六合（「暗合」）：子丑、寅亥、卯戌、辰酉、巳申、午未。明禄暗禄、科明暗禄的「暗」取命宫的六合宫。 */
+const LIU_HE = Object.freeze({ 子: '丑', 丑: '子', 寅: '亥', 亥: '寅', 卯: '戌', 戌: '卯', 辰: '酉', 酉: '辰', 巳: '申', 申: '巳', 午: '未', 未: '午' });
+const hiddenPalaceOf = (facts, palace) => facts.byBranch.get(LIU_HE[palace?.earthlyBranch]) || null;
+const describeLu = (palace, star) => `${describeStar({ palace, star })}${star.mutagen === '禄' ? '，生年化禄' : ''}`;
+const AN_LU_LIMITATION = '原书只写「见前批注」，批注没有传下明文；「暗禄」取命宫六合宫（暗合宫）的禄存或化禄，是通行的解法，不是原书原句。';
+
 /**
  * 《紫微斗数全书》卷一定富局、定贵局、定贫贱局里定义明白、按安星法又能成立的格，照原书一句判。
- * 原书写「见前批注」的（日月并明、文星暗拱、明禄暗禄、科明暗禄），和按安星法不可能成立的
+ * 原书写「见前批注」而批注又没有明文的，明禄暗禄、科明暗禄按通行解判（命宫见禄或科，六合宫见禄）并注明不是原句；
+ * 文星暗拱由古籍条目用 meetAll 判（昌曲都在命宫三方四正）。按安星法不可能成立的
  * （财荫夹印：武曲不会与天相相邻；财印夹禄：梁相相邻，夹不了第三宫；金舆扶驾：太阳不会与紫微相邻；
  * 荫印拱身：梁相相邻，不能同在三方四正；马头带剑「谓马有刃」：天马只在寅申巳亥，擎羊在禄存前一位，
  * 不入寅申巳亥，两星不能同宫），以及字义两可的（禄马佩印、日月藏辉）暂不收，待考。
@@ -567,6 +591,50 @@ const quanshuRules = [
       const good = facts.triad.flatMap((palace) => AUSPICIOUS_NAMES.filter((name) => name !== '禄存' && hasStar(palace, name)).map((name) => `${name}在${palaceLabel(palace)}`));
       if (!good.length) return null;
       return [describeIn(facts.root, '擎羊'), `命宫三方四正遇吉：${good.join('、')}`];
+    },
+  },
+  {
+    id: 'ming-lu-an-lu',
+    name: '明禄暗禄格',
+    group: '定贵局',
+    // 骨髓赋「明禄暗禄锦上添花」、卷三诸星同垣禄存条「明禄暗禄，位至公卿」；定贵局只写「见前批注」。
+    // 通行解：禄存、化禄一在命宫（明），一在命宫的六合宫（暗）；如甲年命在亥有廉贞化禄，寅宫禄存，寅亥合。
+    source: quanshu('定贵局', '明禄暗禄', '明禄暗禄：见前批注。（批注无明文；通行解：禄存、化禄一在命宫为明禄，一在命宫六合宫为暗禄。）'),
+    limitations: [AN_LU_LIMITATION],
+    evaluate: (facts) => {
+      const hidden = hiddenPalaceOf(facts, facts.root);
+      if (!hidden) return null;
+      const pairs = [
+        [findIn(facts.root, '禄存'), mutagenIn(hidden, '禄')],
+        [mutagenIn(facts.root, '禄'), findIn(hidden, '禄存')],
+      ];
+      for (const [bright, dark] of pairs) {
+        if (!bright || !dark) continue;
+        return [
+          `明禄：${describeLu(facts.root, bright)}，守命宫`,
+          `暗禄：${describeLu(hidden, dark)}，${hidden.earthlyBranch}与命宫${facts.root.earthlyBranch}六合`,
+        ];
+      }
+      return null;
+    },
+  },
+  {
+    id: 'ke-ming-an-lu',
+    name: '科明暗禄格',
+    group: '定贵局',
+    // 骨髓赋「科明禄暗位列三台」；定贵局只写「见前批注」。通行解：化科守命宫（明），禄存或化禄在命宫的六合宫（暗）。
+    source: quanshu('定贵局', '科明暗禄', '科明暗禄：见前批注。（批注无明文；通行解：化科守命宫为科明，禄存或化禄在命宫六合宫为禄暗。）'),
+    limitations: [AN_LU_LIMITATION],
+    evaluate: (facts) => {
+      const ke = mutagenIn(facts.root, '科');
+      const hidden = hiddenPalaceOf(facts, facts.root);
+      if (!ke || !hidden) return null;
+      const dark = findIn(hidden, '禄存') || mutagenIn(hidden, '禄');
+      if (!dark) return null;
+      return [
+        `科明：${describeStar({ palace: facts.root, star: ke })}，生年化科，守命宫`,
+        `禄暗：${describeLu(hidden, dark)}，${hidden.earthlyBranch}与命宫${facts.root.earthlyBranch}六合`,
+      ];
     },
   },
   {

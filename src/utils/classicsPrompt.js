@@ -10,13 +10,15 @@ const STATUS_TEXT = { reviewed: '已审', translated: '待审' };
 
 /**
  * @param {object[]|null} classics matchEntries 的命中结果（已按相关度排好序）
- * @param {{ subject?: string, limit?: number }} [options] subject 写进「与 X 相关」；limit 最多附几条
+ * @param {{ subject?: string, limit?: number, total?: number }} [options]
+ *   subject 写进「与 X 相关」；limit 最多附几条；total：调用方已先挑过几条时，库里命中的总条数（写进「共 N 条」）
  * @returns {string[]|null} 行数组（不含标题）；没有可附的原文时为 null
  */
-export const classicsPromptLines = (classics, { subject = '本命', limit = PROMPT_CLASSICS_LIMIT } = {}) => {
+export const classicsPromptLines = (classics, { subject = '本命', limit = PROMPT_CLASSICS_LIMIT, total = null } = {}) => {
   const hits = (classics ?? []).filter((hit) => hit?.entry?.original);
   if (!hits.length) return null;
   const shown = hits.slice(0, limit);
+  const matchedTotal = Math.max(hits.length, Number.isInteger(total) ? total : 0);
   const lines = shown.map(({ entry, reason }) => {
     const where = `《${entry.book}》${entry.volume ? `·${entry.volume}` : ''}·${entry.section}`;
     // 标题以篇名开头（「论用神配气候得失·其八」）时只留小题，免得出处里篇名写两遍。
@@ -24,8 +26,8 @@ export const classicsPromptLines = (classics, { subject = '本命', limit = PROM
     const original = String(entry.original).replace(/\s*\n\s*/g, ' ').trim();
     return `- ${where}「${title}」${reason ? `（匹配：${reason}）` : ''}：${original}`;
   });
-  const tail = hits.length > shown.length
-    ? `古籍库里与${subject}相关的原文共 ${hits.length} 条，这里只附最相关的 ${shown.length} 条。`
+  const tail = matchedTotal > shown.length
+    ? `古籍库里与${subject}相关的原文共 ${matchedTotal} 条，这里只附最相关的 ${shown.length} 条。`
     : '';
   return [
     ...lines,

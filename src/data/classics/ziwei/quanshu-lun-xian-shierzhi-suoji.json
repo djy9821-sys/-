@@ -1,0 +1,572 @@
+{
+  "classic": "ziwei",
+  "volume": "卷三",
+  "section": "论大小限星辰过十二宫遇十二支所忌诀",
+  "edition": "据维基文库《紫微斗数全书》卷三（https://zh.wikisource.org/wiki/紫微斗數全書/卷三；固定修订 oldid=2268626），2026年10月31日所见录文；繁体转简体逐字核对，未参用现代注译本。",
+  "contributor": "codex",
+  "entries": [
+    {
+      "id": "ziwei.quanshu.xiansuoji.001",
+      "title": "论大小限星辰过十二宫遇十二支所忌诀·其一",
+      "original": "人生子命忌寅申。假如子年生人切忌寅申岁限，灾晦至重，及忌子午岁限相冲。",
+      "vernacular": "子年生人忌寅申。比如子年生人，切忌寅申岁限，灾晦很重，也忌子午岁限相冲。",
+      "notes": "岁限：此篇按大限、小限、流年分别索引。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": "子",
+          "branches": [
+            "寅",
+            "申",
+            "子",
+            "午"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": "子",
+          "branches": [
+            "寅",
+            "申",
+            "子",
+            "午"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": "子",
+          "branches": [
+            "寅",
+            "申",
+            "子",
+            "午"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.xiansuoji.002",
+      "title": "论大小限星辰过十二宫遇十二支所忌诀·其二",
+      "original": "丑午生人丑午瞋。假如丑年生人忌午丑岁限，午生人亦忌丑午岁限，及忌七杀星，灾晦极重。",
+      "vernacular": "丑午年生人忌丑午。比如丑年生人忌午丑岁限，午年生人也忌丑午岁限，并忌七杀，灾晦极重。",
+      "notes": "瞋：发怒，此处为凶忌之意。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": [
+            "丑",
+            "午"
+          ],
+          "branches": [
+            "丑",
+            "午"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": [
+            "丑",
+            "午"
+          ],
+          "branches": [
+            "丑",
+            "午"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": [
+            "丑",
+            "午"
+          ],
+          "branches": [
+            "丑",
+            "午"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": [
+            "丑",
+            "午"
+          ],
+          "star": "七杀"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": [
+            "丑",
+            "午"
+          ],
+          "star": "七杀"
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": [
+            "丑",
+            "午"
+          ],
+          "star": "七杀"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.xiansuoji.003",
+      "title": "论大小限星辰过十二宫遇十二支所忌诀·其三",
+      "original": "寅卯之人防巳亥。假如寅卯人忌巳亥岁限，及忌卯酉寅申相冲。",
+      "vernacular": "寅卯年生人要防巳亥。比如寅卯年生人忌巳亥岁限，也忌卯酉、寅申相冲。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": [
+            "寅",
+            "卯"
+          ],
+          "branches": [
+            "巳",
+            "亥"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": [
+            "寅",
+            "卯"
+          ],
+          "branches": [
+            "巳",
+            "亥"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": [
+            "寅",
+            "卯"
+          ],
+          "branches": [
+            "巳",
+            "亥"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": "寅",
+          "branches": [
+            "申"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": "寅",
+          "branches": [
+            "申"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": "寅",
+          "branches": [
+            "申"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": "卯",
+          "branches": [
+            "酉"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": "卯",
+          "branches": [
+            "酉"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": "卯",
+          "branches": [
+            "酉"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.xiansuoji.004",
+      "title": "论大小限星辰过十二宫遇十二支所忌诀·其四",
+      "original": "龙蛇切忌本身临。假如巳生人忌逢巳年及忌行到巳限、辰生人忌行辰年又忌行到辰限为天罗，又忌行到戌为地网，限遇此灾晦疾厄之险，官非破财忧制连连矣。",
+      "vernacular": "辰巳年生人切忌临本支。比如巳年生人忌巳年、巳限；辰年生人忌辰年、辰限，为天罗，又忌戌限，为地网。限遇这些，有灾晦、疾病之险，官非、破财、忧制接连而来。",
+      "notes": "天罗、地网：此处指辰、戌；忧制：服丧之忧。",
+      "doubts": [
+        "「切忌本身临」的本身按后文取出生年支，非身宫。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": "巳",
+          "branches": [
+            "巳"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": "巳",
+          "branches": [
+            "巳"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": "巳",
+          "branches": [
+            "巳"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": "辰",
+          "branches": [
+            "辰",
+            "戌"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": "辰",
+          "branches": [
+            "辰",
+            "戌"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": "辰",
+          "branches": [
+            "辰",
+            "戌"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.xiansuoji.005",
+      "title": "论大小限星辰过十二宫遇十二支所忌诀·其五",
+      "original": "申人铃火灾殃重。假如申生人忌逢火铃二星，必主灾晦至重，及忌寅年冲。",
+      "vernacular": "申年生人逢铃火，灾殃重。比如申年生人忌火星、铃星，必主灾晦很重，也忌寅年来冲。",
+      "notes": "铃火：铃星、火星。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": "申",
+          "star": [
+            "火星",
+            "铃星"
+          ],
+          "note": "任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": "申",
+          "star": [
+            "火星",
+            "铃星"
+          ],
+          "note": "任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": "申",
+          "star": [
+            "火星",
+            "铃星"
+          ],
+          "note": "任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "yearZhi": "申",
+          "limit": "流年",
+          "branches": [
+            "寅"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.xiansuoji.006",
+      "title": "论大小限星辰过十二宫遇十二支所忌诀·其六",
+      "original": "未遇猪鸡墓患殷。假如未生人忌逢酉戌岁限，又忌见擎羊在四墓宫。",
+      "vernacular": "未年生人遇猪鸡，墓患多。比如未年生人忌酉戌岁限，也忌见擎羊在四墓宫。",
+      "notes": "四墓：辰、戌、丑、未；殷：多。",
+      "doubts": [
+        "歌诀「猪鸡」应指亥酉，后注却写「酉戌」，两处不合；原文均照录，条件按任务卡所指的后注列酉戌。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": "未",
+          "branches": [
+            "酉",
+            "戌"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": "未",
+          "branches": [
+            "酉",
+            "戌"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": "未",
+          "branches": [
+            "酉",
+            "戌"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": "未",
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "star": "擎羊"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": "未",
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "star": "擎羊"
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": "未",
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "star": "擎羊"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.xiansuoji.007",
+      "title": "论大小限星辰过十二宫遇十二支所忌诀·其七",
+      "original": "戌亥羊陀须避忌。假如戌亥生人忌遇羊陀灾重，戌生人又行到戍宫岁限为地网，又忌行到辰宫岁限为天罗，谓之辰戌相冲不美。",
+      "vernacular": "戌亥年生人须避羊陀。比如戌亥年生人忌遇羊陀，灾重。戌年生人又忌戌宫岁限，为地网；忌辰宫岁限，为天罗，称为辰戌相冲，不好。",
+      "notes": "羊陀：擎羊、陀罗。",
+      "doubts": [
+        "录文「戍宫」照录，条件用地支戌。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": [
+            "戌",
+            "亥"
+          ],
+          "star": [
+            "擎羊",
+            "陀罗"
+          ],
+          "note": "任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": [
+            "戌",
+            "亥"
+          ],
+          "star": [
+            "擎羊",
+            "陀罗"
+          ],
+          "note": "任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": [
+            "戌",
+            "亥"
+          ],
+          "star": [
+            "擎羊",
+            "陀罗"
+          ],
+          "note": "任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": "戌",
+          "branches": [
+            "辰",
+            "戌"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": "戌",
+          "branches": [
+            "辰",
+            "戌"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": "戌",
+          "branches": [
+            "辰",
+            "戌"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.xiansuoji.008",
+      "title": "论大小限星辰过十二宫遇十二支所忌诀·其八",
+      "original": "酉人陀刃亦非亲。假如酉生人亦忌羊陀岁限及忌行卯宫限，及卯年岁君相冲。",
+      "vernacular": "酉年生人，陀刃也不相亲。比如酉年生人忌羊陀岁限，也忌卯宫限及卯年岁君相冲。",
+      "notes": "陀刃：陀罗、擎羊；岁君：太岁。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": "酉",
+          "star": [
+            "擎羊",
+            "陀罗"
+          ],
+          "note": "任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": "酉",
+          "star": [
+            "擎羊",
+            "陀罗"
+          ],
+          "note": "任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": "酉",
+          "star": [
+            "擎羊",
+            "陀罗"
+          ],
+          "note": "任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "yearZhi": "酉",
+          "branches": [
+            "卯"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "yearZhi": "酉",
+          "branches": [
+            "卯"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "yearZhi": "酉",
+          "branches": [
+            "卯"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.xiansuoji.009",
+      "title": "论大小限星辰过十二宫遇十二支所忌诀·其九",
+      "original": "猪犬生人莫遇蛇，辰戍切忌到网罗，预先整顿衣冠木，未免生人唱挽歌。",
+      "vernacular": "亥戌年生人不要遇巳，辰戌切忌到天罗地网。要预先准备衣冠棺木，恐怕免不了有人唱挽歌。",
+      "notes": "衣冠木：为身后事预备的衣冠棺木；挽歌：丧歌。",
+      "doubts": [
+        "录文「辰戍」照录，白话按地支辰戌译。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "末四句总歌，按任务卡只留说明。"
+        }
+      ],
+      "status": "translated"
+    }
+  ]
+}

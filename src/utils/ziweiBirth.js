@@ -30,11 +30,58 @@ const nextSolarDate = (solarDate) => {
   return `${next.getUTCFullYear()}-${pad(next.getUTCMonth() + 1)}-${pad(next.getUTCDate())}`;
 };
 
-const byDate = ({ calendarType, birthDate, timeIndex, iztroGender, isLeapMonth }) => (
+const rawByDate = ({ calendarType, birthDate, timeIndex, iztroGender, isLeapMonth }) => (
   calendarType === 'lunar'
     ? astro.byLunar(birthDate, timeIndex, iztroGender, Boolean(isLeapMonth), true, 'zh-CN')
     : astro.bySolar(birthDate, timeIndex, iztroGender, true, 'zh-CN')
 );
+
+/** 《紫微斗数全书》卷二安身命例：「又若闰月正月生者要在二月内起安身命，凡有闰月具要依此为例」。 */
+export const ZIWEI_LEAP_MONTH_RULE = '闰月生人一律按下月安身命（《紫微斗数全书》「凡有闰月具要依此为例」；通行排法以十五为界，十六以后才算下月）';
+
+/**
+ * 按全书安星：排盘库只把闰月十六以后算下月，这里闰月十五（含）以前的也按下月——用下一个月同日的农历日期安星，
+ * 公历、农历与四柱仍回显录入的日期；运限（大限、斗君流月）按安星用的月份算。闰十二月没有「下月」，照排盘库。
+ */
+const byDate = (input) => {
+  const real = rawByDate(input);
+  const lunar = real.rawDates?.lunarDate;
+  if (!lunar?.isLeap || lunar.lunarDay > 15 || lunar.lunarMonth >= 12) return real;
+  const shifted = astro.byLunar(`${lunar.lunarYear}-${lunar.lunarMonth + 1}-${lunar.lunarDay}`, input.timeIndex, input.iztroGender, false, true, 'zh-CN');
+  const chartSolarDate = shifted.solarDate;
+  const chartLunarDate = shifted.lunarDate;
+  const innerHoroscope = shifted.horoscope;
+  shifted.horoscope = (targetDate, timeIndexOfTarget) => {
+    shifted.solarDate = chartSolarDate;
+    try {
+      return innerHoroscope(targetDate, timeIndexOfTarget);
+    } finally {
+      shifted.solarDate = real.solarDate;
+    }
+  };
+  shifted.solarDate = real.solarDate;
+  shifted.lunarDate = real.lunarDate;
+  shifted.rawDates = real.rawDates;
+  shifted.chineseDate = real.chineseDate;
+  shifted.leapMonth = { rule: 'quanshu', chartLunarDate, text: `${real.lunarDate}生在闰月，按下月（${chartLunarDate}）安身命` };
+  return shifted;
+};
+
+/** 《紫微斗数全书》安长生十二神：「男命顺数、女命逆数」；通行排法（排盘库）按阳男阴女顺、阴男阳女逆。 */
+export const ZIWEI_CHANGSHENG_RULE = '长生十二神男命顺数、女命逆数（《紫微斗数全书》；通行排法按阳男阴女顺行、阴男阳女逆行）';
+const CHANGSHENG_START = Object.freeze({ 水: '申', 木: '亥', 金: '巳', 火: '寅', 土: '申' });
+const CHANGSHENG_12 = Object.freeze(['长生', '沐浴', '冠带', '临官', '帝旺', '衰', '病', '死', '墓', '绝', '胎', '养']);
+const applyQuanshuChangsheng = (astrolabe, iztroGender) => {
+  const start = CHANGSHENG_START[astrolabe?.fiveElementsClass?.[0]];
+  if (!start || !Array.isArray(astrolabe.palaces)) return astrolabe;
+  const direction = iztroGender === '女' ? -1 : 1;
+  const startIndex = ZHI.indexOf(start);
+  astrolabe.palaces.forEach((palace) => {
+    const offset = (((ZHI.indexOf(palace.earthlyBranch) - startIndex) * direction) % 12 + 12) % 12;
+    palace.changsheng12 = CHANGSHENG_12[offset];
+  });
+  return astrolabe;
+};
 
 const joinChineseDate = (chineseDate) => ['yearly', 'monthly', 'daily', 'hourly'].map((key) => chineseDate[key].join('')).join(' ');
 
@@ -70,7 +117,7 @@ const createLateZiHoroscope = ({ calendarType, birthDate, iztroGender, isLeapMon
     return sameDay;
   }
 
-  const shifted = astro.bySolar(nextSolarDate(inputSolarDate), 0, iztroGender, true, 'zh-CN');
+  const shifted = byDate({ calendarType: 'solar', birthDate: nextSolarDate(inputSolarDate), timeIndex: 0, iztroGender });
   const chartSolarDate = shifted.solarDate;
   const chartLunarDate = shifted.lunarDate;
   const [nextYear, nextMonth, nextDay] = chartSolarDate.split('-').map(Number);
@@ -119,10 +166,10 @@ export const createZiweiHoroscope = ({
   const index = Number(timeIndex);
 
   if (index === 12) {
-    return createLateZiHoroscope({ calendarType, birthDate, iztroGender, isLeapMonth, lateZiMode: normalizeLateZiMode(lateZiMode) });
+    return applyQuanshuChangsheng(createLateZiHoroscope({ calendarType, birthDate, iztroGender, isLeapMonth, lateZiMode: normalizeLateZiMode(lateZiMode) }), iztroGender);
   }
 
-  return byDate({ calendarType, birthDate, timeIndex: index, iztroGender, isLeapMonth });
+  return applyQuanshuChangsheng(byDate({ calendarType, birthDate, timeIndex: index, iztroGender, isLeapMonth }), iztroGender);
 };
 
 /** 时刻 → 时辰序号：23 时为晚子时（12），0 时为早子时（0）。 */

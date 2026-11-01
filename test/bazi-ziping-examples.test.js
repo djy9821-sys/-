@@ -137,3 +137,36 @@ test('《子平真诠》取格细则在原书命例上的体现', () => {
   // 申中不论戊：马参政命壬生申月透戊，书作印格（身重印轻）。
   assert.equal(byPillars('壬寅 戊申 壬辰 壬寅').name, '偏印格');
 });
+
+test('论用神变化：月支与它支会成三合全局而本气不透，月令之神随局而化；本气透干或化神被克则不化', () => {
+  const judgeOf = (year, month, day, hourIndex) => {
+    const chart = buildBaziChart({ calendarType: 'solar', year, month, day, hourIndex, gender: 'male' });
+    return { pillars: chart.pillars.map(({ ganZhi }) => ganZhi).join(' '), pattern: judgeBaziPattern(chart, analyzeStrength(chart)).pattern };
+  };
+  // 「丙生寅月，本为印绶，甲不透干而会午会戌，则化为劫」的同类：辛生巳月本为正官，丙不透而巳酉丑会金局，化为劫（月劫格）
+  const jie = judgeOf(1960, 6, 2, 1);
+  assert.equal(jie.pillars, '庚子 辛巳 辛酉 己丑');
+  assert.equal(jie.pattern.name, '月劫格');
+  assert.deepEqual(jie.pattern.hua, { from: '正官', ju: '巳酉丑金局', to: '比肩' });
+  assert.match(jie.pattern.basis, /论用神变化「甲不透干而会午会戌，则化为劫」/);
+  // 壬生申月本为偏印，庚不透而申子辰会水局，化为劫；子是壬之刃，作羊刃格
+  const ren = judgeOf(1984, 8, 26, 7);
+  assert.equal(ren.pillars, '甲子 壬申 壬辰 丁未');
+  assert.equal(ren.pattern.name, '羊刃格');
+  assert.equal(ren.pattern.hua.ju, '申子辰水局');
+  // 「丁生亥月，本为正官，支全卯未，则化为印」
+  const yin = judgeOf(1615, 11, 24, 6);
+  assert.equal(yin.pillars, '乙卯 丁亥 丁未 丙午');
+  assert.equal(yin.pattern.name, '偏印格');
+  assert.match(yin.pattern.basis, /会成亥卯未木局，月令之神随局化为偏印（论用神变化「本为正官，支全卯未，则化为印」）/);
+  // 本气壬透干则不化，仍是正官格
+  const guan = judgeOf(1615, 11, 24, 2);
+  assert.equal(guan.pillars, '乙卯 丁亥 丁未 壬寅');
+  assert.equal(guan.pattern.name, '正官格');
+  assert.equal(guan.pattern.hua, undefined);
+  // 「丙生寅月午戌会劫而又或透壬，则仍为印，而格不破」：癸透克火局，不化（寅中戊透，按透干取食神格）
+  const kept = judgeOf(1610, 2, 22, 5);
+  assert.equal(kept.pillars, '庚戌 戊寅 丙午 癸巳');
+  assert.equal(kept.pattern.hua, undefined);
+  assert.equal(kept.pattern.name, '食神格');
+});

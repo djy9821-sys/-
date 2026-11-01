@@ -75,10 +75,10 @@ export const ClassicsEntryCard = ({ hit, mode, testId = 'classic-entry' }) => {
                 </div>
             )}
             {!entry.vernacular && mode === 'vernacular' && <p className="mt-1.5 text-[11px] text-[#9b9185]">这条还没有白话，先看原文。</p>}
-            {entry.notes && <p className="mt-2 text-xs leading-5 text-[#6f665d]"><span className="font-bold">注：</span>{entry.notes}</p>}
-            {entry.doubts.length > 0 && (
+            {entry.readerNotes && <p className="mt-2 text-xs leading-5 text-[#6f665d]"><span className="font-bold">注：</span>{entry.readerNotes}</p>}
+            {entry.readerDoubts?.length > 0 && (
                 <p className="mt-1 text-[11px] leading-5 text-[#7f4b12]">
-                    <span className="font-bold">存疑：</span>{entry.doubts.join('；')}
+                    <span className="font-bold">存疑：</span>{entry.readerDoubts.join('；')}。
                 </p>
             )}
         </article>

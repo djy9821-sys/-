@@ -31,10 +31,12 @@ export const LIUYAO_TOPIC_NAMES = Object.freeze({
   // 「坟墓」两类都算：寻新地以世爻为穴，已葬的祖坟以父母为用神。
   gravesite: Object.freeze(['寻地择穴', '坟墓', '茔葬', '寻地', '点穴', '葬地', '阴宅']),
   ancestral: Object.freeze(['祖坟风水', '坟墓', '祖坟', '祖茔', '旧坟', '修坟']),
+  // 《增删卜易·鬼神章》：病痛灾祸疑为鬼神所为时，以官鬼分神祇、邪祟。
+  spirits: Object.freeze(['鬼神作祟', '鬼神', '邪祟', '祭祀', '祟']),
 });
 
 /** 古籍有、程序还没有对应类别的占法：校验放行（将来加类别时接上），眼下不会被匹配到。 */
-export const LIUYAO_TOPIC_PENDING = Object.freeze(['国朝', '鬼神']);
+export const LIUYAO_TOPIC_PENDING = Object.freeze(['国朝']);
 
 const LABEL_TO_KEY = Object.freeze(Object.fromEntries(
   Object.entries(LIUYAO_TOPIC_NAMES).flatMap(([key, names]) => names.map((name) => [name, key])).reverse(),

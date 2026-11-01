@@ -124,7 +124,8 @@
         "success": [],
         "failure": [],
         "flaw": [],
-        "rescue": []
+        "rescue": [],
+        "quYun": null
       }
     }
   },
@@ -271,7 +272,21 @@
         ],
         "failure": [],
         "flaw": [],
-        "rescue": []
+        "rescue": [],
+        "quYun": {
+          "section": "论伤官取运",
+          "texts": [
+            "伤官佩印，运行官煞为宜，印运亦吉，伤食不碍，财地则凶",
+            "伤官用官，运喜财印，不利伤食。若局中官露，而财印两旺，则比劫伤官未始非吉矣"
+          ],
+          "favor": {
+            "正官": "good",
+            "七杀": "good",
+            "印": "good",
+            "食伤": "bad",
+            "财": "good"
+          }
+        }
       }
     }
   },
@@ -396,7 +411,19 @@
         ],
         "failure": [],
         "flaw": [],
-        "rescue": []
+        "rescue": [],
+        "quYun": {
+          "section": "论偏官取运",
+          "texts": [
+            "煞用印缓，不利财乡，伤官为美，印缓身旺，俱有福地"
+          ],
+          "favor": {
+            "财": "bad",
+            "食伤": "good",
+            "印": "good",
+            "比劫": "good"
+          }
+        }
       }
     }
   },
@@ -531,7 +558,20 @@
         ],
         "failure": [],
         "flaw": [],
-        "rescue": []
+        "rescue": [],
+        "quYun": {
+          "section": "论伤官取运",
+          "texts": [
+            "伤官佩印，运行官煞为宜，印运亦吉，伤食不碍，财地则凶"
+          ],
+          "favor": {
+            "正官": "good",
+            "七杀": "good",
+            "印": "good",
+            "食伤": "neutral",
+            "财": "bad"
+          }
+        }
       }
     }
   },
@@ -652,7 +692,18 @@
         ],
         "failure": [],
         "flaw": [],
-        "rescue": []
+        "rescue": [],
+        "quYun": {
+          "section": "论食神取运",
+          "texts": [
+            "食神生财，财重食轻，则行财食。财食重则喜帮身，官煞之方，俱为不美"
+          ],
+          "favor": {
+            "比劫": "good",
+            "正官": "bad",
+            "七杀": "bad"
+          }
+        }
       }
     }
   },
@@ -778,9 +829,25 @@
         ],
         "failure": [],
         "flaw": [
+          "财印相克，本不并用……反是则财印不并用而不秀矣（论伤官）",
           "伤官生财，而财又逢合"
         ],
-        "rescue": []
+        "rescue": [],
+        "quYun": {
+          "section": "论伤官取运",
+          "texts": [
+            "伤官用财，财旺身轻则利印比，身强财浅则喜财运，伤官亦宜",
+            "伤官佩印，运行官煞为宜，印运亦吉，伤食不碍，财地则凶"
+          ],
+          "favor": {
+            "印": "good",
+            "比劫": "good",
+            "正官": "good",
+            "七杀": "good",
+            "食伤": "neutral",
+            "财": "bad"
+          }
+        }
       }
     }
   },
@@ -880,38 +947,7 @@
           "transparent": true,
           "basis": "月支巳中气庚（正官）透于年柱庚，以透出者为格。"
         },
-        "special": {
-          "name": "疑似从杀格",
-          "kind": "cong",
-          "basis": "日主乙木地支无比劫之根，只有子中癸一点印气，天干无印比相帮，官杀占 40% 独旺。",
-          "note": "从格以顺从旺势为用，喜忌与常法相反：扶身反而不利。是否真从还要看是否有微根、印星是否被制，请人工确认。",
-          "favorable": [
-            {
-              "element": "土",
-              "label": "财"
-            },
-            {
-              "element": "金",
-              "label": "官杀"
-            }
-          ],
-          "unfavorable": [
-            {
-              "element": "火",
-              "label": "食伤"
-            },
-            {
-              "element": "水",
-              "label": "印"
-            },
-            {
-              "element": "木",
-              "label": "比劫"
-            }
-          ],
-          "godsBasis": "从杀以财星生杀为用（任注「用土以从之」），官杀次之；食伤制杀、印比扶身，都会破格",
-          "godsText": "喜土（财）、金（官杀）；忌火（食伤）、水（印）、木（比劫）"
-        },
+        "special": null,
         "traits": [
           {
             "key": "guansha-hunza",
@@ -953,7 +989,21 @@
           "杂煞"
         ],
         "flaw": [],
-        "rescue": []
+        "rescue": [],
+        "quYun": {
+          "section": "论正官取运",
+          "texts": [
+            "正官……若官露而不可逢食，不可杂煞，不可重官，与地支刑冲，不问所就何局，皆不利也",
+            "正官用财，运喜印缓身旺之地，切忌食伤。若身旺而财轻官弱，即仍取财官运可也"
+          ],
+          "favor": {
+            "食伤": "bad",
+            "七杀": "bad",
+            "正官": "bad",
+            "印": "good",
+            "比劫": "good"
+          }
+        }
       }
     }
   },
@@ -1070,7 +1120,19 @@
         ],
         "failure": [],
         "flaw": [],
-        "rescue": []
+        "rescue": [],
+        "quYun": {
+          "section": "论建禄月劫取运",
+          "texts": [
+            "禄劫用财而带伤食，财食重则喜印缓，而不忌比肩；财食轻则宜助财，而不喜印比。逢煞无伤，遇官非福"
+          ],
+          "favor": {
+            "印": "good",
+            "比劫": "neutral",
+            "七杀": "neutral",
+            "正官": "bad"
+          }
+        }
       }
     }
   },
@@ -1126,29 +1188,35 @@
         "deLing": true,
         "favorable": [
           {
-            "element": "木",
-            "role": "官杀",
-            "tiaoHou": true,
-            "usable": true
-          },
-          {
-            "element": "水",
-            "role": "财",
-            "tiaoHou": false,
-            "usable": true
-          }
-        ],
-        "unfavorable": [
-          {
             "element": "金",
             "role": "食伤",
             "tiaoHou": false,
             "usable": false
           },
           {
+            "element": "水",
+            "role": "财",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
             "element": "土",
             "role": "比劫",
             "tiaoHou": false,
+            "usable": true
+          }
+        ],
+        "unfavorable": [
+          {
+            "element": "火",
+            "role": "印",
+            "tiaoHou": false,
+            "usable": true
+          },
+          {
+            "element": "木",
+            "role": "官杀",
+            "tiaoHou": true,
             "usable": true
           }
         ]
@@ -1184,12 +1252,17 @@
       "chengBai": {
         "group": "财格",
         "verdict": "败",
-        "success": [],
+        "success": [
+          "单透财而亦贵，以月令有暗官也（论财）"
+        ],
         "failure": [
           "财轻比重"
         ],
-        "flaw": [],
-        "rescue": []
+        "flaw": [
+          "财格透印而位置不妥（论财）"
+        ],
+        "rescue": [],
+        "quYun": null
       }
     }
   },
@@ -1302,11 +1375,14 @@
       },
       "chengBai": {
         "group": "印格",
-        "verdict": "待详辨",
-        "success": [],
+        "verdict": "成",
+        "success": [
+          "身印两旺而用食伤泄气"
+        ],
         "failure": [],
         "flaw": [],
-        "rescue": []
+        "rescue": [],
+        "quYun": null
       }
     }
   },
@@ -1436,7 +1512,8 @@
         "success": [],
         "failure": [],
         "flaw": [],
-        "rescue": []
+        "rescue": [],
+        "quYun": null
       }
     }
   },
@@ -1548,11 +1625,16 @@
       },
       "chengBai": {
         "group": "财格",
-        "verdict": "待详辨",
-        "success": [],
+        "verdict": "成中有败",
+        "success": [
+          "单透财而亦贵，以月令有暗官也（论财）"
+        ],
         "failure": [],
-        "flaw": [],
-        "rescue": []
+        "flaw": [
+          "财格透印而位置不妥（论财）"
+        ],
+        "rescue": [],
+        "quYun": null
       }
     }
   }

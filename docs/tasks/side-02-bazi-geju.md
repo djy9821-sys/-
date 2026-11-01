@@ -75,6 +75,19 @@
 - **applies** 照第 8 批原规定机械生成：季节总论 `{ "module": "bazi", "dayGan": "甲", "season": "春" }`；单月 `monthZhi`（正月寅、二月卯……十二月丑）；两月合论 `monthZhis`；论木 `dayGans`；五行总论写 `note`。
 - **分支**：在 `side/02-qiongtong` 上直接提交新版本（覆盖旧文件；不要 rebase、不要 force push）。提交后在 PR #38 留言：每个文件的条数、核对脚本输出、和旧版相比删掉了哪些旧条目。
 
+## 第 9 批：《子平真诠》余下十七章（卷首干支诸论、论行运诸篇）
+
+全书四十八章，已录的是论用神十三章（`ziping-yongshen.json`、`ziping-chengbai.json`）与八格各论十八章（`ziping-bage.json`），还差十七章。主线正按任注命例校岁运，论行运、论行运成格变格、论喜忌干支有别、论支中喜忌逢运透清四章正是程序判大运流年的依据，先录这几章。
+
+- 底本：与第 1、2 批同一本，上海世界图书馆发行《秘本子平真诠》影印本（Wikimedia Commons：`NLC416-11jh010455-35296_子平真詮.pdf`）。只录沈氏正文，徐乐吾评注不录；`edition` 照 `ziping-yongshen.json` 的写法注明各章 PDF 页与书内页。
+- 文件与篇目（两个文件，各一个提交；一批一个 PR）：
+  - `src/data/classics/bazi/ziping-xingyun.json`，id 前缀 `ziping.xingyun.`：论星辰无关格局、论外格用舍、论宫分用神配六亲、论妻子、论行运、论行运成格变格、论喜忌干支有别、论支中喜忌逢运透清、论时说以讹传讹、论时说拘泥格局（十章）。
+  - `src/data/classics/bazi/ziping-ganzhi.json`，id 前缀 `ziping.ganzhi.`：论十干十二支、论阴阳生克、论阴阳生死、论十干配合性情、论十干合而不合、论十干得时不旺失时不弱、论刑冲会合解法（七章）。
+  - `section` 用「、」列出所录各章，`title` 用「论行运·其一」。预计 60–90 条。
+- `applies`：论行运诸章说到某格行某运的，写该格的 `pattern`（如论行运成格变格里「正官格……行伤官运」写 `pattern: 正官格`）；论某十神的写 `tenGod`；论宫分用神配六亲、论妻子两章写 `liuqin`（夫妻、子女、父母、兄弟，与《滴天髓》六亲论同一口径，只在结果页「六亲宫星」那一亲下面出现）；论刑冲会合解法写 `relation`（冲、合、刑、三合、三会）；卷首干支诸论多是通论，编不出条件的写 `note`，不硬配。
+- 白话逐句直译；术语（透清、变格、盖头、截脚、会合解冲）保留原词，第一次出现在 `notes` 简释。`notes`、`doubts` 写给读者看（术语简释、校勘结论、拿不准的地方）；页码与录入过程写进 `edition` 和 PR 描述，别混在 `notes` 里。
+- 分支：从 `origin/claude/round8-collab` 新开 `side/02-ziping-xingyun`，PR 的 base 选 `claude/round8-collab`。跑 `node scripts/validate-data.mjs`、`node scripts/applies-coverage.mjs`、`npm test` 后再推。
+
 ## 来源
 
 公版古籍文本（维基文库、国学导航、国家图书馆等公版影印本），繁转简逐字校对，`edition` 写明。**不得使用现代校注本、白话本、网文译文。** ctext.org 声明禁止抓取，不要用。

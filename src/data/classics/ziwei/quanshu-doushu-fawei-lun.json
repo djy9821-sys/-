@@ -81,20 +81,28 @@
       "applies": [
         {
           "module": "ziwei",
-          "stars": [
-            "左辅",
-            "右弼",
+          "palace": "命宫",
+          "star": [
             "紫微",
             "天府"
-          ]
+          ],
+          "meet": [
+            "左辅",
+            "右弼"
+          ],
+          "note": "左右会于紫府：紫微或天府守命，会左辅或右弼"
         },
         {
           "module": "ziwei",
-          "mutagen": "科"
-        },
-        {
-          "module": "ziwei",
-          "mutagen": "权"
+          "palace": "命宫",
+          "mutagen": [
+            "科",
+            "权"
+          ],
+          "brightness": [
+            "陷"
+          ],
+          "note": "科权陷于凶乡：化科或化权之星落陷守命"
         }
       ],
       "tags": [
@@ -139,7 +147,8 @@
             "陀罗",
             "七杀"
           ],
-          "limit": "大限"
+          "limit": "大限",
+          "note": "羊陀七杀任一颗在大限宫（运羊、运陀也算），限运莫逢"
         },
         {
           "module": "ziwei",
@@ -191,7 +200,12 @@
           "stars": [
             "文昌",
             "文曲"
-          ]
+          ],
+          "brightness": [
+            "陷",
+            "不"
+          ],
+          "note": "昌曲在于凶乡：文昌、文曲任一颗落陷"
         }
       ],
       "tags": [
@@ -211,17 +225,19 @@
       "applies": [
         {
           "module": "ziwei",
-          "stars": [
+          "allStars": [
             "紫微",
             "破军"
-          ]
+          ],
+          "note": "紫微破军同宫（丑未）"
         },
         {
           "module": "ziwei",
-          "stars": [
+          "allStars": [
             "红鸾",
             "贪狼"
-          ]
+          ],
+          "note": "红鸾与贪狼同宫"
         }
       ],
       "tags": [
@@ -291,14 +307,24 @@
         {
           "module": "ziwei",
           "palace": "子女",
-          "stars": [
+          "allStars": [
             "天刑",
             "七杀"
-          ]
+          ],
+          "note": "刑杀：天刑与七杀同守子女宫"
         },
         {
           "module": "ziwei",
-          "palace": "财帛"
+          "palace": "财帛",
+          "meet": [
+            "擎羊",
+            "陀罗",
+            "火星",
+            "铃星",
+            "地空",
+            "地劫"
+          ],
+          "note": "诸凶照财帛：财帛宫同宫或三方四正见四煞、空劫任一颗"
         }
       ],
       "tags": [
@@ -371,10 +397,11 @@
         {
           "module": "ziwei",
           "palace": "官禄",
-          "stars": [
+          "allStars": [
             "紫微",
             "天府"
-          ]
+          ],
+          "note": "紫府同宫（寅申）在官禄"
         },
         {
           "module": "ziwei",
@@ -403,15 +430,17 @@
           "stars": [
             "地空",
             "地劫"
-          ]
+          ],
+          "note": "福德遇空劫任一颗"
         },
         {
           "module": "ziwei",
           "palace": "父母",
-          "stars": [
+          "allStars": [
             "天刑",
             "七杀"
-          ]
+          ],
+          "note": "相貌（父母）宫天刑与七杀同守"
         }
       ],
       "tags": [

@@ -91,7 +91,7 @@ test('疑似从格时，旺衰一节指向格局一节，格局一节附按此�
   // 乙卯 戊寅 癸卯 戊午：癸水无根，食伤独旺，疑似从儿格。
   const cong = buildBaziChart({ calendarType: 'solar', year: 1975, month: 2, day: 26, gender: 'male', hourIndex: 6 }, now);
   const text = buildBaziPrompt({ chart: cong, scope: 'natal', selections: {}, now });
-  assert.match(text, /未考虑从格、化格、专旺等特殊格局（本盘疑似从儿格，按此格论的喜忌见下一节）/);
+  assert.match(text, /扶抑的喜忌不计特殊格局，本盘疑似从儿格，按此格论的喜忌见下一节/);
   assert.ok(text.includes('- 若按从儿格论：喜火（财）、木（食伤）；忌金（印）、土（官杀）（'));
   assert.ok(!buildBaziPrompt({ chart, scope: 'natal', selections, now }).includes('按此格论'));
 });
@@ -164,11 +164,14 @@ test('大运一节注明运支与原局会成的方局（程序的大运喜忌�
 });
 
 test('大运一节逐步列出喜忌，注明盖头、截脚（与结果页大运卡片同一口径）', () => {
-  // 丁丑 壬子 己酉 戊辰：喜土火，忌木水。戊申运申与子辰会成水局，按水论为忌；甲辰运甲木克辰土，盖头。
+  // 丁丑 壬子 己酉 戊辰：喜土火，忌木水。戊申运申与子辰会成水局，按水论为忌；丁未运未为南方燥土，作火论；
+  // 甲辰运东方木地，辰作木论（任注「癸卯甲辰东方木地」），干支皆忌。盖头的写法见 bazi-year-marks 的甲戌运。
+  // 丁未运的丁火本是喜，却与月干壬水（忌）相合化木（忌），贪合助忌，不作喜论（任注「乙运合庚助虐」）。
   const prompt = buildBaziPrompt({ chart, scope: 'natal', selections, now });
-  assert.ok(prompt.includes('- 各步喜忌按「旺衰参考」一节的扶抑喜忌；大运以地支为重，运干喜而运支忌又克运干的（截脚）整步运按忌（《滴天髓·岁运》任注）'));
+  assert.ok(prompt.includes('- 各步喜忌按「旺衰参考」一节的扶抑喜忌；大运以地支为重，运干喜而运支忌又克运干的（截脚）整步运按忌，运干喜而生运支之忌的（喜泄于忌）也按忌，运干喜而克住运支之忌的（喜盖忌）按喜（《滴天髓·岁运》任注）'));
   assert.ok(prompt.includes('戊申，天干十神劫财，运支申与原局子辰会成申子辰三合水局；喜忌：天干戊土喜，地支申水忌'));
-  assert.ok(prompt.includes('甲辰，天干十神正官；喜忌：天干甲木忌，地支辰土喜（盖头，吉减其半）'));
+  assert.ok(prompt.includes('丁未，天干十神偏印；喜忌：天干丁火（合月干壬化木，贪合助忌）平，地支未（南方燥土，作火论）火喜'));
+  assert.ok(prompt.includes('甲辰，天干十神正官；喜忌：天干甲木忌，地支辰（东方木地，作木论）木忌'));
 });
 
 test('认出疑似从格的盘：所选运限一节注明运限喜忌按此格论，流年标注照此判', () => {
