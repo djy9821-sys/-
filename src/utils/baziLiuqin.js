@@ -10,11 +10,13 @@
  *   「丁酉 丁未 戊戌 丁巳」「四柱全无水气，燥土不能泄火生金，克三妻五子」）。再看任注论克妻、不克的几条（财神轻而无官、比劫多，主克妻；财神重而身弱、无比劫，主克妻；
  *   官杀旺而用印、见财星，主妻陋而克；劫刃重、财轻、有食伤而逢枭印，妻有凶险；劫刃旺而财轻、有食伤，妻贤不克），
  *   都不合时看妻宫（日支）坐喜坐忌，宫不分喜忌再看财星喜忌（「清者，喜神即是财星」）；坐喜神却被紧贴、克它的一支冲去的
- *   按克妻看（「巳亥逢冲，群劫纷争，所以连克三妻」；冲它的支被它克的不算，「坐下酉金冲去卯木……得妻财万仞」；
+ *   按克妻看（「巳亥逢冲，群劫纷争，所以连克三妻」；冲它的支被它克的不算，「坐下酉金冲去卯木……又得妻财万仍」；
  *   隔位的遥冲不算，「凡四柱紧冲为克，遥冲为动」）。
  * - 夫（女命）：「凡女命之夫星，即是用神」——先看任注克夫诸条（官星微、无财星、日主强、伤官重之类），都不合时看用神有力与否。
- * - 子女：男命「凡八字之用神即是子星」，先看任注子女诸条（日主旺、无印绶、有食伤，子必多……），都不合时看用神；
- *   女命「女命之子星，即是喜神」，看喜神（喜用第二位）。火炎土燥、局中全无湿气的，男女命都先断子息艰难。
+ * - 子女：男命先看任注子女诸条（日主旺、无印绶、有食伤，子必多……），都不合时照《滴天髓·子女》原注「大率依官看子」，
+ *   看官杀有力与否（任注自己「大率身旺财为子，身衰印作儿」与看用神两种，拿任注命造对照都不如看官杀；
+ *   原注「无官星，只论财」也试过，更差，不收）。女命「女命之子星，即是喜神」，看喜神（喜用第二位）。
+ *   火炎土燥、局中全无湿气的，男女命都先断子息艰难。
  * - 父母：「财官印绶，在于年月，为日主之喜，父母不贵亦富；为日主之忌，不贫亦贱」——看年月两柱天干与本气的喜忌。
  * - 兄弟：先看任注「官轻伤重，比劫生伤……必遭兄弟之累」，不合时「不论提纲之喜忌，全凭日主之爱憎」——看比劫是喜是忌。
  * 用神、喜神取「五行与旺衰」一节的喜用第一、二位；认出从、化、专旺的，按此格论喜忌（与大运流年同一口径）。
@@ -151,7 +153,7 @@ const palaceOf = (byKey, basis, relations, palace) => {
     && (relation.scope === 'zhi' || relation.scope === 'pillar') && relation.kinds.some((kind) => kind === '冲' || kind === '反吟'));
   const clash = clashes.length > 0;
   // 冲是哪一方被冲去，看五行相克：冲它的那一支本气克这一宫的本气，这一宫才算被冲去（任注「巳亥逢冲，群劫纷争……连克三妻」亥水克巳火；
-  // 「坐下酉金冲去卯木，生起癸水……得妻财万仞」酉金克卯木，妻宫反得其利）。
+  // 「坐下酉金冲去卯木，生起癸水……又得妻财万仍」酉金克卯木，妻宫反得其利）。
   // 只算紧贴的一支（任注「凡四柱紧冲为克，遥冲为动」）。
   const clashedBy = clashes.flatMap((relation) => relation.memberKeys.filter((key) => key !== palace.key))
     .filter((key) => Math.abs(PILLAR_INDEX[key] - PILLAR_INDEX[palace.key]) === 1)
@@ -319,7 +321,7 @@ const renReadingOf = (key, { female, ctx, basis, pillars, scores, byKey, stars, 
     const rule = firstRule(QI_RULES);
     if (rule) return { source, tone: rule.tone, rule, god: null, text: ruleText(rule) };
     const palace = palaces.find((item) => !item.missing);
-    // 妻宫坐喜神却被克它的一支冲去（任注「巳亥逢冲，群劫纷争，所以连克三妻」）；被它克的一支来冲不算（「坐下酉金冲去卯木……得妻财万仞」）。
+    // 妻宫坐喜神却被克它的一支冲去（任注「巳亥逢冲，群劫纷争，所以连克三妻」）；被它克的一支来冲不算（「坐下酉金冲去卯木……又得妻财万仍」）。
     if (palace && palace.tone === 'good' && palace.clashedBy.length) {
       return { source, tone: 'bad', rule: null, god: null, text: `妻宫（日支）虽坐喜神，却被${palace.clashedBy.join('、')}冲去（任注「巳亥逢冲，群劫纷争，所以连克三妻」），古法主夫妻难以全美` };
     }
@@ -341,7 +343,14 @@ const renReadingOf = (key, { female, ctx, basis, pillars, scores, byKey, stars, 
     const source = `《滴天髓阐微·${female ? '女命' : '子女'}》任注`;
     const rule = firstRule(key === 'spouse' ? FU_RULES : female ? [ZAO_RULE] : ZINV_RULES);
     if (rule) return { source, tone: rule.tone, rule, god: null, text: ruleText(rule) };
-    const lead = key === 'spouse' ? '任注「女命之夫星，即是用神」' : byXi ? '任注「女命之子星，即是喜神」' : '任注「凡八字之用神即是子星」';
+    if (key === 'children' && !female) {
+      // 男命任注子女诸条都不合的，照原注「大率依官看子」看官杀（ditian.liuqin.002）
+      const god = godStateOf(pillars, scores, ctx.guan.element);
+      const lead = '原注「大率依官看子」';
+      if (!god) return { source: '《滴天髓·子女》原注', tone: 'neutral', rule: null, god: null, text: `${lead}；官杀五行不明，要等岁运引动再论` };
+      return { source: '《滴天髓·子女》原注', tone: god.tone, rule: null, god, text: `${lead}：官杀${god.text}，${GOD_VERDICT.children[god.tone]}` };
+    }
+    const lead = key === 'spouse' ? '任注「女命之夫星，即是用神」' : '任注「女命之子星，即是喜神」';
     const god = godStateOf(pillars, scores, byXi ? favorable[1] ?? favorable[0] : favorable[0]);
     if (!god) return { source, tone: 'neutral', rule: null, god: null, text: `${lead}；此盘喜用不硬分，要等岁运引动再论` };
     return { source, tone: god.tone, rule: null, god, text: `${lead}：${byXi ? '喜神' : '用神'}${god.text}，${GOD_VERDICT[key][god.tone]}` };
@@ -398,7 +407,7 @@ export const analyzeLiuqin = (chart, strength, { special = null } = {}) => {
   const neutralBand = !basis.favorable?.length && !basis.unfavorable?.length;
   const scores = strength.scores ?? {};
   const roleElement = (role) => Object.keys(basis.roles).find((key) => basis.roles[key] === role);
-  // 从、化、专旺按格论身旺身弱；两气成象只定喜忌（任注「旺衰仍看打分」），身旺身弱照旺衰档。
+  // 从、化、专旺按格论身旺身弱；两气成象只用来定喜忌，身旺身弱仍照旺衰档（与命例回归同一口径）。
   const body = basis.source === 'special' && basis.specialKind !== 'liangqi'
     ? (STRONG_SPECIAL.test(basis.specialName ?? '') ? 'strong' : 'weak')
     : /强/.test(strength.band ?? '') ? 'strong' : /弱/.test(strength.band ?? '') ? 'weak' : 'even';
