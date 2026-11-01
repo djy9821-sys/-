@@ -22993,6 +22993,2822 @@
       "vernacular": "四柱依次是丁亥、癸丑、甲子、辛未。甲子日出生，时在丑月，地支聚成北方之势；天干辛癸使官、印的元神显露，克掉丁火。丑未相距较远，又因水势掌权，未不能冲丑，正好呈现中和的状态。因此行土金水运，都能得到生化的配合，早年考入学宫，又在乡试中取胜。只是格局清寒，仕途未能获得显贵官位，而是在学校传播儒学、从事教化。前造遇冲，官印都受伤，名利没有成就；本造不受冲动，便名利如愿。可见墓库一逢冲就必然发达的说法是错误的。",
       "notes": "底本：民国三十六年四月（1947）李雨田校订、上海大东书局经售《滴天髓阐微》，任铁樵增注；PDF第160页，书内卷二第18页。只录四柱及任氏本造论断，未录大运表；正文行运全部保留。底本作“祇因”“未居显秩”，照录，不以电子参校文“只因”“未居显职”替换。具体大运干支仅列于表，任注只说土金水运，故不补yun；未把前造官印受伤借作本造结局。",
       "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.001",
+      "name": "薛相公命",
+      "source": {
+        "classic": "ziping",
+        "section": "论正官",
+        "entry": "ziping.bage.002"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "甲申",
+        "壬申",
+        "乙巳",
+        "戊寅"
+      ],
+      "original": "如薛相公命，甲申、壬申、乙巳、戊寅，壬印戊财，以乙隔之，水与土不相碍，故为大贵。",
+      "vernacular": "如薛相公命，甲申、壬申、乙巳、戊寅，壬印与戊财隔着乙，水土互不妨碍，所以大为显贵。",
+      "expected": {
+        "pattern": "正官格",
+        "chengBai": "成",
+        "useGod": [
+          "财",
+          "印"
+        ],
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "壬印戊财，以乙隔之，水与土不相碍，故为大贵。"
+        },
+        "outcome": "故为大贵"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第65—67页（书内56—58页）；据已校录古籍条目 ziping.bage.002 摘录本造，不补公历生年。取格按本条所述及《论正官》的分类，未按程序结果反填。成败依据：「故为大贵」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.002",
+      "name": "某造（杂气正官财印相合）",
+      "source": {
+        "classic": "ziping",
+        "section": "论正官",
+        "entry": "ziping.bage.002"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "壬戌",
+        "丁未",
+        "戊申",
+        "乙卯"
+      ],
+      "original": "若壬戌、丁未、戊申、乙卯，杂气正官透干会支，最为贵格，而壬财丁印，二者相合，仍以孤官无辅，所以不上七品。",
+      "vernacular": "若是壬戌、丁未、戊申、乙卯，杂气正官透干、会支，本是很贵的格局，但壬财、丁印相合，仍是孤官无辅，所以官位不超过七品。",
+      "expected": {
+        "pattern": "杂气正官格",
+        "chengBai": "成中有败",
+        "outcome": "所以不上七品"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第65—67页（书内56—58页）；据已校录古籍条目 ziping.bage.002 摘录本造，不补公历生年。取格按本条所述及《论正官》的分类，未按程序结果反填。成败依据：「杂气正官透干会支，最为贵格，而壬财丁印，二者相合，仍以孤官无辅，所以不上七品。」。财印在本造相合而失辅，不把前一造的财印并用照搬为本造用神。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.003",
+      "name": "金人状元命",
+      "source": {
+        "classic": "ziping",
+        "section": "论正官",
+        "entry": "ziping.bage.003"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "乙卯",
+        "丁亥",
+        "丁未",
+        "庚戌"
+      ],
+      "original": "如金人状元命，乙卯、丁亥、丁未、庚戌，此并用财印，无伤官而不杂煞，所谓去其忌而存其喜者也。",
+      "vernacular": "如金人状元命，乙卯、丁亥、丁未、庚戌，是财印并用，没有伤官，也不混杂煞，正是去掉所忌而保留所喜。",
+      "expected": {
+        "pattern": "正官格",
+        "chengBai": "成",
+        "useGod": [
+          "财",
+          "印"
+        ],
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "此并用财印，无伤官而不杂煞，所谓去其忌而存其喜者也。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第65—67页（书内56—58页）；据已校录古籍条目 ziping.bage.003 摘录本造，不补公历生年。取格按本条所述及《论正官》的分类，未按程序结果反填。成败依据：「若化官为印，而透财则又为透之，而大贵之格也。」。本造按月令取正官格；「化官为印」是此格的用法，财、印为相神。原录存疑：底本作「而透财则又为透之」，第二个「透」及句义疑有讹脱；不擅改字，白话保留疑句，待校。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.004",
+      "name": "宣参国命",
+      "source": {
+        "classic": "ziping",
+        "section": "论正官",
+        "entry": "ziping.bage.004"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "己卯",
+        "辛未",
+        "壬寅",
+        "辛亥"
+      ],
+      "original": "如宣参国命，己卯、辛未、壬寅、辛亥，未中己官透干，用清支会木局，两辛解之，是遇伤而佩印也。",
+      "vernacular": "如宣参国命，己卯、辛未、壬寅、辛亥，未中己官透干，「用清支会木局」，两辛来解救，就是遇伤而佩印。",
+      "expected": {
+        "pattern": "正官格",
+        "useGod": "印",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "两辛解之，是遇伤而佩印也。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第65—67页（书内56—58页）；据已校录古籍条目 ziping.bage.004 摘录本造，不补公历生年。取格按本条所述及《论正官》的分类，未按程序结果反填。原文说两辛解伤，未直言此造成败等级，chengBai 留空；未将未月自行补为杂气格名。原录存疑：底本作「用清支会木局」，其句读及「用清」所指不明；original 不补改，白话保留可确定的会木、两辛解伤关系。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.005",
+      "name": "李参政命",
+      "source": {
+        "classic": "ziping",
+        "section": "论正官",
+        "entry": "ziping.bage.004"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "庚寅",
+        "乙酉",
+        "甲子",
+        "戊辰"
+      ],
+      "original": "李参政命，庚寅、乙酉、甲子、戊辰，甲用酉官，庚金混煞，乙以合之，合煞留官，是杂煞而取清也。",
+      "vernacular": "李参政命，庚寅、乙酉、甲子、戊辰，甲用酉官，庚金混入煞，乙来合庚，合煞留官，就是混煞而取清。",
+      "expected": {
+        "pattern": "正官格",
+        "chengBai": "成",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "甲用酉官，庚金混煞，乙以合之，合煞留官，是杂煞而取清也。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第65—67页（书内56—58页）；据已校录古籍条目 ziping.bage.004 摘录本造，不补公历生年。取格按本条所述及《论正官》的分类，未按程序结果反填。成败依据：「混煞贵乎取清。」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.006",
+      "name": "范太傅命",
+      "source": {
+        "classic": "ziping",
+        "section": "论正官",
+        "entry": "ziping.bage.005"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丁丑",
+        "壬寅",
+        "己巳",
+        "丙寅"
+      ],
+      "original": "如范太傅命，丁丑、壬寅、己巳、丙寅，支其巳丑会金伤官，丙丁解之，透壬岂非破格？却不知丙丁并透，用一而足，以丁合壬而财去，以丙制伤而官清，无情而愈有情，此正造化之妙，变幻无穷，焉得不贵。",
+      "vernacular": "如范太傅命，丁丑、壬寅、己巳、丙寅，地支巳丑会金为伤官，丙丁来解救，透壬岂不是破格？却不知丙丁都透，用一个已经足够：丁合壬而去财，丙制伤而使官清，无情反而更有情。这正是造化变幻无穷的妙处，怎能不贵？",
+      "expected": {
+        "pattern": "正官格",
+        "chengBai": "败中有成",
+        "useGod": "印",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "至于官格透伤用印者"
+        },
+        "outcome": "焉得不贵"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第65—67页（书内56—58页）；据已校录古籍条目 ziping.bage.005 摘录本造，不补公历生年。取格按本条所述及《论正官》的分类，未按程序结果反填。成败依据：「透壬岂非破格？却不知丙丁并透，用一而足，以丁合壬而财去，以丙制伤而官清，无情而愈有情」。本造取用承同条前文：「至于官格透伤用印者」。「岂非破格」是被下文推翻的设问，不把它单独记为败；丙丁在同段以印制伤论。原录存疑：底本作「支其巳丑会金伤官」，「其」字与语序疑有讹误，original 保留，白话暂按地支巳丑会金之意释。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.007",
+      "name": "葛参政命",
+      "source": {
+        "classic": "ziping",
+        "section": "论财",
+        "entry": "ziping.bage.015"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "壬申",
+        "壬子",
+        "戊午",
+        "乙卯"
+      ],
+      "original": "如葛参政命，壬申、壬子、戊午、乙卯，岂非财露，惟其生官，所以不忌也。",
+      "vernacular": "如葛参政命，壬申、壬子、戊午、乙卯，岂不是财露？只因为财能生官，所以不忌。",
+      "expected": {
+        "pattern": "财格"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第68—71页（书内59—62页）；据已校录古籍条目 ziping.bage.015 摘录本造，不补公历生年。取格按本条所述及《论财》的分类，未按程序结果反填。原文解释财露而生官不忌，没有明言本造用神及成败等级，均不补。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.008",
+      "name": "杨侍郎之命",
+      "source": {
+        "classic": "ziping",
+        "section": "论财",
+        "entry": "ziping.bage.016"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "壬寅",
+        "壬寅",
+        "庚辰",
+        "辛巳"
+      ],
+      "original": "如壬寅、壬寅、庚辰、辛巳，杨侍郎之命是也。",
+      "vernacular": "如壬寅、壬寅、庚辰、辛巳，就是杨侍郎的命造。",
+      "expected": {
+        "pattern": "财格",
+        "useGod": "食神",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有财用食生者，身强而不露官，略带一位比肩，益觉有情"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第68—71页（书内59—62页）；据已校录古籍条目 ziping.bage.016 摘录本造，不补公历生年。取格按本条所述及《论财》的分类，未按程序结果反填。本造取用承同条前文：「有财用食生者，身强而不露官，略带一位比肩，益觉有情」。「透官身弱则格坏」是后列的相反条件，不是本造断语。原录存疑：原文称「略带一位比肩」，但所举庚日例的辛为劫财；此处比肩可能泛称比劫，须与程序严格区分阴阳的十神名分别看待。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.009",
+      "name": "曾参政之命",
+      "source": {
+        "classic": "ziping",
+        "section": "论财",
+        "entry": "ziping.bage.017"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "乙未",
+        "甲申",
+        "丙申",
+        "庚寅"
+      ],
+      "original": "如乙未、甲申、丙申、庚寅，曾参政之命是也。",
+      "vernacular": "如乙未、甲申、丙申、庚寅，就是曾参政的命造。",
+      "expected": {
+        "pattern": "财格",
+        "chengBai": "成",
+        "useGod": "印",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有财格佩印者，盖孤财不贵，佩印帮身，即以取贵。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第68—71页（书内59—62页）；据已校录古籍条目 ziping.bage.017 摘录本造，不补公历生年。取格按本条所述及《论财》的分类，未按程序结果反填。成败依据：「有财格佩印者，盖孤财不贵，佩印帮身，即以取贵。」。本造取用承同条前文：「有财格佩印者，盖孤财不贵，佩印帮身，即以取贵。」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.010",
+      "name": "某造（财印相并）",
+      "source": {
+        "classic": "ziping",
+        "section": "论财",
+        "entry": "ziping.bage.017"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "乙未",
+        "己卯",
+        "庚寅",
+        "辛巳"
+      ],
+      "original": "如乙未、己卯、庚寅、辛巳，乙与己两不相能，即有好处，小富而已。",
+      "vernacular": "如乙未、己卯、庚寅、辛巳，乙己互不相容，即使有好处，也只是小富。",
+      "expected": {
+        "pattern": "财格",
+        "outcome": "小富而已"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第68—71页（书内59—62页）；据已校录古籍条目 ziping.bage.017 摘录本造，不补公历生年。取格按本条所述及《论财》的分类，未按程序结果反填。前文限定「财印不宜相并」；仅说小富，没有明定破格，不据富贵高低自行补成败。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.011",
+      "name": "吴榜眼命",
+      "source": {
+        "classic": "ziping",
+        "section": "论财",
+        "entry": "ziping.bage.018"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "庚戌",
+        "戊子",
+        "戊子",
+        "丙辰"
+      ],
+      "original": "如吴榜眼命，庚戌、戊子、戊子、丙辰，庚与丙隔一戊而不相克，是食与卯不相碍也。",
+      "vernacular": "如吴榜眼命，庚戌、戊子、戊子、丙辰，庚丙隔着一个戊，不相克，就是「食与卯」不相妨碍。",
+      "expected": {
+        "pattern": "财格",
+        "chengBai": "成",
+        "useGod": [
+          "食神",
+          "印"
+        ],
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有用食而兼用印者，食与印而不相碍"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第68—71页（书内59—62页）；据已校录古籍条目 ziping.bage.018 摘录本造，不补公历生年。取格按本条所述及《论财》的分类，未按程序结果反填。成败依据：「有用食而兼用印者，食与印而不相碍，或有暗而去食护官，皆贵格也。」。本造取用承同条前文：「有用食而兼用印者，食与印而不相碍」。原录存疑：本造「食与卯不相碍」的卯疑为印，保留原字，不混入别造的「去官护官」疑句。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.012",
+      "name": "平江伯命",
+      "source": {
+        "classic": "ziping",
+        "section": "论财",
+        "entry": "ziping.bage.018"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "壬辰",
+        "乙巳",
+        "癸巳",
+        "辛酉"
+      ],
+      "original": "如平江伯命，壬辰、乙巳、癸巳、辛酉，虽食印相克，而且存巳中戊官，是去官护官也。",
+      "vernacular": "如平江伯命，壬辰、乙巳、癸巳、辛酉，虽食印相克，却保全巳中戊官，原文称为「去官护官」。",
+      "expected": {
+        "pattern": "财格",
+        "chengBai": "成"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第68—71页（书内59—62页）；据已校录古籍条目 ziping.bage.018 摘录本造，不补公历生年。取格按本条所述及《论财》的分类，未按程序结果反填。成败依据：「有用食而兼用印者，食与印而不相碍，或有暗而去食护官，皆贵格也。」。「去官护官」有讹疑，暂不以推改后的意思补本造 useGod。原录存疑：原录「而且存巳中戊官」「是去官护官也」照录，前一个官疑为食，未自行改原文。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.013",
+      "name": "汪学士之命",
+      "source": {
+        "classic": "ziping",
+        "section": "论财",
+        "entry": "ziping.bage.019"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "甲子",
+        "辛未",
+        "辛酉",
+        "壬辰"
+      ],
+      "original": "如甲子、辛未、辛酉、壬辰，甲透未库，逢辛为劫，壬以化劫生财，汪学士之命是也。",
+      "vernacular": "如甲子、辛未、辛酉、壬辰，甲从未库透出，逢辛为劫，壬来化劫生财，就是汪学士的命造。",
+      "expected": {
+        "pattern": "财格",
+        "useGod": "伤官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有财用伤官者，财不甚旺，而比强，略露一位伤官以化之。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第68—71页（书内59—62页）；据已校录古籍条目 ziping.bage.019 摘录本造，不补公历生年。取格按本条所述及《论财》的分类，未按程序结果反填。本造取用承同条前文：「有财用伤官者，财不甚旺，而比强，略露一位伤官以化之。」。原录存疑：本造辛日另见辛干，原书泛称「逢辛为劫」，程序严格区分时是比肩，不据此改四柱或十神。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.014",
+      "name": "毛状元之命",
+      "source": {
+        "classic": "ziping",
+        "section": "论财",
+        "entry": "ziping.bage.020"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "乙酉",
+        "庚辰",
+        "甲午",
+        "戊辰"
+      ],
+      "original": "如毛状元之命是也，乙酉、庚辰、甲午、戊辰，合煞存财也。",
+      "vernacular": "例如毛状元的命造，乙酉、庚辰、甲午、戊辰，就是合煞存财。",
+      "expected": {
+        "pattern": "财格",
+        "chengBai": "成",
+        "useGod": "财",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "合煞存财也。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第68—71页（书内59—62页）；据已校录古籍条目 ziping.bage.020 摘录本造，不补公历生年。取格按本条所述及《论财》的分类，未按程序结果反填。成败依据：「有财带七煞者，或合煞存财，或制煞生财，皆贵格也。」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.015",
+      "name": "赵侍郎命",
+      "source": {
+        "classic": "ziping",
+        "section": "论财",
+        "entry": "ziping.bage.021"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "乙丑",
+        "丁亥",
+        "己亥",
+        "乙亥"
+      ],
+      "original": "如赵侍郎命，乙丑、丁亥、己亥、乙亥，化煞而即以解冻，又不露财以杂其印，所以贵也。",
+      "vernacular": "如赵侍郎命，乙丑、丁亥、己亥、乙亥，化煞又解冻，也不露财来混杂印，所以显贵。",
+      "expected": {
+        "pattern": "财格",
+        "chengBai": "成",
+        "useGod": [
+          "七杀",
+          "印"
+        ],
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有财用煞印者，党煞为忌，印以化之，格成富局。"
+        },
+        "outcome": "所以贵也"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第68—71页（书内59—62页）；据已校录古籍条目 ziping.bage.021 摘录本造，不补公历生年。取格按本条所述及《论财》的分类，未按程序结果反填。成败依据：「所以贵也。」。本造取用承同条前文：「有财用煞印者，党煞为忌，印以化之，格成富局。」。解冻为原文明说的调候作用；本批 useGodWhy 统一按格局归类。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.016",
+      "name": "林尚书命",
+      "source": {
+        "classic": "ziping",
+        "section": "论财",
+        "entry": "ziping.bage.022"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丙寅",
+        "癸巳",
+        "癸未",
+        "壬戌"
+      ],
+      "original": "如丙寅、癸巳、癸未、壬戌，林尚书命是也。",
+      "vernacular": "如丙寅、癸巳、癸未、壬戌，就是林尚书的命造。",
+      "expected": {
+        "pattern": "财格",
+        "chengBai": "成"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第68—71页（书内59—62页）；据已校录古籍条目 ziping.bage.022 摘录本造，不补公历生年。取格按本条所述及《论财》的分类，未按程序结果反填。成败依据：「至于壬生午月，癸生巳月，单透财而亦贵，以月令有暗官也。」。本句只说单透财与月令暗官，没有明确另取何神，useGod 不补。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.017",
+      "name": "王太仆命",
+      "source": {
+        "classic": "ziping",
+        "section": "论财",
+        "entry": "ziping.bage.023"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丙辰",
+        "癸巳",
+        "壬戌",
+        "壬寅"
+      ],
+      "original": "如丙辰、癸巳、壬戌、壬寅，王太仆命是也。",
+      "vernacular": "如丙辰、癸巳、壬戌、壬寅，就是王太仆的命造。",
+      "expected": {
+        "pattern": "财格",
+        "chengBai": "成",
+        "useGod": "财",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "弃煞就财，美者存而憎者弃也。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第68—71页（书内59—62页）；据已校录古籍条目 ziping.bage.023 摘录本造，不补公历生年。取格按本条所述及《论财》的分类，未按程序结果反填。成败依据：「又有壬生巳月，单透财而亦贵」。本造取用承同条前文：「弃煞就财，美者存而憎者弃也。」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.018",
+      "name": "一尚书命",
+      "source": {
+        "classic": "ziping",
+        "section": "论财",
+        "entry": "ziping.bage.024"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丙辰",
+        "丙申",
+        "丙午",
+        "壬辰"
+      ],
+      "original": "如一尚书命，丙辰、丙申、丙午、壬辰，此又变之又变者也。",
+      "vernacular": "如一位尚书的命造，丙辰、丙申、丙午、壬辰，这又是变化之后再有变化。",
+      "expected": {
+        "useGod": "七杀",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "至于劫刀太重，弃财就煞"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第68—71页（书内59—62页）；据已校录古籍条目 ziping.bage.024 摘录本造，不补公历生年。本造取用承同条前文：「至于劫刀太重，弃财就煞」。原文说弃财就煞，未明确另立何格；不由申月或程序输出补 pattern，不以尚书称呼代作成败断语。原录存疑：底本作「劫刀太重」，「刀」疑为「刃」之简写或刻印讹误，original 保留，白话依术语暂释为刃。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.019",
+      "name": "张参政命",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.033"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丙寅",
+        "戊戌",
+        "辛酉",
+        "戊子"
+      ],
+      "original": "如丙寅、戊戌、辛酉、戊子，张参政命是也。",
+      "vernacular": "如丙寅、戊戌、辛酉、戊子，就是张参政的命造。",
+      "expected": {
+        "pattern": "印格",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有印而透官者，正官不独取其生印，而即可以为用"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.033 摘录本造，不补公历生年。取格按本条所述及《论印绶》的分类，未按程序结果反填。本造取用承同条前文：「有印而透官者，正官不独取其生印，而即可以为用」。原录存疑：底本作「只要官星清杂」，字句疑有讹脱；不擅补「不」等字，白话保留官星清杂条件未明的限制。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.020",
+      "name": "朱尚书命",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.033"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丙戌",
+        "戊戌",
+        "辛未",
+        "壬辰"
+      ],
+      "original": "如朱尚书命，丙戌、戊戌、辛未、壬辰，壬为戊伤，壬不伤官也。",
+      "vernacular": "如朱尚书命，丙戌、戊戌、辛未、壬辰，壬被戊伤，就不伤官。",
+      "expected": {
+        "pattern": "印格",
+        "chengBai": "成",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有印而透官者，正官不独取其生印，而即可以为用"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.033 摘录本造，不补公历生年。取格按本条所述及《论印绶》的分类，未按程序结果反填。成败依据：「然亦有带伤食而贵者」。本造取用承同条前文：「有印而透官者，正官不独取其生印，而即可以为用」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.021",
+      "name": "临淮侯命",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.033"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "乙亥",
+        "己卯",
+        "丁酉",
+        "壬寅"
+      ],
+      "original": "又如临淮侯命，乙亥、己卯、丁酉、壬寅，己为乙制，己不碍官也。",
+      "vernacular": "又如临淮侯命，乙亥、己卯、丁酉、壬寅，己被乙制，就不妨碍官。",
+      "expected": {
+        "pattern": "印格",
+        "chengBai": "成",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有印而透官者，正官不独取其生印，而即可以为用"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.033 摘录本造，不补公历生年。取格按本条所述及《论印绶》的分类，未按程序结果反填。成败依据：「然亦有带伤食而贵者」。本造取用承同条前文：「有印而透官者，正官不独取其生印，而即可以为用」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.022",
+      "name": "李状元命",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.034"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "戊戌",
+        "乙卯",
+        "丙午",
+        "乙亥"
+      ],
+      "original": "如戊戌、乙卯、丙午、乙亥，李状元命是也。",
+      "vernacular": "如戊戌、乙卯、丙午、乙亥，就是李状元的命造。",
+      "expected": {
+        "pattern": "印格",
+        "useGod": "食伤",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有印而用伤食者，身强印旺，恐其太过，泄身以为秀气。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.034 摘录本造，不补公历生年。取格按本条所述及《论印绶》的分类，未按程序结果反填。本造取用承同条前文：「有印而用伤食者，身强印旺，恐其太过，泄身以为秀气。」。后文印浅身轻而层层伤食的寒贫条件，不属于本造。自检：复核同底本PDF第73页（书内64页），确印乙亥；丙日亥时按日上起时应为己亥，原书如此，四柱照录。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.023",
+      "name": "茅状元命",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.035"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "己巳",
+        "癸酉",
+        "癸未",
+        "庚申"
+      ],
+      "original": "如茅状元命，己巳、癸酉、癸未、庚申，此身轻印重也。",
+      "vernacular": "如茅状元命，己巳、癸酉、癸未、庚申，是身轻印重。",
+      "expected": {
+        "pattern": "印格",
+        "useGod": "七杀",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有用偏官者，偏官本非美物，藉其生印，不得已而用之"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.035 摘录本造，不补公历生年。取格按本条所述及《论印绶》的分类，未按程序结果反填。本造取用承同条前文：「有用偏官者，偏官本非美物，藉其生印，不得已而用之」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.024",
+      "name": "马参政命",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.035"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "壬寅",
+        "戊申",
+        "壬辰",
+        "壬寅"
+      ],
+      "original": "马参政命，壬寅、戊申、壬辰、壬寅，此身重印轻也。",
+      "vernacular": "马参政命，壬寅、戊申、壬辰、壬寅，是身重印轻。",
+      "expected": {
+        "pattern": "印格",
+        "useGod": "七杀",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有用偏官者，偏官本非美物，藉其生印，不得已而用之"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.035 摘录本造，不补公历生年。取格按本条所述及《论印绶》的分类，未按程序结果反填。本造取用承同条前文：「有用偏官者，偏官本非美物，藉其生印，不得已而用之」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.025",
+      "name": "孙布政命",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.036"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "己丑",
+        "辛未",
+        "己巳",
+        "庚午"
+      ],
+      "original": "如己丑、辛未、己巳、庚午，孙布政命是也。",
+      "vernacular": "如己丑、辛未、己巳、庚午，就是孙布政的命造。",
+      "expected": {
+        "pattern": "印格",
+        "chengBai": "成",
+        "useGod": "七杀",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有用煞而兼带伤食者，则用煞而有制，生身而有泄"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.036 摘录本造，不补公历生年。取格按本条所述及《论印绶》的分类，未按程序结果反填。成败依据：「有用煞而兼带伤食者，则用煞而有制，生身而有泄，不论身旺印重，皆为贵格。」。本造取用承同条前文：「有用煞而兼带伤食者，则用煞而有制，生身而有泄」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.026",
+      "name": "汪侍郎命",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.037"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "辛酉",
+        "丙申",
+        "壬申",
+        "辛亥"
+      ],
+      "original": "如辛酉、丙申、壬申、辛亥，汪侍郎命是也。",
+      "vernacular": "如辛酉、丙申、壬申、辛亥，就是汪侍郎的命造。",
+      "expected": {
+        "pattern": "印格",
+        "useGod": "财",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有印多而用财者，印重身强，透财以抑太过，权而用之"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.037 摘录本造，不补公历生年。取格按本条所述及《论印绶》的分类，未按程序结果反填。本造取用承同条前文：「有印多而用财者，印重身强，透财以抑太过，权而用之」。后文贪财破印及印重财轻兼露伤食均为另设条件，未套成本造的贫贱或不贵结局。原录存疑：底本作「无妨财劫」，语义可能涉及财受比劫，但未展开，不将此句补成可直接编码的确定规则。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.027",
+      "name": "牛监簿命",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.038"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "庚寅",
+        "乙酉",
+        "癸亥",
+        "丙辰"
+      ],
+      "original": "如庚寅、乙酉、癸亥、丙辰，此牛监簿命也。乙合庚而不生丙，所以为贵。",
+      "vernacular": "如庚寅、乙酉、癸亥、丙辰，是牛监簿的命造。乙合庚而不生丙，所以显贵。",
+      "expected": {
+        "pattern": "印格",
+        "chengBai": "成",
+        "outcome": "所以为贵"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.038 摘录本造，不补公历生年。取格按本条所述及《论印绶》的分类，未按程序结果反填。成败依据：「乙合庚而不生丙，所以为贵。」。本条明说合而不生的关系，未明说本造用何神，不据四柱自行填 useGod。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.028",
+      "name": "某造（合财存食）",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.038"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "己未",
+        "甲戌",
+        "辛未",
+        "癸巳"
+      ],
+      "original": "如己未、甲戌、辛未、癸巳，此合财存食之贵也。",
+      "vernacular": "如己未、甲戌、辛未、癸巳，就是合财存食而显贵。",
+      "expected": {
+        "pattern": "印格",
+        "chengBai": "成",
+        "useGod": "食神",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "此合财存食之贵也。"
+        },
+        "outcome": "此合财存食之贵也"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.038 摘录本造，不补公历生年。取格按本条所述及《论印绶》的分类，未按程序结果反填。成败依据：「此合财存食之贵也。」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.029",
+      "name": "某造（印格合煞留官）",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.039"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "辛亥",
+        "庚子",
+        "甲辰",
+        "乙亥"
+      ],
+      "original": "如辛亥、庚子、甲辰、乙亥，此合煞留官也。",
+      "vernacular": "如辛亥、庚子、甲辰、乙亥，就是合煞留官。",
+      "expected": {
+        "pattern": "印格",
+        "chengBai": "成",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "此合煞留官也。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.039 摘录本造，不补公历生年。取格按本条所述及《论印绶》的分类，未按程序结果反填。成败依据：「又有印而透兼官煞者，或合煞，或有制，皆为贵格。」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.030",
+      "name": "某造（印格官煞有制）",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.039"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "壬子",
+        "癸卯",
+        "丙子",
+        "己亥"
+      ],
+      "original": "壬子、癸卯、丙子、己亥，此官煞有制也。",
+      "vernacular": "壬子、癸卯、丙子、己亥，就是官煞有制。",
+      "expected": {
+        "pattern": "印格",
+        "chengBai": "成"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.039 摘录本造，不补公历生年。取格按本条所述及《论印绶》的分类，未按程序结果反填。成败依据：「又有印而透兼官煞者，或合煞，或有制，皆为贵格。」。原文未明确制谁留谁，不由四柱自行指定本造用神。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.031",
+      "name": "赵知府命",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.040"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丙午",
+        "庚寅",
+        "丙午",
+        "癸巳"
+      ],
+      "original": "如赵知府命，丙午、庚寅、丙午、癸巳，则变之又变者矣。",
+      "vernacular": "如赵知府命，丙午、庚寅、丙午、癸巳，就是变化之后再有变化。",
+      "expected": {
+        "useGod": [
+          "财",
+          "正官"
+        ],
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "至于化印为劫，弃之以就财官"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.040 摘录本造，不补公历生年。本造取用承同条前文：「至于化印为劫，弃之以就财官」。本条明说化印为劫后弃而就财官，未另明定格名，不以章节名强填印格。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.032",
+      "name": "某造（劫财存煞印）",
+      "source": {
+        "classic": "ziping",
+        "section": "论印绶",
+        "entry": "ziping.bage.041"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "庚戌",
+        "戊子",
+        "甲戌",
+        "乙亥"
+      ],
+      "original": "如庚戌、戊子、甲戌、乙亥，是也。然此格毕竟难看，宜细详之。",
+      "vernacular": "如庚戌、戊子、甲戌、乙亥，就是这种情况。但此格终究难以判断，应仔细推详。",
+      "expected": {
+        "pattern": "印格",
+        "chengBai": "成"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第72—75页（书内63—66页）；据已校录古籍条目 ziping.bage.041 摘录本造，不补公历生年。取格按本条所述及《论印绶》的分类，未按程序结果反填。成败依据：「更有印透七煞，而劫财以存煞印，亦有贵格。」。保存原文「然此格毕竟难看，宜细详之」的限制；本句没有直接指定用神，不代作者补定。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.033",
+      "name": "梁丞相之命",
+      "source": {
+        "classic": "ziping",
+        "section": "论食神",
+        "entry": "ziping.bage.047"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丁未",
+        "癸卯",
+        "癸亥",
+        "癸丑"
+      ],
+      "original": "若丁未、癸卯、癸亥、癸丑，梁丞相之命是也。",
+      "vernacular": "如丁未、癸卯、癸亥、癸丑，就是梁丞相的命造。",
+      "expected": {
+        "pattern": "食神格",
+        "chengBai": "成"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第76—77页（书内67—68页）；据已校录古籍条目 ziping.bage.047 摘录本造，不补公历生年。取格按本条所述及《论食神》的分类，未按程序结果反填。成败依据：「如身强食旺而财透，大贵之格。」。本条以食神生财论贵，未直接写取何者为用，不把生财关系直接改作 useGod。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.034",
+      "name": "谢阁老命",
+      "source": {
+        "classic": "ziping",
+        "section": "论食神",
+        "entry": "ziping.bage.047"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "己未",
+        "壬申",
+        "戊子",
+        "庚申"
+      ],
+      "original": "己未、壬申、戊子、庚申，谢阁老是也。",
+      "vernacular": "己未、壬申、戊子、庚申，就是谢阁老的命造。",
+      "expected": {
+        "pattern": "食神格",
+        "chengBai": "成"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第76—77页（书内67—68页）；据已校录古籍条目 ziping.bage.047 摘录本造，不补公历生年。取格按本条所述及《论食神》的分类，未按程序结果反填。成败依据：「如身强食旺而财透，大贵之格。」。同造另见《论时说以讹传讹》ziping.xingyun.051（PR #63），明说「本食神生财也」，并批评另求戊日庚申食禄之格；不重复录入，不把作者批评的格写入 expected。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.035",
+      "name": "沈路分命",
+      "source": {
+        "classic": "ziping",
+        "section": "论食神",
+        "entry": "ziping.bage.048"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丁亥",
+        "癸卯",
+        "癸卯",
+        "甲寅"
+      ],
+      "original": "如丁亥、癸卯、癸卯、甲寅，沈路分命是也。",
+      "vernacular": "如丁亥、癸卯、癸卯、甲寅，就是沈路分的命造。",
+      "expected": {
+        "pattern": "食神格",
+        "outcome": "主人性刚"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第76—77页（书内67—68页）；据已校录古籍条目 ziping.bage.048 摘录本造，不补公历生年。取格按本条所述及《论食神》的分类，未按程序结果反填。本造结局判断承同条前文：「主人性刚」。「藏食露伤」承本章食神类别；性刚是原文性情判断，不据此定成败。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.036",
+      "name": "龚知县命",
+      "source": {
+        "classic": "ziping",
+        "section": "论食神",
+        "entry": "ziping.bage.049"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "甲午",
+        "丁卯",
+        "癸丑",
+        "丙辰"
+      ],
+      "original": "如甲午、丁卯、癸丑、丙辰，龚知县命是也。",
+      "vernacular": "如甲午、丁卯、癸丑、丙辰，就是龚知县的命造。",
+      "expected": {
+        "pattern": "食神格",
+        "outcome": "富贵不巨"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第76—77页（书内67—68页）；据已校录古籍条目 ziping.bage.049 摘录本造，不补公历生年。取格按本条所述及《论食神》的分类，未按程序结果反填。本造结局判断承同条前文：「富贵不巨」。原书只说富贵不大，没有明说破格，成败留空。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.037",
+      "name": "黄都督命",
+      "source": {
+        "classic": "ziping",
+        "section": "论食神",
+        "entry": "ziping.bage.050"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "己未",
+        "己巳",
+        "甲寅",
+        "丙寅"
+      ],
+      "original": "如己未、己巳、甲寅、丙寅，黄都督命是也。",
+      "vernacular": "如己未、己巳、甲寅、丙寅，就是黄都督的命造。",
+      "expected": {
+        "pattern": "食神格",
+        "chengBai": "成",
+        "useGod": "财",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "夏木用财，火炎土燥，贵多就武。"
+        },
+        "outcome": "贵多就武"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第76—77页（书内67—68页）；据已校录古籍条目 ziping.bage.050 摘录本造，不补公历生年。取格按本条所述及《论食神》的分类，未按程序结果反填。成败依据：「夏木用财，火炎土燥，贵多就武。」。本造取用承同条前文：「夏木用财，火炎土燥，贵多就武。」。本造结局判断承同条前文：「贵多就武」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.038",
+      "name": "常国公命",
+      "source": {
+        "classic": "ziping",
+        "section": "论食神",
+        "entry": "ziping.bage.051"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "辛卯",
+        "辛卯",
+        "癸酉",
+        "己未"
+      ],
+      "original": "如辛卯、辛卯、癸酉、己未，常国公命是也。",
+      "vernacular": "如辛卯、辛卯、癸酉、己未，就是常国公的命造。",
+      "expected": {
+        "pattern": "食神格",
+        "chengBai": "成",
+        "useGod": [
+          "七杀",
+          "印"
+        ],
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "若不用财而就煞印，最为威权显赫。"
+        },
+        "outcome": "最为威权显赫"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第76—77页（书内67—68页）；据已校录古籍条目 ziping.bage.051 摘录本造，不补公历生年。取格按本条所述及《论食神》的分类，未按程序结果反填。成败依据：「若不用财而就煞印，最为威权显赫。」。本造取用承同条前文：「若不用财而就煞印，最为威权显赫。」。本造结局判断承同条前文：「最为威权显赫」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.039",
+      "name": "胡会元命",
+      "source": {
+        "classic": "ziping",
+        "section": "论食神",
+        "entry": "ziping.bage.052"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "戊戌",
+        "壬戌",
+        "丙子",
+        "戊戌"
+      ],
+      "original": "如戊戌、壬戌、丙子、戊戌，胡会元命是也。",
+      "vernacular": "如戊戌、壬戌、丙子、戊戌，就是胡会元的命造。",
+      "expected": {
+        "pattern": "食神格",
+        "chengBai": "成"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第76—77页（书内67—68页）；据已校录古籍条目 ziping.bage.052 摘录本造，不补公历生年。取格按本条所述及《论食神》的分类，未按程序结果反填。成败依据：「若无印缓而单露偏官，只要无财，亦为贵格。」。此处明说单露偏官及无财条件，未直接称偏官为用神，useGod 不补。原录存疑：底本作「印缓」，疑为印绶之讹；original 照录，白话暂按印星解释。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.040",
+      "name": "舒尚书命",
+      "source": {
+        "classic": "ziping",
+        "section": "论食神",
+        "entry": "ziping.bage.053"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丁亥",
+        "壬子",
+        "辛巳",
+        "丁酉"
+      ],
+      "original": "如丁亥、壬子、辛巳、丁酉，舒尚书命是也。",
+      "vernacular": "如丁亥、壬子、辛巳、丁酉，就是舒尚书的命造。",
+      "expected": {
+        "pattern": "食神格",
+        "chengBai": "成",
+        "useGod": "七杀",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "若金水食神而用煞，贵而且秀。"
+        },
+        "outcome": "贵而且秀"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第76—77页（书内67—68页）；据已校录古籍条目 ziping.bage.053 摘录本造，不补公历生年。取格按本条所述及《论食神》的分类，未按程序结果反填。成败依据：「若金水食神而用煞，贵而且秀。」。本造取用承同条前文：「若金水食神而用煞，贵而且秀。」。本造结局判断承同条前文：「贵而且秀」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.041",
+      "name": "钱参政命",
+      "source": {
+        "classic": "ziping",
+        "section": "论食神",
+        "entry": "ziping.bage.054"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丙午",
+        "癸巳",
+        "甲子",
+        "丙寅"
+      ],
+      "original": "如丙午、癸巳、甲子、丙寅，钱参政命是也。",
+      "vernacular": "如丙午、癸巳、甲子、丙寅，就是钱参政的命造。",
+      "expected": {
+        "pattern": "食神格"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第76—77页（书内67—68页）；据已校录古籍条目 ziping.bage.054 摘录本造，不补公历生年。取格按本条所述及《论食神》的分类，未按程序结果反填。前文只说夏火太炎、木焦而透印不碍；「不碍」不等于明定印为用，不补 useGod 或成败。原录存疑：底本作「神食忌卯」，疑有倒字及讹字，original 不改成通行的食神忌印；白话只翻后面能够确定的夏火、木焦、透印关系。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.042",
+      "name": "刘提督命",
+      "source": {
+        "classic": "ziping",
+        "section": "论食神",
+        "entry": "ziping.bage.057"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "癸酉",
+        "辛酉",
+        "己卯",
+        "乙亥"
+      ],
+      "original": "如刘提督命，癸酉、辛酉、己卯、乙亥，是也。",
+      "vernacular": "如刘提督命，癸酉、辛酉、己卯、乙亥，就是这种情况。",
+      "expected": {
+        "pattern": "食神格",
+        "chengBai": "败中有成",
+        "outcome": "亦可就贵"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第76—77页（书内67—68页）；据已校录古籍条目 ziping.bage.057 摘录本造，不补公历生年。取格按本条所述及《论食神》的分类，未按程序结果反填。成败依据：「至若食神透煞，本忌见财，而财先煞后，食以间之，而财不能党煞，亦可就贵。」。本造结局判断承同条前文：「亦可就贵」。成败按本忌见财、因食隔而救回的转折归类；没有明确再取某神为用，不自行填写。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.043",
+      "name": "某造（煞用食制）",
+      "source": {
+        "classic": "ziping",
+        "section": "论偏官",
+        "entry": "ziping.bage.065"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "乙亥",
+        "乙酉",
+        "乙卯",
+        "丁丑"
+      ],
+      "original": "如乙亥、乙酉、乙卯、丁丑，极等之贵也。",
+      "vernacular": "如乙亥、乙酉、乙卯、丁丑，是最高等的显贵。",
+      "expected": {
+        "pattern": "七杀格",
+        "chengBai": "成",
+        "useGod": "食神",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "煞用食制者上也。"
+        },
+        "outcome": "极等之贵也"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第78—81页（书内69—72页）；据已校录古籍条目 ziping.bage.065 摘录本造，不补公历生年。取格按本条所述及《论偏官》的分类，未按程序结果反填。成败依据：「煞旺食强而身健，格为贵格。」。本造取用承同条前文：「煞用食制者上也。」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.044",
+      "name": "脱脱丞相命",
+      "source": {
+        "classic": "ziping",
+        "section": "论偏官",
+        "entry": "ziping.bage.066"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "壬辰",
+        "甲辰",
+        "丙戌",
+        "戊戌"
+      ],
+      "original": "如脱脱丞相命，壬辰、甲辰、丙戌、戊戌，辰中暗煞，壬以透之，戊坐四支，食太重而透甲，印以损太过，岂非贵格？",
+      "vernacular": "如脱脱丞相命，壬辰、甲辰、丙戌、戊戌，辰中暗煞由壬透出，戊坐四支，食神太重而透甲，以印削减过多的食，岂不是贵格？",
+      "expected": {
+        "pattern": "七杀格",
+        "chengBai": "成",
+        "useGod": [
+          "食神",
+          "印"
+        ],
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "食太重而透甲，印以损太过，岂非贵格？"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第78—81页（书内69—72页）；据已校录古籍条目 ziping.bage.066 摘录本造，不补公历生年。取格按本条所述及《论偏官》的分类，未按程序结果反填。成败依据：「食太重而透甲，印以损太过，岂非贵格？」。本造承「煞用食制」，又明言以印损食之太过，故并记食、印；后句煞强食浅露印破局是相反条件，不作本造之败。原录存疑：底本作「壬以透之」，「以」字疑讹，original 照录，白话暂按壬在干头透出理解。；「辰中暗煞」是原书水库之说，与常用辰藏戊乙癸的逐干表并非同一表达，不应据此把辰藏干改成壬。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.045",
+      "name": "何参政命",
+      "source": {
+        "classic": "ziping",
+        "section": "论偏官",
+        "entry": "ziping.bage.067"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丙寅",
+        "戊戌",
+        "壬戌",
+        "辛丑"
+      ],
+      "original": "如何参政命，丙寅、戊戌、壬戌、辛丑，戊与辛同通月令，是煞印有情也。",
+      "vernacular": "比如何参政命，丙寅、戊戌、壬戌、辛丑，戊辛都通月令，就是煞印有情。",
+      "expected": {
+        "pattern": "七杀格",
+        "chengBai": "成",
+        "useGod": "印",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有七煞用印者，印能护煞，本非所宜，而煞印有情，便为贵格。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第78—81页（书内69—72页）；据已校录古籍条目 ziping.bage.067 摘录本造，不补公历生年。取格按本条所述及《论偏官》的分类，未按程序结果反填。成败依据：「有七煞用印者，印能护煞，本非所宜，而煞印有情，便为贵格。」。本造取用承同条前文：「有七煞用印者，印能护煞，本非所宜，而煞印有情，便为贵格。」。后文煞重身轻、不通月令而许贵不大，是另外一类，不混入本造断语。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.046",
+      "name": "周丞相命",
+      "source": {
+        "classic": "ziping",
+        "section": "论偏官",
+        "entry": "ziping.bage.068"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "戊戌",
+        "甲子",
+        "丁未",
+        "庚戌"
+      ],
+      "original": "如周丞相命，戊戌、甲子、丁未、庚戌，戊被甲制，不能伏煞，时透庚财，即以清食者。生不足之煞，生煞而即以制煞，两得其用，尤为大贵。",
+      "vernacular": "如周丞相命，戊戌、甲子、丁未、庚戌，戊被甲制，不能伏煞，时透庚财，就能使食清，又生不足的煞。生煞同时也制煞，两方面都发挥作用，尤其大贵。",
+      "expected": {
+        "pattern": "七杀格",
+        "chengBai": "成",
+        "useGod": "财",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有煞而用财者，财以党煞，本非所喜，而或食被印制，不能伏煞，而财以去印存食，便为贵格。"
+        },
+        "outcome": "尤为大贵"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第78—81页（书内69—72页）；据已校录古籍条目 ziping.bage.068 摘录本造，不补公历生年。取格按本条所述及《论偏官》的分类，未按程序结果反填。成败依据：「生不足之煞，生煞而即以制煞，两得其用，尤为大贵。」。本造取用承同条前文：「有煞而用财者，财以党煞，本非所喜，而或食被印制，不能伏煞，而财以去印存食，便为贵格。」。原录存疑：底本句读为「即以清食者。生不足之煞」，两句承接略不顺；白话按庚财去甲存戊、财又生煞两层关系暂释，不补 original。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.047",
+      "name": "刘运使命",
+      "source": {
+        "classic": "ziping",
+        "section": "论偏官",
+        "entry": "ziping.bage.069"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "甲申",
+        "乙亥",
+        "丙戌",
+        "庚寅"
+      ],
+      "original": "如甲申、乙亥、丙戌、庚寅，刘运使命是也。",
+      "vernacular": "如甲申、乙亥、丙戌、庚寅，就是刘运使的命造。",
+      "expected": {
+        "pattern": "七杀格",
+        "chengBai": "成",
+        "useGod": "财",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "又有身重煞轻，煞又化印，用神不清而借财以清格，亦为贵格。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第78—81页（书内69—72页）；据已校录古籍条目 ziping.bage.069 摘录本造，不补公历生年。取格按本条所述及《论偏官》的分类，未按程序结果反填。成败依据：「又有身重煞轻，煞又化印，用神不清而借财以清格，亦为贵格。」。本造取用承同条前文：「又有身重煞轻，煞又化印，用神不清而借财以清格，亦为贵格。」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.048",
+      "name": "岳统制命",
+      "source": {
+        "classic": "ziping",
+        "section": "论偏官",
+        "entry": "ziping.bage.070"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "癸卯",
+        "丁巳",
+        "庚寅",
+        "庚辰"
+      ],
+      "original": "如岳统制命，癸卯、丁巳、庚寅、庚辰，去官留煞也。夫官为贵气，去官何如不去煞？盖月令偏官煞为用，而官非用，各从其重。若官格杂煞，不能如是之贵矣。",
+      "vernacular": "如岳统制命，癸卯、丁巳、庚寅、庚辰，就是去官留煞。官本是贵气，为什么去官而不去煞？因为月令偏官煞是用神，官却不是，各以重要的为主。若是官格混煞，就不能这样显贵。",
+      "expected": {
+        "pattern": "七杀格",
+        "chengBai": "成",
+        "useGod": "七杀",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "盖月令偏官煞为用，而官非用，各从其重。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第78—81页（书内69—72页）；据已校录古籍条目 ziping.bage.070 摘录本造，不补公历生年。取格按本条所述及《论偏官》的分类，未按程序结果反填。成败依据：「有煞而杂官者，或去官或去煞，取清则贵。」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.049",
+      "name": "沈郎中命",
+      "source": {
+        "classic": "ziping",
+        "section": "论偏官",
+        "entry": "ziping.bage.070"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丙子",
+        "甲午",
+        "辛亥",
+        "辛卯"
+      ],
+      "original": "如沈郎中命，丙子、甲午、辛亥、辛卯，子冲午而克煞，是去煞留官也。",
+      "vernacular": "如沈郎中命，丙子、甲午、辛亥、辛卯，子冲午而克煞，就是去煞留官。",
+      "expected": {
+        "pattern": "正官格",
+        "chengBai": "成",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "子冲午而克煞，是去煞留官也。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第78—81页（书内69—72页）；据已校录古籍条目 ziping.bage.070 摘录本造，不补公历生年。取格按本条所述及《论偏官》的分类，未按程序结果反填。成败依据：「有煞而杂官者，或去官或去煞，取清则贵。」。本造承接「若官格杂煞」的另一种取清，依正文写正官格，不依章题统一写七杀格。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.050",
+      "name": "赵员外命",
+      "source": {
+        "classic": "ziping",
+        "section": "论偏官",
+        "entry": "ziping.bage.071"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "戊辰",
+        "甲寅",
+        "戊寅",
+        "戊午"
+      ],
+      "original": "如戊辰、甲寅、戊寅、戊午，赵员外命是也。",
+      "vernacular": "如戊辰、甲寅、戊寅、戊午，就是赵员外的命造。",
+      "expected": {
+        "pattern": "七杀格"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第78—81页（书内69—72页）；据已校录古籍条目 ziping.bage.071 摘录本造，不补公历生年。取格按本条所述及《论偏官》的分类，未按程序结果反填。原文「用刀当」按刃相当理解，但用神字段没有刃这一取值，不替换成作者未写的某个十神。后文运行财印只列类别，不补干支运。原录存疑：底本作「用刀当」，刀字照录，白话结合七杀与刃相当的上下文暂释为刃，不擅改 original。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.051",
+      "name": "史春芳命",
+      "source": {
+        "classic": "ziping",
+        "section": "论伤官",
+        "entry": "ziping.bage.080"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "壬午",
+        "己酉",
+        "戊午",
+        "庚申"
+      ],
+      "original": "如壬午、己酉、戊午、庚申，史春芳命是也。",
+      "vernacular": "如壬午、己酉、戊午、庚申，就是史春芳的命造。",
+      "expected": {
+        "pattern": "伤官格",
+        "chengBai": "成",
+        "useGod": "财",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "伤官用财者，盖伤不利于官，所以为凶。伤官生财，则以伤官者生官之具，转凶为吉，故最利之。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第82—85页（书内73—76页）；据已校录古籍条目 ziping.bage.080 摘录本造，不补公历生年。取格按本条所述及《论伤官》的分类，未按程序结果反填。成败依据：「只要身强而财有根，便为贵格。」。本造取用承同条前文：「伤官用财者，盖伤不利于官，所以为凶。伤官生财，则以伤官者生官之具，转凶为吉，故最利之。」。原录存疑：底本作「则以伤官者生官之具」，字句略不顺，照录；白话按前后句明确的伤官生财、财能生官关系翻译。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.052",
+      "name": "罗状元命",
+      "source": {
+        "classic": "ziping",
+        "section": "论伤官",
+        "entry": "ziping.bage.081"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "甲子",
+        "乙亥",
+        "辛未",
+        "戊子"
+      ],
+      "original": "如罗状元命，甲子、乙亥、辛未、戊子，干头之甲通根于亥，而又会未成局，化水为木，化之生财，尤为有情。所以伤官生财，冬金不贵，以冻水不能生木。若乃连水化木，不待于生，安得不为殿元之贵乎？",
+      "vernacular": "如罗状元命，甲子、乙亥、辛未、戊子，天干甲通根于亥，又会未成局，化水为木，化而生财，尤其有情。所以冬金伤官生财不贵，是因冻水不能生木；若连水都化为木，不必等它生木，怎能不贵为殿元？",
+      "expected": {
+        "pattern": "财格",
+        "chengBai": "成"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第82—85页（书内73—76页）；据已校录古籍条目 ziping.bage.081 摘录本造，不补公历生年。取格按本条所述及《论伤官》的分类，未按程序结果反填。成败依据：「安得不为殿元之贵乎？」。依正文「化伤为财」「化水为木」记变后的财格；没有把四柱金水关系自行写成用神。殿元：状元。原录存疑：本例只写「会未成局」，未展开是否须补足其他会局条件；照录，不据此新增仅亥未即可合化的程序规则。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.053",
+      "name": "秦龙图命",
+      "source": {
+        "classic": "ziping",
+        "section": "论伤官",
+        "entry": "ziping.bage.082"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "己卯",
+        "丁丑",
+        "丙寅",
+        "庚寅"
+      ],
+      "original": "如秦龙图命，己卯、丁丑、丙寅、庚寅，己与庚同根月令是也。",
+      "vernacular": "如秦龙图命，己卯、丁丑、丙寅、庚寅，己庚同根于月令，就是这种情况。",
+      "expected": {
+        "pattern": "伤官格"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第82—85页（书内73—76页）；据已校录古籍条目 ziping.bage.082 摘录本造，不补公历生年。取格按本条所述及《论伤官》的分类，未按程序结果反填。本段明说财伤有情、秀气相当，没有直定成败或取用，相关字段留空。原录存疑：原文称庚与己同根于丑月，庚并非通行丑藏己癸辛表中的原字；保留书中取根口径，不把程序丑藏干改为庚。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.054",
+      "name": "孛罗平章命",
+      "source": {
+        "classic": "ziping",
+        "section": "论伤官",
+        "entry": "ziping.bage.083"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "壬申",
+        "丙午",
+        "甲午",
+        "壬申"
+      ],
+      "original": "如孛罗平章命，壬申、丙午、甲午、壬申，伤官旺，印根深，身又弱，又是夏木逢润，其秀百倍，所以为一品之贵。",
+      "vernacular": "如孛罗平章命，壬申、丙午、甲午、壬申，伤官旺，印根深，身又弱，又是夏木得润，秀气百倍，所以贵至一品。",
+      "expected": {
+        "pattern": "伤官格",
+        "chengBai": "成",
+        "useGod": "印",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有伤官佩印者，印能制伤，所以为贵"
+        },
+        "outcome": "所以为一品之贵"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第82—85页（书内73—76页）；据已校录古籍条目 ziping.bage.083 摘录本造，不补公历生年。取格按本条所述及《论伤官》的分类，未按程序结果反填。成败依据：「所以为一品之贵。」。本造取用承同条前文：「有伤官佩印者，印能制伤，所以为贵」。后面的伤轻身重、印多贫穷是另一种条件，不套入本造。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.055",
+      "name": "都统制命",
+      "source": {
+        "classic": "ziping",
+        "section": "论伤官",
+        "entry": "ziping.bage.084"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丁酉",
+        "己酉",
+        "戊子",
+        "壬子"
+      ],
+      "original": "如丁酉、己酉、戊子、壬子，财太重而带印，而丁与壬隔以戊己，两不相碍，且金水多而觉寒，得火融和，都统制命也。",
+      "vernacular": "如丁酉、己酉、戊子、壬子，财太重而带印，丁壬隔着戊己，互不妨碍；金水多而寒，得到火来融和，是都统制的命造。",
+      "expected": {
+        "pattern": "伤官格",
+        "chengBai": "成",
+        "useGod": [
+          "财",
+          "印"
+        ],
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有伤官兼用财印者，财印相克，本不并用，只要干头两清而不相碍。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第82—85页（书内73—76页）；据已校录古籍条目 ziping.bage.084 摘录本造，不补公历生年。取格按本条所述及《论伤官》的分类，未按程序结果反填。成败依据：「调停中和，遂为贵格。」。本造取用承同条前文：「有伤官兼用财印者，财印相克，本不并用，只要干头两清而不相碍。」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.056",
+      "name": "一丞相命（伤官兼用财印）",
+      "source": {
+        "classic": "ziping",
+        "section": "论伤官",
+        "entry": "ziping.bage.084"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "壬戌",
+        "己酉",
+        "戊午",
+        "丁巳"
+      ],
+      "original": "又如壬戌、己酉、戊午、丁巳，印太重而带财，亦隔戊己，而丁与壬不相碍，一丞相命也。",
+      "vernacular": "又如壬戌、己酉、戊午、丁巳，印太重而带财，也隔着戊己，丁壬互不妨碍，是一位丞相的命造。",
+      "expected": {
+        "pattern": "伤官格",
+        "chengBai": "成",
+        "useGod": [
+          "财",
+          "印"
+        ],
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有伤官兼用财印者，财印相克，本不并用，只要干头两清而不相碍。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第82—85页（书内73—76页）；据已校录古籍条目 ziping.bage.084 摘录本造，不补公历生年。取格按本条所述及《论伤官》的分类，未按程序结果反填。成败依据：「调停中和，遂为贵格。」。本造取用承同条前文：「有伤官兼用财印者，财印相克，本不并用，只要干头两清而不相碍。」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.057",
+      "name": "蔡贵妃命",
+      "source": {
+        "classic": "ziping",
+        "section": "论伤官",
+        "entry": "ziping.bage.085"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "female"
+      },
+      "pillars": [
+        "己未",
+        "丙子",
+        "庚子",
+        "丙子"
+      ],
+      "original": "如己未、丙子、庚子、丙子，蔡贵妃命也。",
+      "vernacular": "如己未、丙子、庚子、丙子，是蔡贵妃的命造。",
+      "expected": {
+        "pattern": "伤官格",
+        "useGod": [
+          "七杀",
+          "印"
+        ],
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有伤官用煞印者，伤多身弱，赖煞生印以帮身而制伤。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第82—85页（书内73—76页）；据已校录古籍条目 ziping.bage.085 摘录本造，不补公历生年。取格按本条所述及《论伤官》的分类，未按程序结果反填。本造取用承同条前文：「有伤官用煞印者，伤多身弱，赖煞生印以帮身而制伤。」。原书称贵妃，按女命录；不把贵妃称呼本身换成格局成败断语。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.058",
+      "name": "夏阁老命",
+      "source": {
+        "classic": "ziping",
+        "section": "论伤官",
+        "entry": "ziping.bage.086"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "壬寅",
+        "丁未",
+        "丙寅",
+        "壬辰"
+      ],
+      "original": "如壬寅、丁未、丙寅、壬辰，夏阁老命是也。",
+      "vernacular": "如壬寅、丁未、丙寅、壬辰，就是夏阁老的命造。",
+      "expected": {
+        "pattern": "伤官格",
+        "chengBai": "成"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第82—85页（书内73—76页）；据已校录古籍条目 ziping.bage.086 摘录本造，不补公历生年。取格按本条所述及《论伤官》的分类，未按程序结果反填。成败依据：「煞因伤而有制，两得其宜，只要无财，便为贵格。」。原文说明伤制煞及无财条件，未直接说何神为用，useGod 留空。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.059",
+      "name": "某丞相造（伤官用官）",
+      "source": {
+        "classic": "ziping",
+        "section": "论伤官",
+        "entry": "ziping.bage.087"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "戊申",
+        "甲子",
+        "庚午",
+        "丁丑"
+      ],
+      "original": "如戊申、甲子、庚午、丁丑，藏癸露丁，戊甲为辅，官又得禄，所以丞相之格。",
+      "vernacular": "如戊申、甲子、庚午、丁丑，癸藏而丁露，戊甲辅助，官又得禄，所以是丞相之格。",
+      "expected": {
+        "pattern": "伤官格",
+        "chengBai": "成",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有伤官用官者，他格不用，金水独宜。然要财印为辅，不可伤官并透。"
+        },
+        "outcome": "所以丞相之格"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第82—85页（书内73—76页）；据已校录古籍条目 ziping.bage.087 摘录本造，不补公历生年。取格按本条所述及《论伤官》的分类，未按程序结果反填。成败依据：「所以丞相之格。」。本造取用承同条前文：「有伤官用官者，他格不用，金水独宜。然要财印为辅，不可伤官并透。」。后文孤官无辅或官伤并透、发福不大，是排除条件，不是本造结局。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.060",
+      "name": "郑丞相命",
+      "source": {
+        "classic": "ziping",
+        "section": "论伤官",
+        "entry": "ziping.bage.088"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丙申",
+        "己亥",
+        "辛未",
+        "己亥"
+      ],
+      "original": "如丙申、己亥、辛未、己亥，郑丞相命是也。",
+      "vernacular": "如丙申、己亥、辛未、己亥，就是郑丞相的命造。",
+      "expected": {
+        "pattern": "伤官格",
+        "chengBai": "成",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "若冬金用官，而又化伤为财，则尤为极秀极贵。"
+        },
+        "outcome": "尤为极秀极贵"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第82—85页（书内73—76页）；据已校录古籍条目 ziping.bage.088 摘录本造，不补公历生年。取格按本条所述及《论伤官》的分类，未按程序结果反填。成败依据：「若冬金用官，而又化伤为财，则尤为极秀极贵。」。本造取用承同条前文：「若冬金用官，而又化伤为财，则尤为极秀极贵。」。本造结局判断承同条前文：「尤为极秀极贵」。本造按月令取伤官格；「化伤为财」是此格的用法，仍按明说的「用官」填用神。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.061",
+      "name": "章丞相命",
+      "source": {
+        "classic": "ziping",
+        "section": "论伤官",
+        "entry": "ziping.bage.089"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "甲子",
+        "壬申",
+        "己亥",
+        "辛未"
+      ],
+      "original": "如甲子、壬申、己亥、辛未，章丞相命也。",
+      "vernacular": "如甲子、壬申、己亥、辛未，是章丞相的命造。",
+      "expected": {
+        "pattern": "财格"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第82—85页（书内73—76页）；据已校录古籍条目 ziping.bage.089 摘录本造，不补公历生年。取格按本条所述及《论伤官》的分类，未按程序结果反填。前文明确「化伤为财」「作财旺生官，而不作伤官见官」，按变后的财格录；未直接取用或定成败，不另补。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.062",
+      "name": "某丞相命（官透有力）",
+      "source": {
+        "classic": "ziping",
+        "section": "论阳刃",
+        "entry": "ziping.bage.099"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "己酉",
+        "丙子",
+        "壬寅",
+        "丙午"
+      ],
+      "original": "若己酉、丙子、壬寅、丙午，官透有力，旺财生之，丞相命也。",
+      "vernacular": "如己酉、丙子、壬寅、丙午，官透而有力，旺财生官，是丞相的命造。",
+      "expected": {
+        "pattern": "羊刃格",
+        "chengBai": "成"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第86—88页（书内77—79页）；据已校录古籍条目 ziping.bage.099 摘录本造，不补公历生年。取格按本条所述及《论阳刃》的分类，未按程序结果反填。成败依据：「如官煞露而根深，其贵也大」。本造以官制刃论，未直接明称官为用神，useGod 留空。前文官煞藏露、根深的两句有重复疑点，保留原录存疑。原录存疑：底本先说「官煞露而根深，其贵也大」，后又说「或露而根深，其贵也小」，前后重复而结论相反；后一个「深」疑误，照录待校。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.063",
+      "name": "某丞相命（透煞根深）",
+      "source": {
+        "classic": "ziping",
+        "section": "论阳刃",
+        "entry": "ziping.bage.099"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "辛丑",
+        "甲午",
+        "丙申",
+        "壬辰"
+      ],
+      "original": "又辛丑、甲午、丙申、壬辰，透煞根深，财印助之，亦丞相命也。",
+      "vernacular": "又如辛丑、甲午、丙申、壬辰，煞透而根深，财印帮助，也是丞相的命造。",
+      "expected": {
+        "pattern": "羊刃格",
+        "chengBai": "成"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第86—88页（书内77—79页）；据已校录古籍条目 ziping.bage.099 摘录本造，不补公历生年。取格按本条所述及《论阳刃》的分类，未按程序结果反填。成败依据：「如官煞露而根深，其贵也大」。本造以煞制刃论，未直接明称煞为用神，useGod 留空。原录存疑：底本先说「官煞露而根深，其贵也大」，后又说「或露而根深，其贵也小」，前后重复而结论相反；后一个「深」疑误，照录待校。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.064",
+      "name": "穆同知命",
+      "source": {
+        "classic": "ziping",
+        "section": "论阳刃",
+        "entry": "ziping.bage.100"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "甲午",
+        "癸酉",
+        "庚寅",
+        "戊寅"
+      ],
+      "original": "如穆同知命，甲午、癸酉、庚寅、戊寅，癸水伤寅午之官，而戊以合之，所谓印护也。",
+      "vernacular": "如穆同知命，甲午、癸酉、庚寅、戊寅，癸水伤害寅午之官，戊却合住癸，这就是所谓印护。",
+      "expected": {
+        "pattern": "羊刃格",
+        "chengBai": "成",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "癸水伤寅午之官，而戊以合之，所谓印护也。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第86—88页（书内77—79页）；据已校录古籍条目 ziping.bage.100 摘录本造，不补公历生年。取格按本条所述及《论阳刃》的分类，未按程序结果反填。成败依据：「然亦有官煞制刀，带伤食而贵，何也？」。本造羊刃用官而以印护官，记正官为用，不把护官之印替作所用之官。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.065",
+      "name": "贾平章命",
+      "source": {
+        "classic": "ziping",
+        "section": "论阳刃",
+        "entry": "ziping.bage.100"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "甲寅",
+        "庚午",
+        "戊申",
+        "甲寅"
+      ],
+      "original": "如贾平章命，甲寅、庚午、戊申、甲寅，煞两透两根，太重，食以制之，所谓裁损也。",
+      "vernacular": "如贾平章命，甲寅、庚午、戊申、甲寅，煞两透、两处有根，太重，用食来制，这就是所谓裁损。",
+      "expected": {
+        "pattern": "羊刃格",
+        "chengBai": "成",
+        "useGod": "食神",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "煞两透两根，太重，食以制之，所谓裁损也。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第86—88页（书内77—79页）；据已校录古籍条目 ziping.bage.100 摘录本造，不补公历生年。取格按本条所述及《论阳刃》的分类，未按程序结果反填。成败依据：「然亦有官煞制刀，带伤食而贵，何也？」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.066",
+      "name": "某造（羊刀取清）",
+      "source": {
+        "classic": "ziping",
+        "section": "论阳刃",
+        "entry": "ziping.bage.100"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丙戌",
+        "丁酉",
+        "庚申",
+        "壬午"
+      ],
+      "original": "如丙戌、丁酉、庚申、壬午，官煞竞出，而壬合丁，官煞纯而不杂。况羊刀之格，利于留煞，所谓取清也。",
+      "vernacular": "如丙戌、丁酉、庚申、壬午，官煞同时透出，壬合住丁，使官煞清纯而不混杂。况且羊刀格利于留煞，这就是所谓取清。",
+      "expected": {
+        "pattern": "羊刃格",
+        "chengBai": "成",
+        "useGod": "七杀",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "况羊刀之格，利于留煞，所谓取清也。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第86—88页（书内77—79页）；据已校录古籍条目 ziping.bage.100 摘录本造，不补公历生年。取格按本条所述及《论阳刃》的分类，未按程序结果反填。成败依据：「然亦有官煞制刀，带伤食而贵，何也？」。羊刀即羊刃，原文字形照录。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.067",
+      "name": "金丞相命",
+      "source": {
+        "classic": "ziping",
+        "section": "论建禄月劫",
+        "entry": "ziping.bage.107"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "庚戌",
+        "戊子",
+        "癸酉",
+        "癸亥"
+      ],
+      "original": "有用官而印护者，如庚戌、戊子、癸酉、癸亥，金丞相命也。",
+      "vernacular": "有用官而由印保护的，如庚戌、戊子、癸酉、癸亥，是金丞相的命造。",
+      "expected": {
+        "pattern": "禄劫格",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有用官而印护者"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第89—91页（书内80—82页）；据已校录古籍条目 ziping.bage.107 摘录本造，不补公历生年。取格按本条所述及《论建禄月劫》的分类，未按程序结果反填。原文统称禄劫，按程序支持的合称禄劫格录，不据四柱另分建禄或月劫。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.068",
+      "name": "李知府命",
+      "source": {
+        "classic": "ziping",
+        "section": "论建禄月劫",
+        "entry": "ziping.bage.107"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丁酉",
+        "丙午",
+        "丁巳",
+        "壬寅"
+      ],
+      "original": "有用官而财助者，如丁酉、丙午、丁巳、壬寅，李知府命也。",
+      "vernacular": "有用官而由财帮助的，如丁酉、丙午、丁巳、壬寅，是李知府的命造。",
+      "expected": {
+        "pattern": "禄劫格",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有用官而财助者"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第89—91页（书内80—82页）；据已校录古籍条目 ziping.bage.107 摘录本造，不补公历生年。取格按本条所述及《论建禄月劫》的分类，未按程序结果反填。原文统称禄劫，按程序支持的合称禄劫格录，不据四柱另分建禄或月劫。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.069",
+      "name": "王少师命",
+      "source": {
+        "classic": "ziping",
+        "section": "论建禄月劫",
+        "entry": "ziping.bage.107"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "庚午",
+        "戊子",
+        "癸卯",
+        "丁巳"
+      ],
+      "original": "如庚午、戊子、癸卯、丁巳，王少师命也。",
+      "vernacular": "如庚午、戊子、癸卯、丁巳，是王少师的命造。",
+      "expected": {
+        "pattern": "禄劫格",
+        "chengBai": "成",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "有用官而兼带财印者，所为身强值三奇，尤为贵气。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第89—91页（书内80—82页）；据已校录古籍条目 ziping.bage.107 摘录本造，不补公历生年。取格按本条所述及《论建禄月劫》的分类，未按程序结果反填。成败依据：「只要以官隔之，使财印两不相伤，其格便大。」。本造取用承同条前文：「有用官而兼带财印者，所为身强值三奇，尤为贵气。」。原文统称禄劫，使用合称；财印是相随的辅佐，不把三奇全部填成用神。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.070",
+      "name": "宸都统命",
+      "source": {
+        "classic": "ziping",
+        "section": "论建禄月劫",
+        "entry": "ziping.bage.108"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "甲子",
+        "丙子",
+        "癸丑",
+        "丙辰"
+      ],
+      "original": "如甲子、丙子、癸丑、丙辰，宸都统命也。",
+      "vernacular": "如甲子、丙子、癸丑、丙辰，是宸都统的命造。",
+      "expected": {
+        "pattern": "禄劫格",
+        "useGod": "财",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "盖月令为劫，而以财作用，二者相克，必以伤食化之，始可专劫生财。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第89—91页（书内80—82页）；据已校录古籍条目 ziping.bage.108 摘录本造，不补公历生年。取格按本条所述及《论建禄月劫》的分类，未按程序结果反填。本造取用承同条前文：「盖月令为劫，而以财作用，二者相克，必以伤食化之，始可专劫生财。」。本章合论建禄、月劫，按禄劫格合称记录；姓名「宸」照底本，不自行改姓。原录存疑：底本「始可专劫生财」照录，「专」疑为「转」之误，白话按上下文的生化关系解释。；底本都统姓名首字暂辨为「宸」，原字笔画及姓氏待校。；底本末句作「所化劫为生也」，疑「所谓」脱「谓」，照录。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.071",
+      "name": "某造（化劫为财）",
+      "source": {
+        "classic": "ziping",
+        "section": "论建禄月劫",
+        "entry": "ziping.bage.108"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "己未",
+        "己巳",
+        "丁未",
+        "辛丑"
+      ],
+      "original": "如己未、己巳、丁未、辛丑，丑与巳会，即以劫财之火，化为金局之财，安得不为大贵？所谓化劫为财也。",
+      "vernacular": "如己未、己巳、丁未、辛丑，丑与巳会，便把劫财之火化为金局之财，怎能不大贵？这就是所谓化劫为财。",
+      "expected": {
+        "pattern": "禄劫格",
+        "chengBai": "成",
+        "useGod": "财",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "盖月令为劫，而以财作用"
+        },
+        "outcome": "安得不为大贵"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第89—91页（书内80—82页）；据已校录古籍条目 ziping.bage.108 摘录本造，不补公历生年。取格按本条所述及《论建禄月劫》的分类，未按程序结果反填。成败依据：「安得不为大贵？所谓化劫为财也。」。本造取用承同条前文：「盖月令为劫，而以财作用」。本造按月令取禄劫格；「化劫为财」是此格的用法，取用承本段「以财作用」。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.072",
+      "name": "高尚书命",
+      "source": {
+        "classic": "ziping",
+        "section": "论建禄月劫",
+        "entry": "ziping.bage.108"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "庚子",
+        "甲申",
+        "庚子",
+        "甲申"
+      ],
+      "original": "如高尚书命，庚子、甲申、庚子、甲申，即以劫财之金，化为生财之水，所化劫为生也。",
+      "vernacular": "如高尚书命，庚子、甲申、庚子、甲申，便把劫财之金化为生财之水，这就是所谓化劫为生。",
+      "expected": {
+        "pattern": "禄劫格",
+        "useGod": "财",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "禄劫用财，须带伤食。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第89—91页（书内80—82页）；据已校录古籍条目 ziping.bage.108 摘录本造，不补公历生年。取格按本条所述及《论建禄月劫》的分类，未按程序结果反填。本造取用承同条前文：「禄劫用财，须带伤食。」。本段归禄劫用财，未将「化劫为生」另题食神格，故保留禄劫合称。原录存疑：「所化劫为生也」疑脱「谓」字，照原录。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.073",
+      "name": "娄参政命",
+      "source": {
+        "classic": "ziping",
+        "section": "论建禄月劫",
+        "entry": "ziping.bage.109"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "丁巳",
+        "壬子",
+        "癸卯",
+        "己未"
+      ],
+      "original": "如娄参政命，丁巳、壬子、癸卯、己未，壬合丁财，以去其党煞，卯未会局以制伏是也。",
+      "vernacular": "如娄参政命，丁巳、壬子、癸卯、己未，壬合住丁财，去掉帮助煞的财，卯未会局来制伏煞，就是这种情况。",
+      "expected": {
+        "pattern": "禄劫格",
+        "useGod": "七杀",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "禄劫用煞，必须制伏。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第89—91页（书内80—82页）；据已校录古籍条目 ziping.bage.109 摘录本造，不补公历生年。取格按本条所述及《论建禄月劫》的分类，未按程序结果反填。本造取用承同条前文：「禄劫用煞，必须制伏。」。原文统称禄劫，不另按四柱细分。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.074",
+      "name": "袁内阁命",
+      "source": {
+        "classic": "ziping",
+        "section": "论建禄月劫",
+        "entry": "ziping.bage.109"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "戊辰",
+        "癸亥",
+        "壬午",
+        "丙午"
+      ],
+      "original": "如戊辰、癸亥、壬午、丙午，合煞存财，袁内阁命是也。",
+      "vernacular": "如戊辰、癸亥、壬午、丙午，合煞而存财，袁内阁的命造就是如此。",
+      "expected": {
+        "pattern": "禄劫格",
+        "chengBai": "败中有成",
+        "useGod": "财",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "然能去煞存财，又成贵格。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第89—91页（书内80—82页）；据已校录古籍条目 ziping.bage.109 摘录本造，不补公历生年。取格按本条所述及《论建禄月劫》的分类，未按程序结果反填。成败依据：「至若用煞而又带财，本为不美，然能去煞存财，又成贵格。」。本造取用承同条前文：「然能去煞存财，又成贵格。」。成败按原文「本为不美」而去煞存财、又成贵格的转折归类；禄劫不另细分。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.075",
+      "name": "张状元命",
+      "source": {
+        "classic": "ziping",
+        "section": "论建禄月劫",
+        "entry": "ziping.bage.110"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "甲子",
+        "丙寅",
+        "甲子",
+        "丙寅"
+      ],
+      "original": "如张状元命，甲子、丙寅、甲子、丙寅，木火通明矣。",
+      "vernacular": "如张状元命，甲子、丙寅、甲子、丙寅，就是木火通明。",
+      "expected": {
+        "pattern": "禄劫格",
+        "chengBai": "成",
+        "useGod": "食伤",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "其禄劫之格，无财官而用伤食，泄其太过，亦为秀气。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第89—91页（书内80—82页）；据已校录古籍条目 ziping.bage.110 摘录本造，不补公历生年。取格按本条所述及《论建禄月劫》的分类，未按程序结果反填。成败依据：「惟春木秋金用之则贵」。本造取用承同条前文：「其禄劫之格，无财官而用伤食，泄其太过，亦为秀气。」。取用照原文合称伤食，不自行细分食神、伤官；取格照禄劫合称。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.076",
+      "name": "某造（金水相涵）",
+      "source": {
+        "classic": "ziping",
+        "section": "论建禄月劫",
+        "entry": "ziping.bage.110"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "癸卯",
+        "庚申",
+        "庚子",
+        "庚辰"
+      ],
+      "original": "又癸卯、庚申、庚子、庚辰，金水相涵也。",
+      "vernacular": "又如癸卯、庚申、庚子、庚辰，就是金水相涵。",
+      "expected": {
+        "pattern": "禄劫格",
+        "chengBai": "成",
+        "useGod": "食伤",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "其禄劫之格，无财官而用伤食，泄其太过，亦为秀气。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第89—91页（书内80—82页）；据已校录古籍条目 ziping.bage.110 摘录本造，不补公历生年。取格按本条所述及《论建禄月劫》的分类，未按程序结果反填。成败依据：「惟春木秋金用之则贵」。本造取用承同条前文：「其禄劫之格，无财官而用伤食，泄其太过，亦为秀气。」。取用照原文合称伤食，不自行细分食神、伤官；取格照禄劫合称。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.077",
+      "name": "一平章命",
+      "source": {
+        "classic": "ziping",
+        "section": "论建禄月劫",
+        "entry": "ziping.bage.111"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "辛丑",
+        "庚寅",
+        "甲辰",
+        "乙亥"
+      ],
+      "original": "如一平章命，辛丑、庚寅、甲辰、乙亥，合煞留官也。",
+      "vernacular": "如一位平章的命造，辛丑、庚寅、甲辰、乙亥，是合煞留官。",
+      "expected": {
+        "pattern": "禄劫格",
+        "chengBai": "成",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "合煞留官也。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第89—91页（书内80—82页）；据已校录古籍条目 ziping.bage.111 摘录本造，不补公历生年。取格按本条所述及《论建禄月劫》的分类，未按程序结果反填。成败依据：「更有禄劫而官煞竞出，必取清方为贵格。」。原文以禄劫官煞取清论，保留禄劫合称，不因留官另改正官格。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.078",
+      "name": "某造（禄劫制煞留官）",
+      "source": {
+        "classic": "ziping",
+        "section": "论建禄月劫",
+        "entry": "ziping.bage.111"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "辛亥",
+        "庚寅",
+        "甲申",
+        "丙寅"
+      ],
+      "original": "又如辛亥、庚寅、甲申、丙寅，制煞留官也。",
+      "vernacular": "又如辛亥、庚寅、甲申、丙寅，是制煞留官。",
+      "expected": {
+        "pattern": "禄劫格",
+        "chengBai": "成",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "制煞留官也。"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第89—91页（书内80—82页）；据已校录古籍条目 ziping.bage.111 摘录本造，不补公历生年。取格按本条所述及《论建禄月劫》的分类，未按程序结果反填。成败依据：「更有禄劫而官煞竞出，必取清方为贵格。」。原文以禄劫官煞取清论，保留禄劫合称；后句两官竞出是另一条件，不作本造论。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.079",
+      "name": "王总兵命",
+      "source": {
+        "classic": "ziping",
+        "section": "论建禄月劫",
+        "entry": "ziping.bage.112"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "己酉",
+        "乙亥",
+        "壬戌",
+        "庚子"
+      ],
+      "original": "如己酉、乙亥、壬戌、庚子，庚合乙，而去伤存官，王总兵命。",
+      "vernacular": "如己酉、乙亥、壬戌、庚子，庚合住乙，去伤而存官，是王总兵的命造。",
+      "expected": {
+        "pattern": "禄劫格",
+        "chengBai": "败中有成",
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "庚合乙，而去伤存官"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第89—91页（书内80—82页）；据已校录古籍条目 ziping.bage.112 摘录本造，不补公历生年。取格按本条所述及《论建禄月劫》的分类，未按程序结果反填。成败依据：「若透伤食，便为破格。然亦有官伤并透而贵者，何也？」。以本造去伤存官解救前述透伤破格，记败中有成；原文未细分禄劫。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.080",
+      "name": "吴相公命",
+      "source": {
+        "classic": "ziping",
+        "section": "论杂格",
+        "entry": "ziping.bage.120"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "癸亥",
+        "乙卯",
+        "乙未",
+        "壬午"
+      ],
+      "original": "如癸亥、乙卯、乙未、壬午，吴相公命是也。运亦喜印缓比劫之乡，财食亦吉，官煞则忌矣。",
+      "vernacular": "如癸亥、乙卯、乙未、壬午，吴相公的命造就是如此。行运也喜印缓、比劫之地，财、食也吉，官煞则忌。",
+      "expected": {
+        "useGod": "印",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "喜印露而体纯"
+        }
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第93—98页（书内84—89页）；据已校录古籍条目 ziping.bage.120 摘录本造，不补公历生年。本造取用承同条前文：「喜印露而体纯」。原书称「五行一方秀气」，说「所以成格」，但未直题曲直格，不据四柱补定；chengBai 需配 pattern，故均留空。行运只列十神，不补干支。印缓即印绶，保留原录字形。原录存疑：底本「印缓」照录，疑为「印绶」之误。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.081",
+      "name": "某一品贵格命",
+      "source": {
+        "classic": "ziping",
+        "section": "论杂格",
+        "entry": "ziping.bage.121"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "甲戌",
+        "丁卯",
+        "壬寅",
+        "甲辰"
+      ],
+      "original": "如甲戌、丁卯、壬寅、甲辰，一品贵格命也。运喜所化之物，与所化之印缓，财伤亦可，不利官煞。",
+      "vernacular": "如甲戌、丁卯、壬寅、甲辰，是一品贵格的命造。行运喜所化之物，以及所化之物的印缓，财伤也可，官煞不利。",
+      "expected": {
+        "pattern": "丁壬化木格",
+        "chengBai": "成",
+        "outcome": "一品贵格命也"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第93—98页（书内84—89页）；据已校录古籍条目 ziping.bage.121 摘录本造，不补公历生年。取格按本条所述及《论杂格》的分类，未按程序结果反填。成败依据：「一品贵格命也。」。本段明说丁壬化木，故采用具体化格名；行运喜忌未点干支，不写 yun。印缓即印绶，原字照录。原录存疑：底本「印缓」照录，疑为「印绶」之误。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.082",
+      "name": "某造（倒冲子财）",
+      "source": {
+        "classic": "ziping",
+        "section": "论杂格",
+        "entry": "ziping.bage.122"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "戊午",
+        "戊午",
+        "戊午",
+        "戊午"
+      ],
+      "original": "如戊午、戊午、戊午、戊午，是冲子财也。",
+      "vernacular": "如戊午、戊午、戊午、戊午，是冲子财。",
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第93—98页（书内84—89页）；据已校录古籍条目 ziping.bage.122 摘录本造，不补公历生年。原文「倒冲成格」未在程序格名中，不换成其他格；pattern、chengBai 留空。虚冲所得之财未直接称用神，不补 useGod。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.083",
+      "name": "某造（倒冲子官）",
+      "source": {
+        "classic": "ziping",
+        "section": "论杂格",
+        "entry": "ziping.bage.122"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "甲寅",
+        "庚午",
+        "丙午",
+        "甲午"
+      ],
+      "original": "甲寅、庚午、丙午、甲午，是冲子官也。运忌填实，余俱可行。",
+      "vernacular": "甲寅、庚午、丙午、甲午，是冲子官。行运忌填实，其余都可行。",
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第93—98页（书内84—89页）；据已校录古籍条目 ziping.bage.122 摘录本造，不补公历生年。原文论倒冲，程序不识此格，不以别格代填。填实未点具体干支，不补 yun。原录存疑：原文先说「四柱无财官」，丙日命例却透庚偏财；原文未展开怎样处理这一透财条件，照录并存疑，不补造成立规则。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.084",
+      "name": "张知县命",
+      "source": {
+        "classic": "ziping",
+        "section": "论杂格",
+        "entry": "ziping.bage.123"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "戊辰",
+        "辛酉",
+        "辛酉",
+        "戊子"
+      ],
+      "original": "如戊辰、辛酉、辛酉、戊子，张知县命是也。运喜土金水，木运平平，火则忌矣。",
+      "vernacular": "如戊辰、辛酉、辛酉、戊子，张知县的命造就是如此。行运喜土、金、水，木运平常，火则忌。",
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第93—98页（书内84—89页）；据已校录古籍条目 ziping.bage.123 摘录本造，不补公历生年。原文称朝阳成格，程序没有此格，pattern、chengBai 留空；五行运不换成干支。原录存疑：底本「即任彼之意」照录，「任彼」语义不明，疑有讹字，白话未据通行文本补改。；底本「而不为戊朝」照录，主宾指代及句读待校。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.085",
+      "name": "蜀王命",
+      "source": {
+        "classic": "ziping",
+        "section": "论杂格",
+        "entry": "ziping.bage.124"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "己未",
+        "戊辰",
+        "戊辰",
+        "庚申"
+      ],
+      "original": "如己未、戊辰、戊辰、庚申，蜀王命是也。",
+      "vernacular": "如己未、戊辰、戊辰、庚申，蜀王的命造就是如此。",
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第93—98页（书内84—89页）；据已校录古籍条目 ziping.bage.124 摘录本造，不补公历生年。原文以合禄成格论，程序没有此格，pattern、chengBai 留空，不以程序结果代填。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.086",
+      "name": "赵丞相命",
+      "source": {
+        "classic": "ziping",
+        "section": "论杂格",
+        "entry": "ziping.bage.124"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "己酉",
+        "辛未",
+        "癸未",
+        "庚申"
+      ],
+      "original": "如己酉、辛未、癸未、庚申，赵丞相命是也。运亦忌填实，不利官杀，更不宜以火克金，使彼受制而不能合，余则吉矣。",
+      "vernacular": "如己酉、辛未、癸未、庚申，赵丞相的命造就是如此。行运也忌填实，官杀不利，更不宜用火克金，使金受制而不能合，其余则吉。",
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第93—98页（书内84—89页）；据已校录古籍条目 ziping.bage.124 摘录本造，不补公历生年。原文以合禄成格论，程序没有此格，pattern、chengBai 留空；填实及十神、五行运均未点干支，不补 yun。原录存疑：赵丞相例癸日天干透己七杀，与本章总论「干头无官无煞」有表面冲突；此段只明说无官星，未说明如何处理己煞，原文照录待核。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.087",
+      "name": "王十万命",
+      "source": {
+        "classic": "ziping",
+        "section": "论杂格",
+        "entry": "ziping.bage.125"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "庚申",
+        "乙酉",
+        "丙申",
+        "己丑"
+      ],
+      "original": "如庚申、乙酉、丙申、己丑，王十万命是也。运喜伤食财乡，不宜身旺。",
+      "vernacular": "如庚申、乙酉、丙申、己丑，王十万的命造就是如此。行运喜伤食、财之地，不宜身旺。",
+      "expected": {
+        "pattern": "从财格"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第93—98页（书内84—89页）；据已校录古籍条目 ziping.bage.125 摘录本造，不补公历生年。取格按本条所述及《论杂格》的分类，未按程序结果反填。本段以弃命从财举例，但同段说「若透印，则身赖印生而不从」，本造又透乙印；不自行以乙庚合等解释补救，成败、用神暂留空，提请核对。行运只有十神类别，不补干支。原录存疑：王十万例丙日透乙正印，与本段「若透印…不从」有表面冲突；是否因乙庚合而印失用，原段未展开，不能直接用该例验证从财算法。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.088",
+      "name": "李侍郎命",
+      "source": {
+        "classic": "ziping",
+        "section": "论杂格",
+        "entry": "ziping.bage.126"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "乙酉",
+        "乙酉",
+        "乙酉",
+        "甲申"
+      ],
+      "original": "如乙酉、乙酉、乙酉、甲申，李侍郎命是也。运喜财官，不宜身旺，食神伤官则尤忌矣。",
+      "vernacular": "如乙酉、乙酉、乙酉、甲申，李侍郎的命造就是如此。行运喜财官，不宜身旺，尤其忌食神、伤官。",
+      "expected": {
+        "pattern": "从杀格",
+        "chengBai": "成"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第93—98页（书内84—89页）；据已校录古籍条目 ziping.bage.126 摘录本造，不补公历生年。取格按本条所述及《论杂格》的分类，未按程序结果反填。成败依据：「有弃命从煞者，四柱皆煞，而日主无根，舍而从之，格成大贵。」。原文说从煞而未另明取用，不再把行运所喜财官填成原局用神；行运未点干支，不写 yun。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.089",
+      "name": "郭统制命",
+      "source": {
+        "classic": "ziping",
+        "section": "论杂格",
+        "entry": "ziping.bage.127"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "戊子",
+        "庚申",
+        "庚申",
+        "庚辰"
+      ],
+      "original": "如戊子、庚申、庚申、庚辰，郭统制命也。运喜财，不利填实，余亦吉也。",
+      "vernacular": "如戊子、庚申、庚申、庚辰，是郭统制的命造。行运喜财，填实不利，其余也吉。",
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第93—98页（书内84—89页）；据已校录古籍条目 ziping.bage.127 摘录本造，不补公历生年。原文论井栏成格，程序没有此格，不自行改作建禄；pattern、chengBai 留空。行运未点干支，不写 yun。原录存疑：底本「印缓」照录，疑为「印绶」之误。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.090",
+      "name": "十二节度使命",
+      "source": {
+        "classic": "ziping",
+        "section": "论杂格",
+        "entry": "ziping.bage.128"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "乙未",
+        "癸卯",
+        "癸卯",
+        "甲寅"
+      ],
+      "original": "如乙未、癸卯、癸卯、甲寅，十二节度使命是也。运忌填实，不利金乡，余则吉矣。",
+      "vernacular": "如乙未、癸卯、癸卯、甲寅，十二节度使的命造就是如此。行运忌填实，金地不利，其余则吉。",
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第93—98页（书内84—89页）；据已校录古籍条目 ziping.bage.128 摘录本造，不补公历生年。原文论刑合成格，程序没有此格，pattern、chengBai 留空；原称十二节度使，未自行考定姓名。行运没有具体干支，不补 yun。原录存疑：底本「而无于刑」照录，疑有脱字或讹字，白话按上下文已透官煞、无需虚刑理解。；底本命例称「十二节度使」，未详人物或此称的确义，不据猜测补名。自检：复核同底本PDF第96页（书内87页），确印乙未、癸卯、癸卯、甲寅；乙年卯月按年上起月应为己卯，底本月干疑误，照录癸卯。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.091",
+      "name": "章统制命",
+      "source": {
+        "classic": "ziping",
+        "section": "论杂格",
+        "entry": "ziping.bage.129"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "辛丑",
+        "辛丑",
+        "辛丑",
+        "庚寅"
+      ],
+      "original": "如辛丑、辛丑、辛丑、庚寅，章统制命是也。",
+      "vernacular": "如辛丑、辛丑、辛丑、庚寅，章统制的命造就是如此。",
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第93—98页（书内84—89页）；据已校录古籍条目 ziping.bage.129 摘录本造，不补公历生年。原文称遥合成格，程序没有此格，pattern、chengBai 留空。后句有子或丙丁戊己是另设的排除条件，不套入本造。原录存疑：本段具体举辛日，后却并说「辛癸之官煞」，癸日的对应例并未在此段出现；依底本照录，例证范围待校。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.092",
+      "name": "罗御史命",
+      "source": {
+        "classic": "ziping",
+        "section": "论杂格",
+        "entry": "ziping.bage.130"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "甲申",
+        "甲戌",
+        "甲子",
+        "甲子"
+      ],
+      "original": "如甲申、甲戌、甲子、甲子，罗御史命是也。",
+      "vernacular": "如甲申、甲戌、甲子、甲子，罗御史的命造就是如此。",
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第93—98页（书内84—89页）；据已校录古籍条目 ziping.bage.130 摘录本造，不补公历生年。作者前文说「至于甲子遥巳，辗转求合，似觉无情，此格可废。因罗御史命，聊复存之」，这是对遥合说法的批评，不改写为本造破格、败运或结局。程序没有此杂格，不强配 pattern。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.093",
+      "name": "高太尉命",
+      "source": {
+        "classic": "ziping",
+        "section": "论十干合而不合",
+        "entry": "ziping.ganzhi.024"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "庚午",
+        "乙酉",
+        "甲子",
+        "乙亥"
+      ],
+      "original": "如庚午、乙酉、甲子、乙亥，两乙合庚，甲日隔之，此高太尉命，仍作合煞留官，无减福也。",
+      "vernacular": "如庚午、乙酉、甲子、乙亥，两个乙合庚，甲日干隔在中间，这是高太尉的命造，仍按合煞留官论，不减福气。",
+      "expected": {
+        "useGod": "正官",
+        "useGodWhy": {
+          "kind": "格局",
+          "quote": "仍作合煞留官，无减福也。"
+        },
+        "outcome": "无减福也"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第19—21页（书内10—12页）；据已校录古籍条目 ziping.ganzhi.024 摘录本造，不补公历生年。来源为 PR #63 所录《论十干合而不合》。本段谈隔位争合、合煞留官，未直说格名，不由四柱另定正官格。",
+      "status": "translated"
+    },
+    {
+      "id": "bazi.ziping.094",
+      "name": "某造（财旺生官误作时上偏官）",
+      "source": {
+        "classic": "ziping",
+        "section": "论时说以讹传讹",
+        "entry": "ziping.xingyun.050"
+      },
+      "birth": {
+        "calendar": "unknown",
+        "gender": "male"
+      },
+      "pillars": [
+        "壬申",
+        "癸丑",
+        "己丑",
+        "甲戌"
+      ],
+      "original": "如壬申、癸丑、己丑、甲戌，本禄气财旺而生官也，而以为乙亥时，作时上偏官论，岂知以旺财生煞，将死之不暇，何取贵？此类甚多，皆误收格局也。",
+      "vernacular": "如壬申、癸丑、己丑、甲戌，本是禄气、财旺而生官，却认作乙亥时，按时上偏官论。岂知旺财生煞，连性命都难保，哪里还能显贵？这样的情况很多，都是把格局收错了。",
+      "expected": {
+        "pattern": "财格"
+      },
+      "notes": "底本：上海世界图书馆发行《秘本子平真诠》影印本，PDF第63—65页（书内54—56页）；据已校录古籍条目 ziping.xingyun.050 摘录本造，不补公历生年。取格按本条所述及《论时说以讹传讹》的分类，未按程序结果反填。来源为 PR #63 所录《论时说以讹传讹》。作者肯定甲戌时的财旺生官，反对改作乙亥时的时上偏官；只录甲戌四柱，不将错误时柱另建一造。「将死之不暇」是针对误改时辰的反诘，不记作本造 outcome 或 chengBai。原书未另直取用神，不补 useGod。原录存疑：底本「本禄气财旺」作禄气，其具体所指未明，白话保留；不改写成身旺等现代释语。",
+      "status": "translated"
     }
   ]
 }
