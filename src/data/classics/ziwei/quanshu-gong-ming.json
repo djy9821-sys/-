@@ -19,6 +19,23 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "紫微"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "note": "府相左右日月昌曲三合嘉会；紫微与日月按安星法不会同宫也不在三方四正，整项不硬配"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "紫微",
+          "meet": [
+            "擎羊",
+            "陀罗",
+            "火星",
+            "铃星"
+          ],
+          "note": "与羊陀火铃冲合，四煞任一颗"
         }
       ],
       "tags": [
@@ -40,6 +57,36 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "天机"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天机",
+          "meet": [
+            "天梁"
+          ],
+          "note": "与天梁会合善谈兵"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天机",
+          "brightness": "庙",
+          "yearGan": [
+            "乙",
+            "丙",
+            "丁"
+          ],
+          "mutagen": [
+            "禄",
+            "权",
+            "科"
+          ],
+          "note": "乙丙丁生人遇之入庙化吉"
+        },
+        {
+          "module": "ziwei",
+          "note": "左右昌曲魁钺太阴凑合，天机坐巳酉丑亥卯未：若要求诸星全部会齐，则安辅弼的月数与安昌曲的时辰反使命宫落偶数地支，不能同时安命于所列六宫；此句是否分组列举待核，不擅改任一颗。"
         }
       ],
       "tags": [
@@ -59,6 +106,34 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "太阳"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "太阳",
+          "branches": [
+            "卯"
+          ],
+          "yearGan": [
+            "庚",
+            "壬"
+          ],
+          "note": "六庚生人命坐卯宫，六壬次之"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "太阳",
+          "branches": [
+            "亥"
+          ],
+          "yearZhi": "申",
+          "note": "命在亥，申生人下局"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "note": "会左右昌曲魁钺太阴禄存守照官禄：各星分宫与命宫关系不明，不能以本宫太阳附会整个官禄组合"
         }
       ],
       "tags": [
@@ -80,6 +155,49 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "武曲"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "武曲",
+          "yearGan": [
+            "甲",
+            "己"
+          ],
+          "note": "最喜甲己生人福厚"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "武曲",
+          "meetAll": [
+            "贪狼",
+            "火星"
+          ],
+          "mutagen": [
+            "禄",
+            "权",
+            "科"
+          ],
+          "note": "会贪遇火化吉为上格"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "武曲",
+          "yearGan": [
+            "丙",
+            "丁",
+            "庚",
+            "辛",
+            "壬",
+            "癸"
+          ],
+          "note": "丙丁庚辛壬癸中格"
+        },
+        {
+          "module": "ziwei",
+          "note": "与府相梁月禄马会主贵；按安星法这些主星不能同时满足所述同宫或三方四正组合，只记原句，不硬配。"
         }
       ],
       "tags": [
@@ -101,6 +219,44 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "天同"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天同",
+          "branches": [
+            "巳",
+            "亥",
+            "酉",
+            "未"
+          ],
+          "yearGan": "丙",
+          "meetAll": [
+            "天梁",
+            "左辅",
+            "右弼"
+          ],
+          "note": "天梁左右嘉会，丙生人于巳亥酉宫安命，未宫次之"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天同",
+          "branches": [
+            "午"
+          ],
+          "yearGan": "丁",
+          "note": "午宫陷，丁生人宜之"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天同",
+          "branches": [
+            "亥"
+          ],
+          "yearGan": "庚",
+          "note": "若在亥地庚生人下局"
         }
       ],
       "tags": [
@@ -122,6 +278,94 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "廉贞"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "廉贞",
+          "yearGan": [
+            "甲"
+          ],
+          "branches": [
+            "寅",
+            "申"
+          ],
+          "note": "六甲生人命坐寅申者上格"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "廉贞",
+          "yearGan": [
+            "丁",
+            "己"
+          ],
+          "branches": [
+            "寅",
+            "申"
+          ],
+          "note": "丁己生人次之"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "廉贞",
+          "yearGan": [
+            "丙"
+          ],
+          "branches": [
+            "子",
+            "午",
+            "卯",
+            "酉"
+          ],
+          "note": "六丙生人命坐子午卯酉"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "廉贞",
+          "yearGan": [
+            "甲"
+          ],
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "note": "六甲生人命坐四墓宫"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "廉贞",
+          "yearGan": [
+            "丙",
+            "戊"
+          ],
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "note": "丙戊生人招非有成败"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "廉贞",
+          "yearZhi": [
+            "未",
+            "申"
+          ],
+          "branches": [
+            "未",
+            "申"
+          ],
+          "mutagen": "禄",
+          "note": "未申生人命居未申宫，化禄逢吉"
         }
       ],
       "tags": [
@@ -143,6 +387,69 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "天府"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天府",
+          "meet": [
+            "擎羊",
+            "陀罗",
+            "火星",
+            "铃星"
+          ],
+          "note": "羊陀火铃会合，四煞任一颗"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天府",
+          "yearGan": [
+            "己"
+          ],
+          "branches": [
+            "寅",
+            "午",
+            "戌",
+            "亥",
+            "卯",
+            "未"
+          ],
+          "note": "六己生人贵格"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天府",
+          "yearGan": [
+            "乙",
+            "丙",
+            "戊",
+            "辛"
+          ],
+          "branches": [
+            "巳",
+            "酉",
+            "丑"
+          ],
+          "note": "乙丙戊辛生人文武财官格"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天府",
+          "yearGan": [
+            "甲",
+            "庚"
+          ],
+          "branches": [
+            "亥",
+            "卯",
+            "未",
+            "辰",
+            "酉"
+          ],
+          "note": "甲庚生人不贵"
         }
       ],
       "tags": [
@@ -164,6 +471,54 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "太阴"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "太阴",
+          "yearGan": [
+            "壬",
+            "戊"
+          ],
+          "branches": [
+            "亥",
+            "卯",
+            "未"
+          ],
+          "note": "最喜六壬戊生人在亥卯未宫立命"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "太阴",
+          "yearGan": [
+            "乙",
+            "庚",
+            "戊",
+            "丁"
+          ],
+          "branches": [
+            "亥"
+          ],
+          "note": "乙庚戊生人居亥宫上格，六丁生人次之"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "太阴",
+          "yearGan": "乙",
+          "note": "六乙生人合格"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "太阴",
+          "gender": "女",
+          "brightness": "庙",
+          "meet": [
+            "太阳"
+          ],
+          "note": "女命会太阳入庙"
         }
       ],
       "tags": [
@@ -185,6 +540,28 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "贪狼"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "贪狼",
+          "brightness": "庙",
+          "stars": [
+            "火星",
+            "铃星"
+          ],
+          "yearGan": [
+            "戊",
+            "己"
+          ],
+          "note": "入庙遇火铃，喜戊己生人合局"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "贪狼",
+          "yearGan": "癸",
+          "note": "不喜六癸生人"
         }
       ],
       "tags": [
@@ -206,6 +583,84 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "巨门"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "巨门",
+          "yearGan": [
+            "癸",
+            "辛"
+          ],
+          "branches": [
+            "子",
+            "卯"
+          ],
+          "note": "六癸六辛生人命坐子卯合局"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "巨门",
+          "yearGan": [
+            "庚",
+            "丁"
+          ],
+          "branches": [
+            "辰",
+            "戌"
+          ],
+          "note": "六庚六丁生人辰戌安命"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "巨门",
+          "yearGan": [
+            "丙",
+            "戊"
+          ],
+          "branches": [
+            "子",
+            "午"
+          ],
+          "note": "子午安命丙戊生人"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "巨门",
+          "yearGan": [
+            "甲"
+          ],
+          "branches": [
+            "卯"
+          ],
+          "note": "六甲生人居卯宫与擎羊同度"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "巨门",
+          "branches": [
+            "子",
+            "午"
+          ],
+          "pattern": "三奇加会",
+          "note": "身命居子午，更会科权禄"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "巨门",
+          "meet": [
+            "擎羊",
+            "陀罗",
+            "火星",
+            "铃星"
+          ],
+          "meetMutagen": "忌",
+          "note": "会羊陀火铃化忌；四煞任一颗并化忌"
         }
       ],
       "tags": [
@@ -227,6 +682,10 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "天相"
+        },
+        {
+          "module": "ziwei",
+          "note": "紫府左右昌曲日月嘉会；按安星法这些主星不能同时满足所述同宫或三方四正组合，只记原句，不硬配。"
         }
       ],
       "tags": [
@@ -248,6 +707,30 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "天梁"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天梁",
+          "meetAll": [
+            "左辅",
+            "右弼",
+            "文昌",
+            "文曲"
+          ],
+          "note": "左右昌曲嘉会"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天梁",
+          "yearGan": "壬",
+          "branches": [
+            "亥",
+            "卯",
+            "未"
+          ],
+          "note": "六壬生人，亥卯未宫安命者"
         }
       ],
       "tags": [
@@ -269,6 +752,89 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "七杀"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "七杀",
+          "meetAll": [
+            "左辅",
+            "右弼",
+            "文昌",
+            "文曲",
+            "天魁",
+            "天钺"
+          ],
+          "note": "加左右昌曲魁钺会合"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "七杀",
+          "branches": [
+            "寅",
+            "亥",
+            "子",
+            "午"
+          ],
+          "yearGan": [
+            "丁",
+            "己"
+          ],
+          "note": "安命寅亥子午宫，丁己生人合局"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "七杀",
+          "yearGan": [
+            "壬",
+            "癸"
+          ],
+          "note": "不喜壬癸午戌生人：年干或年支分别列，不强并为同一干支"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "七杀",
+          "yearZhi": [
+            "午",
+            "戌"
+          ],
+          "note": "不喜壬癸午戌生人：年支午戌"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "七杀",
+          "yearGan": [
+            "丙",
+            "戊"
+          ],
+          "note": "六丙六戊生人中平"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "七杀",
+          "branches": [
+            "辰"
+          ],
+          "yearGan": "庚",
+          "note": "辰宫安命六庚生人吉利"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "七杀",
+          "brightness": "陷",
+          "meet": [
+            "擎羊",
+            "陀罗",
+            "火星",
+            "铃星"
+          ],
+          "note": "羊陀火铃冲会，又在陷地；四煞任一颗"
         }
       ],
       "tags": [
@@ -290,6 +856,64 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "破军"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "破军",
+          "branches": [
+            "子",
+            "午"
+          ],
+          "yearGan": [
+            "癸",
+            "甲"
+          ],
+          "note": "六癸甲生人坐子午宫"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "破军",
+          "branches": [
+            "子",
+            "午"
+          ],
+          "yearGan": [
+            "丙",
+            "戊"
+          ],
+          "note": "丙戊寅生人命坐子午宫：年干丙戊"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "破军",
+          "branches": [
+            "子",
+            "午"
+          ],
+          "yearZhi": "寅",
+          "note": "丙戊寅生人命坐子午宫：年支寅"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "破军",
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "yearGan": [
+            "丙",
+            "戊"
+          ],
+          "meet": [
+            "紫微"
+          ],
+          "note": "丙戊生人命坐辰戌丑未，与紫微同垣或对居；安星法这四宫破军与紫微必为同宫或对宫"
         }
       ],
       "tags": [
@@ -313,6 +937,31 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "文昌"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "文昌",
+          "meetAll": [
+            "太阳",
+            "天梁",
+            "禄存"
+          ],
+          "note": "会阳梁禄存"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "文昌",
+          "brightness": "陷",
+          "empty": "无正曜",
+          "stars": [
+            "擎羊",
+            "陀罗",
+            "火星",
+            "铃星"
+          ],
+          "note": "陷地独守加杀带疾；empty 只核无正曜，四煞任一颗"
         }
       ],
       "tags": [
@@ -332,6 +981,43 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "文曲"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "文曲",
+          "empty": "无正曜",
+          "stars": [
+            "擎羊",
+            "陀罗",
+            "火星",
+            "铃星"
+          ],
+          "note": "单居身命更逢恶杀；empty 仅核无正曜"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "文曲",
+          "yearGan": "甲",
+          "branches": [
+            "巳",
+            "酉",
+            "丑"
+          ],
+          "note": "喜六甲生人居巳酉丑宫"
+        },
+        {
+          "module": "ziwei",
+          "note": "与贪狼火星同垣三合者；按安星法，本命火星与文曲位差只能为5、9、10、11宫，不会同宫或三方四正。原句或有别义，不以流文曲混作本命文曲来凑条件。"
+        },
+        {
+          "module": "ziwei",
+          "note": "与同梁武曲会旺宫；按安星法这些主星不能同时满足所述同宫或三方四正组合，只记原句，不硬配。"
+        },
+        {
+          "module": "ziwei",
+          "note": "女命陷地与巨火忌机会；按安星法，本命火星与文曲位差只能为5、9、10、11宫，不会同宫或三方四正。原句或有别义，不以流文曲混作本命文曲来凑条件。"
         }
       ],
       "tags": [
@@ -353,6 +1039,10 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "左辅"
+        },
+        {
+          "module": "ziwei",
+          "note": "府相机昌贪狼武曲会，再加右弼同垣；按安星法这些主星不能同时满足所述同宫或三方四正组合，只记原句，不硬配。"
         }
       ],
       "tags": [
@@ -374,6 +1064,19 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "右弼"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "右弼",
+          "meetAll": [
+            "紫微",
+            "天府",
+            "天相",
+            "文昌",
+            "文曲"
+          ],
+          "note": "若会紫微天府天相昌曲"
         }
       ],
       "tags": [
@@ -395,6 +1098,25 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "禄存"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "禄存",
+          "empty": "无正曜",
+          "note": "单守命身，看财之奴；empty 仅核无正曜"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "禄存",
+          "meet": [
+            "地空",
+            "地劫",
+            "火星",
+            "铃星"
+          ],
+          "note": "怕空劫火铃冲照；所列煞曜任一颗"
         }
       ],
       "tags": [
@@ -421,6 +1143,11 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "天钺"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "note": "三合吉星守照：未点吉星名，不擅以辅弼昌曲替代"
         }
       ],
       "tags": [
@@ -443,6 +1170,60 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "擎羊"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "擎羊",
+          "yearZhi": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "note": "亦喜四墓生人"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "擎羊",
+          "meetAll": [
+            "太阳",
+            "太阴"
+          ],
+          "note": "会日月"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "擎羊",
+          "meetAll": [
+            "文昌",
+            "文曲",
+            "左辅",
+            "右弼"
+          ],
+          "note": "会昌曲左右"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "擎羊",
+          "yearGan": [
+            "甲",
+            "戊"
+          ],
+          "note": "六甲六戊寅申生人守命：年干甲戊"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "擎羊",
+          "yearZhi": [
+            "寅",
+            "申"
+          ],
+          "note": "六甲六戊寅申生人守命：年支寅申"
         }
       ],
       "tags": [
@@ -464,6 +1245,54 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "陀罗"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "陀罗",
+          "yearZhi": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "note": "四墓生人又坐四墓宫"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "陀罗",
+          "meetAll": [
+            "太阳",
+            "太阴"
+          ],
+          "meetMutagen": "忌",
+          "note": "会日月忌宿"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "陀罗",
+          "meetAll": [
+            "文昌",
+            "文曲",
+            "左辅",
+            "右弼"
+          ],
+          "note": "会昌曲左右"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "陀罗",
+          "empty": "无正曜",
+          "note": "无正星而独守命者"
         }
       ],
       "tags": [
@@ -485,6 +1314,18 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "火星"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "火星",
+          "yearZhi": [
+            "寅",
+            "卯",
+            "巳",
+            "午"
+          ],
+          "note": "喜寅卯巳午生人"
         }
       ],
       "tags": [
@@ -506,6 +1347,29 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "铃星"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "铃星",
+          "yearZhi": [
+            "寅",
+            "午",
+            "戌"
+          ],
+          "note": "宜寅午戌人权贵"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "铃星",
+          "meetAll": [
+            "紫微",
+            "天府",
+            "左辅",
+            "右弼"
+          ],
+          "note": "更会紫府左右"
         }
       ],
       "tags": [
@@ -527,6 +1391,11 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "地劫"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "note": "三方四正加杀多者：煞多未给出数量，不以任一颗代多煞"
         }
       ],
       "tags": [
@@ -566,6 +1435,14 @@
           "limit": "小限",
           "star": "地空",
           "note": "二限遇逢天空"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "地空",
+          "gender": "女",
+          "empty": "无正曜",
+          "note": "女命单守"
         }
       ],
       "tags": [
@@ -587,6 +1464,25 @@
           "module": "ziwei",
           "palace": "命宫",
           "star": "天马"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天马",
+          "meet": [
+            "禄存"
+          ],
+          "note": "最喜会禄存"
+        },
+        {
+          "module": "ziwei",
+          "palace": "夫妻",
+          "star": "天马",
+          "meetMutagenAll": [
+            "权",
+            "禄"
+          ],
+          "note": "天马在夫妻宫，加权禄照临"
         }
       ],
       "tags": [

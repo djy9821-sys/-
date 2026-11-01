@@ -40,6 +40,16 @@
           "module": "ziwei",
           "palace": "官禄",
           "star": "天机"
+        },
+        {
+          "module": "ziwei",
+          "palace": "官禄",
+          "star": "天机",
+          "brightness": "庙",
+          "meet": [
+            "文曲"
+          ],
+          "note": "天机入庙会文曲"
         }
       ],
       "tags": [
@@ -84,6 +94,17 @@
           "module": "ziwei",
           "palace": "官禄",
           "star": "武曲"
+        },
+        {
+          "module": "ziwei",
+          "palace": "官禄",
+          "star": "武曲",
+          "meetMutagenAll": [
+            "科",
+            "权",
+            "禄"
+          ],
+          "note": "会科权禄为财富之官；在官禄论三化，不套命宫三奇格"
         }
       ],
       "tags": [
@@ -129,6 +150,15 @@
           "module": "ziwei",
           "palace": "官禄",
           "star": "廉贞"
+        },
+        {
+          "module": "ziwei",
+          "palace": "官禄",
+          "star": "廉贞",
+          "meet": [
+            "紫微"
+          ],
+          "note": "紫微会三方"
         }
       ],
       "tags": [
@@ -171,6 +201,19 @@
           "module": "ziwei",
           "palace": "官禄",
           "star": "太阴"
+        },
+        {
+          "module": "ziwei",
+          "palace": "官禄",
+          "star": "太阴",
+          "meetAll": [
+            "太阳",
+            "文昌",
+            "文曲",
+            "左辅",
+            "右弼"
+          ],
+          "note": "会太阳昌曲左右"
         }
       ],
       "tags": [
@@ -255,6 +298,21 @@
           "module": "ziwei",
           "palace": "官禄",
           "star": "天梁"
+        },
+        {
+          "module": "ziwei",
+          "palace": "官禄",
+          "star": "天梁",
+          "branches": [
+            "午"
+          ],
+          "meetAll": [
+            "左辅",
+            "右弼",
+            "天魁",
+            "天钺"
+          ],
+          "note": "天梁庙午会左右魁钺"
         }
       ],
       "tags": [
@@ -297,6 +355,10 @@
           "module": "ziwei",
           "palace": "官禄",
           "star": "破军"
+        },
+        {
+          "module": "ziwei",
+          "note": "原文「同加权禄」未明说两化同宫或三方；按同宫解与本段主星组合不能成立，暂只记原句，不强配空间关系。"
         }
       ],
       "tags": [
@@ -339,6 +401,18 @@
           "module": "ziwei",
           "palace": "官禄",
           "star": "文曲"
+        },
+        {
+          "module": "ziwei",
+          "palace": "官禄",
+          "star": "文曲",
+          "meetAll": [
+            "紫微",
+            "天府",
+            "左辅",
+            "右弼"
+          ],
+          "note": "会紫府左右"
         }
       ],
       "tags": [
@@ -447,7 +521,9 @@
         {
           "module": "ziwei",
           "palace": "官禄",
-          "star": "陀罗"
+          "star": "陀罗",
+          "empty": "无正曜",
+          "note": "原文以辅曜独守／单守领起本条，无正曜为必要条件；不等于没有其他辅星"
         }
       ],
       "tags": [
@@ -469,6 +545,16 @@
           "module": "ziwei",
           "palace": "官禄",
           "star": "火星"
+        },
+        {
+          "module": "ziwei",
+          "palace": "官禄",
+          "star": "火星",
+          "meetAll": [
+            "紫微",
+            "贪狼"
+          ],
+          "note": "会紫微贪狼吉"
         }
       ],
       "tags": [
@@ -489,7 +575,9 @@
         {
           "module": "ziwei",
           "palace": "官禄",
-          "star": "铃星"
+          "star": "铃星",
+          "empty": "无正曜",
+          "note": "原文以辅曜独守／单守领起本条，无正曜为必要条件；不等于没有其他辅星"
         }
       ],
       "tags": [

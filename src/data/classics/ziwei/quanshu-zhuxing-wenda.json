@@ -16,6 +16,30 @@
         {
           "module": "ziwei",
           "star": "紫微"
+        },
+        {
+          "module": "ziwei",
+          "star": "紫微",
+          "meet": [
+            "文昌"
+          ],
+          "note": "帝会文昌拱照"
+        },
+        {
+          "module": "ziwei",
+          "note": "人之身命若值禄存同宫，日月三合相照；紫微与日月按安星法不会同宫也不在三方四正，不编码这项组合"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "star": "紫微",
+          "note": "二限若遇帝"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "star": "紫微",
+          "note": "二限若遇帝"
         }
       ],
       "tags": [
@@ -35,6 +59,44 @@
         {
           "module": "ziwei",
           "star": "天机"
+        },
+        {
+          "module": "ziwei",
+          "star": "天机",
+          "meetAll": [
+            "天梁",
+            "左辅",
+            "右弼",
+            "文昌",
+            "文曲"
+          ],
+          "note": "与天梁、左右、昌曲交会"
+        },
+        {
+          "module": "ziwei",
+          "star": "天机",
+          "meetAll": [
+            "天同",
+            "文昌",
+            "文曲"
+          ],
+          "note": "天同与昌曲，聚拱主华荣"
+        },
+        {
+          "module": "ziwei",
+          "note": "武暗廉破会，两目少光明；天机与武曲、廉贞、破军不能按此句同时会齐，组合存疑"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "star": "天机",
+          "note": "凡入二限逢之；二限临此宿"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "star": "天机",
+          "note": "凡入二限逢之；二限临此宿"
         }
       ],
       "tags": [
@@ -56,6 +118,47 @@
         {
           "module": "ziwei",
           "star": "太阳"
+        },
+        {
+          "module": "ziwei",
+          "palace": [
+            "命宫",
+            "身宫"
+          ],
+          "star": "太阳",
+          "meet": [
+            "太阴"
+          ],
+          "note": "更得太阴同照；若与太阴会"
+        },
+        {
+          "module": "ziwei",
+          "palace": [
+            "财帛",
+            "官禄"
+          ],
+          "star": "太阳",
+          "meetAll": [
+            "左辅",
+            "右弼",
+            "文昌",
+            "文曲",
+            "天魁",
+            "天钺"
+          ],
+          "note": "左右、昌曲、魁铒三合拱照财官二宫；魁铒按魁钺"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "star": "太阳",
+          "note": "大小二限俱到；二限若值此"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "star": "太阳",
+          "note": "大小二限俱到；二限若值此"
         }
       ],
       "tags": [
@@ -77,6 +180,55 @@
         {
           "module": "ziwei",
           "star": "武曲"
+        },
+        {
+          "module": "ziwei",
+          "star": "武曲",
+          "meetAll": [
+            "禄存",
+            "天马"
+          ],
+          "note": "会禄马则发财远郡"
+        },
+        {
+          "module": "ziwei",
+          "note": "破军贪狼会于坎宫；按安星法这些主星不能同时满足所述同宫或三方四正组合，只记原句，不硬配。"
+        },
+        {
+          "module": "ziwei",
+          "star": "武曲",
+          "meet": [
+            "贪狼"
+          ],
+          "note": "贪狼会则少年不利"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "武曲",
+          "yearGan": [
+            "甲",
+            "己"
+          ],
+          "note": "甲己生人福厚"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "allStars": [
+            "武曲",
+            "破军"
+          ],
+          "note": "若与破军同位，更临二限之中"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "allStars": [
+            "武曲",
+            "破军"
+          ],
+          "note": "若与破军同位，更临二限之中"
         }
       ],
       "tags": [
@@ -98,6 +250,44 @@
         {
           "module": "ziwei",
           "star": "天同"
+        },
+        {
+          "module": "ziwei",
+          "star": "天同",
+          "branches": [
+            "巳",
+            "亥"
+          ],
+          "yearGan": [
+            "壬",
+            "乙",
+            "丙"
+          ],
+          "note": "喜壬乙丙生人，巳亥得地"
+        },
+        {
+          "module": "ziwei",
+          "star": "天同",
+          "branches": [
+            "酉"
+          ],
+          "yearGan": "庚",
+          "note": "不宜六庚生人居酉地"
+        },
+        {
+          "module": "ziwei",
+          "star": "天同",
+          "branches": [
+            "巳",
+            "亥"
+          ],
+          "meet": [
+            "擎羊",
+            "陀罗",
+            "火星",
+            "铃星"
+          ],
+          "note": "会四杀居巳亥为陷"
         }
       ],
       "tags": [
@@ -136,6 +326,15 @@
         {
           "module": "ziwei",
           "star": "天府"
+        },
+        {
+          "module": "ziwei",
+          "star": "天府",
+          "meetAll": [
+            "文昌",
+            "文曲"
+          ],
+          "note": "与昌曲会，必登首选"
         }
       ],
       "tags": [
@@ -157,6 +356,10 @@
         {
           "module": "ziwei",
           "star": "太阴"
+        },
+        {
+          "module": "ziwei",
+          "note": "七杀相冲；值贪杀损目：太阴与七杀、贪狼按安星法不会同宫也不在三方四正，故不编码这些组合"
         }
       ],
       "tags": [
@@ -178,6 +381,68 @@
         {
           "module": "ziwei",
           "star": "贪狼"
+        },
+        {
+          "module": "ziwei",
+          "star": "贪狼",
+          "meet": [
+            "破军"
+          ],
+          "note": "会破军迷花恋酒而丧命"
+        },
+        {
+          "module": "ziwei",
+          "star": "贪狼",
+          "meet": [
+            "火星",
+            "铃星"
+          ],
+          "note": "惟会火铃能富贵"
+        },
+        {
+          "module": "ziwei",
+          "star": "贪狼",
+          "brightness": [
+            "庙",
+            "旺"
+          ],
+          "stars": [
+            "火星"
+          ],
+          "yearGan": [
+            "戊",
+            "己"
+          ],
+          "note": "居庙旺遇火星武职权贵，戊己生人合局"
+        },
+        {
+          "module": "ziwei",
+          "star": "贪狼",
+          "meetAll": [
+            "廉贞",
+            "武曲"
+          ],
+          "note": "会廉武巧艺"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "star": "贪狼",
+          "stars": [
+            "擎羊",
+            "陀罗"
+          ],
+          "note": "遇羊陀主痔疾，逢刑忌有斑痕，二限为祸非轻：分别按二限看，羊陀任一颗"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "star": "贪狼",
+          "stars": [
+            "擎羊",
+            "陀罗"
+          ],
+          "note": "遇羊陀主痔疾，逢刑忌有斑痕，二限为祸非轻：小限"
         }
       ],
       "tags": [
@@ -197,6 +462,18 @@
         {
           "module": "ziwei",
           "star": "巨门"
+        },
+        {
+          "module": "ziwei",
+          "star": "巨门",
+          "meet": [
+            "太阳"
+          ],
+          "note": "会太阳则吉凶相半"
+        },
+        {
+          "module": "ziwei",
+          "note": "对宫遇火铃、白虎；meet 只表达四正，不能限定只在对宫；白虎与无帝压制也未编码"
         }
       ],
       "tags": [
@@ -216,6 +493,51 @@
         {
           "module": "ziwei",
           "star": "天梁"
+        },
+        {
+          "module": "ziwei",
+          "star": "天梁",
+          "meetAll": [
+            "文昌",
+            "文曲",
+            "左辅",
+            "右弼"
+          ],
+          "note": "得昌曲左右加会"
+        },
+        {
+          "module": "ziwei",
+          "palace": "福德",
+          "star": "天梁",
+          "meet": [
+            "太阳"
+          ],
+          "note": "会太阳于福德"
+        },
+        {
+          "module": "ziwei",
+          "star": "天梁",
+          "yearGan": [
+            "戊",
+            "己"
+          ],
+          "note": "戊己生人合局"
+        },
+        {
+          "module": "ziwei",
+          "star": "天梁",
+          "meet": [
+            "天机"
+          ],
+          "note": "若逢天机照"
+        },
+        {
+          "module": "ziwei",
+          "note": "巨门若相会；按安星法天梁与巨门不会同宫也不在三方四正，不硬配"
+        },
+        {
+          "module": "ziwei",
+          "note": "命或对宫有天梁主有寿；会照范围包含三合，不能精确编码仅本宫或对宫，暂保留原星条件"
         }
       ],
       "tags": [
@@ -233,6 +555,84 @@
         {
           "module": "ziwei",
           "star": "七杀"
+        },
+        {
+          "module": "ziwei",
+          "palace": [
+            "田宅",
+            "父母"
+          ],
+          "star": "七杀",
+          "meetAll": [
+            "天刑",
+            "廉贞"
+          ],
+          "note": "会刑囚于田宅、父母"
+        },
+        {
+          "module": "ziwei",
+          "palace": "迁移",
+          "star": "七杀",
+          "meetAll": [
+            "廉贞",
+            "破军"
+          ],
+          "note": "会囚耗于迁移"
+        },
+        {
+          "module": "ziwei",
+          "note": "合太阳巨门会帝旺之乡；七杀与太阳按安星法不会同宫也不在三方四正，不硬配"
+        },
+        {
+          "module": "ziwei",
+          "star": "七杀",
+          "meetAll": [
+            "文昌",
+            "文曲"
+          ],
+          "note": "会昌曲于要地"
+        },
+        {
+          "module": "ziwei",
+          "star": "七杀",
+          "meetAll": [
+            "左辅",
+            "右弼",
+            "文昌",
+            "文曲"
+          ],
+          "note": "左右昌曲入庙拱照"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "寅",
+            "申",
+            "子",
+            "午"
+          ],
+          "star": "七杀",
+          "meetAll": [
+            "天魁",
+            "天钺",
+            "左辅",
+            "右弼",
+            "文昌"
+          ],
+          "note": "魁钺左右文昌会"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "star": "七杀",
+          "note": "大小二限合身命逢杀；二限逢之遭殃破败"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "star": "七杀",
+          "note": "大小二限合身命逢杀；二限逢之遭殃破败"
         }
       ],
       "tags": [
@@ -254,6 +654,55 @@
         {
           "module": "ziwei",
           "star": "破军"
+        },
+        {
+          "module": "ziwei",
+          "star": "破军",
+          "yearGan": [
+            "癸",
+            "甲"
+          ],
+          "note": "惟六癸六甲生人合格"
+        },
+        {
+          "module": "ziwei",
+          "star": "破军",
+          "meetAll": [
+            "紫微",
+            "贪狼"
+          ],
+          "note": "会紫贪则鼠窃狗盗"
+        },
+        {
+          "module": "ziwei",
+          "palace": [
+            "身宫",
+            "命宫"
+          ],
+          "star": "破军",
+          "branches": [
+            "子",
+            "午"
+          ],
+          "meetAll": [
+            "贪狼",
+            "七杀"
+          ],
+          "note": "身命居子午，贪狼七杀相拱"
+        },
+        {
+          "module": "ziwei",
+          "allStars": [
+            "破军",
+            "武曲"
+          ],
+          "branches": [
+            "巳"
+          ],
+          "meet": [
+            "贪狼"
+          ],
+          "note": "与武曲同居巳宫，贪狼拱"
         }
       ],
       "tags": [
@@ -273,6 +722,10 @@
         {
           "module": "ziwei",
           "star": "文昌"
+        },
+        {
+          "module": "ziwei",
+          "note": "火生人不利；喜于金生人：纳音未实现，不以年干五行替代"
         }
       ],
       "tags": [
@@ -292,6 +745,29 @@
         {
           "module": "ziwei",
           "star": "文曲"
+        },
+        {
+          "module": "ziwei",
+          "palace": [
+            "命宫",
+            "身宫"
+          ],
+          "star": "文曲",
+          "empty": "无正曜",
+          "note": "单居身命；无正曜，不等于无其他辅星"
+        },
+        {
+          "module": "ziwei",
+          "star": "文曲",
+          "meetAll": [
+            "武曲",
+            "贪狼"
+          ],
+          "note": "武贪三合同垣，将相之格"
+        },
+        {
+          "module": "ziwei",
+          "note": "亥卯未旺地，与天梁天相会；按安星法这些主星不能同时满足所述同宫或三方四正组合，只记原句，不硬配。"
         }
       ],
       "tags": [
@@ -313,6 +789,27 @@
         {
           "module": "ziwei",
           "star": "左辅"
+        },
+        {
+          "module": "ziwei",
+          "star": "左辅",
+          "meetAll": [
+            "紫微",
+            "天府"
+          ],
+          "meetMutagenAll": [
+            "禄",
+            "权"
+          ],
+          "note": "紫府禄权若得三合冲照"
+        },
+        {
+          "module": "ziwei",
+          "star": "左辅",
+          "meet": [
+            "紫微"
+          ],
+          "note": "三合宜见君"
         }
       ],
       "tags": [
@@ -332,6 +829,14 @@
         {
           "module": "ziwei",
           "star": "右弼"
+        },
+        {
+          "module": "ziwei",
+          "star": "右弼",
+          "meet": [
+            "紫微"
+          ],
+          "note": "三合宜见君"
         }
       ],
       "tags": [
@@ -351,6 +856,31 @@
         {
           "module": "ziwei",
           "star": "禄存"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "禄存",
+          "empty": "无正曜",
+          "note": "若独守命而无吉化；empty 只核无正曜，无吉化仍人工核对"
+        },
+        {
+          "module": "ziwei",
+          "note": "紫府廉同会合；紫微与天同位差固定，不能同在禄存的同组三方四正，不能以任一颗替代全部"
+        },
+        {
+          "module": "ziwei",
+          "palace": "迁移",
+          "star": "禄存",
+          "note": "禄存对向守迁移"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "meet": [
+            "禄存"
+          ],
+          "note": "三合逢之利禄宜"
         }
       ],
       "tags": [
@@ -392,6 +922,30 @@
         {
           "module": "ziwei",
           "star": "擎羊"
+        },
+        {
+          "module": "ziwei",
+          "star": "擎羊",
+          "yearZhi": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "note": "四墓生人不忌"
+        },
+        {
+          "module": "ziwei",
+          "star": "擎羊",
+          "branches": [
+            "卯",
+            "酉"
+          ],
+          "yearGan": [
+            "甲",
+            "庚"
+          ],
+          "note": "居卯酉；六甲六庚生人"
         }
       ],
       "tags": [
@@ -411,6 +965,17 @@
         {
           "module": "ziwei",
           "star": "陀罗"
+        },
+        {
+          "module": "ziwei",
+          "star": "陀罗",
+          "yearZhi": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "note": "辰戌丑未生人为福"
         }
       ],
       "tags": [
@@ -430,6 +995,23 @@
         {
           "module": "ziwei",
           "star": "火星"
+        },
+        {
+          "module": "ziwei",
+          "star": "火星",
+          "meet": [
+            "擎羊",
+            "陀罗"
+          ],
+          "note": "更与羊陀会"
+        },
+        {
+          "module": "ziwei",
+          "star": "火星",
+          "meet": [
+            "贪狼"
+          ],
+          "note": "若得贪狼会"
         }
       ],
       "tags": [
@@ -452,6 +1034,23 @@
         {
           "module": "ziwei",
           "star": "铃星"
+        },
+        {
+          "module": "ziwei",
+          "star": "铃星",
+          "meet": [
+            "贪狼"
+          ],
+          "note": "若与贪狼会"
+        },
+        {
+          "module": "ziwei",
+          "star": "铃星",
+          "meetAll": [
+            "廉贞",
+            "擎羊"
+          ],
+          "note": "廉宿羊刑会"
         }
       ],
       "tags": [
@@ -493,6 +1092,24 @@
             "地劫"
           ],
           "note": "二限逢之必凶：小限逢空劫任一颗"
+        },
+        {
+          "module": "ziwei",
+          "palace": [
+            "命宫",
+            "身宫"
+          ],
+          "star": [
+            "地空",
+            "地劫"
+          ],
+          "meet": [
+            "擎羊",
+            "陀罗",
+            "火星",
+            "铃星"
+          ],
+          "note": "如四杀冲照；空劫任一颗守身命，四煞任一颗会照"
         }
       ],
       "tags": [
@@ -512,6 +1129,29 @@
         {
           "module": "ziwei",
           "star": "天相"
+        },
+        {
+          "module": "ziwei",
+          "star": "天相",
+          "meetAll": [
+            "文昌",
+            "文曲",
+            "左辅",
+            "右弼"
+          ],
+          "note": "昌曲左右相会"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "star": "天相",
+          "note": "二限逢之主富贵；二限若逢之"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "star": "天相",
+          "note": "二限逢之主富贵；二限若逢之"
         }
       ],
       "tags": [
@@ -560,6 +1200,25 @@
           "star": "天马",
           "flow": "运昌",
           "note": "大限临天马，流昌（运昌）必利"
+        },
+        {
+          "module": "ziwei",
+          "star": "天马",
+          "meet": [
+            "禄存",
+            "紫微",
+            "天府",
+            "文昌",
+            "文曲"
+          ],
+          "note": "喜禄存、紫府、昌曲，守照为吉：各吉曜是所喜之类，任一颗会照"
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "star": "天马",
+          "flow": "流昌",
+          "note": "流年值之依此断；天马同流昌"
         }
       ],
       "tags": [
@@ -591,6 +1250,26 @@
           "limit": "大限",
           "mutagen": "禄",
           "note": "小限逢化禄主进财入仕之喜；大限十年吉庆"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "mutagen": "禄",
+          "pattern": "三奇加会",
+          "note": "守身命官禄之位，科权相逢；命宫三化会齐取三奇加会"
+        },
+        {
+          "module": "ziwei",
+          "palace": [
+            "身宫",
+            "官禄"
+          ],
+          "mutagen": "禄",
+          "meetMutagenAll": [
+            "科",
+            "权"
+          ],
+          "note": "守身命官禄之位，科权相逢"
         }
       ],
       "tags": [
@@ -622,6 +1301,35 @@
           "limit": "大限",
           "mutagen": "权",
           "note": "小限相逢无有不吉；大限十年必然遂志"
+        },
+        {
+          "module": "ziwei",
+          "palace": [
+            "命宫",
+            "身宫"
+          ],
+          "mutagen": "权",
+          "meetMutagen": "科",
+          "note": "科权相逢"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "mutagen": "权",
+          "pattern": "三奇加会",
+          "note": "守身命科禄相逢；命宫三化会齐取三奇加会"
+        },
+        {
+          "module": "ziwei",
+          "palace": [
+            "身宫"
+          ],
+          "mutagen": "权",
+          "meetMutagenAll": [
+            "科",
+            "禄"
+          ],
+          "note": "守身命科禄相逢"
         }
       ],
       "tags": [
@@ -641,6 +1349,34 @@
         {
           "module": "ziwei",
           "mutagen": "科"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "mutagen": "科",
+          "pattern": "三奇加会",
+          "note": "守身命权禄相逢；命宫三化会齐取三奇加会"
+        },
+        {
+          "module": "ziwei",
+          "palace": [
+            "身宫"
+          ],
+          "mutagen": "科",
+          "meetMutagenAll": [
+            "权",
+            "禄"
+          ],
+          "note": "守身命权禄相逢"
+        },
+        {
+          "module": "ziwei",
+          "palace": [
+            "命宫",
+            "身宫"
+          ],
+          "meetMutagen": "科",
+          "note": "与科星拱照冲同论"
         }
       ],
       "tags": [
@@ -672,6 +1408,12 @@
           "limit": "大限",
           "mutagen": "忌",
           "note": "小限逢之一年不足，大限十年悔吝"
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "mutagen": "忌",
+          "note": "二限太岁交临；补太岁流年层，各层条件不能同时验证交临"
         }
       ],
       "tags": [
@@ -843,6 +1585,22 @@
             "流曲"
           ],
           "note": "流年昌曲（流昌、流曲）任一颗飞到流年命宫或三方四正，为科名科甲"
+        },
+        {
+          "module": "ziwei",
+          "limit": "流年",
+          "flow": [
+            "流昌",
+            "流曲"
+          ],
+          "meet": [
+            "太阳"
+          ],
+          "note": "流年昌曲任一颗，三合拱照太阳；「又照流年禄」未明确流禄还是流年化禄，未编码该附加项"
+        },
+        {
+          "module": "ziwei",
+          "note": "大小二限逢流年昌曲、小限太岁吉曜拱照：跨层组合暂无条件键；小限没有流曜，不能伪造流昌。流年化禄与流禄不是同一条件，原句「流年禄」含义待核"
         }
       ],
       "tags": [
@@ -865,6 +1623,36 @@
             "擎羊",
             "陀罗"
           ]
+        },
+        {
+          "module": "ziwei",
+          "palace": [
+            "命宫",
+            "身宫"
+          ],
+          "meet": [
+            "擎羊",
+            "陀罗"
+          ],
+          "note": "忌三合临身命；羊陀任一颗会照"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "star": [
+            "擎羊",
+            "陀罗"
+          ],
+          "note": "二限更遇此；羊陀任一颗"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "star": [
+            "擎羊",
+            "陀罗"
+          ],
+          "note": "二限更遇此；羊陀任一颗"
         }
       ],
       "tags": [
