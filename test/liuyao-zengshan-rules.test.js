@@ -390,3 +390,20 @@ test('千金赋：动爻化墓而有日月帮扶不作无力，待冲开墓库�
   // 考试不是要长久的事，同一卦问考试不加这一条
   assert.doesNotMatch(allText(bookCase('山天大畜', [3, 5], '2005-7-5', { topic: 'study' })), /水木须宜寻根/);
 });
+
+test('终身功名：世静而临月破、官逢月破，日辰不扶（日墓不算扶），倾向至多偏弱；另有官星发动化进的是再任之官，不在此列', () => {
+  // 丑月乙卯日占援例得豫之否：「财动生官，不宜世临月破，破而被克，有官不能享也」
+  const aid = bookCase('雷地豫', [5, 6], '2005-1-31', { topic: 'career' });
+  assert.match(allText(aid), /功名（终身功名有无章）：世爻安静而月破，日辰不扶，「破空临世，终须白屋之人」/);
+  assert.equal(aid.verdict.level, 'bad');
+  // 卯月辛丑日再占府尊复职得晋：「世爻破而入墓」——丑日虽是土生金，却是酉金之墓，不算生扶
+  const again = bookCase('火地晋', [], '2002-4-3', { topic: 'career' });
+  assert.match(allText(again), /世爻安静而月破，日辰不扶/);
+  assert.equal(again.verdict.level, 'bad');
+  // 同日三占得恒之大过：「持世官星破而入墓，所以知其失之必矣；幸五爻官化进神，乃再任之官也」，后果于巳年补任
+  const third = bookCase('雷风恒', [5], '2002-4-3', { topic: 'career' });
+  assert.doesNotMatch(allText(third), /白屋/);
+  assert.equal(third.verdict.level, 'good');
+  // 只管功名：同一卦问求财不加这一条
+  assert.doesNotMatch(allText(bookCase('雷地豫', [5, 6], '2005-1-31', { topic: 'wealth' })), /白屋/);
+});
