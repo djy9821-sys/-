@@ -527,20 +527,100 @@ const describeHiddenFlyer = (hiddenItem, flyer, time, lines) => {
   return { score: 0, text: `伏神${useful.length ? `有${useful.join('、')}` : ''}${useful.length && useless.length ? '，又' : ''}${useless.length ? useless.join('、') : ''}，待日月生扶或冲开飞神之时出现` };
 };
 
-const timingOf = (yong, strength) => {
+/** 远事定之以年月，近事应之于时日（各门类应期总注章其十六）：终身、坟地风水按年；功名、考试、官司远近都有，日、年并提。 */
+const FAR_TIMING_TOPICS = new Set(['life', 'gravesite', 'ancestral']);
+const MIXED_TIMING_TOPICS = new Set(['career', 'study', 'lawsuit']);
+
+/**
+ * 应期（《增删卜易·各门类应期总注章》）：先看用神的特别之象——伏藏、入墓（「入三墓俱喜冲开」）、逢合（「遇六合亦宜相击」）、
+ * 月破（「月破喜逢填合」）、旬空（「旬空最爱填冲」）、化进化退（「申动化酉……有应申月日，有应巳月日」「酉动化申，有应申月日，有应寅月日」）、
+ * 太旺（「太旺者逢墓逢冲」）；再看忌神克用神（「大象吉而受克，须待克神受克」「大象凶而受克，须防克者逢生」）、
+ * 元神贪合（占父近病「须待丑日冲去未土而午火无合可贪」）；最后是动静的常例（「静而逢值逢冲」「动而逢合逢值」），与上面重复的不再列；
+ * 用神休囚的补一句「衰绝者遇生遇旺」。远事定之以年月，近事应之于月日（其十六）。至多三条；when 记下所指的地支与年、月、日，供回归对照。
+ */
+const timingOf = (yong, strength, { time, movers = [], level = 'mixed', topic = '', lines = [] } = {}) => {
   const zhi = yong.zhi;
-  const hints = [];
+  const units = FAR_TIMING_TOPICS.has(topic) ? ['年', '月'] : ['日', '月'];
+  const span = units.join('');
+  const mixed = MIXED_TIMING_TOPICS.has(topic);
+  const item = (text, branches = []) => ({ text, branches });
+  const flags = yong.isMoving && !yong.hidden ? changeFlagsOf(yong, time) : {};
+  const moving = !yong.hidden && (yong.isMoving || strength.notes.includes('日辰冲起，静爻暗动'));
+
+  // 一、用神的特别之象
+  let state = null;
   if (yong.hidden) {
-    hints.push(`用神伏藏，常应在${zhi}日（值）、${ZHI_CLASH[yong.flyer.zhi]}日（冲飞神）或飞神空破之时`);
+    const clash = ZHI_CLASH[yong.flyer.zhi];
+    state = item(`用神伏藏，常应在${zhi}（值）、${clash}（冲飞神）之${span}，或飞神空破之时`, [zhi, clash]);
   } else {
-    hints.push(`用神临${zhi}，应期常看${zhi}日、${zhi}月（值），或${ZHI_HARMONY[zhi]}日（合）`);
+    // 与用神相合的地支：日月作合、动爻来合、动而化合（其六「主事爻与日月作合，或动与爻合，或动而化合……必待冲开之日月应之」）
+    const partner = [time.dayZhi, time.monthZhi, flags.harmony ? yong.changed.zhi : null,
+      ...movers.filter((mover) => !mover.dark).map((mover) => mover.line.zhi)].find((other) => other && ZHI_HARMONY[zhi] === other);
+    // 日辰冲用神的（辰日冲戌）是冲，不作墓论
+    const dayTomb = stageAt(yong.element, time.dayZhi) === '墓' && !strength.marks.includes('日冲');
+    // 太旺：月日都与用神同气，或临月日又卦中同类之爻多（其三「主事爻临午火，又遇巳午月日占卦，或卦中巳午爻太多」）
+    const kin = lines.filter((line) => line.element === yong.element).length;
+    const tooStrong = [time.monthZhi, time.dayZhi].every((branch) => ZHI_ELEMENT[branch] === yong.element)
+      || ([time.monthZhi, time.dayZhi].some((branch) => ZHI_ELEMENT[branch] === yong.element) && kin >= 3);
+    if (flags.tomb || dayTomb) {
+      const tomb = flags.tomb ? yong.changed.zhi : time.dayZhi;
+      state = item(`用神${flags.tomb ? `化${tomb}入墓` : `入墓于${tomb}日`}，待${ZHI_CLASH[tomb]}之${span}冲开（「入三墓俱喜冲开」）`, [ZHI_CLASH[tomb]]);
+    } else if (partner) {
+      state = item(`用神与${partner}相合，待${ZHI_CLASH[zhi]}、${ZHI_CLASH[partner]}之${span}冲开（「遇六合亦宜相击」）`, [ZHI_CLASH[zhi], ZHI_CLASH[partner]]);
+    } else if (strength.marks.includes('月破')) {
+      state = item(`用神月破，出月之后，逢${ZHI_HARMONY[zhi]}（合）、${zhi}（填实）之${span}应之（「月破喜逢填合」）`, [ZHI_HARMONY[zhi], zhi]);
+    } else if (strength.emptyKind && strength.emptyKind !== '破空') {
+      state = item(`用神旬空，逢${zhi}（填实）、${ZHI_CLASH[zhi]}（冲空）之${span}应之（「旬空最爱填冲」）`, [zhi, ZHI_CLASH[zhi]]);
+    } else if (flags.advance) {
+      state = item(`用神化进神，逢${zhi}（值）、${ZHI_HARMONY[zhi]}（合）之${span}应之（「化进神逢值逢合」）`, [zhi, ZHI_HARMONY[zhi]]);
+    } else if (flags.retreat) {
+      const to = yong.changed.zhi;
+      state = item(`用神化退神${to}，忌${to}（值）、${ZHI_CLASH[to]}（冲）之${span}（「化退神忌值忌冲」）`, [to, ZHI_CLASH[to]]);
+    } else if (tooStrong) {
+      const [tomb, clash] = [TOMB[yong.element], ZHI_CLASH[zhi]];
+      state = tomb === clash
+        ? item(`用神太旺，逢${tomb}（墓库又冲）之${span}应之（「太旺者逢墓逢冲」）`, [tomb])
+        : item(`用神太旺，逢${tomb}（墓）、${clash}（冲）之${span}应之（「太旺者逢墓逢冲」）`, [tomb, clash]);
+    }
   }
-  if (strength.emptyKind && strength.emptyKind !== '破空') hints.push('用神旬空，多应在出空之后，或逢值日、冲日填实');
-  if (strength.marks.includes('月破')) hints.push('用神月破，多应在出月之后，或逢合、逢值之日');
-  if (!yong.hidden && !yong.isMoving && !strength.marks.includes('日冲')) hints.push(`用神安静，多待${ZHI_CLASH[zhi]}日冲动，或${zhi}日值日`);
-  if (yong.isMoving && (strength.notes.includes('日辰合住') || strength.notes.includes('月建合绊'))) hints.push(`用神动而被合，待${ZHI_CLASH[zhi]}日冲开`);
-  if (yong.isMoving && !hints.some((hint) => hint.includes('合'))) hints.push('用神发动，事已在进行之中，应期较近');
-  return hints.slice(0, 3);
+
+  // 二、忌神克用神（用神临日辰、忌神被合或无力的不论：日辰章「爻临日建……逢动爻之克亦不为害」），元神贪合
+  const extras = [];
+  const enemy = !yong.hidden && zhi !== time.dayZhi
+    ? movers.find((mover) => mover.relation === 'controlled' && !mover.bound && mover.power?.force !== 'weak')?.line : null;
+  if (enemy && level === 'good') {
+    extras.push(item(`忌神${enemy.relative}${enemy.ganZhi}克用神，待${ZHI_CLASH[enemy.zhi]}之${span}冲克忌神（「大象吉而受克，须待克神受克」）`, [ZHI_CLASH[enemy.zhi]]));
+  } else if (enemy) {
+    const born = CHANG_SHENG[enemy.element];
+    extras.push(item(`忌神${enemy.relative}${enemy.ganZhi}克用神，须防${enemy.zhi}（值）、${born}（生）之${span}（「大象凶而受克，须防克者逢生」）`, [enemy.zhi, born]));
+  }
+  const boundHelper = movers.find((mover) => mover.relation === 'generated' && mover.bound)?.line;
+  if (boundHelper) {
+    const tie = boundHelper.changed && ZHI_HARMONY[boundHelper.zhi] === boundHelper.changed.zhi ? boundHelper.changed.zhi : time.dayZhi;
+    extras.push(item(`元神${boundHelper.relative}${boundHelper.ganZhi}贪合${tie}，待${ZHI_CLASH[tie]}之${span}冲开${tie}，方生用神`, [ZHI_CLASH[tie]]));
+  }
+
+  // 三、动静常例：与上面重复的不再列；功名、考试、官司远近都有，远事看用神同一地支之年（其十六「远事定之以年月」）
+  const pair = yong.hidden ? null : moving ? [ZHI_HARMONY[zhi], zhi] : [zhi, ZHI_CLASH[zhi]];
+  const named = (branch) => [state, ...extras].some((entry) => entry?.branches.includes(branch));
+  const farTail = mixed && pair ? `，远事看${pair.join('、')}之年` : '';
+  let base = null;
+  if (pair && !pair.every(named)) {
+    base = item(moving
+      ? `用神${zhi}发动，逢${pair[0]}（合）、${pair[1]}（值）之${span}应之（「动而逢合逢值」）${farTail}`
+      : `用神${zhi}安静，逢${pair[0]}（值）、${pair[1]}（冲）之${span}应之（「静而逢值逢冲」）${farTail}`, pair);
+  }
+  const weak = !yong.hidden && strength.level === '休囚'
+    ? item(`用神休囚，待${generatorOf(yong.element)}生、${yong.element}旺之${span}（「衰绝者遇生遇旺」）`) : null;
+  // 至多三条：特别之象、忌神或元神（有特别之象时只留一条）、动静常例，有空再补衰旺
+  const kept = [state, ...extras.slice(0, state ? 1 : 2), base].filter(Boolean);
+  if (weak && kept.length < 3) kept.push(weak);
+  const final = kept.slice(0, 3);
+  // 动静常例与上面重复而没单列的，远事之年接在头一条后面
+  if (farTail && !base && final[0]) final[0] = { ...final[0], text: `${final[0].text}${farTail}` };
+  const when = final.flatMap((entry) => entry.branches.flatMap((branch) => units.map((unit) => ({ zhi: branch, unit }))));
+  if (farTail) pair.forEach((branch) => when.push({ zhi: branch, unit: '年' }));
+  return { hints: final.map((entry) => entry.text), when };
 };
 
 const verdictOf = (total, yongHidden) => {
@@ -2022,7 +2102,7 @@ export const judgeLiuYao = (reading, options = {}) => {
   if (guaBackCtrl || cap) total = Math.min(total, -3);
   // 用神是官鬼而吉凶反看的类别（占鬼神），倾向由专门断法给。
   const verdict = special?.verdict ?? verdictOf(total, Boolean(yong.hidden));
-  const timing = timingOf(yong, strength);
+  const { hints: timing, when: timingWhen } = timingOf(yong, strength, { time, movers: dyn.movers, level: verdict.level, topic: meta.value, lines });
   points.push(`倾向：${verdict.title}。${verdict.text}`);
   points.push(`应期：${timing.join('；')}`);
 
@@ -2065,6 +2145,7 @@ export const judgeLiuYao = (reading, options = {}) => {
     auxiliary,
     verdict,
     timing,
+    timingWhen,
     score: total,
     points,
     notices,
