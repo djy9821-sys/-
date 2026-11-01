@@ -790,9 +790,26 @@ const TOPIC_RULES = Object.freeze({
   // 「子孙持世、子孙发动，不得」「凡得子孙持世，子孙发动，终非庙廊之贵客」——子孙持世，倾向至多偏弱
   // （占终身功名有无得需「子孙持世，休问功名……终身不许成名」；占得差否得夬「子孙持世，此差不得」）。
   // 子孙发动已作忌神克用神算过，这里只论持世；替别人问的不论。
-  career: ({ shiLine, proxy }) => {
-    if (proxy || shiLine.relative !== '子孙') return null;
-    return { score: 0, cap: true, points: ['功名（升选候补章、终身功名有无章）：子孙持世，子孙克官，休问功名'], notices: [] };
+  career: ({ shiLine, proxy, yong, time }) => {
+    if (proxy) return null;
+    if (shiLine.relative === '子孙') return { score: 0, cap: true, points: ['功名（升选候补章、终身功名有无章）：子孙持世，子孙克官，休问功名'], notices: [] };
+    // 终身功名有无章其九「破空临世，终须白屋之人。世静而临旬空月破，官逢月破旬空，皆主不得成名。惟世与官星空破而动者，勿以此断」：
+    // 世爻或官星安静而月破，日辰又不生扶（日辰是它的墓不算生扶：再占府尊复职「世爻破而入墓」），倾向至多偏弱（占援例「不宜世临月破，
+    // 破而被克，有官不能享也」）。另有官星发动而旺、化进、化回头生的，是另起之官（三占府尊复职「持世官星破而入墓，所以知其失之必矣；
+    // 幸五爻官化进神，乃再任之官也」），不在此列。旬空一半不照搬：旬空章「旺不为空」，占升迁等官星旺而旬空的原书仍作吉
+    const brokenStill = (line) => {
+      if (!line || line.hidden || line.isMoving || isDarkMoving(line, time) || !line.marks.includes('月破')) return false;
+      const st = assessStrength(line, time);
+      const dayHelps = (st.dayRelation === 'same' || st.dayRelation === 'generated' || line.zhi === time.dayZhi) && stageAt(line.element, time.dayZhi) !== '墓';
+      return !dayHelps;
+    };
+    const hits = [brokenStill(shiLine) ? '世爻' : '', yong !== shiLine && brokenStill(yong) ? '官星' : ''].filter(Boolean);
+    if (!hits.length) return null;
+    const flags = yong.isMoving ? changeFlagsOf(yong, time) : {};
+    const otherOfficial = yong !== shiLine && !yong.hidden && (yong.isMoving || isDarkMoving(yong, time)) && !brokenStill(yong)
+      && (flags.advance || flags.backGen || yong.zhi === time.monthZhi || yong.zhi === time.dayZhi || assessStrength(yong, time).level === '旺相');
+    if (otherOfficial) return null;
+    return { score: 0, cap: true, points: [`功名（终身功名有无章）：${hits.join('、')}安静而月破，日辰不扶，「破空临世，终须白屋之人」`], notices: [] };
   },
   // 千金赋：占流年，以官为鬼，不宜官鬼持世；泽水困占例：世空而忌神动，出空遭伤。替别人问以那人的用神为主。
   year: ({ lines, shiLine, yong, proxy }) => {
