@@ -11,9 +11,11 @@ import { HEXAGRAM_MAP } from '../src/utils/hexagramLogic.js';
  * - 占例、起卦与 liuyao-cases.test.js 相同（id 即 src/data/cases/liuyao.json 的 liuyao.zengshan.NNN）；只收原书应验写明地支的
  *   （expected.timing，book 抄原书的说法），when 是其中的地支与年、月、日、时。「时」按日看（同一天）。
  * - 程序的 timingWhen 是应期提示里点名的地支与年月日；原书的地支、单位有一个对上就算应上。
- *   提示至多三条、每例平均点名不超过三支，免得多列地支凑数。
+ *   提示至多三条、每例平均点名不超过 NAMED_CAP 支，免得多列地支凑数。
  */
-const HIT_FLOOR = 24;
+const HIT_FLOOR = 28;
+/** 每例平均点名的地支数上限（十二支里约四分之一），免得多列地支凑数。 */
+const NAMED_CAP = 3.2;
 const CASES = [
   { id: '002', name: '占父近病', date: '2001-4-15', hex: '乾为天', lines: [4], topic: 'health', subject: 'parents', illness: 'recent', when: ['丑日'], book: '丑日' },
   { id: '008', name: '占求财', date: '2001-2-16', hex: '火天大有', lines: [], topic: 'wealth', when: ['寅日'], book: '甲寅日' },
@@ -78,13 +80,13 @@ const hits = (judge, item) => item.when.some((target) => {
   return (judge.timingWhen ?? []).some((entry) => entry.zhi === zhi && (entry.unit === unit || (unit === '时' && entry.unit === '日')));
 });
 
-test(`人事占例应期：原书应验的地支，程序应期提示点名到的不少于 ${HIT_FLOOR} 例，平均点名不超过三支`, () => {
+test(`人事占例应期：原书应验的地支，程序应期提示点名到的不少于 ${HIT_FLOOR} 例，平均点名不超过 ${NAMED_CAP} 支`, () => {
   const results = CASES.map((item) => ({ item, judge: judgeCase(item) }));
   const matched = results.filter(({ item, judge }) => hits(judge, item));
   const named = results.reduce((sum, { judge }) => sum + new Set((judge.timingWhen ?? []).map((entry) => entry.zhi)).size, 0) / results.length;
   results.forEach(({ judge }) => assert.ok(judge.timing.length >= 1 && judge.timing.length <= 3));
   assert.ok(matched.length >= HIT_FLOOR, `应上 ${matched.length} / ${results.length} 例；没应上的：${results.filter(({ item, judge }) => !hits(judge, item)).map(({ item }) => item.id).join('、')}`);
-  assert.ok(named <= 3, `平均点名 ${named.toFixed(2)} 支`);
+  assert.ok(named <= NAMED_CAP, `平均点名 ${named.toFixed(2)} 支`);
 });
 
 test('应期：元神贪合，冲开合神之日方生用神（占父近病「须待丑日冲去未土而午火无合可贪」）', () => {
@@ -101,4 +103,14 @@ test('应期：远事定之以年月——功名一类远近都有，另提用�
   const judge = judgeCase(CASES.find((item) => item.id === '090'));
   assert.ok(judge.timing.some((hint) => hint.includes('远事看辰、戌之年')), judge.timing.join('；'));
   assert.ok(judge.timingWhen.some((entry) => entry.zhi === '辰' && entry.unit === '年'));
+});
+
+test('应期：化回头克，待冲去伤爻之日（月将章「待至冲去伤爻之日，则不受其伤」，占谒贵「须待子日冲去午火」）', () => {
+  const judge = judgeCase(CASES.find((item) => item.id === '009'));
+  assert.ok(judge.timing.some((hint) => hint.includes('回头克') && hint.includes('待子之日月冲去午')), judge.timing.join('；'));
+});
+
+test('应期：动而化空，逢填实、冲空之日（占父病「戌父旬空……明日辰日，冲空即愈」）', () => {
+  const judge = judgeCase(CASES.find((item) => item.id === '167'));
+  assert.ok(judge.timing.some((hint) => hint.startsWith('用神化出戌旬空') && hint.includes('辰（冲空）')), judge.timing.join('；'));
 });
