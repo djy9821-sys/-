@@ -42,13 +42,15 @@ test('男命：星与宫照子平列出（财为妻星、官杀为子女星）�
   assert.equal(wife.tone, 'bad');
   assert.equal(wife.verdict, '妻宫（日支）坐忌神，古法主夫妻难以全美；星来合日主，古法以为有情。');
   assert.equal(wife.classic.source, '《滴天髓·夫妻》');
-  // 子女：星照子平取官杀（时干丁火七杀），子女宫在时柱；断语按任注「凡八字之用神即是子星」看用神木。
+  // 子女：星照子平取官杀（时干丁火七杀），子女宫在时柱；任注子女诸条都不合，照原注「大率依官看子」看官杀：
+  // 丁火透时干而力薄，判平（原书此造「生三子，皆就书香」，命例回归里记作近似）。
   const children = itemOf(liuqin, 'children');
   assert.equal(children.stars[0].element, '火');
   assert.equal(children.palaces[0].label, '子女宫（时柱）');
-  assert.equal(children.ren.god.element, '木');
-  assert.equal(children.ren.god.state, 'strong');
-  assert.equal(children.verdict, '任注「凡八字之用神即是子星」：用神木透月干乙，作年支卯本气，有力，古法看作子息可望。');
+  assert.equal(children.ren.source, '《滴天髓·子女》原注');
+  assert.equal(children.ren.god.element, '火');
+  assert.equal(children.ren.god.state, 'weak');
+  assert.equal(children.verdict, '原注「大率依官看子」：官杀火透时干丁，力薄，子息平平，要等岁运引动。');
   // 父母：任注只看年月——癸、卯、乙为喜，丑为忌。
   const parents = itemOf(liuqin, 'parents');
   assert.equal(parents.tone, 'good');
@@ -152,7 +154,7 @@ test('「见财星」要财星够得着印，财印相隔的不算；印重的�
   const children = itemOf(liuqin, 'children');
   assert.equal(children.ren.rule, null);
   assert.equal(children.tone, 'good');
-  assert.match(children.verdict, /^任注「凡八字之用神即是子星」：用神火透月干丙/);
+  assert.match(children.verdict, /^原注「大率依官看子」：官杀木透年干甲，作月支寅、日支寅本气，有力/);
   // 庚午 辛巳 乙酉 壬午：财土不透，但时干壬水印坐午、午中藏己土财——印下有财，仍算「见财星」。
   assert.equal(itemOf(liuqinOf(chartByPillars('庚午 辛巳 乙酉 壬午')), 'spouse').ren.rule?.cond, '官杀旺而用印，见财星');
   // 乙亥 辛巳 甲子 庚午：财土藏巳午，巳冲亥、午冲子，藏财之支紧贴冲印之支，也算。
@@ -189,11 +191,15 @@ test('宫位逢冲另提一句；比劫不现也按日主喜忌论兄弟', () =>
 });
 
 test('用神受制看制伏时，湿土止不住水（任注「丑乃湿土，能泄火不能止水」）', () => {
-  // 己亥 丙子 乙丑 壬午「克妻无子」：用神丙火受壬子亥水重克，木印只有半分通不了关，己、丑是湿土，止不住水，子星按受制断。
-  const liuqin = liuqinOf(chartByPillars('己亥 丙子 乙丑 壬午'));
-  const children = itemOf(liuqin, 'children');
+  // 己亥 丙子 乙丑 壬午（原书男命「克妻无子」）：用神丙火受壬子亥水重克，木印只有半分通不了关，己、丑是湿土，止不住水。
+  // 用神按受制断的是女命的夫（「女命之夫星，即是用神」），这里拿同一四柱的女命看。
+  const husband = itemOf(liuqinOf(chartByPillars('己亥 丙子 乙丑 壬午', 'female')), 'spouse');
+  assert.equal(husband.tone, 'bad');
+  assert.match(husband.ren.text, /用神火（透月干丙，作时支午本气）受水重克，无木通关、湿土止不住水，古法看作夫宫难全$/);
+  // 男命子女照原注看官杀：金只藏丑中余气，按不见断，与原书「无子」同。
+  const children = itemOf(liuqinOf(chartByPillars('己亥 丙子 乙丑 壬午')), 'children');
   assert.equal(children.tone, 'bad');
-  assert.match(children.ren.text, /用神火（透月干丙，作时支午本气）受水重克，无木通关、湿土止不住水，古法看作子息艰难$/);
+  assert.match(children.ren.text, /^原注「大率依官看子」：官杀金四柱不见/);
 });
 
 test('妻宫坐喜神却被克它的一支冲去，按克妻看；被它克的一支来冲不算（任注「巳亥逢冲」「酉金冲去卯木」）', () => {
@@ -202,7 +208,7 @@ test('妻宫坐喜神却被克它的一支冲去，按克妻看；被它克的�
   assert.equal(chong.tone, 'bad');
   assert.match(chong.ren.text, /^妻宫（日支）虽坐喜神，却被水冲去/);
   assert.doesNotMatch(chong.verdict, /逢冲，古法主变动/, '断语已说被冲去，不再附「逢冲」一句');
-  // 丁未 乙巳 丁酉 癸卯「最喜坐下酉金冲去卯木，生起癸水……得妻财万仞」：酉金克卯木，被冲去的是卯，妻宫照坐财论。
+  // 丁未 乙巳 丁酉 癸卯「最喜坐下酉金冲去卯木，生起癸水……又得妻财万仍」：酉金克卯木，被冲去的是卯，妻宫照坐财论。
   const you = itemOf(liuqinOf(chartByPillars('丁未 乙巳 丁酉 癸卯')), 'spouse');
   assert.equal(you.tone, 'good');
   assert.match(you.ren.text, /日主坐财，财为喜用/);
@@ -222,7 +228,7 @@ test('时辰不详：子女宫不论；提示词附上六亲宫星一节', () =>
 
   const prompt = buildBaziPrompt({ chart: chartByPillars('癸卯 乙丑 庚申 丁丑'), scope: 'natal', now: new Date('2026-10-28T10:00:00') });
   assert.match(prompt, /【六亲宫星（程序初判）】\n男命；喜忌按「五行与旺衰」一节扶抑所取。\n- 妻：妻星木（正财为妻，偏财为妾）透月干乙/);
-  assert.match(prompt, /- 子女：[^\n]*任注「凡八字之用神即是子星」：用神木/);
+  assert.match(prompt, /- 子女：[^\n]*原注「大率依官看子」：官杀火/);
 });
 
 /** 结果页「此运六亲」同一口径：认出从、化、专旺的按此格论喜忌。 */
