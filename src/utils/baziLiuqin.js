@@ -6,20 +6,25 @@
  * 女命以官杀为夫、食伤为子女（子平女命通行取法）。宫位逢冲、星被别的天干合去，另作提示。
  *
  * 吉凶按任铁樵《滴天髓阐微·六亲论》的注推（任氏以为六亲不能专执星论，要看日主衰旺与用神）：
- * - 妻（男命）：先看任注论克妻、不克的几条（财神轻而无官、比劫多，主克妻；财神重而身弱、无比劫，主克妻；
+ * - 妻（男命）：火炎土燥、局中全无湿气的（从、化、专旺除外），先断克妻（任注「乙未 辛巳 戊戌 丁巳」「局中全无湿气……所以克两妻」，
+ *   「丁酉 丁未 戊戌 丁巳」「四柱全无水气，燥土不能泄火生金，克三妻五子」）。再看任注论克妻、不克的几条（财神轻而无官、比劫多，主克妻；财神重而身弱、无比劫，主克妻；
  *   官杀旺而用印、见财星，主妻陋而克；劫刃重、财轻、有食伤而逢枭印，妻有凶险；劫刃旺而财轻、有食伤，妻贤不克），
- *   都不合时看妻宫（日支）坐喜坐忌，宫不分喜忌再看财星喜忌（「清者，喜神即是财星」）。
+ *   都不合时看妻宫（日支）坐喜坐忌，宫不分喜忌再看财星喜忌（「清者，喜神即是财星」）；坐喜神却被紧贴、克它的一支冲去的
+ *   按克妻看（「巳亥逢冲，群劫纷争，所以连克三妻」；冲它的支被它克的不算，「坐下酉金冲去卯木……得妻财万仞」；
+ *   隔位的遥冲不算，「凡四柱紧冲为克，遥冲为动」）。
  * - 夫（女命）：「凡女命之夫星，即是用神」——先看任注克夫诸条（官星微、无财星、日主强、伤官重之类），都不合时看用神有力与否。
  * - 子女：男命「凡八字之用神即是子星」，先看任注子女诸条（日主旺、无印绶、有食伤，子必多……），都不合时看用神；
- *   女命「女命之子星，即是喜神」，看喜神（喜用第二位）。
+ *   女命「女命之子星，即是喜神」，看喜神（喜用第二位）。火炎土燥、局中全无湿气的，男女命都先断子息艰难。
  * - 父母：「财官印绶，在于年月，为日主之喜，父母不贵亦富；为日主之忌，不贫亦贱」——看年月两柱天干与本气的喜忌。
- * - 兄弟：「不论提纲之喜忌，全凭日主之爱憎」——看比劫是喜是忌。
+ * - 兄弟：先看任注「官轻伤重，比劫生伤……必遭兄弟之累」，不合时「不论提纲之喜忌，全凭日主之爱憎」——看比劫是喜是忌。
  * 用神、喜神取「五行与旺衰」一节的喜用第一、二位；认出从、化、专旺的，按此格论喜忌（与大运流年同一口径）。
  * 用神有力：透干或作某支本气，五行分数（日干不计）不少于 1.5；受制：克它的五行分数不少于 3 且是它的两倍以上，
- * 又没有通关（生用神者）、没有制伏（克那一行者）。各条只列结构与古法的看法，不断具体人事。
+ * 又没有通关（生用神者）、没有制伏（克那一行者）——制水的土只算燥土（戊透干、未戌本气），辰丑己湿土不算
+ *（任注「丑乃湿土，能泄火不能止水」，己亥 丙子 乙丑 壬午「克妻无子」）。各条只列结构与古法的看法，不断具体人事。
  */
-import { findRelations } from './baziRelations.js';
+import { findRelations, getZhiPairKinds } from './baziRelations.js';
 import { elementToneOf, favorBasisOf } from './baziStrength.js';
+import { fangOfYunZhi, getDaYunMarks, juOfZhi } from './baziYearMarks.js';
 
 const GAN_HE = { 甲: '己', 己: '甲', 乙: '庚', 庚: '乙', 丙: '辛', 辛: '丙', 丁: '壬', 壬: '丁', 戊: '癸', 癸: '戊' };
 const GAN_WUXING = { 甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水' };
@@ -30,6 +35,7 @@ const GENERATED_BY = invert(GENERATES);
 const CONTROLLED_BY = invert(CONTROLS);
 const POSITIONS = ['本气', '中气', '余气'];
 const PILLAR_SHORT = { year: '年', month: '月', day: '日', time: '时' };
+const PILLAR_INDEX = { year: 0, month: 1, day: 2, time: 3 };
 const ROLE_OF = {
   比肩: '比劫', 劫财: '比劫', 食神: '食伤', 伤官: '食伤', 偏财: '财', 正财: '财', 七杀: '官杀', 正官: '官杀', 偏印: '印', 正印: '印',
 };
@@ -40,6 +46,8 @@ const PALACE_KINDS = ['反吟', '冲', '刑', '自刑', '害', '合', '半合', 
 const STRONG_SPECIAL = /从强|专旺|曲直|炎上|稼穑|从革|润下/;
 /** 五行分数（日干不计）的粗分：无 < 0.5，微 < 1，轻 < 1.5，有 ≥ 1，重 ≥ 3。 */
 const AMOUNT = Object.freeze({ none: 0.5, faint: 1, light: 1.5, has: 1, heavy: 3 });
+/** 火炎土燥要火重（≥ AMOUNT.heavy）、土也不轻（≥ 2.5 分）。 */
+const ZAO_EARTH = 2.5;
 
 const relativesOf = (female) => [
   {
@@ -139,8 +147,16 @@ const palaceOf = (byKey, basis, relations, palace) => {
     .map((relation) => (relation.kinds.includes('反吟')
       ? `${relation.memberKeys.map((key) => `${byKey[key]?.gan ?? ''}${byKey[key]?.zhi ?? ''}`).join('、')}天克地冲`
       : relation.title));
-  const clash = relations.some((relation) => relation.memberKeys?.includes(palace.key)
+  const clashes = relations.filter((relation) => relation.memberKeys?.includes(palace.key)
     && (relation.scope === 'zhi' || relation.scope === 'pillar') && relation.kinds.some((kind) => kind === '冲' || kind === '反吟'));
+  const clash = clashes.length > 0;
+  // 冲是哪一方被冲去，看五行相克：冲它的那一支本气克这一宫的本气，这一宫才算被冲去（任注「巳亥逢冲，群劫纷争……连克三妻」亥水克巳火；
+  // 「坐下酉金冲去卯木，生起癸水……得妻财万仞」酉金克卯木，妻宫反得其利）。
+  // 只算紧贴的一支（任注「凡四柱紧冲为克，遥冲为动」）。
+  const clashedBy = clashes.flatMap((relation) => relation.memberKeys.filter((key) => key !== palace.key))
+    .filter((key) => Math.abs(PILLAR_INDEX[key] - PILLAR_INDEX[palace.key]) === 1)
+    .map((key) => byKey[key]?.hiddenGanDetails?.[0]?.wuxing ?? null)
+    .filter((other) => other && element && CONTROLS[other] === element);
   return {
     ...palace,
     zhi: pillar.zhi,
@@ -150,6 +166,7 @@ const palaceOf = (byKey, basis, relations, palace) => {
     tone,
     relations: hits,
     clash,
+    clashedBy,
     text: `${palace.label}${pillar.zhi}，本气${main?.gan ?? ''}${main?.shiShen ?? ''}（${element ?? ''}）${TONE_TEXT[tone]}${hits.length ? `；${hits.join('、')}` : ''}`,
   };
 };
@@ -171,10 +188,29 @@ const amountOf = (pillars, scores, element) => {
   };
 };
 
+const ZHI_CHONG = { 子: '午', 午: '子', 丑: '未', 未: '丑', 寅: '申', 申: '寅', 卯: '酉', 酉: '卯', 辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳' };
+const holds = (pillar, element) => (pillar.hiddenGanDetails ?? []).some((detail) => GAN_WUXING[detail.gan] === element);
+
+/**
+ * 财星够不够得着印（任注「财星坏印」与「财印相隔」之别）：财透干；或印透干而坐下藏财；
+ * 或藏财之支与藏印之支紧贴相冲。三样都没有，就是财印相隔。
+ */
+const caiMeetsYinOf = (pillars, cai, yin) => {
+  if (!cai || !yin) return false;
+  if (pillars.some((pillar) => pillar.key !== 'day' && GAN_WUXING[pillar.gan] === cai)) return true;
+  if (pillars.some((pillar) => pillar.key !== 'day' && GAN_WUXING[pillar.gan] === yin && holds(pillar, cai))) return true;
+  return pillars.some((a) => pillars.some((b) => adjacent(a.key, b.key) && ZHI_CHONG[a.zhi] === b.zhi && holds(a, cai) && holds(b, yin)));
+};
+
 /**
  * 用神（或喜神）的成色：不现、受制、有力、力薄。
  * @returns {{ element: string, state: 'absent'|'restrained'|'strong'|'weak', tone: 'good'|'bad'|'neutral', text: string }|null}
  */
+/** 止得住水的土：戊透干每位 1 分，未、戌作本气 1 分（月支 2 分）；辰丑湿土、己土不算（任注「丑乃湿土，能泄火不能止水」）。 */
+const dryEarthScore = (pillars) => pillars.reduce((sum, pillar) => sum
+  + (pillar.key !== 'day' && pillar.gan === '戊' ? 1 : 0)
+  + (['未', '戌'].includes(pillar.zhi) ? (pillar.key === 'month' ? 2 : 1) : 0), 0);
+
 const godStateOf = (pillars, scores, element) => {
   if (!element) return null;
   const score = scores?.[element] ?? 0;
@@ -186,8 +222,11 @@ const godStateOf = (pillars, scores, element) => {
   const tong = GENERATED_BY[element];
   const zhi = CONTROLLED_BY[ke];
   const keScore = scores?.[ke] ?? 0;
-  if (keScore >= AMOUNT.heavy && keScore >= 2 * score && (scores?.[tong] ?? 0) < AMOUNT.light && (scores?.[zhi] ?? 0) < AMOUNT.light) {
-    return { element, state: 'restrained', tone: 'bad', text: `${element}${where ? `（${where}）` : ''}受${ke}重克，无${tong}通关、无${zhi}制伏` };
+  // 制伏水的土只算燥土：戊透干、未戌作本气（任注「丑乃湿土，能泄火不能止水」「己土不能为力」）。
+  const zhiScore = ke === '水' ? dryEarthScore(pillars) : (scores?.[zhi] ?? 0);
+  if (keScore >= AMOUNT.heavy && keScore >= 2 * score && (scores?.[tong] ?? 0) < AMOUNT.light && zhiScore < AMOUNT.light) {
+    const zhiNote = ke === '水' && (scores?.[zhi] ?? 0) >= AMOUNT.light ? '湿土止不住水' : `无${zhi}制伏`;
+    return { element, state: 'restrained', tone: 'bad', text: `${element}${where ? `（${where}）` : ''}受${ke}重克，无${tong}通关、${zhiNote}` };
   }
   if (score >= AMOUNT.light && (stems.length || mains.length)) return { element, state: 'strong', tone: 'good', text: `${element}${where}，有力` };
   return { element, state: 'weak', tone: 'neutral', text: `${element}${where ? `${where}，` : ''}力薄` };
@@ -199,11 +238,15 @@ const godStateOf = (pillars, scores, element) => {
  * cond 是任注的条件；verdict 是给人看的断语，把「必」「凶死」「妻陋」这类重话换成「古法主……」的平实说法，original 记任注原话。
  */
 const QI_RULES = [
+  // 从、化、专旺顺其燥势（「顺其火土之性」），不作此论。
+  { when: ({ zao, special }) => zao && !special, tone: 'bad', cond: '火炎土燥，局中全无湿气', verdict: '克妻', original: '局中全无湿气……所以克两妻' },
   { when: ({ bi, cai, shi, yin }) => bi.heavy && cai.light && shi.has && !yin.has, tone: 'good', cond: '劫刃旺而财轻，有食伤', verdict: '妻贤不克', original: '妻贤不克' },
   { when: ({ bi, cai, shi, yin }) => bi.heavy && cai.light && shi.has && yin.has, tone: 'bad', cond: '劫刃重，财星轻，有食伤而逢枭印', verdict: '妻有凶险', original: '主妻遭凶死' },
   { when: ({ bi, cai, guan }) => cai.light && guan.none && bi.heavy, tone: 'bad', cond: '财神轻而无官，比劫多', verdict: '克妻', original: '主克妻' },
   { when: ({ body, bi, cai }) => cai.heavy && body === 'weak' && bi.light, tone: 'bad', cond: '财神重而身弱，无比劫', verdict: '克妻', original: '主克妻' },
-  { when: ({ guan, cai, yongRole }) => guan.heavy && yongRole === '印' && cai.has, tone: 'bad', cond: '官杀旺而用印，见财星', verdict: '妻宫不美、有刑克', original: '主妻陋而克' },
+  // 「见财星」要财星够得着印（坏印）：财透干，或印干坐下藏财，或藏财之支紧贴冲印之支；财印相隔的不算
+  // （任注「甲子 丙寅 戊寅 己未」杀旺用印，财藏年支，「喜其财印相隔，生生不悖」，夫妇齐眉）。
+  { when: ({ guan, cai, yongRole, caiMeetsYin }) => guan.heavy && yongRole === '印' && cai.has && caiMeetsYin, tone: 'bad', cond: '官杀旺而用印，见财星', verdict: '妻宫不美、有刑克', original: '主妻陋而克' },
   { when: ({ cai, guan, shi, yin }) => cai.faint && guan.heavy && shi.none && yin.has, tone: 'bad', cond: '财星微，官杀旺，无食伤，有印绶', verdict: '妻多病弱', original: '主妻有弱病' },
 ];
 
@@ -220,12 +263,19 @@ const FU_RULES = [
 ];
 
 /**
+ * 任注《女命》「火炎土燥无子」：局中全无湿气（日干不是壬癸，水 0 分，又无辰、丑湿土），火重、土也不轻。男命任注论命造也以此断克子
+ * （「乙未 辛巳 戊戌 丁巳」「局中全无湿气……生十二子，刑过十子」；「丙寅 戊戌 丁酉 乙巳」「柱中无水，戌乃燥土……妻妾生十子皆克」）。
+ */
+const ZAO_RULE = { when: ({ zao }) => zao, tone: 'bad', cond: '火炎土燥，局中全无湿气', verdict: '子息艰难', original: '火炎土燥无子' };
+
+/**
  * 任注《子女》（男命以食伤为子），按先后取第一条合的。条文据 1947 年大东书局《滴天髓阐微》扫描本（古籍库
  * ditian.renzhu.liuqin.005、006）。原书另有「日主弱，有印绶，无食伤，子必多」「日主弱，印绶轻，有财星，子必无」
  * 「日主弱，食伤旺，有印绶，遇财星，虽有若无」「日主弱，官杀旺，有印绶，遇财星，有子必逆」等条，拿任注自己的命造
  * 对照，按程序的旺衰、多少粗分去套反而多断错，暂不收，只在古籍库里录原文。
  */
 const ZINV_RULES = [
+  ZAO_RULE,
   { when: ({ body, yin, shi }) => body === 'strong' && yin.none && shi.has, tone: 'good', cond: '日主旺，无印绶，有食伤', verdict: '子息多', original: '子必多' },
   { when: ({ body, yin, shi, cai }) => body === 'strong' && yin.heavy && shi.light && cai.has, tone: 'good', cond: '日主旺，印绶重，食伤轻，有财星', verdict: '子多而贤', original: '子多而贤' },
   { when: ({ body, yin, shi, cai }) => body === 'strong' && yin.heavy && shi.none && cai.has, tone: 'good', cond: '日主旺，印绶多，无食伤，有财星', verdict: '子多而能', original: '子多而能' },
@@ -236,8 +286,17 @@ const ZINV_RULES = [
   { when: ({ body, shi, yin }) => body === 'weak' && shi.heavy && yin.none, tone: 'bad', cond: '日主弱，食伤重，印绶无', verdict: '子息艰难', original: '亦无子' },
   { when: ({ body, shi, bi, guan }) => body === 'weak' && shi.light && bi.none && guan.has, tone: 'bad', cond: '日主弱，食伤轻，无比劫，有官星', verdict: '子息艰难', original: '子必无' },
   { when: ({ body, guan, yin, cai }) => body === 'weak' && guan.heavy && yin.light && cai.faint && cai.hidden, tone: 'bad', cond: '日主弱，官杀重，印绶轻，微伏财', verdict: '多女', original: '必多女' },
-  { when: ({ body, guan, shi, bi }) => body === 'weak' && guan.heavy && shi.light && bi.has, tone: 'bad', cond: '日主弱，七杀重，食伤轻，有比劫', verdict: '女多子少', original: '女多子少' },
+  // 印重的杀印相生，不作此论：任注「甲子 丙寅 戊寅 己未」杀旺以丙火印为用，「主从得宜」，生六子皆登科第。
+  { when: ({ body, guan, shi, bi, yin }) => body === 'weak' && guan.heavy && shi.light && bi.has && !yin.heavy, tone: 'bad', cond: '日主弱，七杀重，食伤轻，有比劫', verdict: '女多子少', original: '女多子少' },
   { when: ({ body, guan, yin, bi }) => body === 'weak' && guan.heavy && yin.light && bi.light, tone: 'bad', cond: '日主弱，官杀重，无印比', verdict: '子息艰难', original: '子必无' },
+];
+
+/**
+ * 任注《兄弟》：「官轻伤重，比劫生伤；制杀太过，比劫助食，必遭兄弟之累」——身旺、比劫重，官杀轻而食伤已重，比劫还去生食伤。
+ * 身旺用食伤的盘，比劫生用神也列喜，但兄弟按此条论（任注「癸巳 戊午 丙午 庚寅」羊刃当权，「兄弟六人，皆不成器，遭累不堪」）。
+ */
+const XIONG_RULES = [
+  { when: ({ body, guan, shi, bi }) => body === 'strong' && guan.light && shi.heavy && bi.heavy, tone: 'bad', cond: '官轻伤重，比劫生伤', verdict: '兄弟之累', original: '必遭兄弟之累' },
 ];
 
 /** 任注条目的说法：「任注：日主旺，无印绶，有食伤，古法主子息多」。 */
@@ -260,10 +319,15 @@ const renReadingOf = (key, { female, ctx, basis, pillars, scores, byKey, stars, 
     const rule = firstRule(QI_RULES);
     if (rule) return { source, tone: rule.tone, rule, god: null, text: ruleText(rule) };
     const palace = palaces.find((item) => !item.missing);
+    // 妻宫坐喜神却被克它的一支冲去（任注「巳亥逢冲，群劫纷争，所以连克三妻」）；被它克的一支来冲不算（「坐下酉金冲去卯木……得妻财万仞」）。
+    if (palace && palace.tone === 'good' && palace.clashedBy.length) {
+      return { source, tone: 'bad', rule: null, god: null, text: `妻宫（日支）虽坐喜神，却被${palace.clashedBy.join('、')}冲去（任注「巳亥逢冲，群劫纷争，所以连克三妻」），古法主夫妻难以全美` };
+    }
     if (palace && palace.tone !== 'neutral') {
-      const zuoCai = /财/.test(palace.shiShen ?? '');
+      // 坐财只算正财、偏财（「劫财」是比劫，不是财）；任注原话是「日主坐财，财为喜用者，必得妻财」。
+      const zuoCai = palace.shiShen === '正财' || palace.shiShen === '偏财';
       const text = palace.tone === 'good'
-        ? (zuoCai ? '日主坐财，财为喜用，任注主得贤妻' : '妻宫（日支）坐喜神，古法主妻贤有助')
+        ? (zuoCai ? '日主坐财，财为喜用，任注「必得妻财」' : '妻宫（日支）坐喜神，古法主妻贤有助')
         : '妻宫（日支）坐忌神，古法主夫妻难以全美';
       return { source, tone: palace.tone, rule: null, god: null, text };
     }
@@ -275,7 +339,7 @@ const renReadingOf = (key, { female, ctx, basis, pillars, scores, byKey, stars, 
   if (key === 'spouse' || key === 'children') {
     const byXi = key === 'children' && female;
     const source = `《滴天髓阐微·${female ? '女命' : '子女'}》任注`;
-    const rule = firstRule(key === 'spouse' ? FU_RULES : female ? [] : ZINV_RULES);
+    const rule = firstRule(key === 'spouse' ? FU_RULES : female ? [ZAO_RULE] : ZINV_RULES);
     if (rule) return { source, tone: rule.tone, rule, god: null, text: ruleText(rule) };
     const lead = key === 'spouse' ? '任注「女命之夫星，即是用神」' : byXi ? '任注「女命之子星，即是喜神」' : '任注「凡八字之用神即是子星」';
     const god = godStateOf(pillars, scores, byXi ? favorable[1] ?? favorable[0] : favorable[0]);
@@ -303,16 +367,18 @@ const renReadingOf = (key, { female, ctx, basis, pillars, scores, byKey, stars, 
     return { source, tone, rule: null, god: null, text: `任注论父母只看年月：年月${list}，${tail}` };
   }
   const source = '《滴天髓阐微·兄弟》任注';
+  const rule = firstRule(XIONG_RULES);
+  if (rule) return { source, tone: rule.tone, rule, god: null, text: ruleText(rule) };
   const star = stars[0];
   const tail = star.tone === 'good' ? `比劫${star.element}是喜用，古法看作兄弟得力` : star.tone === 'bad' ? `比劫${star.element}是忌神，古法看作兄弟难靠` : `比劫${star.element}喜忌不显，兄弟平平`;
   return { source, tone: star.tone, rule: null, god: null, text: `任注「全凭日主之爱憎」：${tail}` };
 };
 
-/** 宫位逢冲、星合日主，另提一句。 */
-const notesOf = (key, stars, palaces) => {
+/** 宫位逢冲、星合日主，另提一句；断语里已经说了「被冲去」的不再重复。 */
+const notesOf = (key, stars, palaces, renText = '') => {
   const notes = [];
   const clash = palaces.find((palace) => !palace.missing && palace.clash);
-  if (clash) notes.push(`${clash.label}逢冲，古法主变动`);
+  if (clash && !renText.includes('冲去')) notes.push(`${clash.label}逢冲，古法主变动`);
   if (key === 'spouse' && stars.some((star) => star.he.some((line) => line.includes('与日主')))) notes.push('星来合日主，古法以为有情');
   return notes;
 };
@@ -332,7 +398,8 @@ export const analyzeLiuqin = (chart, strength, { special = null } = {}) => {
   const neutralBand = !basis.favorable?.length && !basis.unfavorable?.length;
   const scores = strength.scores ?? {};
   const roleElement = (role) => Object.keys(basis.roles).find((key) => basis.roles[key] === role);
-  const body = basis.source === 'special'
+  // 从、化、专旺按格论身旺身弱；两气成象只定喜忌（任注「旺衰仍看打分」），身旺身弱照旺衰档。
+  const body = basis.source === 'special' && basis.specialKind !== 'liangqi'
     ? (STRONG_SPECIAL.test(basis.specialName ?? '') ? 'strong' : 'weak')
     : /强/.test(strength.band ?? '') ? 'strong' : /弱/.test(strength.band ?? '') ? 'weak' : 'even';
   const ctx = {
@@ -343,6 +410,11 @@ export const analyzeLiuqin = (chart, strength, { special = null } = {}) => {
     cai: amountOf(pillars, scores, roleElement('财')),
     guan: amountOf(pillars, scores, roleElement('官杀')),
     yongRole: basis.roles[basis.favorable[0]?.element] ?? null,
+    caiMeetsYin: caiMeetsYinOf(pillars, roleElement('财'), roleElement('印')),
+    // 火炎土燥（见 ZAO_RULE）：日干不是壬癸，水 0 分，无辰、丑湿土，火重、土也不轻。
+    zao: !['壬', '癸'].includes(byKey.day?.gan) && !((scores.水 ?? 0) > 0) && !pillars.some((pillar) => pillar.zhi === '辰' || pillar.zhi === '丑')
+      && (scores.火 ?? 0) >= AMOUNT.heavy && (scores.土 ?? 0) >= ZAO_EARTH,
+    special: basis.source === 'special',
   };
 
   const items = relativesOf(female).map((item) => {
@@ -351,7 +423,7 @@ export const analyzeLiuqin = (chart, strength, { special = null } = {}) => {
     const ren = neutralBand
       ? { source: null, tone: 'neutral', rule: null, god: null, text: '旺衰中和，喜忌不显，先看星宫有无冲合；吉凶要等岁运引动再论' }
       : renReadingOf(item.key, { female, ctx, basis, pillars, scores, byKey, stars, palaces });
-    const verdict = `${[ren.text, ...notesOf(item.key, stars, palaces)].join('；')}。`;
+    const verdict = `${[ren.text, ...notesOf(item.key, stars, palaces, ren.text)].join('；')}。`;
     return { key: item.key, kind: item.kind, title: item.title, classic: item.classic, stars, palaces, ren, tone: ren.tone, verdict };
   });
 
@@ -360,4 +432,81 @@ export const analyzeLiuqin = (chart, strength, { special = null } = {}) => {
     : '喜忌按「五行与旺衰」一节扶抑所取';
   const points = items.map((item) => `${item.title}：${item.stars.map((star) => star.text).join('；')}；${item.palaces.map((palace) => palace.text).join('；')}。${item.verdict}`);
   return { female, basis: `${female ? '女命' : '男命'}；${basisText}。`, items, points };
+};
+
+const ZHI_WUXING = { 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' };
+/** 各亲的星（十神类）与宫（柱）：与 relativesOf 同一取法，父母以印为星（任注论父母「壬运克丙坏印，丁外艰」）。 */
+const YUN_STAR_ROLE = (female) => ({ spouse: female ? '官杀' : '财', children: female ? '食伤' : '官杀', parents: '印', siblings: '比劫' });
+const YUN_PALACES = { spouse: ['day'], children: ['time'], parents: ['year', 'month'], siblings: ['month'] };
+
+/**
+ * 大运引动六亲（程序初判，仅供参考）。任注论运中六亲多就岁运喜忌说：「一交丙运，刑妻克子，破耗多端」「交己未，妻子皆伤」
+ * 「卯运椿萱并谢」是忌运连及六亲；「壬运克丙坏印，丁外艰」「寅运克妻破财」是运克其星、冲其宫。所以：
+ * - 忌运：这一亲多主不利；
+ * - 喜运：多主有利，但运干支克其星、运支冲刑其宫的，吉中有损，作平；
+ * - 喜忌参半或喜忌不显的运：克其星、冲刑其宫的作不利，否则这一步运不特别引动，仍看原局倾向。
+ * 拿《滴天髓阐微》命造里应在某步运的六亲对照（138 条，node scripts/bazi-cases.mjs）：只看原局倾向时同 70、反 46、平 22，
+ * 按此运推后同 90、反 28、平 20。
+ * @param {string} ganZhi 大运干支（原书只说「丙运」「卯运」的也可只给一个字）
+ * @param {{ special?: object|null, liuqin?: object|null }} [options] 疑似特殊格局；原局六亲（analyzeLiuqin 的结果，不给就现算）
+ * @returns {{ ganZhi: string, overall: string, items: Array<{ key, title, tone, hits: string[], text }> }|null}
+ */
+export const liuqinOfYun = (chart, strength, ganZhi, { special = null, liuqin = null } = {}) => {
+  if (!chart?.pillars?.length || !strength || !ganZhi) return null;
+  const basis = favorBasisOf(strength, special);
+  const chars = [...ganZhi];
+  const gan = GAN_WUXING[chars[0]] ? chars[0] : null;
+  const zhi = chars.find((char) => ZHI_WUXING[char]) ?? null;
+  const natalZhis = chart.pillars.map((pillar) => pillar.zhi).filter(Boolean);
+  let overall;
+  // 与大运喜忌同一口径：凑成三会三合的按局，四库按方（未作火……，见 fangOfYunZhi），只给一个字的也照此。
+  let zhiElement = zhi ? (juOfZhi(zhi, natalZhis)?.element ?? fangOfYunZhi(gan, zhi)?.element ?? ZHI_WUXING[zhi]) : null;
+  if (gan && zhi) {
+    const favor = getDaYunMarks({ gan, zhi, ganZhi }, { strength: basis, chart }).favor;
+    overall = favor.overall;
+    zhiElement = favor.zhi.element;
+  } else {
+    overall = elementToneOf(gan ? GAN_WUXING[gan] : zhiElement, basis).tone;
+  }
+  const female = chart.input?.gender === 'female';
+  const byKey = Object.fromEntries(chart.pillars.filter((pillar) => pillar.zhi).map((pillar) => [pillar.key, pillar]));
+  const roleElement = (role) => Object.keys(basis.roles).find((key) => basis.roles[key] === role);
+  const natal = liuqin ?? analyzeLiuqin(chart, strength, { special });
+  const starRoles = YUN_STAR_ROLE(female);
+  const items = relativesOf(female).map((relative) => {
+    const starElement = roleElement(starRoles[relative.key]);
+    const starLabel = relative.stars[0].label;
+    const hits = [];
+    if (gan && CONTROLS[GAN_WUXING[gan]] === starElement) hits.push(`运干${gan}${GAN_WUXING[gan]}克${starLabel}${starElement}`);
+    if (zhi && zhiElement && CONTROLS[zhiElement] === starElement) hits.push(`运支${zhi}${zhiElement}克${starLabel}${starElement}`);
+    if (zhi) {
+      YUN_PALACES[relative.key].forEach((key) => {
+        const palace = byKey[key];
+        const kinds = palace ? getZhiPairKinds(zhi, palace.zhi).filter((kind) => kind === '冲' || kind === '刑' || kind === '自刑') : [];
+        if (kinds.length) hits.push(`运支${zhi}${kinds[0] === '冲' ? '冲' : '刑'}${PILLAR_SHORT[key]}支${palace.zhi}`);
+      });
+    }
+    const natalItem = natal?.items?.find((item) => item.key === relative.key) ?? null;
+    let tone;
+    let reason;
+    if (overall === 'bad') {
+      tone = 'bad';
+      reason = `忌运${hits.length ? `，${hits.join('、')}` : ''}`;
+    } else if (overall === 'good') {
+      tone = hits.length ? 'neutral' : 'good';
+      reason = hits.length ? `喜运，但${hits.join('、')}，吉中有损` : '喜运';
+    } else if (hits.length) {
+      tone = 'bad';
+      reason = `${overall === 'mixed' ? '喜忌参半' : '喜忌不显'}，${hits.join('、')}`;
+    } else {
+      tone = natalItem?.tone ?? 'neutral';
+      reason = `${overall === 'mixed' ? '喜忌参半' : '喜忌不显'}，不特别引动，仍看原局`;
+    }
+    const toneWord = tone === 'good' ? '有利' : tone === 'bad' ? '不利' : null;
+    const word = overall !== 'bad' && overall !== 'good' && !hits.length
+      ? `原局倾向${toneWord ?? '不显'}`
+      : `此运于${relative.title}${toneWord ?? '吉凶参半'}`;
+    return { key: relative.key, title: relative.title, tone, hits, text: `${relative.title}：${reason}；${word}` };
+  });
+  return { ganZhi, overall, items };
 };

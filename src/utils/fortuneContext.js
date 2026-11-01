@@ -1,4 +1,5 @@
 import { astro } from 'iztro';
+import './ziweiBrightness.js'; // 星曜庙旺按《紫微斗数全书》改正三格（见该文件）
 import { Lunar, LunarYear } from 'lunar-javascript';
 import { getZiweiFortune } from './ziweiBirth.js';
 

@@ -11,7 +11,8 @@ import { createZiweiHoroscope, getZiweiFortune } from '../src/utils/ziweiBirth.j
  * 口径（getZiweiFortune，与专业盘时间轴一致）：
  * - 流年干支以立春（按日）为界；流月干支按农历月（所属农历年年干起五虎遁，闰月同本月）；流日、流时干支按公历日与时辰。
  *   排盘库本身把流月干支按节气交接时刻算（八字月建口径），getZiweiFortune 改成农历月，并把原值留在 solarTermStem / solarTermBranch。
- * - 流月宫位按斗君：流年宫起正月逆数至生月，再自该宫起子时顺数至生时为正月宫，之后每月一宫；闰月十五以后算下月。
+ * - 流月宫位按斗君：流年宫起正月逆数至生月，再自该宫起子时顺数至生时为正月宫，之后每月一宫；生月是闰月的一律算下月（全书），
+ *   目标日期落在闰月的沿用排盘库口径（十五以后算下月）。
  * - 流日自流月宫起初一顺数；流时自流日宫起子时顺数。
  * - 虚岁 = 目标农历年 − 出生农历年 + 1（不看生日）；大限按五行局起运、阳男阴女顺行；未起运按童限（一命二财三疾厄四夫妻五福德六官禄）。
  */
@@ -36,7 +37,7 @@ const MA = { 火: '申', 水: '寅', 金: '亥', 木: '巳' };
 const MUTAGEN = {
   甲: ['廉贞', '破军', '武曲', '太阳'], 乙: ['天机', '天梁', '紫微', '太阴'], 丙: ['天同', '天机', '文昌', '廉贞'], 丁: ['太阴', '天同', '天机', '巨门'],
   戊: ['贪狼', '太阴', '右弼', '天机'], 己: ['武曲', '贪狼', '天梁', '文曲'], 庚: ['太阳', '武曲', '太阴', '天同'], 辛: ['巨门', '太阳', '文曲', '文昌'],
-  壬: ['天梁', '紫微', '左辅', '武曲'], 癸: ['破军', '巨门', '太阴', '贪狼'],
+  壬: ['天梁', '紫微', '天府', '武曲'], 癸: ['破军', '巨门', '太阴', '贪狼'],
 };
 const BUREAU_START = { 水二局: 2, 木三局: 3, 金四局: 4, 土五局: 5, 火六局: 6 };
 const JIANGQIAN = ['将星', '攀鞍', '岁驿', '息神', '华盖', '劫煞', '灾煞', '天煞', '指背', '咸池', '月煞', '亡神'];
@@ -104,7 +105,7 @@ const classicFortune = (astrolabe, gender, targetDate, timeIndex) => {
   const ageBranch = at(ageStart, (gender === 'male' ? 1 : -1) * (nominalAge - 1));
 
   // 斗君与流月、流日、流时宫位。
-  const birthMonth = birth.lunarMonth + (birth.isLeap && birth.lunarDay > 15 ? 1 : 0);
+  const birthMonth = birth.lunarMonth + (birth.isLeap && birth.lunarMonth < 12 ? 1 : 0);
   const month = dateMonth + (dateLeap && dateDay > 15 ? 1 : 0);
   const yearlyIndex = palaceIndexOf(yearZhi);
   const monthlyIndex = (((yearlyIndex - birthMonth + birthHour + month) % 12) + 12) % 12;
@@ -218,7 +219,7 @@ test('运限逐盘核对：随机生辰 × 随机目标时刻两百余组，男�
   }
 });
 
-test('童限与闰月：未起运按一命二财三疾厄四夫妻五福德六官禄；闰月十五以后算下月（生月与流月都是）', () => {
+test('童限与闰月：未起运按一命二财三疾厄四夫妻五福德六官禄；生在闰月一律按下月（全书），流月在闰月沿用排盘库十五之界', () => {
   // 2020-03-10 庚子年生男命；虚岁 2、4、6 还没起运（最早的水二局也要 2 岁起，火六局 6 岁起）。
   const child = { calendarType: 'solar', birthDate: '2020-03-10', timeIndex: 4, gender: 'male' };
   const astrolabe = createZiweiHoroscope(child);
@@ -238,10 +239,14 @@ test('童限与闰月：未起运按一命二财三疾厄四夫妻五福德六�
   const march = verify(child, new Date(2023, 3, 22, 9, 30), 5).expected;
   assert.equal(leapLate.monthly.index, march.monthly.index, '闰二月二十与三月初三同宫');
   assert.equal((leapEarly.monthly.index + 1) % 12, march.monthly.index, '闰二月初四按二月，比三月退一宫');
-  // 生在闰月十五以后：安命与斗君都按下月。
+  // 生在闰月：不论十五前后，安命与斗君都按下月（全书「凡有闰月具要依此为例」）。
   const bornLeap = { calendarType: 'solar', birthDate: '2023-04-15', timeIndex: 8, gender: 'female' };
   verify(bornLeap, new Date(2040, 7, 8, 9, 30), 5);
   verify(bornLeap, new Date(2041, 0, 3, 23, 0), 11);
+  const bornLeapEarly = { calendarType: 'solar', birthDate: '2023-03-25', timeIndex: 8, gender: 'female' };
+  const earlyFortune = verify(bornLeapEarly, new Date(2040, 7, 8, 9, 30), 5);
+  const lateFortune = verify(bornLeap, new Date(2040, 7, 8, 9, 30), 5);
+  assert.equal(earlyFortune.expected.monthly.index, lateFortune.expected.monthly.index, '闰二月初四与闰二月廿五生人同一个斗君');
 });
 
 test('流年以立春（按日）为界，流月按农历月（排盘库原本按节气），虚岁按农历年', () => {

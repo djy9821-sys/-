@@ -16,12 +16,26 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
-            "紫微",
-            "天府",
-            "太阳",
-            "太阴"
-          ]
+          "star": "紫微",
+          "note": "紫微厚重"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天府",
+          "note": "天府纯和"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "太阳",
+          "note": "金乌圆满"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "太阴",
+          "note": "玉兔清奇"
         }
       ],
       "tags": [
@@ -41,12 +55,26 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
-            "天机",
-            "武曲",
-            "天同",
-            "廉贞"
-          ]
+          "star": "天机",
+          "note": "天机不长不短、情怀好善"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "武曲",
+          "note": "武曲心性果决"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天同",
+          "note": "天同肥满"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "廉贞",
+          "note": "廉贞眉宽口阔"
         }
       ],
       "tags": [
@@ -67,12 +95,26 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
-            "贪狼",
-            "巨门",
-            "天相",
-            "天梁"
-          ]
+          "star": "贪狼",
+          "note": "贪狼善恶入庙出垣"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "巨门",
+          "note": "巨门在庙敦厚"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天相",
+          "note": "天相精神"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天梁",
+          "note": "天梁稳重"
         }
       ],
       "tags": [
@@ -95,11 +137,17 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
-            "七杀",
+          "star": "七杀",
+          "note": "七杀暴虎冯河"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": [
             "火星",
             "铃星"
-          ]
+          ],
+          "note": "火铃任一颗，吞炭装哑"
         }
       ],
       "tags": [
@@ -119,15 +167,32 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
-            "文昌",
-            "文曲",
+          "star": "文昌",
+          "note": "文昌俊雅"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "文曲",
+          "note": "文曲磊落"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": [
             "左辅",
-            "右弼",
+            "右弼"
+          ],
+          "note": "辅弼任一颗温良"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": [
             "天魁",
-            "天钺",
-            "三台"
-          ]
+            "天钺"
+          ],
+          "note": "魁钺任一颗具足威仪"
         }
       ],
       "tags": [
@@ -147,12 +212,23 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "star": [
             "擎羊",
-            "陀罗",
-            "破军",
-            "禄存"
-          ]
+            "陀罗"
+          ],
+          "note": "羊陀任一颗形丑貌粗"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "破军",
+          "note": "破军不仁"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "禄存",
+          "note": "禄存性貌如春"
         }
       ],
       "tags": [
@@ -177,12 +253,42 @@
         {
           "module": "ziwei",
           "palace": "命宫",
+          "mutagenAll": [
+            "权",
+            "禄"
+          ],
+          "note": "权禄乃九窍之奇"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天梁",
           "stars": [
-            "天梁",
+            "禄存"
+          ],
+          "note": "禄逢梁荫"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "破军",
+          "meet": [
+            "贪狼"
+          ],
+          "note": "耗遇贪狼；二星不同宫，按会照"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "allStars": [
             "贪狼",
-            "破军",
             "天马"
-          ]
+          ],
+          "note": "贪星入于马垣"
+        },
+        {
+          "module": "ziwei",
+          "note": "星论庙旺、空亡及恶曜扶同善曜：未点星名不强配"
         }
       ],
       "tags": [
@@ -202,14 +308,41 @@
         {
           "module": "ziwei",
           "palace": "命宫",
+          "star": "武曲",
           "stars": [
-            "文曲",
-            "廉贞",
-            "巨门",
+            "地空",
+            "旬空",
+            "截路",
+            "空亡"
+          ],
+          "note": "财居空亡：财星武曲逢空亡任一"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "文曲",
+          "brightness": [
+            "庙",
+            "旺"
+          ],
+          "note": "文曲旺宫"
+        },
+        {
+          "module": "ziwei",
+          "note": "暗合廉贞：巨门与廉贞按安星法不会同宫也不在三方四正，不硬配"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "allStars": [
             "天机",
-            "天梁",
             "禄存"
-          ]
+          ],
+          "note": "善禄：天机与禄存"
+        },
+        {
+          "module": "ziwei",
+          "note": "身命司数实奸盗之技儿：语义未明，不据此补星名"
         }
       ],
       "tags": [
@@ -228,16 +361,49 @@
       "applies": [
         {
           "module": "ziwei",
+          "gender": "女",
           "palace": "福德",
-          "stars": [
+          "note": "女居死绝专看福德；生旺死绝另核"
+        },
+        {
+          "module": "ziwei",
+          "palace": "子女",
+          "star": [
             "天机",
             "天刑",
             "七杀",
-            "天梁",
+            "天梁"
+          ],
+          "stars": [
+            "擎羊",
+            "陀罗",
+            "火星",
+            "铃星",
+            "破军"
+          ],
+          "note": "机刑杀荫任一颗守嗣续，另加恶星忌耗；所列煞任一"
+        },
+        {
+          "module": "ziwei",
+          "palace": "子女",
+          "star": [
+            "天机",
+            "天刑",
+            "七杀",
+            "天梁"
+          ],
+          "mutagen": "忌",
+          "note": "嗣续宫加忌"
+        },
+        {
+          "module": "ziwei",
+          "palace": "父母",
+          "star": [
             "陀罗",
             "破军",
             "廉贞"
-          ]
+          ],
+          "note": "陀耗囚任一颗守父母"
         }
       ],
       "tags": [
@@ -257,11 +423,25 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
-            "紫微",
-            "天府",
-            "禄存",
-            "武曲",
+          "star": "紫微",
+          "note": "紫微肥满"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "天府",
+          "note": "天府精神"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "禄存",
+          "note": "禄存厚重"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": [
             "太阳",
             "太阴",
             "文曲",
@@ -270,7 +450,8 @@
             "天梁",
             "天机",
             "文昌"
-          ]
+          ],
+          "note": "日月曲相同梁机昌任一颗清奇"
         }
       ],
       "tags": [
@@ -290,16 +471,47 @@
         {
           "module": "ziwei",
           "palace": "命宫",
-          "stars": [
+          "allStars": [
             "贪狼",
-            "武曲",
+            "武曲"
+          ],
+          "note": "贪狼同武曲"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "allStars": [
             "天同",
-            "陀罗",
-            "擎羊",
+            "陀罗"
+          ],
+          "note": "天同如陀忌：陀罗化气为忌"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "擎羊",
+          "note": "擎羊身体遭伤"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "擎羊",
+          "stars": [
             "火星",
             "铃星",
             "巨门"
-          ]
+          ],
+          "note": "擎羊遇火铃巨暗任一颗"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "擎羊",
+          "stars": [
+            "破军",
+            "七杀"
+          ],
+          "note": "又值耗杀任一颗"
         }
       ],
       "tags": [

@@ -33,6 +33,7 @@ export const LIUYAO_TOPIC_LABELS = Object.freeze({
   refuge: '避乱避祸',
   gravesite: '寻地择穴',
   ancestral: '祖坟风水',
+  spirits: '鬼神作祟',
 });
 
 /**

@@ -3,11 +3,6 @@ const IZTRO_PATTERN_SOURCE = Object.freeze({
   url: 'https://docs.iztro.com/learn/pattern',
 });
 
-const ANCIENT_PATTERN_SOURCE = Object.freeze({
-  title: '《紫微斗数全书》卷一·定贵局',
-  url: 'https://docs.iztro.com/learn/ancientBook-1',
-});
-
 /** 《紫微斗数全书》卷一「定富局」「定贵局」「定贫贱局」：各格的定义照原书一句，规则只按这一句判。 */
 const QUANSHU_URL = 'https://docs.iztro.com/learn/ancientBook-1';
 const QUANSHU_SOURCES = Object.freeze({
@@ -15,6 +10,12 @@ const QUANSHU_SOURCES = Object.freeze({
   定贵局: Object.freeze({ title: '《紫微斗数全书》卷一·定贵局', url: QUANSHU_URL }),
   定贫贱局: Object.freeze({ title: '《紫微斗数全书》卷一·定贫贱局', url: QUANSHU_URL }),
 });
+/**
+ * 定贵局写「见前批注」的格，前批注在卷三《论诸星同垣》各星之下；石中隐玉的定义在卷二《论命宫》巨门条。
+ * 这两卷 iztro 研习资料没有收，链接维基文库的公版录文。
+ */
+const QUANSHU_TONGYUAN = Object.freeze({ title: '《紫微斗数全书》卷三·论诸星同垣', url: 'https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%B8%89' });
+const QUANSHU_MINGGONG = Object.freeze({ title: '《紫微斗数全书》卷二·论命宫', url: 'https://zh.wikisource.org/wiki/%E7%B4%AB%E5%BE%AE%E6%96%97%E6%95%B8%E5%85%A8%E6%9B%B8/%E5%8D%B7%E4%BA%8C' });
 
 const MALEFIC_NAMES = new Set(['擎羊', '陀罗', '火星', '铃星', '地空', '地劫']);
 /** 四杀。 */
@@ -173,10 +174,11 @@ const strictRules = [
   {
     id: 'seven-killings-facing-dipper',
     name: '七杀朝斗格',
+    // 定贵局「七杀朝斗：见前批注」，前批注在卷三七杀条下。
     source: makeSource(
-      IZTRO_PATTERN_SOURCE,
-      '七杀朝斗',
-      '七杀坐守命宫，命宫地支为子、午、寅、申之一。',
+      QUANSHU_TONGYUAN,
+      '七杀',
+      '七杀寅申子午，一生爵禄荣昌。（为七杀朝斗格。）',
     ),
     evaluate: (facts) => {
       const hit = findMajorStar([facts.root], '七杀');
@@ -220,14 +222,18 @@ const strictRules = [
     id: 'jumen-ziwu',
     name: '石中隐玉格',
     source: makeSource(
-      IZTRO_PATTERN_SOURCE,
-      '石中隐玉',
-      '巨门坐守命宫，命宫在子或午。',
+      QUANSHU_MINGGONG,
+      '巨门星',
+      '身命居子午宫为石中隐玉格，更会科权禄，终身福厚。',
     ),
+    limitations: ['原书同条又说「会羊陀火铃化忌」则不吉；这里只判格成，不判破格。'],
     evaluate: (facts) => {
-      const jumen = findMajorStar([facts.root], '巨门');
-      if (!jumen || !['子', '午'].includes(facts.root.earthlyBranch)) return null;
-      return [describeStar(jumen), `命宫地支为${facts.root.earthlyBranch}`];
+      for (const [label, palace] of [['命宫', facts.root], ['身宫', facts.body]]) {
+        if (!palace || !['子', '午'].includes(palace.earthlyBranch)) continue;
+        const jumen = findMajorStar([palace], '巨门');
+        if (jumen) return [describeStar(jumen), `巨门守${label}，${label}在${palace.earthlyBranch}`];
+      }
+      return null;
     },
   },
   {
@@ -261,26 +267,33 @@ const strictRules = [
   {
     id: 'fu-xiang-facing',
     name: '府相朝垣格',
+    // 定贵局「府相朝垣：见前批注」，前批注在卷三天府条下：府相在财帛、官禄两宫朝命即是，命在寅申为上格，别宫次之。
+    // 按安星法天府、天相相隔四宫，两星分居财帛、官禄只有天府在官禄、天相在财帛一种排法。
     source: makeSource(
-      ANCIENT_PATTERN_SOURCE,
-      '定贵局·府相朝垣',
-      '命宫无十四主星，官禄宫见天府、财帛宫见天相。',
+      QUANSHU_TONGYUAN,
+      '天府',
+      '府相朝垣，千钟食禄。（命寅申，府相在财帛宫、官禄宫朝者上格，别宫次之。）',
     ),
     evaluate: (facts) => {
-      if ((facts.root.majorStars || []).length > 0) return null;
-      const tianfu = findMajorStar([facts.surrounded.career], '天府');
-      const tianxiang = findMajorStar([facts.surrounded.wealth], '天相');
-      if (!tianfu || !tianxiang) return null;
-      return ['命宫无十四主星', describeStar(tianfu), describeStar(tianxiang)];
+      const { career, wealth } = facts.surrounded;
+      const pairs = [[career, wealth], [wealth, career]];
+      for (const [fuPalace, xiangPalace] of pairs) {
+        const tianfu = findMajorStar([fuPalace], '天府');
+        const tianxiang = findMajorStar([xiangPalace], '天相');
+        if (!tianfu || !tianxiang) continue;
+        const shang = ['寅', '申'].includes(facts.root.earthlyBranch);
+        return [describeStar(tianfu), describeStar(tianxiang), shang ? `命在${facts.root.earthlyBranch}，原书注为上格` : `命在${facts.root.earthlyBranch}，原书注「别宫次之」`];
+      }
+      return null;
     },
   },
   {
     id: 'pearl-from-sea',
     name: '明珠出海格',
     source: makeSource(
-      ANCIENT_PATTERN_SOURCE,
-      '定贵局·明珠出海',
-      '命宫在未，太阳在卯、太阴在亥。',
+      QUANSHU_TONGYUAN,
+      '太阳太阴',
+      '定贵局「明珠出海：见前批注」；前批注：日卯月亥，安命未宫多折桂。',
     ),
     evaluate: (facts) => {
       const sun = findMajorStar([facts.byBranch.get('卯')], '太阳');
@@ -290,79 +303,59 @@ const strictRules = [
     },
   },
   {
+    id: 'sun-moon-both-bright',
+    name: '日月并明格',
+    // 前批注在卷三太阳太阴条下：「日巳月酉，丑宫命步蟾宫」；又「日月守命不如照合并明」。
+    // 按安星法太阳在巳则太阴必在酉（紫微在申），丑宫命坐天梁，日在官禄、月在财帛拱照。
+    source: makeSource(
+      QUANSHU_TONGYUAN,
+      '太阳太阴',
+      '定贵局「日月并明：见前批注」；前批注：日巳月酉，丑宫命步蟾宫。',
+    ),
+    evaluate: (facts) => {
+      const sun = findMajorStar([facts.byBranch.get('巳')], '太阳');
+      const moon = findMajorStar([facts.byBranch.get('酉')], '太阴');
+      if (facts.root.earthlyBranch !== '丑' || !sun || !moon) return null;
+      return ['命宫地支为丑', describeStar(sun), describeStar(moon)];
+    },
+  },
+  {
     id: 'sun-moon-together',
     name: '日月同临格',
     source: makeSource(
-      ANCIENT_PATTERN_SOURCE,
-      '定贵局·日月同临',
-      '太阳、太阴同坐命宫。',
+      QUANSHU_TONGYUAN,
+      '太阳太阴',
+      '定贵局「日月同临：见前批注」；前批注：日月同未，命安丑，侯伯之材。',
     ),
-    evaluate: (facts) => (
-      includesEvery(facts.rootMajorNames, ['太阳', '太阴'])
-        ? ['太阳、太阴同坐命宫']
-        : null
-    ),
+    limitations: ['原书紧接着说「日月命身居丑未，三方无吉反为凶」：日月坐命不作此格。'],
+    evaluate: (facts) => {
+      const wei = facts.byBranch.get('未');
+      if (facts.root.earthlyBranch !== '丑' || !wei || !hasStar(wei, '太阳') || !hasStar(wei, '太阴')) return null;
+      return ['命宫在丑', `${describeIn(wei, '太阳')}、太阴同宫，从对宫照命`];
+    },
   },
   {
     id: 'ji-ju-mao',
     name: '巨机居卯格',
     source: makeSource(
-      ANCIENT_PATTERN_SOURCE,
-      '定贵局·巨机居卯',
-      '天机、巨门同坐卯宫命位。',
-    ),
-    evaluate: (facts) => (
-      facts.root.earthlyBranch === '卯' && includesEvery(facts.rootMajorNames, ['天机', '巨门'])
-        ? ['天机、巨门同坐命宫', '命宫地支为卯']
-        : null
-    ),
-  },
-  {
-    id: 'sun-at-mao',
-    name: '日出扶桑格',
-    source: makeSource(
-      ANCIENT_PATTERN_SOURCE,
-      '定贵局·日出扶桑',
-      '太阳在卯宫坐命。',
+      QUANSHU_TONGYUAN,
+      '巨门天机',
+      '定贵局「巨机居卯：见前批注」；前批注：巨机居卯，乙辛己丙至公卿。（不贵即富。甲人平常何也？因甲禄到寅，卯宫有擎羊破格耳。）',
     ),
     evaluate: (facts) => {
-      const sun = findMajorStar([facts.root], '太阳');
-      return sun && facts.root.earthlyBranch === '卯' ? [describeStar(sun)] : null;
-    },
-  },
-  {
-    id: 'moon-at-hai',
-    name: '月朗天门格',
-    source: makeSource(
-      ANCIENT_PATTERN_SOURCE,
-      '定贵局·月朗天门',
-      '太阴在亥宫坐命。',
-    ),
-    evaluate: (facts) => {
-      const moon = findMajorStar([facts.root], '太阴');
-      return moon && facts.root.earthlyBranch === '亥' ? [describeStar(moon)] : null;
-    },
-  },
-  {
-    id: 'wuqu-at-mao',
-    name: '武曲守垣格',
-    source: makeSource(
-      ANCIENT_PATTERN_SOURCE,
-      '定贵局·武曲守垣',
-      '武曲在卯宫坐命。',
-    ),
-    evaluate: (facts) => {
-      const wuqu = findMajorStar([facts.root], '武曲');
-      return wuqu && facts.root.earthlyBranch === '卯' ? [describeStar(wuqu)] : null;
+      if (facts.root.earthlyBranch !== '卯' || !includesEvery(facts.rootMajorNames, ['天机', '巨门'])) return null;
+      // 原书注：卯宫有擎羊即破格（甲年禄存在寅，擎羊在卯）。
+      if (hasStar(facts.root, '擎羊')) return null;
+      return ['天机、巨门同坐命宫', '命宫地支为卯', '卯宫不见擎羊（原书注卯宫有擎羊为破格）'];
     },
   },
   {
     id: 'zi-fu-facing',
     name: '紫府朝垣格',
     source: makeSource(
-      ANCIENT_PATTERN_SOURCE,
-      '定贵局·紫府朝垣',
-      '紫微、天府在庙旺状态合照命宫三方四正。',
+      QUANSHU_TONGYUAN,
+      '紫微',
+      '定贵局「紫府朝垣：见前批注」；前批注：紫府朝垣活禄逢，终身福厚至三公。（命坐寅申，再加吉星妙。）按通行解：紫微、天府在庙旺状态合照命宫三方四正。',
     ),
     evaluate: (facts) => {
       const ziwei = findMajorStar(facts.triad, '紫微');
@@ -392,9 +385,16 @@ const describeIn = (palace, name) => {
 };
 const quanshu = (group, name, text) => ({ ...QUANSHU_SOURCES[group], section: `${group}·${name}`, rule: text });
 
+/** 地支六合（「暗合」）：子丑、寅亥、卯戌、辰酉、巳申、午未。明禄暗禄、科明暗禄的「暗」取命宫的六合宫。 */
+const LIU_HE = Object.freeze({ 子: '丑', 丑: '子', 寅: '亥', 亥: '寅', 卯: '戌', 戌: '卯', 辰: '酉', 酉: '辰', 巳: '申', 申: '巳', 午: '未', 未: '午' });
+const hiddenPalaceOf = (facts, palace) => facts.byBranch.get(LIU_HE[palace?.earthlyBranch]) || null;
+const describeLu = (palace, star) => `${describeStar({ palace, star })}${star.mutagen === '禄' ? '，生年化禄' : ''}`;
+const AN_LU_LIMITATION = '原书只写「见前批注」，批注没有传下明文；「暗禄」取命宫六合宫（暗合宫）的禄存或化禄，是通行的解法，不是原书原句。';
+
 /**
  * 《紫微斗数全书》卷一定富局、定贵局、定贫贱局里定义明白、按安星法又能成立的格，照原书一句判。
- * 原书写「见前批注」的（日月并明、文星暗拱、明禄暗禄、科明暗禄），和按安星法不可能成立的
+ * 原书写「见前批注」而批注又没有明文的，明禄暗禄、科明暗禄按通行解判（命宫见禄或科，六合宫见禄）并注明不是原句；
+ * 文星暗拱由古籍条目用 meetAll 判（昌曲都在命宫三方四正）。按安星法不可能成立的
  * （财荫夹印：武曲不会与天相相邻；财印夹禄：梁相相邻，夹不了第三宫；金舆扶驾：太阳不会与紫微相邻；
  * 荫印拱身：梁相相邻，不能同在三方四正；马头带剑「谓马有刃」：天马只在寅申巳亥，擎羊在禄存前一位，
  * 不入寅申巳亥，两星不能同宫），以及字义两可的（禄马佩印、日月藏辉）暂不收，待考。
@@ -462,6 +462,27 @@ const quanshuRules = [
       if (!good.length) return null;
       return [describeIn(sides[0], '太阳'), describeIn(sides[1], '太阴'), '命宫不坐旬空、截空', `命宫有吉星${good.join('、')}`];
     },
+  },
+  {
+    id: 'sun-at-mao',
+    name: '日出扶桑格',
+    group: '定贵局',
+    source: quanshu('定贵局', '日出扶桑', '日出扶桑：日在卯守命是也，守官禄宫亦然。'),
+    evaluate: (facts) => {
+      for (const [label, palace] of [['命宫', facts.root], ['官禄宫', facts.surrounded.career]]) {
+        if (palace?.earthlyBranch === '卯' && findMajorStar([palace], '太阳')) return [`${describeIn(palace, '太阳')}，守${label}`];
+      }
+      return null;
+    },
+  },
+  {
+    id: 'moon-at-hai',
+    name: '月朗天门格',
+    group: '定贵局',
+    source: quanshu('定贵局', '月落亥宫', '月落亥宫：月在亥守命是也，又名月朗天门。'),
+    evaluate: (facts) => (
+      facts.root.earthlyBranch === '亥' && findMajorStar([facts.root], '太阴') ? [describeIn(facts.root, '太阴')] : null
+    ),
   },
   {
     id: 'yue-sheng-cang-hai',
@@ -540,6 +561,15 @@ const quanshuRules = [
     },
   },
   {
+    id: 'wuqu-at-mao',
+    name: '武曲守垣格',
+    group: '定贵局',
+    source: quanshu('定贵局', '武曲守垣', '武曲守垣：武守命卯宫是也，余不是。'),
+    evaluate: (facts) => (
+      facts.root.earthlyBranch === '卯' && findMajorStar([facts.root], '武曲') ? [describeIn(facts.root, '武曲')] : null
+    ),
+  },
+  {
     id: 'quan-lu-sheng-feng',
     name: '权禄生逢格',
     group: '定贵局',
@@ -561,6 +591,50 @@ const quanshuRules = [
       const good = facts.triad.flatMap((palace) => AUSPICIOUS_NAMES.filter((name) => name !== '禄存' && hasStar(palace, name)).map((name) => `${name}在${palaceLabel(palace)}`));
       if (!good.length) return null;
       return [describeIn(facts.root, '擎羊'), `命宫三方四正遇吉：${good.join('、')}`];
+    },
+  },
+  {
+    id: 'ming-lu-an-lu',
+    name: '明禄暗禄格',
+    group: '定贵局',
+    // 骨髓赋「明禄暗禄锦上添花」、卷三诸星同垣禄存条「明禄暗禄，位至公卿」；定贵局只写「见前批注」。
+    // 通行解：禄存、化禄一在命宫（明），一在命宫的六合宫（暗）；如甲年命在亥有廉贞化禄，寅宫禄存，寅亥合。
+    source: quanshu('定贵局', '明禄暗禄', '明禄暗禄：见前批注。（批注无明文；通行解：禄存、化禄一在命宫为明禄，一在命宫六合宫为暗禄。）'),
+    limitations: [AN_LU_LIMITATION],
+    evaluate: (facts) => {
+      const hidden = hiddenPalaceOf(facts, facts.root);
+      if (!hidden) return null;
+      const pairs = [
+        [findIn(facts.root, '禄存'), mutagenIn(hidden, '禄')],
+        [mutagenIn(facts.root, '禄'), findIn(hidden, '禄存')],
+      ];
+      for (const [bright, dark] of pairs) {
+        if (!bright || !dark) continue;
+        return [
+          `明禄：${describeLu(facts.root, bright)}，守命宫`,
+          `暗禄：${describeLu(hidden, dark)}，${hidden.earthlyBranch}与命宫${facts.root.earthlyBranch}六合`,
+        ];
+      }
+      return null;
+    },
+  },
+  {
+    id: 'ke-ming-an-lu',
+    name: '科明暗禄格',
+    group: '定贵局',
+    // 骨髓赋「科明禄暗位列三台」；定贵局只写「见前批注」。通行解：化科守命宫（明），禄存或化禄在命宫的六合宫（暗）。
+    source: quanshu('定贵局', '科明暗禄', '科明暗禄：见前批注。（批注无明文；通行解：化科守命宫为科明，禄存或化禄在命宫六合宫为禄暗。）'),
+    limitations: [AN_LU_LIMITATION],
+    evaluate: (facts) => {
+      const ke = mutagenIn(facts.root, '科');
+      const hidden = hiddenPalaceOf(facts, facts.root);
+      if (!ke || !hidden) return null;
+      const dark = findIn(hidden, '禄存') || mutagenIn(hidden, '禄');
+      if (!dark) return null;
+      return [
+        `科明：${describeStar({ palace: facts.root, star: ke })}，生年化科，守命宫`,
+        `禄暗：${describeLu(hidden, dark)}，${hidden.earthlyBranch}与命宫${facts.root.earthlyBranch}六合`,
+      ];
     },
   },
   {

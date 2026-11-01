@@ -14,10 +14,12 @@
  *   另按固定留集（isUseGodHoldout：编号尾数 0、4、7）分列：调规则只看非留集，留集只作验收。
  *   命例写了 useGodWhy（原书取用理由：扶抑、调候、通关、病药……）的，另按理由分类列一行。
  * - 岁运：命例 expected.yun 里原书说吉、凶的大运、流年，程序按同一套喜忌把干支各算一票（只写一个字的只看这个字；
- *   地支与原局凑齐三会方、三合局的按局的五行；大运截脚——干喜、支忌而克干——按凶），与原书同记 same，程序判平记 near，
+ *   地支与原局凑齐三会方、三合局的按局的五行；大运截脚——干喜、支忌而克干——按凶；大运天干贪合助忌——与原局忌神天干相合、
+ *   所化也是忌——作平），与原书同记 same，程序判平记 near，
  *   相反记 reversed；原书说平的不比。
  * - 六亲：命例 expected.liuqin 里原书说吉、凶的妻（夫）、子女、父、母、兄弟，拿结果页「六亲宫星」那一亲的倾向（按任注推）比，
- *   口径同岁运。原书应在某步运、某个流年的（「一交丙运，刑妻克子」，条目写了 yun 或原句提到运、流年）记作运中应事，另列一行。
+ *   口径同岁运。原书应在某步运、某个流年的（「一交丙运，刑妻克子」，条目写了 yun 或原句提到运、流年）记作运中应事，另列一行；
+ *   条目写了 yun 的拿结果页「此运六亲」（liuqinOfYun：此运喜忌、克星、冲刑宫位）比，没写的仍看原局倾向。
  * 调权重时用它看逐条差异；一致率的下限写在 test/bazi-cases.test.js 里（命例够 40 条才跑）。
  */
 import process from 'node:process';
@@ -33,7 +35,7 @@ const entries = files.cases
   .filter((entry) => entry?.expected && Array.isArray(entry.pillars) && !/自检/.test(entry.notes ?? ''));
 
 const results = entries.map(evaluateBaziCase);
-const tally = { strength: {}, pattern: {}, useGod: {}, yun: {}, liuqin: {}, liuqinYun: {} };
+const tally = { strength: {}, pattern: {}, chengBai: {}, useGod: {}, yun: {}, liuqin: {}, liuqinYun: {} };
 results.forEach((result) => {
   Object.entries(result.checks ?? {}).forEach(([key, value]) => {
     [].concat(value).forEach((item) => { tally[key][item] = (tally[key][item] ?? 0) + 1; });
@@ -44,6 +46,7 @@ const fmt = (counts) => Object.entries(counts).map(([key, value]) => `${key} ${v
 console.log(`八字命例 ${entries.length} 条（写了 expected、四柱未标自检）`);
 console.log(`旺衰：${fmt(tally.strength)}`);
 console.log(`格局：${fmt(tally.pattern)}`);
+if (Object.keys(tally.chengBai).length) console.log(`成败（月令格相同的命造）：${fmt(tally.chengBai)}`);
 console.log(`喜用：${fmt(tally.useGod)}`);
 const splitUseGod = (pick) => fmt(results.filter((result, index) => result.checks?.useGod && pick(isUseGodHoldout(entries[index])))
   .reduce((acc, result) => ({ ...acc, [result.checks.useGod]: (acc[result.checks.useGod] ?? 0) + 1 }), {}));
@@ -57,7 +60,7 @@ results.forEach((result) => {
 });
 if (Object.keys(byWhy).length) console.log(`喜用按原书取用理由：${Object.entries(byWhy).map(([kind, counts]) => `${kind}（${fmt(counts)}）`).join('；')}`);
 console.log(`六亲（原局）：${fmt(tally.liuqin)}`);
-console.log(`六亲（运中应事，按原局倾向）：${fmt(tally.liuqinYun)}`);
+console.log(`六亲（运中应事，写明哪步运的按此运六亲）：${fmt(tally.liuqinYun)}`);
 
 const errors = results.filter((result) => result.error);
 if (errors.length) {
@@ -75,11 +78,11 @@ const listed = results.filter((result) => !result.error && (showAll || isMiss(re
 if (listed.length) {
   console.log(showAll ? '\n逐条：' : '\n不一致的：');
   listed.forEach(({ id, pillars, expected, program, checks, yun, liuqin }) => {
-    const exp = [expected.strength && `旺衰${expected.strength}`, expected.pattern, expected.useGod && `用${[].concat(expected.useGod).join('')}`].filter(Boolean).join(' ');
+    const exp = [expected.strength && `旺衰${expected.strength}`, expected.pattern, expected.chengBai, expected.useGod && `用${[].concat(expected.useGod).join('')}`].filter(Boolean).join(' ');
     const gods = program.useGodSource === 'special'
       ? `按此格喜${program.specialFavorable.join('')} 忌${program.specialUnfavorable.join('')}（扶抑喜${program.favorable.join('')}）`
       : `喜${program.favorable.join('')} 忌${program.unfavorable.join('')}`;
-    const got = [`${program.band}(${program.score} 分)`, program.special, gods].filter(Boolean).join(' ');
+    const got = [`${program.band}(${program.score} 分)`, program.special ?? (expected.pattern && !/从|专旺|化|两气/.test(expected.pattern) ? `${program.pattern ?? '无格'}${program.chengBai ? `·${program.chengBai}` : ''}` : null), gods].filter(Boolean).join(' ');
     const yunText = yun.filter((item) => item.check && item.check !== 'same').map((item) => `${item.ganZhi}${item.kind === '流年' ? '年' : '运'}书${item.verdict}程序${item.program}`).join('、');
     const liuqinText = liuqin.filter((item) => item.check && item.check !== 'same').map((item) => `${item.scope === 'yun' ? '（运中）' : ''}${item.kind}书${item.verdict}程序${item.program}`).join('、');
     console.log(`  ${id} ${pillars.join(' ')}｜书：${exp}｜程序：${got}｜${Object.entries(checks).filter(([key]) => !['yun', 'liuqin', 'liuqinYun'].includes(key)).map(([key, value]) => `${key}:${value}`).join(' ')}${yunText ? ` 岁运:${yunText}` : ''}${liuqinText ? ` 六亲:${liuqinText}` : ''}`);

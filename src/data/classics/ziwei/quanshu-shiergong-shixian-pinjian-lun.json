@@ -1,0 +1,313 @@
+{
+  "classic": "ziwei",
+  "volume": "卷一",
+  "section": "十二宫诸星失陷贫贱论",
+  "edition": "据维基文库《紫微斗数全书》卷一（https://zh.wikisource.org/wiki/紫微斗數全書/卷一；固定修订 oldid=7913704），2026年10月31日所见录文；繁体转简体逐字核对，未参用现代注译本。",
+  "contributor": "codex",
+  "entries": [
+    {
+      "id": "ziwei.quanshu.shixianpinjian.001",
+      "title": "十二宫诸星失陷贫贱论·其一",
+      "original": "丑未巨机为值福，失陷此月福须轻，",
+      "vernacular": "巨门、天机在丑未，称为「值福」；落陷于此，福分就轻。",
+      "notes": "",
+      "doubts": [
+        "「为值福」「此月」文义不顺，疑有录误，原文照录；白话保留值福。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "丑",
+            "未"
+          ],
+          "stars": [
+            "巨门",
+            "天机"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpinjian.002",
+      "title": "十二宫诸星失陷贫贱论·其二",
+      "original": "卯酉不喜逢羊刃，",
+      "vernacular": "卯酉宫不喜遇到羊刃。",
+      "notes": "羊刃指擎羊；天罗地网在此指辰戌。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯",
+            "酉"
+          ],
+          "stars": [
+            "擎羊"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpinjian.003",
+      "title": "十二宫诸星失陷贫贱论·其三",
+      "original": "辰戌紫破朝罗网，",
+      "vernacular": "辰戌宫的紫微、破军朝向罗网。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "辰",
+            "戌"
+          ],
+          "stars": [
+            "紫微",
+            "破军"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpinjian.004",
+      "title": "十二宫诸星失陷贫贱论·其四",
+      "original": "辰休戌囚贪贞陷，午宫阴巨不堪称，",
+      "vernacular": "辰为休、戌为囚，贪狼、廉贞落陷；太阴、巨门在午宫，不值得称美。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "辰",
+            "戌"
+          ],
+          "stars": [
+            "贪狼",
+            "廉贞"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "午"
+          ],
+          "stars": [
+            "太阴",
+            "巨门"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpinjian.005",
+      "title": "十二宫诸星失陷贫贱论·其五",
+      "original": "申宫合武为下格，酉逢机巨日无精，",
+      "vernacular": "申宫合武，列为下格；酉宫逢天机、巨门、太阳，失去光彩。",
+      "notes": "",
+      "doubts": [
+        "「合武」照录，未明是否「同武」之讹。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "酉"
+          ],
+          "stars": [
+            "天机",
+            "巨门",
+            "太阳"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "note": "「合武」所指存疑，不补成同武或其他星组。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpinjian.006",
+      "title": "十二宫诸星失陷贫贱论·其六",
+      "original": "卯辰巳午逢阴宿，戌亥逢阳亦不容，",
+      "vernacular": "卯辰巳午遇太阴，戌亥逢太阳，也都不宜。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯",
+            "辰",
+            "巳",
+            "午"
+          ],
+          "stars": [
+            "太阴"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "戌",
+            "亥"
+          ],
+          "stars": [
+            "太阳"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpinjian.007",
+      "title": "十二宫诸星失陷贫贱论·其七",
+      "original": "贪杀巳亥居陷地，破军卯酉不为清，",
+      "vernacular": "贪狼、七杀在巳亥落陷；破军在卯酉，不算清美。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "巳",
+            "亥"
+          ],
+          "stars": [
+            "贪狼",
+            "七杀"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "卯",
+            "酉"
+          ],
+          "stars": [
+            "破军"
+          ],
+          "note": "所列星曜任一颗；其余限定参原文。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpinjian.008",
+      "title": "十二宫诸星失陷贫贱论·其八",
+      "original": "加杀遇劫为奸盗，此是刑邪不必论，",
+      "vernacular": "再加杀、遇劫，会成为奸盗，这是刑邪，不必再论。",
+      "notes": "四墓：辰、戌、丑、未。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "承上陷地再加杀劫，所指主星及范围不定，不用单煞作充分条件。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpinjian.009",
+      "title": "十二宫诸星失陷贫贱论·其九",
+      "original": "贪狼化禄居四墓，纵然遇吉亦中平，",
+      "vernacular": "贪狼化禄居四墓，即使遇吉，也只是中平。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "branches": [
+            "辰",
+            "戌",
+            "丑",
+            "未"
+          ],
+          "star": "贪狼",
+          "mutagen": "禄"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpinjian.010",
+      "title": "十二宫诸星失陷贫贱论·其十",
+      "original": "命缠弱地休逢忌，空劫擎羊加火铃，若非夭折主下贱，六畜之命不可平，",
+      "vernacular": "命星在弱地，不宜逢忌，再加空劫、擎羊、火铃，若不夭折就主下贱，属于不能平常看待的六畜之命。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "mutagen": "忌",
+          "meet": [
+            "地空",
+            "地劫",
+            "擎羊",
+            "火星",
+            "铃星"
+          ],
+          "note": "煞曜任一颗；还须命星缠弱地。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpinjian.011",
+      "title": "十二宫诸星失陷贫贱论·其十一",
+      "original": "旺地发福终远大，陷地峥嵘到底倾，",
+      "vernacular": "旺地发福，最终远大；陷地即使一时显达，到底也会倾败。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "通论旺地、陷地的久暂得失，未指具体星曜。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.shixianpinjian.012",
+      "title": "十二宫诸星失陷贫贱论·其十二",
+      "original": "二论不过五百字，富贵贫贱别得明。",
+      "vernacular": "这两篇论述不过五百字，却把富贵贫贱分辨得明白。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "两篇论的收束语。"
+        }
+      ],
+      "status": "translated"
+    }
+  ]
+}

@@ -25,11 +25,12 @@ test('类别表与档案里的类别名称一致', () => {
 test('月建日辰下的旺衰：临月建、月破、真空与假空', () => {
   assert.equal(time.monthZhi, '戌');
   assert.equal(time.dayZhi, '酉');
-  // 戌土静爻：临月建 +3，日辰酉金泄气 -1，又旬空但月建比扶 → 假空 -1，合计 1 为平
+  // 戌土静爻：临月建 +3，日辰酉金泄气 -1，又旬空但月建比扶 → 假空，旬空章「旺不为空」不扣分，合计 2 为旺相
   const xu = assessStrength({ zhi: '戌', element: '土', isMoving: false, marks: ['旬空'] }, time);
-  assert.equal(xu.score, 1);
-  assert.equal(xu.level, '平');
+  assert.equal(xu.score, 2);
+  assert.equal(xu.level, '旺相');
   assert.equal(xu.emptyKind, '假空');
+  assert.ok(xu.notes.includes('旬空，但有气（动、冲、生扶），不为空，出空即实'));
   assert.ok(xu.notes.includes('临月建'));
   // 不空的戌土静爻就是旺相
   assert.equal(assessStrength({ zhi: '戌', element: '土', isMoving: false, marks: [] }, time).level, '旺相');
@@ -77,10 +78,11 @@ test('按类别取用神：单现、两现取动爻、不上卦取伏神', () =>
   assert.equal(fromChange.yongShen.hidden, false);
   assert.match(fromChange.yongShen.text, /由五爻父母辛巳动而化出：妻财丙子（变爻/);
   assert.match(fromChange.dynamics.join('\n'), /动爻不克变爻，只论日月生克/);
-  // 水火既济（初爻动）：妻财戊午伏于三爻兄弟己亥之下；飞神亥水旬空又被戌月克，伏神易出
+  // 水火既济（初爻动）：妻财戊午伏于三爻兄弟己亥之下；飞神亥水旬空又被戌月克，本易出，但午火墓于戌月——
+  // 飞伏神章其六「伏神墓绝于日月飞爻者」无用，伏神自身空破墓绝被克的，飞神再衰也引拔不出
   const jiji = judgeLiuYao(buildLiuYaoReading([9, 8, 7, 8, 7, 8], castAt), { topic: 'wealth' });
   assert.equal(jiji.yongShen.hidden, true);
-  assert.match(jiji.points[2], /伏神易出（飞神空破衰墓、日月动爻冲克飞神）/);
+  assert.match(jiji.points[2], /伏神墓绝于日月飞爻，虽则飞神空破衰墓、日月动爻冲克飞神，伏而又空、空而被克者，虽有如无，终不能出/);
   assert.match(jiji.points.join('\n'), /子孙己卯（初爻）发动为元神，但无力（化破/);
 });
 
