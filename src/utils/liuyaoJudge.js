@@ -111,6 +111,8 @@ export const relationOf = (subject, other) => {
 const MONTH_TEXT = { same: '月建比扶', generated: '月建生扶', drained: '月建泄气', spent: '月建耗力', controlled: '月建克制' };
 const DAY_TEXT = { same: '日辰比扶', generated: '日辰生扶', drained: '日辰泄气', spent: '日辰耗力', controlled: '日辰克制' };
 const RELATION_SCORE = { same: 2, generated: 2, drained: -1, spent: -1, controlled: -2 };
+// 千金赋其九十五「凡占身命家宅功名茔垄贸易等事，欲其久远者」：元神必须兼看
+const LASTING_TOPICS = new Set(['life', 'home', 'career', 'gravesite', 'ancestral', 'wealth']);
 
 /**
  * 类别 + 性别 + 替谁问 → 用神取哪一类六亲（null 为世爻）。
@@ -357,7 +359,7 @@ const sanHeFramesOf = (lines, time) => SAN_HE.map(({ zhis, element }) => {
 
 /**
  * 动爻（含暗动）作元神、忌神时有力还是无力（《增删卜易·元神忌神衰旺章》）。
- * 无力：化回头克、化绝、化破、化墓、入日墓；休囚而化退、临绝、逢空破、被日月动爻克。
+ * 无力：化回头克、化绝、化破、化墓（有日月帮扶的除外，只待冲开墓库）、入日墓；休囚而化退、临绝、逢空破、被日月动爻克。
  * 有力：旺相、临日月、化回头生、化进神、长生帝旺于日辰。都不沾的为寻常。
  * 动爻不论月破（野鹤《月破章》：动则能于伤爻，出月不破）。忌神被别的动爻所制（求财章「官爻发动亦堪求」、
  * 产妇章「倘若兄动克财，又宜鬼动制服兄爻」），衰者无力，不衰的也降一等。
@@ -371,9 +373,14 @@ const forceOf = (line, time, controllers = [], role = '') => {
   const feeble = strength.level === '休囚';
   const weak = [];
   if (flags.backCtrl) weak.push('化回头克');
+  // 千金赋其五十九「化墓化绝者，动爻旺相，或临日月，或日月帮扶，亦无大害。化墓者，冲开之日月而成」、其九十七「动爻何妨空破」
+  // （野鹤南行三占大有之大壮「巳火之官动而生世，目下虽被衰入墓，明年三月冲开戌墓……旺相而生世矣」）：化墓而有日月帮扶的，不作无力，
+  // 只是要等冲开墓库。化绝不在此列：占开店贸易得坤之剥「子动生财，生之不起」，酉金子孙临申日而化寅绝，仍生不起
+  const propped = line.zhi === time.monthZhi || line.zhi === time.dayZhi || strength.level === '旺相'
+    || ['same', 'generated'].includes(strength.dayRelation) || (!line.marks.includes('月破') && ['same', 'generated'].includes(strength.monthRelation));
   if (flags.jue) weak.push('化绝');
   if (flags.broken && !flags.advance) weak.push('化破');
-  if (flags.tomb) weak.push('化墓');
+  if (flags.tomb && !propped) weak.push('化墓');
   if (dayStage === '墓') weak.push('入日墓');
   if (feeble && flags.retreat) weak.push('衰而化退');
   if (feeble && dayStage === '绝') weak.push('衰而逢绝');
@@ -387,11 +394,13 @@ const forceOf = (line, time, controllers = [], role = '') => {
   if (flags.backGen) strong.push('化回头生');
   if (flags.advance) strong.push('化进神');
   if (dayStage === '长生' || dayStage === '帝旺') strong.push(`${dayStage}于日辰`);
+  // 化墓有救的只记一笔：有力无力照常算，只是要等冲开墓库才见功
+  const waiting = flags.tomb ? [`化墓而有日月帮扶，待${ZHI_CLASH[line.changed.zhi]}冲开墓库`] : [];
   if (role === 'enemy' && controllers.length) {
     const tamed = `被${controllers.map((item) => item.ganZhi).join('、')}所制`;
-    return strong.length ? { force: 'normal', reasons: [...strong, tamed] } : { force: 'weak', reasons: [tamed] };
+    return strong.length ? { force: 'normal', reasons: [...strong, ...waiting, tamed] } : { force: 'weak', reasons: [...waiting, tamed] };
   }
-  return { force: strong.length ? 'strong' : 'normal', reasons: strong };
+  return { force: strong.length ? 'strong' : 'normal', reasons: [...strong, ...waiting] };
 };
 
 /** 动爻被合住：化出之爻与本爻六合（贪合），或动爻逢日辰合——贪合忘生、贪合忘克，待冲开之日。 */
@@ -1842,6 +1851,18 @@ export const judgeLiuYao = (reading, options = {}) => {
   }
   total += rootless ? Math.min(dyn.score, 0) : dyn.score;
   dynamics.push(...dyn.texts);
+  // 千金赋其九十五「水木须宜寻根」：身命、家宅、功名、茔垄、贸易这类要长久的事，「用神虽则为重，而元神必须兼看……用神虽旺，
+  // 元神若被伤克者，即如水无源泉，木无根蒂」（占掣签得大畜之中孚「世临寅木官星……独嫌子水月破，动而化绝……世爻寅木无水滋生，乃为凶兆」）。
+  // 只看发动的元神：动而月破、化回头克、化绝、化破或被克制的，用神再旺也是无根
+  if (LASTING_TOPICS.has(meta.value) && !yong.hidden && strength.level === '旺相') {
+    const roots = dyn.movers.filter((item) => item.relation === 'generated' && !item.bound);
+    const hurtOf = (item) => item.line.marks.includes('月破')
+      || (item.power.force === 'weak' && item.power.reasons.some((reason) => /化回头克|化绝|化破|被.+克/.test(reason)));
+    if (roots.length && roots.every(hurtOf)) {
+      total -= 2;
+      dynamics.push(`元神${roots.map((item) => lineLabel(item.line)).join('、')}发动而受伤，用神虽旺而无根，难以长久（《增删卜易·黄金策千金赋》「水木须宜寻根」：「用神虽旺，元神若被伤克者，即如水无源泉，木无根蒂」）`);
+    }
+  }
   // 三合局（六合章）：局生用神、局与用神同气为吉，局克用神为凶；世在局中为美，局生应爻不生世为「出现无情」；
   // 行人、出行用神在局中，被合不回、被合而留；避乱、出行以子孙合局为福神克去身边之鬼
   frames.forEach((frame) => {
