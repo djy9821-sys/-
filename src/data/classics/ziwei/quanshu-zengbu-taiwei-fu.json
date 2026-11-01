@@ -1,0 +1,831 @@
+{
+  "classic": "ziwei",
+  "volume": "卷一",
+  "section": "增补太微赋",
+  "edition": "据维基文库《紫微斗数全书》卷一（https://zh.wikisource.org/wiki/紫微斗數全書/卷一；固定修订 oldid=7913704），2026年10月31日所见录文；繁体转简体逐字核对，未参用现代注译本。",
+  "contributor": "codex",
+  "entries": [
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.001",
+      "title": "增补太微赋·其一",
+      "original": "前后两凶神为两邻，加会尚可撑持，同室与谋最难堤防。",
+      "vernacular": "前后两凶神作邻，若只是加会，尚能支撑；若同在一宫，最难防备。",
+      "notes": "",
+      "doubts": [
+        "「堤防」照录，白话作防备。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "两邻凶神未点星名，不能定具体夹星。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.002",
+      "title": "增补太微赋·其二",
+      "original": "片火焚天马，重羊逐禄存。",
+      "vernacular": "一点火能焚天马，重逢擎羊会驱逐禄存。",
+      "notes": "",
+      "doubts": [
+        "「片火」「重羊」未指本命或流曜，不自行添流曜层。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "片火、重羊的层次及位次未明，暂不硬编。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.003",
+      "title": "增补太微赋·其三",
+      "original": "劫空亲戚无常，权禄行藏靡定。",
+      "vernacular": "遇劫空，亲戚关系无常；遇权禄，出仕隐退不定。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "stars": [
+            "地劫",
+            "地空"
+          ],
+          "note": "任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "mutagen": [
+            "权",
+            "禄"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.004",
+      "title": "增补太微赋·其四",
+      "original": "君子哉魁钺，小人哉羊铃。",
+      "vernacular": "魁钺如君子，羊铃如小人。",
+      "notes": "魁钺指天魁、天钺；羊铃指擎羊、铃星。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "stars": [
+            "天魁",
+            "天钺",
+            "擎羊",
+            "铃星"
+          ],
+          "note": "任一颗，君子小人各按原文分论。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.005",
+      "title": "增补太微赋·其五",
+      "original": "凶不皆凶，吉无纯吉。",
+      "vernacular": "凶未必全凶，吉也不是纯吉。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "吉凶相杂总论。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.006",
+      "title": "增补太微赋·其六",
+      "original": "主强宾弱可保无虞，主弱宾强凶危立见。",
+      "vernacular": "主强宾弱，可保无忧；主弱宾强，凶危立见。",
+      "notes": "主宾：本命与所临运限等相对关系，原句未逐一限定。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "主宾强弱未点星名。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.007",
+      "title": "增补太微赋·其七",
+      "original": "主宾得失两相宜，运限命身当互见。",
+      "vernacular": "主宾的得失要相互适宜，运限与命、身应彼此参看。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "命身与运限主宾须互参。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.008",
+      "title": "增补太微赋·其八",
+      "original": "身命最嫌羊陀七杀，遇之未免为凶。",
+      "vernacular": "身、命最不宜羊陀、七杀，遇到未免为凶。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "擎羊",
+            "陀罗",
+            "七杀"
+          ],
+          "note": "任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "身宫",
+          "stars": [
+            "擎羊",
+            "陀罗",
+            "七杀"
+          ],
+          "note": "任一颗。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.009",
+      "title": "增补太微赋·其九",
+      "original": "二限甚忌贪破巨廉，逢之定然作祸。",
+      "vernacular": "大、小二限很忌贪狼、破军、巨门、廉贞，遇到必然作祸。",
+      "notes": "二限：大限、小限。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "stars": [
+            "贪狼",
+            "破军",
+            "巨门",
+            "廉贞"
+          ],
+          "note": "任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "stars": [
+            "贪狼",
+            "破军",
+            "巨门",
+            "廉贞"
+          ],
+          "note": "任一颗。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.010",
+      "title": "增补太微赋·其十",
+      "original": "命运魁昌常得贵，限逢紫府定财多。",
+      "vernacular": "命运逢魁昌，常得显贵；限逢紫府，必定财多。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "天魁",
+            "文昌"
+          ],
+          "note": "魁昌任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "stars": [
+            "天魁",
+            "文昌",
+            "紫微",
+            "天府"
+          ],
+          "note": "魁昌、紫府任一颗，各按原句分论。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "stars": [
+            "天魁",
+            "文昌",
+            "紫微",
+            "天府"
+          ],
+          "note": "魁昌、紫府任一颗，各按原句分论。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.011",
+      "title": "增补太微赋·其十一",
+      "original": "凡观女人之命，先观夫子二宫。",
+      "vernacular": "凡看女命，先看丈夫、子女二宫。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "gender": "女",
+          "palace": "夫妻",
+          "note": "女命先看夫子二宫的通论。"
+        },
+        {
+          "module": "ziwei",
+          "gender": "女",
+          "palace": "子女",
+          "note": "女命先看夫子二宫的通论。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.012",
+      "title": "增补太微赋·其十二",
+      "original": "若值杀星定三嫁而心不足，或逢羊孛虽啼哭而泪不干。",
+      "vernacular": "若遇杀星，三嫁仍不满足；或逢羊孛，虽啼哭，眼泪也不干。",
+      "notes": "孛：录文星名，所指待核。",
+      "doubts": [
+        "「羊孛」所指存疑，白话保留。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "承上女命夫子二宫；杀星、羊孛所指未全明，不以擎羊单星替代。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.013",
+      "title": "增补太微赋·其十三",
+      "original": "若观男命始以福财为主，再审迁移何如。",
+      "vernacular": "看男命，先以福德、财帛为主，再审迁移如何。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "gender": "男",
+          "palace": "福德",
+          "note": "男命看宫次序的通论。"
+        },
+        {
+          "module": "ziwei",
+          "gender": "男",
+          "palace": "财帛",
+          "note": "男命看宫次序的通论。"
+        },
+        {
+          "module": "ziwei",
+          "gender": "男",
+          "palace": "迁移",
+          "note": "男命看宫次序的通论。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.014",
+      "title": "增补太微赋·其十四",
+      "original": "二限相因，吉凶同断。",
+      "vernacular": "大、小二限相互关联，吉凶要一起判断。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "二限须同时合看，现有条件不表达跨层并且。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.015",
+      "title": "增补太微赋·其十五",
+      "original": "限逢吉曜平生活动和谐，命坐凶乡一世求谋龃龉。",
+      "vernacular": "限逢吉曜，一生活动和谐；命坐凶乡，一生谋求不顺。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "note": "吉曜未指名。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "note": "吉曜未指名。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "note": "凶乡未指具体宫支。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.016",
+      "title": "增补太微赋·其十六",
+      "original": "廉禄临身女得纯阴贞洁之德，同梁守命男得阳纯中正之心。",
+      "vernacular": "廉禄临身，女人有纯阴贞洁之德；同梁守命，男人有纯阳中正之心。",
+      "notes": "廉禄指廉贞、禄存；同梁指天同、天梁。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "gender": "女",
+          "palace": "身宫",
+          "allStars": [
+            "廉贞",
+            "禄存"
+          ]
+        },
+        {
+          "module": "ziwei",
+          "gender": "男",
+          "palace": "命宫",
+          "allStars": [
+            "天同",
+            "天梁"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.017",
+      "title": "增补太微赋·其十七",
+      "original": "君子命中亦有羊陀火铃，小人命内岂无科禄权星。",
+      "vernacular": "君子命中也有羊陀、火铃，小人命中难道没有科禄权？",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "君子小人不能只据吉凶星判定。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.018",
+      "title": "增补太微赋·其十八",
+      "original": "要看得垣失垣，专论入庙失庙。",
+      "vernacular": "要看得垣、失垣，着重论入庙、失庙。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "得垣与庙陷总论。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.019",
+      "title": "增补太微赋·其十九",
+      "original": "若论小儿，详推童限。",
+      "vernacular": "论小儿，应详细推看童限。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "童限须年龄资料与具体限法。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.020",
+      "title": "增补太微赋·其二十",
+      "original": "小儿命坐凶乡，二五岁必然夭折，更有限逢恶杀，五七岁必主灾亡。",
+      "vernacular": "小儿命坐凶乡，二五岁必夭折；若限又逢恶杀，五七岁必有灾亡。",
+      "notes": "二五、五七：保留录文年龄写法。",
+      "doubts": [
+        "「二五岁」「五七岁」可能是两岁与五岁、五岁与七岁，亦可能是约数，未擅改成十岁、三十五岁。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "凶乡恶杀未点星名，二五、五七年龄语义存疑。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.021",
+      "title": "增补太微赋·其二十一",
+      "original": "文昌文曲天魁秀，不读诗书也可人。",
+      "vernacular": "文昌、文曲、天魁显秀，不读诗书也令人喜爱。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "stars": [
+            "文昌",
+            "文曲",
+            "天魁"
+          ],
+          "note": "所列任一颗显秀，非三颗必须同宫。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.022",
+      "title": "增补太微赋·其二十二",
+      "original": "多学少成只为擎羊逢劫杀，为人好讼盖因太岁遇官符。",
+      "vernacular": "多学少成，是擎羊逢劫杀；好打官司，是太岁遇官符。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "劫杀、官符的组合未完整支持，不改作地劫。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.023",
+      "title": "增补太微赋·其二十三",
+      "original": "命之理微熟察星辰之变化，数之理远细详格局之兴衰。",
+      "vernacular": "命理精微，要熟察星曜变化；数理深远，要细察格局兴衰。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "命数总论。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.024",
+      "title": "增补太微赋·其二十四",
+      "original": "北极加凶杀为道为僧，羊陀遇恶星为奴为仆。",
+      "vernacular": "北极加凶杀，会为道为僧；羊陀遇恶星，会为奴为仆。",
+      "notes": "北极：紫微。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "star": "紫微",
+          "meet": [
+            "擎羊",
+            "陀罗",
+            "火星",
+            "铃星",
+            "地空",
+            "地劫"
+          ],
+          "note": "凶杀任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "stars": [
+            "擎羊",
+            "陀罗"
+          ],
+          "meet": [
+            "火星",
+            "铃星",
+            "地空",
+            "地劫"
+          ],
+          "note": "羊陀任一颗，另会恶星任一颗；恶星名依通行类别索引。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.025",
+      "title": "增补太微赋·其二十五",
+      "original": "如武破廉贪固深谋而贵显，加羊陀空劫反小志以孤寒。",
+      "vernacular": "武曲、破军、廉贞、贪狼，本可深谋而显贵；加羊陀、空劫，反而志小、孤寒。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "stars": [
+            "武曲",
+            "破军",
+            "廉贞",
+            "贪狼"
+          ],
+          "note": "任一颗，非四星同宫。"
+        },
+        {
+          "module": "ziwei",
+          "stars": [
+            "武曲",
+            "破军",
+            "廉贞",
+            "贪狼"
+          ],
+          "meet": [
+            "擎羊",
+            "陀罗",
+            "地空",
+            "地劫"
+          ],
+          "note": "主星任一颗加会所列煞曜任一颗。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.026",
+      "title": "增补太微赋·其二十六",
+      "original": "限辅星旺限虽弱而不弱，命临吉地命虽凶而不凶。",
+      "vernacular": "限的辅星旺，限虽弱也不弱；命临吉地，命虽凶也不凶。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "note": "辅星旺可救限弱，未点具体星曜。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "note": "辅星旺可救限弱，未点具体星曜。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "note": "吉地未点宫支。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.027",
+      "title": "增补太微赋·其二十七",
+      "original": "断桥截路大小难行，卯酉二空聪明发福。",
+      "vernacular": "断桥截路，大、小限都难行；卯酉逢二空，聪明发福。",
+      "notes": "",
+      "doubts": [
+        "「断桥截路」「卯酉二空」所指空曜未明，暂不机器匹配。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "「二空」是否旬空、截空待核，不用地空地劫替代。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.028",
+      "title": "增补太微赋·其二十八",
+      "original": "命身遇紫府迭积金银，二主逢劫空衣食不足。",
+      "vernacular": "命、身遇紫府，金银不断积累；二主逢劫空，衣食不足。",
+      "notes": "紫府：紫微、天府；劫空：地劫、地空。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "紫微",
+            "天府"
+          ],
+          "note": "紫府任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "身宫",
+          "stars": [
+            "紫微",
+            "天府"
+          ],
+          "note": "紫府任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "地劫",
+            "地空"
+          ],
+          "note": "二主暂按身命参看，劫空任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "身宫",
+          "stars": [
+            "地劫",
+            "地空"
+          ],
+          "note": "二主暂按身命参看，劫空任一颗。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.029",
+      "title": "增补太微赋·其二十九",
+      "original": "谋而不遂，命限遇入擎羊，东作西成，限身遭逢辅相",
+      "vernacular": "命限遇擎羊，谋事不遂；限、身逢辅相，东边做事西边成功。",
+      "notes": "",
+      "doubts": [
+        "录文此句末无标点，原字照录。"
+      ],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "star": "擎羊"
+        },
+        {
+          "module": "ziwei",
+          "palace": "身宫",
+          "stars": [
+            "左辅",
+            "天相"
+          ],
+          "note": "辅相任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "star": "擎羊"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "star": "擎羊"
+        },
+        {
+          "module": "ziwei",
+          "limit": "大限",
+          "stars": [
+            "左辅",
+            "天相"
+          ],
+          "note": "辅相任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "limit": "小限",
+          "stars": [
+            "左辅",
+            "天相"
+          ],
+          "note": "辅相任一颗。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.030",
+      "title": "增补太微赋·其三十",
+      "original": "科权禄拱，定为扳桂之高人，空劫羊铃，作九流之术士。",
+      "vernacular": "科权禄拱，必是扳桂的高人；空劫羊铃，则为九流术士。",
+      "notes": "扳桂：登科之喻；九流：各种技艺流派。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "三奇加会"
+        },
+        {
+          "module": "ziwei",
+          "stars": [
+            "地空",
+            "地劫",
+            "擎羊",
+            "铃星"
+          ],
+          "note": "所列任一颗。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.031",
+      "title": "增补太微赋·其三十一",
+      "original": "情怀畅舒昌曲命身，诡诈浮虚羊陀陷地。",
+      "vernacular": "昌曲在命、身，心情舒畅；羊陀落陷，诡诈浮虚。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "stars": [
+            "文昌",
+            "文曲"
+          ],
+          "note": "昌曲任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "palace": "身宫",
+          "stars": [
+            "文昌",
+            "文曲"
+          ],
+          "note": "昌曲任一颗。"
+        },
+        {
+          "module": "ziwei",
+          "stars": [
+            "擎羊",
+            "陀罗"
+          ],
+          "brightness": "陷",
+          "note": "羊陀任一颗。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.032",
+      "title": "增补太微赋·其三十二",
+      "original": "天机天梁擎羊会，早有刑而晚见孤。",
+      "vernacular": "天机、天梁会擎羊，早年有刑，晚年见孤。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "allStars": [
+            "天机",
+            "天梁"
+          ],
+          "meet": [
+            "擎羊"
+          ]
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.033",
+      "title": "增补太微赋·其三十三",
+      "original": "贪狼武曲廉贞逢，少受贫而后享福。",
+      "vernacular": "逢贪狼、武曲、廉贞，年轻时贫穷，后来享福。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "stars": [
+            "贪狼",
+            "武曲",
+            "廉贞"
+          ],
+          "note": "任一颗，三主星并非要求同宫。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.zengbutaiwei.034",
+      "title": "增补太微赋·其三十四",
+      "original": "此皆斗数之奥妙，学者宜熟思之。",
+      "vernacular": "这些都是斗数的奥妙，学者应当深入思考。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "赋末结语。"
+        }
+      ],
+      "status": "translated"
+    }
+  ]
+}
