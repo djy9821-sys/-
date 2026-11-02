@@ -1979,9 +1979,9 @@ export const judgeLiuYao = (reading, options = {}) => {
     total += 1;
     shiYingText = `用神持世，事在自己手里；${shiYingText}`;
   } else if (yong !== shiLine) {
-    // 千金赋「用克世勿作凶看」野鹤注：「如占求财，财为用神，财爻克世者必得；占行人，用神克世者即至；占医药，子孙为用神，
-    // 子孙克世者即愈。外此数占，皆不宜用神而克世也」；婚姻章亦云应爻「不宜克世」。用神克世作「来就我」只限求财——
-    // 行人（代占）另有行人章断法，问病自占以世为用神，都不走到这里。
+    // 千金赋「用克世勿作凶看」：旧注说主事爻克世都是事来就我，觉子驳之「此论未为全是」——「如占求财，财为用神，财爻克世者必得；
+    // 占行人，用神克世者即至；占医药，子孙为用神，子孙克世者即愈。外此数占，皆不宜用神而克世也」；婚姻章亦云应爻「不宜克世」。
+    // 用神克世作「来就我」只限求财——行人（代占）另有行人章断法，问病自占以世为用神，都不走到这里。
     const keShiWelcome = meta.value === 'wealth';
     if (!yong.hidden && yong.isYing) {
       if (shiYingRelation === 'controlled' && yong.relative !== '官鬼' && keShiWelcome) {
@@ -1989,7 +1989,7 @@ export const judgeLiuYao = (reading, options = {}) => {
         shiYingScore += 2;
         shiYingText = shiYingText.replace(shiYingTexts.controlled, '用神临应而克世，用神来就我（「应临月建之财以克世，许之必得」）');
       } else if (shiYingRelation === 'controlled' && yong.relative !== '官鬼') {
-        shiYingText = shiYingText.replace(shiYingTexts.controlled, '用神临应而克世，求财以外不作来就我论（千金赋「外此数占，皆不宜用神而克世也」）');
+        shiYingText = shiYingText.replace(shiYingTexts.controlled, '用神临应而克世，求财以外不作来就我论（千金赋觉子：「外此数占，皆不宜用神而克世也」）');
       } else if (shiYingRelation === 'generated') {
         // 求财章「财爻生世合世克世持世，皆谓之财来就我」；占本人婚姻「戌土财爻动而生世，又得世应相生……求之必允」
         shiYingScore += 1;
@@ -2002,12 +2002,12 @@ export const judgeLiuYao = (reading, options = {}) => {
         shiYingText = `用神生合世爻，事与我有缘；${shiYingText}`;
       } else if (yongToShi === 'controlled') {
         // 《增删卜易》：「财爻克世，此财必得」——求财用神来克世，是用神来就我（行人「用爻克世必然归」见行人章）。
-        // 官鬼为用神（求官、女占夫）不在此列，仍按有压力论（千金赋「若占功名，官鬼克世，非灾即祸」）。
+        // 官鬼为用神（求官、女占夫）不在此列，仍按有压力论（千金赋觉子：「若占功名，官鬼克世，非灾即祸」）。
         if (yong.relative !== '官鬼' && keShiWelcome) {
           total += 1;
           shiYingText = `用神克世，用神来就我（「财爻克世，此财必得」）；${shiYingText}`;
         } else if (yong.relative !== '官鬼') {
-          shiYingText = `用神克世，求财以外不作来就我论（千金赋「外此数占，皆不宜用神而克世也」）；${shiYingText}`;
+          shiYingText = `用神克世，求财以外不作来就我论（千金赋觉子：「外此数占，皆不宜用神而克世也」）；${shiYingText}`;
         } else {
           total -= 1;
           shiYingText = `用神克世，得之亦有压力；${shiYingText}`;
