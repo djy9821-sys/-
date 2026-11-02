@@ -426,7 +426,7 @@ const dynamicsOf = (yong, lines, time, { sonsBless = false, framed = new Set() }
   const liveFoe = foes.find((item) => active(item));
   // 日辰章「爻临日建，月冲不破，月克无伤，逢动爻之克亦不为害」「爻临日建而月建动爻同来克者，似寡不敌众」：
   // 用神临日辰，单有动爻来克不为害（占借贷得晋「所喜卯日即是财星」，不以酉金兄爻暗动克财为嫌）；月建也克用神、忌神就是月建入卦，
-  // 或仇神同动生着忌神（占母血崩「戌土以生申金……此父母爻既无水养，且化退神」），克多生少，才是寡不敌众
+  // 或仇神同动生着忌神（占母血崩「上爻戌土以生申金……今父母爻既无水养，且化退神」），克多生少，才是寡不敌众
   const monthElement = ZHI_ELEMENT[time.monthZhi];
   const dayLord = !yong.hidden && yong.zhi === time.dayZhi;
   const outnumbered = Boolean(liveFoe) || relationOf(yong.element, monthElement) === 'controlled' || enemies.some((item) => active(item) && item.line.zhi === time.monthZhi);
@@ -449,7 +449,7 @@ const dynamicsOf = (yong, lines, time, { sonsBless = false, framed = new Set() }
         text = `${who}为元神${notes ? `，${notes}` : ''}，生用神`;
       }
     } else if (relation === 'controlled' && sonsBless && line.relative === '子孙') {
-      // 出行章「子孙克世者亦吉」，趋避章「子孙若发动于卦中，不拘克世持世，俱以为吉」
+      // 出行章「子孙克世者亦吉」，趋避章「子孙若发动于卦中，不拘克世、生世、持世，俱以为吉」
       delta = 1;
       text = `${who}，子孙为福神，克世亦吉`;
     } else if (relation === 'controlled') {
@@ -678,7 +678,7 @@ const SPIRIT_KINDS = Object.freeze({
 const TOPIC_RULES = Object.freeze({
   // 鬼神章：「凡占鬼神，卦中鬼值休囚及空破墓绝，皆非鬼神之害也」；旺相者「官鬼属金，旺相者武神及西方之神；休囚者刀剑身亡之鬼」
   // 等各按五行分神；「得罪于正神者，香花纸马祭之；勾惹邪祟之鬼，用浆纸钱于夜静之时，金鬼者向西送之，水鬼者向北送之」；
-  // 野鹤曰「时灾瘟瘴，照此法而祭送者，余屡验之；疯痨气蛊……与鬼神何干？惟节饮食，远色欲，息气养神，其病自减」。
+  // 野鹤曰「凡得时灾瘟瘴，照此法而祭送者，余屡验之……疯痨气蛊……与鬼神何干？祭之送之，皆无益矣。惟节饮食，远色欲，息气养神，其病自减」（鬼神章其六）。
   // 用神是官鬼，吉凶反着看：鬼衰才是「非鬼神之害」，所以倾向自己给。
   spirits: ({ lines, time, shiLine, yong }) => {
     const ghosts = lines.filter((line) => line.relative === '官鬼');
@@ -1284,6 +1284,25 @@ const TOPIC_RULES = Object.freeze({
       notices: ['失物以妻财为用神：财爻旺相、持世或生合世爻易寻；化墓入墓、空破、被兄弟劫克难寻（《黄金策》失脱，《增删卜易·千金赋》）。'],
     };
   },
+  // 子嗣章其一、其二：问子嗣要说明是已有子还问再生、问现有之子将来可保长年，还是从未生育终有子否——「易告未来，不告已往」，
+  // 含糊而问，现今有子而将来难存的，神也现无嗣之卦。
+  // 子嗣章其九「子化子，须知本宫他宫。子孙化子孙，得验者二。少年无子得此者，应多生子也。现有子得此者，乃应多子而多孙也。
+  // 老年无子得此者，抚他人之子而为子。须宜分别，化出他宫者，立异姓之子；化出本宫，立族中孙侄」：占子孙有无得屯之节，
+  // 世爻子孙化子孙，月建合、日辰生，「此公年逾六旬，并无所出……岂知子孙化子孙，非己出也……后立侄孙承嗣」（屯、节同属坎宫）。
+  // 胎孕章其三「子化子，双生有准」，觉子「两动两旺者，此断是也」。程序不知问卦人的年纪，不改倾向，只把古法的几种应法列出。
+  children: ({ yong, hexagram, changed, proxy }) => {
+    const notices = ['问子嗣先说清问什么：已有子女还问再生否、问现有子女将来能否平安长成，还是从未生育终有子否——「易告未来，不告已往」，含糊而问，卦只报将来（《增删卜易·子嗣章》）。'];
+    if (proxy || yong.hidden || !yong.isMoving || yong.relative !== '子孙' || yong.changed?.relative !== '子孙') return { score: 0, points: [], notices };
+    const to = changed ? getPalaceInfo(changed.bits) : null;
+    const palace = !to ? '' : to.palace === hexagram.palace
+      ? `；变卦${changed.name}与本卦同属${hexagram.palace}宫，是化出本宫，若应在抚子，古法主立族中孙侄`
+      : `；变卦${changed.name}属${to.palace}宫，是化出他宫，若应在抚子，古法主立异姓之子`;
+    return {
+      score: 0,
+      points: [`子孙化子孙（子嗣章「子化子，须知本宫他宫」）：少年无子得此，应多生子；现有子得此，主多子多孙；老年无子得此，主抚他人之子为子${palace}。问胎孕则主双胎（胎孕章「子化子，双生有准」，两爻俱旺方是）`],
+      notices,
+    };
+  },
 });
 
 /* ---------- 天时（晴雨） ---------- */
@@ -1399,7 +1418,7 @@ const staticWeatherHints = (lines, hidden, time) => {
 
 /**
  * 天时：不取单一用神，逐爻看发动、暗动、化出与三合局，归成雨、晴、阴（浓云）、多云、风几种迹象再合断。
- * 规则取《增删卜易·天时章》野鹤老人与觉子的定论（与旧注不同处从野鹤），并用书中天时占例逐条核对过：
+ * 规则取《增删卜易·天时章》野鹤老人与觉子的定论（与黄金策旧说、旧注不同处从野鹤、觉子），并用书中天时占例逐条核对过：
  * - 动者为先，变者为后：化出父母后有雨，化出子孙妻财后转晴，化出官鬼后转阴，化出兄弟后转风云；
  * - 父、鬼、兄化退神，雨止云开转晴；子孙妻财化退神，晴不久；
  * - 化回头克，须待冲去克神之日方应（福兴被克，冲则成功）；
@@ -1520,7 +1539,7 @@ const judgeWeather = (reading, meta) => {
   if (!now) {
     key = 'unsettled';
     title = '难定';
-    text = '六爻安静，没有发动或暗动之爻。野鹤老人占天时「一卦不现，再占两卦」，务求有动爻再断。';
+    text = '六爻安静，没有发动或暗动之爻。觉子占天时「一卦不现，再占两卦」，务求有动爻再断。';
   } else if (fuGui && !clearShown) {
     key = 'rain';
     title = '连阴雨';
@@ -1858,7 +1877,7 @@ export const judgeLiuYao = (reading, options = {}) => {
       delta = 3;
       text = '，子孙合局，福神当权，克去身边之鬼';
     } else if (!yong.hidden && frame.zhis.includes(yong.zhi) && ['controlled', 'drained', 'spent'].includes(relationOf(yong.element, frame.element))) {
-      // 用神自己在局内（如未土用神在亥卯未木局），是被合入局，不是局来克它、泄它：六合章只说「用神在三合之内，被合而留／被合不回」，
+      // 用神自己在局内（如未土用神在亥卯未木局），是被合入局，不是局来克它、泄它：六合章只说占出行「用神在三合之内，被合而留」、占行人「用神在三合之内，被合不回」，
       // 占父近病得萃之否「未土父爻动化进神，戌值旬空，近病逢空即愈」，野鹤不以亥卯未木局克父为嫌；
       // 局与用神同气、局生用神的照旧（占地得颐之无妄「日月世爻共成三合……以化长生」，戌土世在寅午戌火局内而受局生）
       delta = 0;
@@ -1934,7 +1953,7 @@ export const judgeLiuYao = (reading, options = {}) => {
     shiYingScore -= 1;
     shiYingText = '应爻虽生世，而休囚安静，生之不起';
   } else if (shiYingRelation === 'controlled' && sonsBless && yingLine.relative === '子孙' && yingLine.changed?.relative !== '官鬼') {
-    // 出行章「子孙克世者亦吉」、趋避章「子孙若发动于卦中，不拘克世持世，俱以为吉」：应爻是子孙来克世，不作不利论；
+    // 出行章「子孙克世者亦吉」、趋避章「子孙若发动于卦中，不拘克世、生世、持世，俱以为吉」：应爻是子孙来克世，不作不利论；
     // 子孙变鬼的不算福神（占出行得明夷之小过「卦中子动变鬼，防儿女少安」）
     shiYingScore += 1;
     shiYingText = '应爻子孙克世，福神克世亦吉（《增删卜易·出行章》）';
@@ -1960,11 +1979,17 @@ export const judgeLiuYao = (reading, options = {}) => {
     total += 1;
     shiYingText = `用神持世，事在自己手里；${shiYingText}`;
   } else if (yong !== shiLine) {
+    // 千金赋「用克世勿作凶看」：旧注说主事爻克世都是事来就我，觉子驳之「此论未为全是」——「如占求财，财为用神，财爻克世者必得；
+    // 占行人，用神克世者即至；占医药，子孙为用神，子孙克世者即愈。外此数占，皆不宜用神而克世也」；婚姻章亦云应爻「不宜克世」。
+    // 用神克世作「来就我」只限求财——行人（代占）另有行人章断法，问病自占以世为用神，都不走到这里。
+    const keShiWelcome = meta.value === 'wealth';
     if (!yong.hidden && yong.isYing) {
-      if (shiYingRelation === 'controlled' && yong.relative !== '官鬼') {
+      if (shiYingRelation === 'controlled' && yong.relative !== '官鬼' && keShiWelcome) {
         // 用神临应而克世，也是用神来就我：占求财得小畜「应临月建之财以克世，许之必得」
         shiYingScore += 2;
         shiYingText = shiYingText.replace(shiYingTexts.controlled, '用神临应而克世，用神来就我（「应临月建之财以克世，许之必得」）');
+      } else if (shiYingRelation === 'controlled' && yong.relative !== '官鬼') {
+        shiYingText = shiYingText.replace(shiYingTexts.controlled, '用神临应而克世，求财以外不作来就我论（千金赋觉子：「外此数占，皆不宜用神而克世也」）');
       } else if (shiYingRelation === 'generated') {
         // 求财章「财爻生世合世克世持世，皆谓之财来就我」；占本人婚姻「戌土财爻动而生世，又得世应相生……求之必允」
         shiYingScore += 1;
@@ -1976,11 +2001,13 @@ export const judgeLiuYao = (reading, options = {}) => {
         total += 1;
         shiYingText = `用神生合世爻，事与我有缘；${shiYingText}`;
       } else if (yongToShi === 'controlled') {
-        // 《增删卜易》：「财爻克世，此财必得」「用爻克世必然归」「父母为用神，克世者速至」——用神来克世，是用神来就我。
-        // 官鬼为用神（求官、女占夫）不在此列，仍按有压力论。
-        if (yong.relative !== '官鬼') {
+        // 《增删卜易》：「财爻克世，此财必得」——求财用神来克世，是用神来就我（行人「用爻克世必然归」见行人章）。
+        // 官鬼为用神（求官、女占夫）不在此列，仍按有压力论（千金赋觉子：「若占功名，官鬼克世，非灾即祸」）。
+        if (yong.relative !== '官鬼' && keShiWelcome) {
           total += 1;
-          shiYingText = `用神克世，用神来就我（「财爻克世，此财必得」「用爻克世必然归」）；${shiYingText}`;
+          shiYingText = `用神克世，用神来就我（「财爻克世，此财必得」）；${shiYingText}`;
+        } else if (yong.relative !== '官鬼') {
+          shiYingText = `用神克世，求财以外不作来就我论（千金赋觉子：「外此数占，皆不宜用神而克世也」）；${shiYingText}`;
         } else {
           total -= 1;
           shiYingText = `用神克世，得之亦有压力；${shiYingText}`;
