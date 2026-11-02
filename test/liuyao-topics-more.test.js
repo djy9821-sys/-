@@ -136,3 +136,16 @@ test('子嗣：子孙化子孙列出子嗣章的几种应法，分本宫、他�
   assert.ok(!plain.judge.points.some((point) => point.startsWith('子孙化子孙')));
   assert.match(plain.judge.notices.join(''), /子嗣章/);
 });
+
+test('用神克世作「来就我」只限求财（千金赋「外此数占，皆不宜用神而克世也」；婚姻章应爻「不宜克世」）', () => {
+  const valuesOf = (code) => Array.from({ length: 6 }, (_, i) => [6, 7, 8, 9][(code >> (2 * i)) & 3]);
+  const judgeAs = (code, topic) => judgeLiuYao(buildLiuYaoReading(valuesOf(code), castAt, { topic, gender: 'male' }));
+  // 同一卦，妻财临应而克世：问求财是财来就我，问婚姻（男占，也以妻财为用神）不作来就我论
+  assert.ok(judgeAs(85, 'wealth').points.some((point) => point.includes('用神临应而克世，用神来就我')));
+  const love = judgeAs(85, 'love');
+  assert.ok(love.points.some((point) => point.includes('用神临应而克世，求财以外不作来就我论')));
+  assert.ok(!love.points.some((point) => point.includes('用神来就我')));
+  const study = findCast('study', (reading, judge) => judge.points.some((point) => point.includes('用神克世，求财以外不作来就我论')));
+  assert.ok(study, '应能找到父母克世而不是求财的卦');
+  assert.ok(!study.judge.points.some((point) => point.includes('用神来就我')));
+});
