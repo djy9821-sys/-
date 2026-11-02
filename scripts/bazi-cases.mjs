@@ -20,6 +20,8 @@
  * - 六亲：命例 expected.liuqin 里原书说吉、凶的妻（夫）、子女、父、母、兄弟，拿结果页「六亲宫星」那一亲的倾向（按任注推）比，
  *   口径同岁运。原书应在某步运、某个流年的（「一交丙运，刑妻克子」，条目写了 yun 或原句提到运、流年）记作运中应事，另列一行；
  *   条目写了 yun 的拿结果页「此运六亲」（liuqinOfYun：此运喜忌、克星、冲刑宫位）比，没写的仍看原局倾向。
+ * - 按来源：命例 id 的第二段（ditian、ziping……）分列喜用与岁运。新来源的命造（如《神峰通考》）程序从没见过，
+ *   并进来先看这一行当样本外验收，再决定改不改规则。
  * 调权重时用它看逐条差异；一致率的下限写在 test/bazi-cases.test.js 里（命例够 40 条才跑）。
  */
 import process from 'node:process';
@@ -59,6 +61,18 @@ results.forEach((result) => {
   (byWhy[kind] ??= {})[result.checks.useGod] = (byWhy[kind][result.checks.useGod] ?? 0) + 1;
 });
 if (Object.keys(byWhy).length) console.log(`喜用按原书取用理由：${Object.entries(byWhy).map(([kind, counts]) => `${kind}（${fmt(counts)}）`).join('；')}`);
+const SOURCE_NAMES = { ditian: '《滴天髓阐微》', ziping: '《子平真诠》', shenfeng: '《神峰通考》' };
+const bySource = {};
+results.forEach((result, index) => {
+  const key = String(entries[index].id ?? '').split('.')[1] || '其他';
+  const slot = (bySource[key] ??= { count: 0, useGod: {}, yun: {} });
+  slot.count += 1;
+  if (result.checks?.useGod) slot.useGod[result.checks.useGod] = (slot.useGod[result.checks.useGod] ?? 0) + 1;
+  [].concat(result.checks?.yun ?? []).forEach((item) => { slot.yun[item] = (slot.yun[item] ?? 0) + 1; });
+});
+if (Object.keys(bySource).length > 1) {
+  console.log(`按来源：${Object.entries(bySource).map(([key, slot]) => `${SOURCE_NAMES[key] ?? key} ${slot.count} 条（喜用 ${fmt(slot.useGod)}；岁运 ${fmt(slot.yun)}）`).join('；')}`);
+}
 console.log(`六亲（原局）：${fmt(tally.liuqin)}`);
 console.log(`六亲（运中应事，写明哪步运的按此运六亲）：${fmt(tally.liuqinYun)}`);
 
