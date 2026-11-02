@@ -258,6 +258,24 @@
 - 不要替沈氏推断：原书没说的格、成败、用神一概不写；原文里对这一造的疑难（「却不知」「岂非破格」的转折）照录进 `notes`。
 - 分支：从 `origin/claude/round10-ui-polish` 开 `side/05-cases-ziping`，只改 `src/data/cases/bazi.json`（追加在末尾，不动前面的条目）；每三十造提交一次，跑 `node scripts/validate-data.mjs` 与 `node scripts/bazi-cases.mjs`。PR 的 base 选 `claude/round10-ui-polish`，PR 里附表：各格几造、成败各几造、程序月令格一致 / 不一致各几造、成败一致 / 相近 / 相反各几造（照脚本输出抄），以及四柱按 1600–2100 年找不到日子的（脚本会列）。
 
+## 第十四批：《神峰通考》命造（八字样本外验收，待老板回「派」）
+
+《滴天髓阐微》《子平真诠》的命造程序已经拿来调过规则，岁运、用神再要提准，得有一批程序从没见过的古人命造做样本外验收（同六爻千金赋那一份的做法）。明张楠《神峰通考》卷一至卷六按格局分类举了许多有名有姓的命造（「进贤朱廷升尚书」丙戌 戊戌 辛未 壬辰，「贵命土厚埋金格」，「初行北方庚子辛丑运，金土气益塞滞」），四柱、取用（病药）、行运吉凶、结局都有，正合用。
+
+- 底本：国图藏民国铅印本《神峰通考》六卷两册（Wikimedia Commons `NLC416-13jh001619-43305_神峰通考.pdf`，169 页，有目录，带句读）；另一本 `NLC416-12jh004266-48929_神峰通考.pdf`（167 页）可互校。页图地址把页码换进去即可（宽 1280 或 1920）：
+  `https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/NLC416-13jh001619-43305_神峰通考.pdf/page40-1920px-NLC416-13jh001619-43305_神峰通考.pdf.jpg`
+  只据底本核字、繁转简、补全角句读，白话自己写；不用现代白话本、网络排印本或 ctext。
+- 先对照底本目录列一张「命造所在页表」（卷、类目、PDF 页、书内页、几造）放进 PR 说明。卷一的「五星」诸说、合婚、八败、进退财等与子平命造无关的篇目不录。
+- 一造一条，追加在 `src/data/cases/bazi.json` 末尾：`id` 用 `bazi.shenfeng.001` 起连号；`name` 写原书称呼（「进贤朱廷升尚书」「某造」）；`source` 写 `{ "title": "神峰通考", "section": "卷一·偏官格" }`（类目照底本目录，没有登记表 key，用 `title`）；`birth` 写 `{ "calendar": "unknown", "gender": "male" }`（明说女命的写 female）；`pillars` 照原书四柱，自检规则同第三批；`original` 照底本逐字录这一造的全文（四柱、格名、诗句、张楠的论断与行运），连续论几造的拆开、各录各的；`vernacular` 逐句直译；`notes` 写 PDF 页与书内页；`status` 写 `translated`。
+- `expected` 只填原书明说的（同第三批、第八批的口径），拿不准不填、写进 `notes`：
+  - `yun`：原书点了行运、流年吉凶的照第八批写（「初行北方庚子辛丑运，金土气益塞滞」→ 庚子、辛丑各一条，凶）；
+  - `useGod`：原书说「用某」「取某为药」「最喜运行某地」的写那个五行或十神（「最喜运行财旺地」写「财」），`useGodWhy` 照第十二批，张楠多是病药说，`kind` 写「病药」，`quote` 摘那一句；
+  - `strength`、`pattern`：原书明说的才写，格名要是程序认得的（见 `src/data/classics/patternNames.js`），对不上的写进 `notes`；
+  - `outcome`：结局原文摘句（「尚书」「进士」「夭」）。
+- 不替张楠推断；原书前后说法不一、或与《滴天髓》《子平真诠》取法不同的，照录并写进 `doubts`，不改原文、不评对错。
+- 分支从 `origin/claude/round8-collab` 开 `side/05-cases-shenfeng`，PR 的 base 选 `claude/round8-collab`；每 30 造提交一次，推送前跑 `node scripts/validate-data.mjs`、`node scripts/bazi-cases.mjs`、`npm test`。只改 `src/data/cases/bazi.json`，前面的条目一个字不动。PR 附表：各卷各类录了几造、带岁运的几造、写了用神的几造，以及脚本按 1600–2100 年找不到日子的四柱。
+- 这一批到了，主线先不改规则，原样跑一遍当样本外验收，再看哪些判法要回头修。
+
 ## 步骤 / 验收 / 禁止
 
 分支 `side/05-cases`；按来源分 PR。校验脚本与 CI 通过；抽查 10% 核对四柱与原书一致、来源可查。只产出 JSON，不碰代码，不改金样（金样由主线从这些命例生成）。
