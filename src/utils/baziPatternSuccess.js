@@ -356,7 +356,8 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
         else if (shaShare >= 25 && shiShare < 15) add(failure, `煞强（${Math.round(shaShare)}%）食浅（${Math.round(shiShare)}%）而印（${whereRole('印')}）露，印去食护煞。`, '煞强食浅而露印，则破局矣（论偏官）');
         else add(flaw, `食伤制杀而印（${whereRole('印')}）又夺食。`, '七煞逢食制，而又逢印');
       }
-      if (hasRen) add(success, `日主坐刃（${REN[dayGan]}），刃杀相济。`, '有煞无食制而用刃当者（论偏官）', ['比劫']);
+      // 论偏官「有煞无食制而用刃当者」（赵员外 戊辰 甲寅 戊寅 戊午）：有食伤制煞的不另作用刃论
+      if (hasRen && !zhi) add(success, `日主坐刃（${REN[dayGan]}），煞无食制而用刃当之。`, '有煞无食制而用刃当者（论偏官）', ['比劫']);
       // 何参政「煞印有情」、刘运使「煞又化印……借财以清格」：有印化煞的，见财不作无制论
       if (hasRole('财') && !zhi && !hasRole('印')) {
         add(failure, `财透于${whereRole('财')}而七杀无食伤制。`, '七煞逢财无制');
@@ -404,8 +405,9 @@ export const judgePatternSuccess = (chart, strength, pattern, summary) => {
         }
         if (has('七杀') && !guanMerged.length && !shaMerged.length) add(flaw, `正官与七杀（${where('七杀')}）并透而干头不清。`, '伤官而官煞并透，只要干头取清……不然则空结构而已（论伤官）');
       }
-      if (hasRole('财') && has('七杀')) {
-        add(failure, `伤官生财（${whereRole('财')}）而七杀（${where('七杀')}）又透，财生杀。`, '生财而带煞身轻');
+      // 成败篇「伤官……或生财而带煞身轻……伤官格败也」：身轻才败（旧录脱「而」「身轻」，按底本补）
+      if (hasRole('财') && has('七杀') && weak) {
+        add(failure, `伤官生财（${whereRole('财')}）而七杀（${where('七杀')}）又透，财生杀，日主${bandText}。`, '生财而带煞身轻');
         const merged = stemMerged('七杀');
         if (merged.length) add(rescue, `${stemsText(merged)}之杀被合去。`, '伤官生财透煞而煞逢合', partnersOf(merged));
       }
