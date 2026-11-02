@@ -426,7 +426,7 @@ const dynamicsOf = (yong, lines, time, { sonsBless = false, framed = new Set() }
   const liveFoe = foes.find((item) => active(item));
   // 日辰章「爻临日建，月冲不破，月克无伤，逢动爻之克亦不为害」「爻临日建而月建动爻同来克者，似寡不敌众」：
   // 用神临日辰，单有动爻来克不为害（占借贷得晋「所喜卯日即是财星」，不以酉金兄爻暗动克财为嫌）；月建也克用神、忌神就是月建入卦，
-  // 或仇神同动生着忌神（占母血崩「戌土以生申金……此父母爻既无水养，且化退神」），克多生少，才是寡不敌众
+  // 或仇神同动生着忌神（占母血崩「上爻戌土以生申金……今父母爻既无水养，且化退神」），克多生少，才是寡不敌众
   const monthElement = ZHI_ELEMENT[time.monthZhi];
   const dayLord = !yong.hidden && yong.zhi === time.dayZhi;
   const outnumbered = Boolean(liveFoe) || relationOf(yong.element, monthElement) === 'controlled' || enemies.some((item) => active(item) && item.line.zhi === time.monthZhi);
@@ -449,7 +449,7 @@ const dynamicsOf = (yong, lines, time, { sonsBless = false, framed = new Set() }
         text = `${who}为元神${notes ? `，${notes}` : ''}，生用神`;
       }
     } else if (relation === 'controlled' && sonsBless && line.relative === '子孙') {
-      // 出行章「子孙克世者亦吉」，趋避章「子孙若发动于卦中，不拘克世持世，俱以为吉」
+      // 出行章「子孙克世者亦吉」，趋避章「子孙若发动于卦中，不拘克世、生世、持世，俱以为吉」
       delta = 1;
       text = `${who}，子孙为福神，克世亦吉`;
     } else if (relation === 'controlled') {
@@ -678,7 +678,7 @@ const SPIRIT_KINDS = Object.freeze({
 const TOPIC_RULES = Object.freeze({
   // 鬼神章：「凡占鬼神，卦中鬼值休囚及空破墓绝，皆非鬼神之害也」；旺相者「官鬼属金，旺相者武神及西方之神；休囚者刀剑身亡之鬼」
   // 等各按五行分神；「得罪于正神者，香花纸马祭之；勾惹邪祟之鬼，用浆纸钱于夜静之时，金鬼者向西送之，水鬼者向北送之」；
-  // 野鹤曰「时灾瘟瘴，照此法而祭送者，余屡验之；疯痨气蛊……与鬼神何干？惟节饮食，远色欲，息气养神，其病自减」。
+  // 野鹤曰「凡得时灾瘟瘴，照此法而祭送者，余屡验之……疯痨气蛊……与鬼神何干？祭之送之，皆无益矣。惟节饮食，远色欲，息气养神，其病自减」（鬼神章其六）。
   // 用神是官鬼，吉凶反着看：鬼衰才是「非鬼神之害」，所以倾向自己给。
   spirits: ({ lines, time, shiLine, yong }) => {
     const ghosts = lines.filter((line) => line.relative === '官鬼');
@@ -1877,7 +1877,7 @@ export const judgeLiuYao = (reading, options = {}) => {
       delta = 3;
       text = '，子孙合局，福神当权，克去身边之鬼';
     } else if (!yong.hidden && frame.zhis.includes(yong.zhi) && ['controlled', 'drained', 'spent'].includes(relationOf(yong.element, frame.element))) {
-      // 用神自己在局内（如未土用神在亥卯未木局），是被合入局，不是局来克它、泄它：六合章只说「用神在三合之内，被合而留／被合不回」，
+      // 用神自己在局内（如未土用神在亥卯未木局），是被合入局，不是局来克它、泄它：六合章只说占出行「用神在三合之内，被合而留」、占行人「用神在三合之内，被合不回」，
       // 占父近病得萃之否「未土父爻动化进神，戌值旬空，近病逢空即愈」，野鹤不以亥卯未木局克父为嫌；
       // 局与用神同气、局生用神的照旧（占地得颐之无妄「日月世爻共成三合……以化长生」，戌土世在寅午戌火局内而受局生）
       delta = 0;
@@ -1953,7 +1953,7 @@ export const judgeLiuYao = (reading, options = {}) => {
     shiYingScore -= 1;
     shiYingText = '应爻虽生世，而休囚安静，生之不起';
   } else if (shiYingRelation === 'controlled' && sonsBless && yingLine.relative === '子孙' && yingLine.changed?.relative !== '官鬼') {
-    // 出行章「子孙克世者亦吉」、趋避章「子孙若发动于卦中，不拘克世持世，俱以为吉」：应爻是子孙来克世，不作不利论；
+    // 出行章「子孙克世者亦吉」、趋避章「子孙若发动于卦中，不拘克世、生世、持世，俱以为吉」：应爻是子孙来克世，不作不利论；
     // 子孙变鬼的不算福神（占出行得明夷之小过「卦中子动变鬼，防儿女少安」）
     shiYingScore += 1;
     shiYingText = '应爻子孙克世，福神克世亦吉（《增删卜易·出行章》）';
