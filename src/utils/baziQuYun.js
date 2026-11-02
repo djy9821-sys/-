@@ -54,11 +54,11 @@ const RULES = {
   财格(ctx) {
     const favor = {};
     const texts = [];
-    if (ctx.q('财生官旺')) {
+    if (ctx.q('财旺生官')) {
       texts.push('其财旺生官者，运喜身旺印缓，不利七煞伤官');
       favor.比劫 = 'good'; favor.印 = 'good'; favor.七杀 = 'bad'; favor.食伤 = 'bad';
       if (ctx.has('印')) { texts.push('若生官而复透印，伤官之地，不甚有害'); favor.食伤 = 'neutral'; }
-      if (ctx.q('财旺生官，而又逢伤')) { texts.push('至于生官而带食破局，则运喜缓印，而逢煞反吉矣'); favor.印 = 'good'; favor.七杀 = 'good'; }
+      if (ctx.q('财旺生官，而官又逢伤')) { texts.push('至于生官而带食破局，则运喜缓印，而逢煞反吉矣'); favor.印 = 'good'; favor.七杀 = 'good'; }
     } else if (ctx.q('财逢食生而身强带比') || ctx.q('食与印而不相碍') || ctx.q('去食护官')) {
       if (ctx.has('印')) {
         texts.push('财用食印，财轻则喜财食，身轻则喜比印。官运亦碍，煞反不忌也');
@@ -70,7 +70,7 @@ const RULES = {
         if (ctx.weak || (!ctx.strong && ctx.share.财 + ctx.share.食伤 >= 45)) { favor.比劫 = 'good'; favor.印 = 'good'; } else { favor.财 = 'good'; favor.食伤 = 'good'; }
         favor.七杀 = 'neutral'; favor.正官 = 'bad';
       }
-    } else if (ctx.q('财格透印而位置妥贴')) {
+    } else if (ctx.q('财格透印而位置妥适')) {
       texts.push('财格佩印，运喜官乡，身弱逢之，最喜印旺');
       favor.正官 = 'good';
       if (ctx.weak) favor.印 = 'good';
@@ -137,7 +137,7 @@ const RULES = {
       else if (ctx.share.比劫 < 20) favor.比劫 = 'good';
       favor.正官 = 'bad'; favor.印 = 'bad';
     }
-    if (ctx.q('煞用印化') || ctx.q('专而朝印')) {
+    if (ctx.q('有七煞用印者') || ctx.q('专而朝印')) {
       texts.push('煞用印缓，不利财乡，伤官为美，印缓身旺，俱有福地');
       favor.财 = 'bad'; favor.食伤 = 'good'; favor.印 = 'good'; favor.比劫 = 'good';
     }
@@ -149,13 +149,13 @@ const RULES = {
       texts.push('其以财而助煞不及者，财已足，则喜食印与帮身；财未足，则喜财旺而露煞');
       if (ctx.share.财 >= 20) { favor.食伤 = 'good'; favor.印 = 'good'; favor.比劫 = 'good'; } else { favor.财 = 'good'; favor.七杀 = 'good'; }
     }
-    if (ctx.q('官煞混杂（论偏官）')) {
+    if (ctx.q('忌正官之混杂（论偏官取运）')) {
       texts.push('煞带正官，不论去官留煞、去煞留官，身轻则喜助身，食轻则喜助食，莫去取之物，无伤制煞之神');
       if (ctx.weak) favor.比劫 = 'good';
       if (ctx.has('食伤') && ctx.share.食伤 < 15) favor.食伤 = 'good';
       favor.正官 = 'bad';
     }
-    if (ctx.q('煞用阳刃')) {
+    if (ctx.q('用刃当者')) {
       texts.push('煞无食制而用刀当，煞轻刀重则喜助煞，刀轻煞重则宜制伏。无食可夺，印逢何伤？七煞既纯，杂官不利');
       if (ctx.share.官杀 < ctx.share.比劫) favor.七杀 = 'good'; else favor.食伤 = 'good';
       favor.印 = 'neutral'; favor.正官 = 'bad';
@@ -228,7 +228,7 @@ const RULES = {
       if (ctx.share.财 + ctx.share.食伤 >= 45) { favor.印 = 'good'; favor.比劫 = 'neutral'; } else { favor.财 = 'good'; favor.印 = 'bad'; favor.比劫 = 'bad'; }
       favor.七杀 = 'neutral'; favor.正官 = 'bad';
     }
-    if (ctx.q('透煞而遇制伏')) {
+    if (ctx.q('透煞而遇伏制')) {
       texts.push('禄劫用煞，以食制，食重煞轻，则运宜助煞；食轻煞重，则运喜助食');
       if (ctx.share.食伤 > ctx.share.官杀) favor.七杀 = 'good'; else favor.食伤 = 'good';
       if (ctx.q('用财带煞而煞被合')) { texts.push('若用煞而带财，命中合煞存财，则伤食为宜，财运不忌，逢官无虑，身旺亦亨'); favor.食伤 = 'good'; favor.财 = 'neutral'; favor.正官 = 'neutral'; favor.比劫 = 'good'; }
