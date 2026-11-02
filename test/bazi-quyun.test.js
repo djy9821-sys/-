@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
@@ -25,14 +26,14 @@ const run = (chart, ganZhi) => {
   return found;
 };
 
-test('财旺生官（葛参政 壬申 壬子 戊午 乙卯）：论财取运「运喜身旺印缓，不利七煞伤官」——印、比劫喜，七杀、食伤忌，正官原书未言', () => {
+test('财旺生官（葛参政 壬申 壬子 戊午 乙卯）：论财取运「运喜身旺印绶，不利七煞伤官」——印、比劫喜，七杀、食伤忌，正官原书未言', () => {
   const chart = chartOf(['壬申', '壬子', '戊午', '乙卯']);
   const { chengBai } = judgeOf(chart);
   assert.equal(chengBai.verdict, '成');
   const quYun = chengBai.quYun;
   assert.equal(quYun.section, '论财取运');
   assert.equal(quYun.source, '《子平真诠》·论财取运');
-  assert.ok(quYun.texts[0].startsWith('其财旺生官者，运喜身旺印缓'));
+  assert.ok(quYun.texts[0].startsWith('其财旺生官者，运喜身旺印绶'));
   assert.deepEqual(quYun.favor, { 比劫: 'good', 印: 'good', 七杀: 'bad', 食伤: 'bad' });
   assert.match(quYunQuoteText(quYun), /^《子平真诠》·论财取运：其财旺生官者/);
   const jiaYin = describeQuYun(run(chart, '甲寅'), quYun, contextOf(chart));
@@ -53,7 +54,7 @@ test('正官格总则「与地支刑冲，不问所就何局，皆不利」：�
   assert.equal(chengBai.group, '正官格');
   const quYun = chengBai.quYun;
   assert.ok(quYun.clashMonth);
-  // 这张盘是正官用财，「运喜印缓身旺之地，切忌食伤」：运干食神忌；运支亥冲月令巳，总则「皆不利」
+  // 这张盘是正官用财，「运喜印绶身旺之地，切忌食伤」：运干食神忌；运支亥冲月令巳，总则「皆不利」
   const clash = describeQuYun({ gan: '癸', zhi: '亥', ganShiShen: '食神', hiddenShiShens: ['伤官', '正财'] }, quYun, contextOf(chart));
   assert.equal(clash.zhi.tone, 'bad');
   assert.match(clash.zhi.note, /刑冲月令巳/);
@@ -62,14 +63,14 @@ test('正官格总则「与地支刑冲，不问所就何局，皆不利」：�
   assert.equal(quYun.favor.七杀, 'bad');
 });
 
-test('煞用食制（乙亥 乙酉 乙卯 丁丑）：论偏官取运「忌正官之混杂，畏印缓之夺食」；煞用印化（何参政）：「不利财乡，伤官为美」', () => {
+test('煞用食制（乙亥 乙酉 乙卯 丁丑）：论偏官取运「忌正官之混杂，畏印绶之夺食」；煞用印化（何参政）：「不利财乡，伤官为美」', () => {
   const sha = judgeOf(chartOf(['乙亥', '乙酉', '乙卯', '丁丑'])).chengBai;
   assert.equal(sha.quYun.section, '论偏官取运');
   assert.equal(sha.quYun.favor.正官, 'bad');
   assert.equal(sha.quYun.favor.印, 'bad');
   assert.equal(sha.quYun.favor.食伤, 'good');
   const yin = judgeOf(chartOf(['丙寅', '戊戌', '壬戌', '辛丑'])).chengBai;
-  assert.ok(yin.quYun.texts.some((text) => text.startsWith('煞用印缓，不利财乡')));
+  assert.ok(yin.quYun.texts.some((text) => text.startsWith('煞用印绶，不利财乡')));
   assert.equal(yin.quYun.favor.财, 'bad');
   assert.equal(yin.quYun.favor.食伤, 'good');
   assert.equal(yin.quYun.favor.印, 'good');
@@ -99,8 +100,20 @@ test('提示词里带出格局取运：大运各步与所选运限都标原书�
   const daYun = chart.yun.dayun.find((item) => item.ganZhi === '甲寅');
   const liuNian = daYun.liuNian[0];
   const prompt = buildBaziPrompt({ chart, scope: 'year', selections: { daYun, liuNian, liuYueList: [] } });
-  assert.match(prompt, /格局取运（《子平真诠》·论财取运：其财旺生官者，运喜身旺印缓，不利七煞伤官）/);
+  assert.match(prompt, /格局取运（《子平真诠》·论财取运：其财旺生官者，运喜身旺印绶，不利七煞伤官）/);
   assert.match(prompt, /甲寅，天干十神七杀[^\n]*取运：天干甲七杀忌 · 地支寅本气七杀忌/);
   assert.match(prompt, /大运按格局取运（《子平真诠》·论财取运：[^）]*）：天干甲七杀忌 · 地支寅本气七杀忌/);
   assert.match(prompt, /流年按格局取运：天干/);
+});
+
+test('取运条文逐条出自《子平真诠》各格取运篇录文（底本「刀」「印缓」按正字「刃」「印绶」）', () => {
+  const plain = (text) => text.replace(/[，。；：、！？\s「」]/g, '');
+  const corpus = JSON.parse(readFileSync(new URL('../src/data/classics/bazi/ziping-bage.json', import.meta.url), 'utf8')).entries
+    .map((entry) => plain(entry.original).replaceAll('刀', '刃').replaceAll('印缓', '印绶').replaceAll('缓印', '绶印'));
+  const source = readFileSync(new URL('../src/utils/baziQuYun.js', import.meta.url), 'utf8');
+  const texts = [...source.matchAll(/texts\.push\('((?:[^'\\]|\\.)*)'\)/g)].map((match) => match[1]);
+  assert.ok(texts.length >= 40, `只找到 ${texts.length} 条取运条文`);
+  for (const text of texts) assert.ok(corpus.some((entry) => entry.includes(plain(text))), `取运条文不在底本录文里：${text}`);
+  // 界面与提示词只用正字
+  for (const text of texts) assert.ok(!/刀|印缓|缓印/.test(text), `取运条文仍用底本误字：${text}`);
 });
