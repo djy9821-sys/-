@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import { buildBaziChart } from '../src/utils/baziChart.js';
 import { analyzeStrength } from '../src/utils/baziStrength.js';
@@ -47,7 +48,7 @@ test('正官格：官逢财印无刑冲为成；逢伤、刑冲、杂煞为败�
   const clash = judge(1960, 8, 2, 1);
   assert.equal(clash.pillars, '庚子 癸未 壬戌 辛丑');
   assert.equal(clash.chengBai.verdict, '败');
-  assert.ok(quotes(clash.chengBai).includes('官逢刑冲'));
+  assert.ok(quotes(clash.chengBai).includes('官逢……形〔刑〕冲，官格败也'));
 
   // 年干庚与时干乙隔着月干、日干，不作合论（论伤官「丁与壬隔以戊己，两不相碍」），所以七杀合不去，只是败
   const mixed = judge(1960, 3, 2, 1);
@@ -69,20 +70,20 @@ test('正官格：官逢财印无刑冲为成；逢伤、刑冲、杂煞为败�
   assert.ok(quotes(merged.chengBai).includes('透官而又逢合'));
 });
 
-test('财格：财生官旺、食生身强为成；财轻比重、财透七杀为败；食化、官制、食神制杀、合杀为救', () => {
+test('财格：财旺生官、食生身强为成；财轻比重、财透七杀为败；食化、官制、食神制杀、合杀为救', () => {
   // 论财「用食而兼用印者，食与印而不相碍……反是则减福矣」：年丙印与月庚食紧挨相克，成中有败
   const sheng = judge(1966, 12, 25, 4);
   assert.equal(sheng.pillars, '丙午 庚子 戊午 丙辰');
   assert.equal(sheng.chengBai.verdict, '成中有败');
   assert.ok(quotes(sheng.chengBai).includes('财逢食生而身强带比'));
-  assert.ok(quotes(sheng.chengBai).includes('食与印相碍则减福（论财）'));
+  assert.ok(quotes(sheng.chengBai).includes('反是则减福矣（论财）'));
 
   // 财透七杀而印亦透：论财「有财用煞印者，党煞为忌，印以化之，格成富局」，败中有成
   const qisha = judge(1960, 1, 2, 1);
   assert.equal(qisha.pillars, '己亥 丙子 己丑 乙丑');
   assert.equal(qisha.chengBai.verdict, '败中有成');
   assert.ok(quotes(qisha.chengBai).includes('财透七煞'));
-  assert.ok(quotes(qisha.chengBai).includes('财用煞印，印以化之（论财）'));
+  assert.ok(quotes(qisha.chengBai).includes('有财用煞印者，党煞为忌，印以化之（论财）'));
 
   const jie = judge(1960, 4, 2, 1);
   assert.equal(jie.pillars, '庚子 己卯 庚申 丁丑');
@@ -97,7 +98,7 @@ test('财格：财生官旺、食生身强为成；财轻比重、财透七杀�
   const flaw = judge(1962, 4, 2, 1);
   assert.equal(flaw.pillars, '壬寅 癸卯 庚午 丁丑');
   assert.equal(flaw.chengBai.verdict, '成中有败');
-  assert.ok(quotes(flaw.chengBai).includes('财旺生官，而又逢伤'));
+  assert.ok(quotes(flaw.chengBai).includes('财旺生官，而官又逢伤'));
 });
 
 test('印格：官印双全、身印两旺泄秀为成；印轻逢财、身强印重透杀为败；劫财、合财为救', () => {
@@ -163,8 +164,8 @@ test('七杀格：食伤制、印化、阳刃为成；逢财无制为败；制�
   const yin = judge(1960, 2, 14, 1);
   assert.equal(yin.pillars, '庚子 戊寅 壬申 辛丑');
   assert.equal(yin.chengBai.verdict, '成');
-  assert.ok(quotes(yin.chengBai).includes('煞用印化（论偏官）'));
-  assert.ok(quotes(yin.chengBai).includes('煞用阳刃（论偏官）'));
+  assert.ok(quotes(yin.chengBai).includes('有七煞用印者，印能护煞，本非所宜，而煞印有情，便为贵格（论偏官）'));
+  assert.ok(quotes(yin.chengBai).includes('有煞无食制而用刃当者（论偏官）'));
 
   const cai = judge(1960, 1, 26, 1);
   assert.equal(cai.pillars, '己亥 丁丑 癸丑 癸丑');
@@ -206,7 +207,7 @@ test('伤官格：生财、佩印、带杀无财为成；非金水见官、生�
   // 年干甲与时干己不作合论，七杀合不去
   const hesha = judge(1964, 2, 14, 7);
   assert.equal(hesha.pillars, '甲辰 丙寅 癸巳 己未');
-  assert.ok(quotes(hesha.chengBai).includes('生财生带煞'));
+  assert.ok(quotes(hesha.chengBai).includes('生财而带煞身轻'));
   assert.ok(!quotes(hesha.chengBai).includes('伤官生财透煞而煞逢合'));
   assert.equal(hesha.chengBai.verdict, '败');
 
@@ -224,7 +225,7 @@ test('羊刃格与建禄月劫：官杀财印为成；无官杀、无财官、�
   const renFail = judge(1962, 12, 20, 1);
   assert.equal(renFail.pillars, '壬寅 壬子 壬辰 辛丑');
   assert.equal(renFail.chengBai.verdict, '败');
-  assert.ok(quotes(renFail.chengBai).includes('阳刃无官煞'));
+  assert.ok(quotes(renFail.chengBai).includes('羊刃无官煞'));
 
   const renFlaw = judge(1964, 3, 26, 7);
   assert.equal(renFlaw.pillars, '甲辰 丁卯 甲戌 辛未');
@@ -236,7 +237,7 @@ test('羊刃格与建禄月劫：官杀财印为成；无官杀、无财官、�
   assert.equal(lu.pattern.name, '建禄格');
   assert.equal(lu.chengBai.verdict, '成中有败');
   assert.ok(quotes(lu.chengBai).includes('透财而逢食伤'));
-  assert.ok(quotes(lu.chengBai).includes('建禄月劫透官，而遇伤'));
+  assert.ok(quotes(lu.chengBai).includes('建禄月劫透官而逢伤'));
 
   // 无财官而食伤透、身不弱：论建禄月劫「无财官而用伤食，泄其太过，亦为秀气」
   const luXie = judge(1960, 5, 20, 7);
@@ -268,14 +269,14 @@ test('《子平真诠》各格命造的成败：合煞留官、财用煞印、�
   // 论印绶牛监簿「乙合庚而不生丙，所以为贵」、「己未 甲戌 辛未 癸巳，此合财存食之贵也」
   const niu = bookJudge(['庚寅', '乙酉', '癸亥', '丙辰']);
   assert.equal(niu.chengBai.verdict, '成');
-  assert.ok(quotes(niu.chengBai).includes('食被合而不生财（论印绶）'));
+  assert.ok(quotes(niu.chengBai).includes('乙合庚而不生丙，所以为贵（论印绶）'));
   const heCai = bookJudge(['己未', '甲戌', '辛未', '癸巳']);
   assert.equal(heCai.chengBai.verdict, '成');
   assert.ok(quotes(heCai.chengBai).includes('合财存食（论印绶）'));
   // 论印绶「印透七煞，而劫财以存煞印，亦有贵格」
   assert.equal(bookJudge(['庚戌', '戊子', '甲戌', '乙亥']).chengBai.verdict, '成');
   // 论财曾参政「财格佩印……佩印帮身，即以取贵」、吴榜眼「庚与丙隔一戊而不相克」、林尚书「单透财而亦贵，以月令有暗官也」、赵侍郎「财用煞印」
-  assert.ok(quotes(bookJudge(['乙未', '甲申', '丙申', '庚寅']).chengBai).includes('财格透印而位置妥贴，两不相克'));
+  assert.ok(quotes(bookJudge(['乙未', '甲申', '丙申', '庚寅']).chengBai).includes('财格透印而位置妥适，两不相克'));
   assert.equal(bookJudge(['庚戌', '戊子', '戊子', '丙辰']).chengBai.verdict, '成');
   assert.ok(quotes(bookJudge(['丙寅', '癸巳', '癸未', '壬戌']).chengBai).includes('单透财而亦贵，以月令有暗官也（论财）'));
   assert.equal(bookJudge(['乙丑', '丁亥', '己亥', '乙亥']).chengBai.verdict, '败中有成');
@@ -288,9 +289,9 @@ test('《子平真诠》各格命造的成败：合煞留官、财用煞印、�
   // 论食神刘提督「财先煞后，食以间之，而财不能党煞」
   assert.ok(quotes(bookJudge(['癸酉', '辛酉', '己卯', '乙亥']).chengBai).includes('财先煞后，食以间之（论食神）'));
   // 论阳刃穆同知（寅午之官、戊合癸印护）、贾平章（煞两透，食以裁损）、「壬合丁，官煞纯而不杂」取清
-  assert.ok(quotes(bookJudge(['甲午', '癸酉', '庚寅', '戊寅']).chengBai).includes('官煞制刃带伤食而贵：印护（论阳刃）'));
-  assert.ok(quotes(bookJudge(['甲寅', '庚午', '戊申', '甲寅']).chengBai).includes('官煞制刃带伤食而贵：煞太重而裁损之（论阳刃）'));
-  assert.ok(quotes(bookJudge(['丙戌', '丁酉', '庚申', '壬午']).chengBai).includes('官煞制刃带伤食而贵：官煞轻而取清之（论阳刃）'));
+  assert.ok(quotes(bookJudge(['甲午', '癸酉', '庚寅', '戊寅']).chengBai).includes('官煞制刃带伤食而贵，何也？或是印护（论阳刃）'));
+  assert.ok(quotes(bookJudge(['甲寅', '庚午', '戊申', '甲寅']).chengBai).includes('官煞制刃带伤食而贵……或是煞太重而裁损之（论阳刃）'));
+  assert.ok(quotes(bookJudge(['丙戌', '丁酉', '庚申', '壬午']).chengBai).includes('官煞制刃带伤食而贵……官煞轻而取清之（论阳刃）'));
   // 论建禄月劫张状元「木火通明」、一平章「合煞留官」、「制煞留官」
   assert.equal(bookJudge(['甲子', '丙寅', '甲子', '丙寅']).chengBai.verdict, '成');
   assert.ok(quotes(bookJudge(['辛丑', '庚寅', '甲辰', '乙亥']).chengBai).includes('合煞留官（论建禄月劫）'));
@@ -300,7 +301,7 @@ test('《子平真诠》各格命造的成败：合煞留官、财用煞印、�
   // 论正官杂气「壬财丁印，二者相合，仍以孤官无辅，所以不上七品」成中有败；范太傅「丙丁并透，用一而足，以丁合壬而财去」败中有成
   const guXu = bookJudge(['壬戌', '丁未', '戊申', '乙卯']);
   assert.equal(guXu.chengBai.verdict, '成中有败');
-  assert.ok(quotes(guXu.chengBai).includes('财印相合，孤官无辅（论正官）'));
+  assert.ok(quotes(guXu.chengBai).includes('壬财丁印，二者相合，仍以孤官无辅（论正官）'));
   const fan = bookJudge(['丁丑', '壬寅', '己巳', '丙寅']);
   assert.equal(fan.chengBai.verdict, '败中有成');
   assert.ok(quotes(fan.chengBai).includes('官逢伤克（论正官：巳丑会金伤官）'));
@@ -315,7 +316,7 @@ test('《子平真诠》八格各论补的成败条：论印绶、论财、论�
   assert.ok(quotes(bookJudge(['壬寅', '戊申', '壬辰', '壬寅']).chengBai).includes('印轻逢煞'));
   const zhu = bookJudge(['丙戌', '戊戌', '辛未', '壬辰']);
   assert.equal(zhu.chengBai.verdict, '成');
-  assert.ok(quotes(zhu.chengBai).includes('官印双全；带伤食而贵者，壬为戊伤，己为乙制，不碍官也（论印绶）'));
+  assert.ok(quotes(zhu.chengBai).includes('官印双全；然亦有带伤食而贵者……壬为戊伤，壬不伤官也……己为乙制，己不碍官也（论印绶）'));
   assert.equal(bookJudge(['乙亥', '己卯', '丁酉', '壬寅']).chengBai.verdict, '成');
   const youZhi = bookJudge(['壬子', '癸卯', '丙子', '己亥']);
   assert.equal(youZhi.chengBai.verdict, '成');
@@ -325,7 +326,7 @@ test('《子平真诠》八格各论补的成败条：论印绶、论财、论�
   // 论财：吴榜眼「庚与丙隔一戊而不相克」、平江伯食印并透皆成；章丞相 甲子 壬申 己亥 辛未 官食隔着财，不作透官身弱论
   const wu = bookJudge(['庚戌', '戊子', '戊子', '丙辰']);
   assert.equal(wu.chengBai.verdict, '成');
-  assert.ok(quotes(wu.chengBai).includes('用食而兼用印者，食与印而不相碍，皆贵格（论财）'));
+  assert.ok(quotes(wu.chengBai).includes('有用食而兼用印者，食与印而不相碍……皆贵格也（论财）'));
   assert.equal(bookJudge(['壬辰', '乙巳', '癸巳', '辛酉']).chengBai.verdict, '成');
   assert.equal(bookJudge(['甲子', '壬申', '己亥', '辛未']).chengBai.verdict, '成');
   // 论食神：钱参政「夏火太炎，而木焦透印不碍」；龚知县「偏正叠出，富贵不巨」
@@ -391,4 +392,67 @@ test('中和的盘按旺衰一节略偏的一边算身强、身弱：庚申 壬�
   assert.equal(zhen.chengBai.verdict, '成');
   assert.equal(zhen.chengBai.success[0].text, '身中和略偏旺，食伤（月柱壬、时柱癸）制杀。');
   assert.ok(quotes(zhen.chengBai).includes('身强七煞逢制'));
+});
+
+test('成败篇照底本：伤官「生财而带煞身轻」才败；七煞有食伤制的不另作「用刃当」', () => {
+  // 己卯 庚午 甲寅 丁卯（《滴天髓阐微》命造）：伤官格，己财、庚煞并透而日主偏强——底本「或生财而带煞身轻」，身不轻不作此败
+  const strong = bookJudge(['己卯', '庚午', '甲寅', '丁卯']);
+  assert.equal(strong.pattern.name, '伤官格');
+  assert.ok(!quotes(strong.chengBai).includes('生财而带煞身轻'));
+  // 戊午 壬戌 壬子 乙巳：七杀格，乙木伤官透出制煞，日坐子刃——论偏官「有煞无食制而用刃当者」，有食伤制煞便不另作用刃
+  const ren = bookJudge(['戊午', '壬戌', '壬子', '乙巳']);
+  assert.equal(ren.pattern.name, '七杀格');
+  assert.ok(!quotes(ren.chengBai).includes('有煞无食制而用刃当者（论偏官）'));
+});
+
+/** 子平真诠底本录文：去标点；底本「刀」（刃字缺点）、「印缓」（印绶之讹）按正字比对。 */
+const zipingText = (() => {
+  const files = ['bage', 'chengbai', 'ganzhi', 'xingyun', 'yongshen'];
+  const plain = (text) => text.replace(/[，。；：、！？\s「」]/g, '').replaceAll('刀', '刃').replaceAll('印缓', '印绶');
+  return files.flatMap((name) => JSON.parse(readFileSync(new URL(`../src/data/classics/bazi/ziping-${name}.json`, import.meta.url), 'utf8')).entries
+    .map((entry) => ({ id: entry.id, title: entry.title, text: plain(entry.original) })));
+})();
+const quotePlain = (text) => text.replace(/〔[^〕]*〕/g, '').replace(/[，。；：、！？\s「」]/g, '');
+
+/** 源码里 add(成/败/带忌/救应, 说明, 引句, …) 的引句字面量。 */
+const addQuoteLiterals = (source) => {
+  const found = [];
+  for (const match of source.matchAll(/\badd\((?:success|failure|flaw|rescue),/g)) {
+    let i = match.index + match[0].length;
+    let depth = 0;
+    let arg = 0;
+    let quote = null;
+    let inner = 0;
+    let buffer = '';
+    for (; i < source.length; i += 1) {
+      const c = source[i];
+      if (quote) {
+        if (arg === 1) buffer += c;
+        if (c === '\\') { if (arg === 1) buffer += source[i + 1]; i += 1; } else if (quote === '`' && c === '$' && source[i + 1] === '{') inner += 1;
+        else if (quote === '`' && c === '}' && inner) inner -= 1;
+        else if (c === quote && !(quote === '`' && inner)) quote = null;
+        continue;
+      }
+      if (c === "'" || c === '"' || c === '`') { quote = c; if (arg === 1) buffer += c; continue; }
+      if ('([{'.includes(c)) depth += 1;
+      else if (')]}'.includes(c)) { if (depth === 0) break; depth -= 1; } else if (c === ',' && depth === 0) { arg += 1; if (arg > 1) break; continue; }
+      if (arg === 1) buffer += c;
+    }
+    found.push(...[...buffer.matchAll(/'((?:[^'\\]|\\.)*)'/g)].map((m) => m[1]));
+  }
+  return [...new Set(found)];
+};
+
+test('成败原文与各条引句都出自《子平真诠》底本录文（ziping-*.json），不用旧录误字', () => {
+  const chengbai = zipingText.filter((entry) => entry.id.startsWith('ziping.chengbai.'));
+  const panel = [...Object.values(CHENG_BAI_QUOTES.成), ...Object.values(CHENG_BAI_QUOTES.败), CHENG_BAI_QUOTES.成中有败, CHENG_BAI_QUOTES.败中有成];
+  for (const text of panel) assert.ok(chengbai.some((entry) => entry.text.includes(quotePlain(text))), `成败原文与底本不合：${text}`);
+
+  const literals = addQuoteLiterals(readFileSync(new URL('../src/utils/baziPatternSuccess.js', import.meta.url), 'utf8'));
+  assert.ok(literals.length > 100, `只找到 ${literals.length} 条引句`);
+  for (const literal of literals) {
+    const core = literal.replace(/（(?:论[^）]*|金水伤官例外)）$/, '');
+    const parts = core.split(/……|；/).filter((part) => quotePlain(part).length >= 2);
+    for (const part of parts) assert.ok(zipingText.some((entry) => entry.text.includes(quotePlain(part))), `引句不在底本里：${literal}（「${part}」）`);
+  }
 });
