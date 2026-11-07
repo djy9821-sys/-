@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 
 import { findBestConceptionDates, scoreBabyChart } from '../src/utils/babySelector.js';
 import { getHexagram } from '../src/utils/hexagramLogic.js';
+import { generateBabyPrompt } from '../src/utils/aiPrompts.js';
+import { createZiweiHoroscope } from '../src/utils/ziweiBirth.js';
+import { analyzeZiweiPatterns } from '../src/utils/ziweiPatterns.js';
 
 // iztro 的宫名：命宫带「宫」，其余不带（官禄、财帛、迁移、田宅）。
 const chartOf = (palaces) => ({
@@ -47,4 +50,27 @@ test('卦象查表：自下而上兑下离上为火泽睽', () => {
   assert.equal(getHexagram([1, 1, 1, 1, 1, 1]).name, '乾为天');
   assert.equal(getHexagram([0, 0, 0, 0, 0, 0]).name, '坤为地');
   assert.equal(getHexagram([1, 1]), null);
+});
+
+test('起居注的「格局」是预产期命盘按《紫微斗数全书》实际核出的格局，不再把打分方向当成已成格局', async () => {
+  const results = await findBestConceptionDates('leader', 3, new Date(2026, 0, 5, 7, 0));
+  assert.ok(results.length > 0);
+  for (const item of results) {
+    const horoscope = createZiweiHoroscope({ calendarType: 'solar', birthDate: item.birthDate, timeIndex: item.timeIndex, gender: 'male' });
+    assert.deepEqual(item.patterns.map((pattern) => pattern.name), analyzeZiweiPatterns(horoscope).map((pattern) => pattern.name));
+    const ming = horoscope.palaces.find((palace) => palace.name === '命宫');
+    assert.deepEqual(item.mingStars.map((text) => text.replace(/（.*$|化.$/, '')), ming.majorStars.map((star) => star.name));
+    assert.equal(item.aim, '紫府坐命/百官朝拱/权禄巡逢');
+    assert.equal(item.desc, undefined);
+  }
+  const prompt = generateBabyPrompt('leader', {}, null, null, [
+    { date: '2026-01-05', timeRange: '05:00-07:00', score: 45, stars: '⭐⭐⭐⭐', aim: '紫府坐命/百官朝拱/权禄巡逢', mingStars: ['紫微（庙）化权'], patterns: [{ name: '紫府同宫格', group: '定贵局' }], birthDate: '2026-10-12' },
+    { date: '2026-01-07', timeRange: '07:00-09:00', score: 30, stars: '⭐⭐⭐', aim: '紫府坐命/百官朝拱/权禄巡逢', mingStars: [], patterns: [], birthDate: '2026-10-14' },
+  ]);
+  assert.match(prompt, /命宫主星：\*\* 紫微（庙）化权/);
+  assert.match(prompt, /全书格局：\*\* 紫府同宫格（定贵局）/);
+  assert.match(prompt, /全书格局：\*\* 未见《紫微斗数全书》所列格局/);
+  assert.match(prompt, /命宫主星：\*\* 无正曜/);
+  assert.match(prompt, /不是古籍条文/);
+  assert.doesNotMatch(prompt, /格局特征|满分50分|Perfect Match|Top 3/);
 });
