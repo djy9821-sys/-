@@ -1,4 +1,5 @@
 import { createZiweiHoroscope } from './ziweiBirth.js'; // 安星、庙旺、四化、闰月、长生都走主线同一口径（全书）
+import { analyzeZiweiPatterns } from './ziweiPatterns.js';
 
 // Helper to check if a star is in a list
 const hasStar = (stars, name) => stars.some(s => s.name === name);
@@ -8,7 +9,10 @@ const palaceOf = (horoscope, name) => horoscope.palaces.find((p) => p.name === n
 // 按本地日期写（UTC 日期在东八区早上 8 点前会差一天）。
 const localDateText = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-// Scoring Rules for each Type
+/**
+ * 各类型的打分：按目标星曜、四化、辅星加分，空劫减分。权重是程序自定的，不是古籍条文；
+ * aim 只是这一类想要的盘面方向，不是这张盘已成的格局——已成格局另按《紫微斗数全书》原文核对（analyzeZiweiPatterns）。
+ */
 const SCORING_RULES = {
     'leader': (horoscope) => {
         let score = 0;
@@ -41,7 +45,7 @@ const SCORING_RULES = {
         // 4. Avoid Bad Stars in Ming
         if (ming && (hasStar(ming.minorStars, '地空') || hasStar(ming.minorStars, '地劫'))) score -= 15;
 
-        return { score, desc: '紫府坐命/百官朝拱/权禄巡逢' };
+        return { score, aim: '紫府坐命/百官朝拱/权禄巡逢' };
     },
     'iq': (horoscope) => {
         let score = 0;
@@ -69,7 +73,7 @@ const SCORING_RULES = {
         if (hasStar(sanFang, '文曲')) score += 15;
         if (hasStar(sanFang, '天魁')) score += 10; // Nobleman help
 
-        return { score, desc: '机月同梁/阳梁昌禄/科名会照' };
+        return { score, aim: '机月同梁/阳梁昌禄/科名会照' };
     },
     'sport': (horoscope) => {
         let score = 0;
@@ -89,7 +93,7 @@ const SCORING_RULES = {
         if (ming && hasStar(ming.minorStars, '铃星')) score += 10;
         if (ming && hasStar(ming.minorStars, '擎羊')) score += 10; // Competitiveness
 
-        return { score, desc: '杀破狼/武贪格/火贪格' };
+        return { score, aim: '杀破狼/武贪格/火贪格' };
     },
     'wealth': (horoscope) => {
         let score = 0;
@@ -116,7 +120,7 @@ const SCORING_RULES = {
         // 4. Avoid Leakage
         if (cai && (hasStar(cai.minorStars, '地空') || hasStar(cai.minorStars, '地劫'))) score -= 50; // Critical hit
 
-        return { score, desc: '武贪格/火贪格/双禄交流/财荫夹印' };
+        return { score, aim: '武贪格/火贪格/双禄交流/财荫夹印' };
     }
 };
 
@@ -147,7 +151,7 @@ export const findBestConceptionDates = async (type, limit = 3, today = new Date(
             try {
                 const horoscope = createZiweiHoroscope({ calendarType: 'solar', birthDate: dateStr, timeIndex: h / 2, gender: 'male' }); // Assume Male for pattern check (patterns are mostly gender neutral for these archetypes)
 
-                const { score, desc } = scoreBabyChart(type, horoscope);
+                const { score, aim } = scoreBabyChart(type, horoscope);
 
                 // Calculate Rating (1-5 Stars) based on raw score
                 // Raw score typically 20-60 for good charts.
@@ -168,7 +172,10 @@ export const findBestConceptionDates = async (type, limit = 3, today = new Date(
                         score,
                         rating,
                         stars,
-                        desc,
+                        aim,
+                        // 这张盘实际的命宫主星与按《紫微斗数全书》原文核对出的格局（不是上面的打分方向）
+                        mingStars: (palaceOf(horoscope, '命宫')?.majorStars ?? []).map((star) => `${star.name}${star.brightness ? `（${star.brightness}）` : ''}${star.mutagen ? `化${star.mutagen}` : ''}`),
+                        patterns: analyzeZiweiPatterns(horoscope).map(({ name, group }) => ({ name, group })),
                         birthDate: dateStr
                     });
                 }
