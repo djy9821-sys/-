@@ -362,13 +362,11 @@ export const BABY_PROMPT_TEMPLATE = `**--- 👶 紫微斗数备孕择吉（起�
 *   **理想命盘特征：** {{TARGET_STARS}}
 
 **### 2. 黄金受孕窗口期推算 (程序测算结论)**
-**评分标准说明 (满分50分)：**
-*   ⭐⭐⭐⭐⭐ (5 Stars): Perfect Match (Score 50+) - 完美契合
-*   ⭐⭐⭐⭐ (4 Stars): Excellent (Score 40+) - 非常优秀
-*   ⭐⭐⭐ (3 Stars): Good (Score 30+) - 良好
-*   ⭐⭐ (2 Stars): Fair (Score 20+) - 一般
+**评分说明：** 程序按上面的理想特征给预产期命盘打分（目标主星、四化、辅星加分，地空地劫减分），权重是程序自定的，不是古籍条文；50 分以上五星，40 分以上四星，30 分以上三星，20 分以上两星。每个时机下的「全书格局」才是按《紫微斗数全书》定富局、定贵局等原文核对出来的格局，没有就写「未见」。
 
-经后台算法遍历未来 14 天受孕窗口，筛选出以下 Top 3 最佳受孕时机（已反推预产期命盘）：
+**注意：** 紫微命盘取决于出生的日子和时辰。预产期只是受孕日加 280 天的约数，实际哪天、哪个时辰出生，受孕日定不下来；下列命盘只是按预产期排出的参考。
+
+程序遍历未来 14 天的受孕日，按预产期命盘打分，选出前三个时机：
 
 {{BEST_DATES_LIST}}
 
@@ -405,8 +403,11 @@ export const generateBabyPrompt = (type, basicInfo, horoscope, partnerHoroscope,
   const typeDesc = type === 'leader' ? '具备领导力、决断力，适合从政或管理' : type === 'iq' ? '智商超群、学业优秀，适合科研或学术' : type === 'sport' ? '体魄强健、行动力强，适合竞技或军警' : '财运亨通、商业嗅觉敏锐，适合经商';
   const targetStars = type === 'leader' ? '紫微、天府、太阳(旺)、天相，辅以左辅右弼' : type === 'iq' ? '天机、天梁、太阴、巨门，辅以文昌文曲' : type === 'sport' ? '七杀、破军、贪狼、武曲，辅以火星铃星' : '武曲、太阴、天府、贪狼，辅以禄存化禄';
 
+  const patternText = (patterns) => (patterns?.length
+    ? patterns.map((pattern) => (pattern.group ? `${pattern.name}（${pattern.group}）` : pattern.name)).join('、')
+    : '未见《紫微斗数全书》所列格局');
   const bestDatesList = bestDates.map((d, i) => {
-    return `${i + 1}. **${d.date} ${d.timeRange}** (评分: ${d.score} ${d.stars})\n   - **格局特征：** ${d.desc}\n   - **预产期(参考)：** ${d.birthDate}`;
+    return `${i + 1}. **${d.date} ${d.timeRange}**（程序打分 ${d.score} ${d.stars}）\n   - **命宫主星：** ${d.mingStars?.length ? d.mingStars.join('、') : '无正曜'}\n   - **全书格局：** ${patternText(d.patterns)}\n   - **预产期（参考）：** ${d.birthDate}`;
   }).join('\n\n');
 
   const parentsData = dumpHoroscope(horoscope, '父亲/母亲(本人)') + '\n' + dumpHoroscope(partnerHoroscope, '母亲/父亲(配偶)');
