@@ -4,6 +4,7 @@ import {
   formatFortuneTime,
 } from './fortuneContext.js';
 import { ziweiDoujunPalace } from '../data/classics/library.js';
+import { BABY_PENALTY_LUN, SHIDENG_LUN, babyLunNames } from './babySelector.js';
 
 
 /**
@@ -54,7 +55,7 @@ export const CHARACTER_PROMPT_TAIL = `**--- 补充情况（可选）---**
 export const WEALTH_PROMPT_TEMPLATE = `**--- 💰 紫微斗数深度财运分析报告 💰 ---**
 **声明：本报告基于紫微斗数专业排盘生成，旨在分析命主财运格局、财富来源及发财时机。风格严肃、客观、专业。**
 
-你是一位**资深紫微斗数命理师**，擅长通过星盘分析个人的财富格局与事业运势。请根据提供的星盘数据，为命主进行深度的财运分析。
+你是一位熟读《紫微斗数全书》的命理师。请根据提供的星盘数据与所附原文，为命主分析财运。
 
 请严格按以下结构输出报告：
 
@@ -86,7 +87,7 @@ export const WEALTH_PROMPT_TEMPLATE = `**--- 💰 紫微斗数深度财运分析
 export const MARRIAGE_PROMPT_TEMPLATE = `**--- 💍 紫微斗数深度姻缘分析报告 💍 ---**
 **声明：本报告基于紫微斗数专业排盘生成，旨在分析命主正缘特征、婚运时机及婚姻质量。风格严肃、客观、温暖。**
 
-你是一位**资深紫微斗数情感专家**，擅长分析婚恋运势与正缘特征。请根据提供的星盘数据，为命主进行深度的姻缘分析。
+你是一位熟读《紫微斗数全书》的命理师。请根据提供的星盘数据与所附原文，为命主分析姻缘。
 
 请严格按以下结构输出报告：
 
@@ -263,7 +264,7 @@ export const generateFortunePromptText = (layerKey, selection, activeStems, basi
         layerKey === 'daily' ? `${selection.year}年${selection.month}月${selection.day}日` :
           `${selection.year}年${selection.month}月${selection.day}日 ${selectedHour?.name || ''} ${selectedHour?.range || ''}`;
 
-  let prompt = `你是一位精通紫微斗数的命理大师。请根据以下命盘数据和${layerName}四化，为命主进行${layerName}运势分析。\n\n`;
+  let prompt = `你是一位熟读《紫微斗数全书》的命理师。请根据以下命盘数据和${layerName}四化，为命主进行${layerName}运势分析。\n\n`;
 
   prompt += `【基本信息】\n`;
   prompt += `性别：${basicInfo.gender === 'male' ? '男' : '女'}\n`;
@@ -353,22 +354,21 @@ export const generateFortunePromptText = (layerKey, selection, activeStems, basi
 };
 
 export const BABY_PROMPT_TEMPLATE = `**--- 👶 紫微斗数备孕择吉（起居注） 👶 ---**
-**声明：本报告基于紫微斗数反推逻辑生成，旨在寻找最有利于诞生特定天赋宝宝的受孕时间窗口。玄学仅供参考，生命的诞生充满变数，请以自然受孕和医学建议为准，保持愉悦心情最重要。**
+**声明：程序按预产期排出命盘，对照《紫微斗数全书》挑出几个受孕时机，供参考。预产期只是约数，孩子哪天、哪个时辰出生并不由受孕日决定；备孕请以医学建议为准，保持愉悦心情最重要。**
 
-你是一位**紫微斗数大师**兼**优生优育专家**。你的任务是根据命理学原理，反推最佳受孕时间，以期生出具有**【{{TYPE_NAME}}】**天赋的宝宝。
+你是一位熟读《紫微斗数全书》的命理师。下面是程序按预产期命盘挑出的受孕时机，以及父母双方的命盘；请据此解读这几个时机的命盘倾向（想要的是**【{{TYPE_NAME}}】**一类）。命理只作参考，不能替代医学意见。
 
-**### 1. 核心目标：打造【{{TYPE_NAME}}】宝宝**
-*   **目标天赋：** {{TYPE_DESC}}
-*   **理想命盘特征：** {{TARGET_STARS}}
+**### 1. 想要的方向：【{{TYPE_NAME}}】**
+*   **期望：** {{TYPE_DESC}}
+*   **依据（《紫微斗数全书》卷一·定富贵贫贱十等论）：**
+{{LUN_TEXTS}}
 
-**### 2. 黄金受孕窗口期推算 (程序测算结论)**
-**评分标准说明 (满分50分)：**
-*   ⭐⭐⭐⭐⭐ (5 Stars): Perfect Match (Score 50+) - 完美契合
-*   ⭐⭐⭐⭐ (4 Stars): Excellent (Score 40+) - 非常优秀
-*   ⭐⭐⭐ (3 Stars): Good (Score 30+) - 良好
-*   ⭐⭐ (2 Stars): Fair (Score 20+) - 一般
+**### 2. 受孕时机（程序按预产期命盘打分）**
+**评分说明：** 程序把上面几论各拆成几项盘面条件，看预产期命盘合几项：加分的论合计满分 80，贫贱、疾夭两论合的项减分{{FU_JU_NOTE}}。拆法与权重是程序的读法，不是原文逐字的定义——带「照」「冲」「四正」的（三方四正、守照拱冲、拱照）取命、迁、财、官四宫，只说「三方」「并拱」的取命、财、官三宫，「天空」按今本作地空，羊陀廉杀武破落陷才算「犯陷地」，吉星落陷不算守照；文职、威勇、武职三论命宫没坐所列之星的整论不计。40、30、20、10 分以上为五、四、三、两星。每个时机下的「全书格局」是按定富局、定贵局、定贫贱局原文核对出的格局，没有就写「未见」。
 
-经后台算法遍历未来 14 天受孕窗口，筛选出以下 Top 3 最佳受孕时机（已反推预产期命盘）：
+**注意：** 紫微命盘取决于出生的日子和时辰。预产期只是受孕日加 280 天的约数，实际哪天、哪个时辰出生，受孕日定不下来；下列命盘只是按预产期排出的参考。
+
+程序遍历未来 14 天的受孕日，按预产期命盘打分，选出前三个时机：
 
 {{BEST_DATES_LIST}}
 
@@ -376,8 +376,7 @@ export const BABY_PROMPT_TEMPLATE = `**--- 👶 紫微斗数备孕择吉（起�
 *   **父母缘分：** 请结合父母的星盘数据，优先选择与父母缘分深厚、利于亲子关系的时间段。避免宝宝命盘严重克泄父母。
 
 **### 4. 备孕建议与起居注**
-*   **风水助运：** 卧室床位或摆设建议。
-*   **心情与饮食：** 针对该类型宝宝的备孕期特别建议。
+*   **起居：** 只谈作息、心情一类的日常起居；饮食、用药与身体状况听医生的。不涉及风水、改运之说。
 
 **--- 父母星盘全量数据 (用于深度合盘) ---**
 {{PARENTS_DATA}}
@@ -403,10 +402,17 @@ const dumpHoroscope = (horoscope, label) => {
 export const generateBabyPrompt = (type, basicInfo, horoscope, partnerHoroscope, bestDates) => {
   const typeName = type === 'leader' ? '帝王之命' : type === 'iq' ? '文昌魁首' : type === 'sport' ? '武曲将星' : '陶朱富豪';
   const typeDesc = type === 'leader' ? '具备领导力、决断力，适合从政或管理' : type === 'iq' ? '智商超群、学业优秀，适合科研或学术' : type === 'sport' ? '体魄强健、行动力强，适合竞技或军警' : '财运亨通、商业嗅觉敏锐，适合经商';
-  const targetStars = type === 'leader' ? '紫微、天府、太阳(旺)、天相，辅以左辅右弼' : type === 'iq' ? '天机、天梁、太阴、巨门，辅以文昌文曲' : type === 'sport' ? '七杀、破军、贪狼、武曲，辅以火星铃星' : '武曲、太阴、天府、贪狼，辅以禄存化禄';
+  const lunTexts = [...babyLunNames(type).map((name) => `    - ${name}：「${SHIDENG_LUN[name]}」`),
+    ...BABY_PENALTY_LUN.map((name) => `    - ${name}（合的项减分）：「${SHIDENG_LUN[name]}」`)].join('\n');
+  const lunLine = (lun) => (lun ?? []).map(({ name, hits, need, seatOk }) => (seatOk === false
+    ? `${name}命宫未坐所列之星，不计`
+    : `${name}${BABY_PENALTY_LUN.includes(name) ? '（减分）' : ''}合 ${hits.length}/${need}${hits.length ? `（${hits.join('、')}）` : ''}`)).join('；');
 
+  const patternText = (patterns) => (patterns?.length
+    ? patterns.map((pattern) => (pattern.group ? `${pattern.name}（${pattern.group}）` : pattern.name)).join('、')
+    : '未见《紫微斗数全书》所列格局');
   const bestDatesList = bestDates.map((d, i) => {
-    return `${i + 1}. **${d.date} ${d.timeRange}** (评分: ${d.score} ${d.stars})\n   - **格局特征：** ${d.desc}\n   - **预产期(参考)：** ${d.birthDate}`;
+    return `${i + 1}. **${d.date} ${d.timeRange}**（程序打分 ${d.score} ${d.stars}）\n   - **命宫主星：** ${d.mingStars?.length ? d.mingStars.join('、') : '无正曜'}\n   - **十等论：** ${lunLine(d.lun) || '—'}\n   - **全书格局：** ${patternText(d.patterns)}\n   - **预产期（参考）：** ${d.birthDate}`;
   }).join('\n\n');
 
   const parentsData = dumpHoroscope(horoscope, '父亲/母亲(本人)') + '\n' + dumpHoroscope(partnerHoroscope, '母亲/父亲(配偶)');
@@ -414,7 +420,8 @@ export const generateBabyPrompt = (type, basicInfo, horoscope, partnerHoroscope,
   return BABY_PROMPT_TEMPLATE
     .replace(/{{TYPE_NAME}}/g, typeName)
     .replace('{{TYPE_DESC}}', typeDesc)
-    .replace('{{TARGET_STARS}}', targetStars)
+    .replace('{{LUN_TEXTS}}', lunTexts)
+    .replace('{{FU_JU_NOTE}}', type === 'wealth' ? '，另按定富局每成一格加 10 分' : '')
     .replace('{{BEST_DATES_LIST}}', bestDatesList)
     .replace('{{PARENTS_DATA}}', parentsData);
 };
