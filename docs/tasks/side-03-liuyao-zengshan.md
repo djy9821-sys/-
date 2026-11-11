@@ -58,3 +58,15 @@
 - 赋文与注里讲到程序断法的地方（如「旬空」「月破」「暗动」「反吟」的判法），发现与程序现有说法不一致的，只写进 PR「待确认」，不改程序。
 - 分支从 `origin/claude/round10-ui-polish` 开 `side/03-zengshan-b5`，PR 的 base 选 `claude/round10-ui-polish`；每 30 条左右提交一次，推送前跑 `node scripts/check-zhanli.mjs`（报错须为 0）、`node scripts/validate-data.mjs`、`npm test`。PR 附起止页、条数、占例数、转出的命例数。只改数据 JSON。
 - 卷一、卷二第一批按范围没录的章（占卦法、浑天甲子、六神、动散、各门类题头总注、归魂游魂、星煞等）是第6批。
+
+## 第6批：卷一、卷二未录各章（待老板回「派」）
+
+第一批（`zengshan-zonglun.json`）的 `edition` 写明这几章当时按范围没录：占卦法、浑天甲子、五行相生相克、克处逢生、六神、动散、各门类题头总注、归魂游魂、星煞等。程序已在引用其中的说法——起卦页写「起卦依据《增删卜易》·以钱代蓍法」（`src/data/liuyaoSources.js`）、断卦要点里六神「螣蛇主虚惊」之类、游魂归魂卦的提示——却没有原文可查，这一批补齐，让每句引用都能点开看底本。
+
+- 底本、规矩同前五批：国图藏民国十四年（1925）文明书局影印本（Wikimedia Commons `NLC416-12jh005345-45344_增刪卜易.pdf`），只据底本核字、繁转简、补句读，白话自己写；不用现代白话本、网络增订本或 ctext。页图地址（换页码即可）：
+  `https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/NLC416-12jh005345-45344_增刪卜易.pdf/page21-1920px-NLC416-12jh005345-45344_增刪卜易.pdf.jpg`
+- 先对照底本卷一、卷二目录与 `zengshan-zonglun.json` 的 `edition`，列一张「未录章节表」（章名照底本、PDF 页、书内页）放进 PR 说明。**「以钱代蓍」那一段务必录全**，PR 里写明它在底本哪一章、哪一页、底本原题怎么写——起卦页的出处要照这个改。
+- 新文件 `src/data/classics/liuyao/zengshan-zonglun-2.json`，`classic` 写 `zengshan`，id 接着 `zengshan.zonglun.289` 从 `zengshan.zonglun.290` 起；`edition` 写底本与逐章页码（照 `zengshan-zonglun.json` 的写法）。每章按自然段拆，章首总纲一条；`applies` 照第一批：讲六神的写 `sixGod`（青龙、朱雀、勾陈、螣蛇、白虎、玄武），讲某类占法的写 `topic`，可用的条件见 `src/data/classics/README.md` 的条件表（没有对应条件的，如游魂、归魂，照 README「条件编不出来就只写 note」，不要硬编）。原书批评旧说（星煞、纳音之类）的照录，不删不评。
+- 章里夹的占例单列一条，并照第4批转成六爻命例，追加到 `src/data/cases/liuyao.json` 末尾，id 接 `liuyao.zengshan.300` 从 `liuyao.zengshan.301` 起；`expected` 只填原书明说的吉凶、应期、应验。
+- 讲到程序断法的地方（六神、游魂归魂、动散、克处逢生），发现与程序现有说法不一致的，只写进 PR「待确认」，不改程序。
+- 分支：等 #68 改完，从 `origin/side/03-zengshan-b5` 开 `side/03-zengshan-b6`，PR 的 base 选 `claude/round8-collab`，说明第一行写「依赖 #68，请先合 #68」；每 30 条左右提交一次，推送前跑 `node scripts/check-zhanli.mjs`（报错须为 0）、`node scripts/validate-data.mjs`、`npm test`。只改数据 JSON。PR 附未录章节表、各章条数、占例数、转出的命例数。
