@@ -3,6 +3,7 @@
  */
 import React from 'react';
 import { WUXING_ORDER, WUXING_STYLES } from './baziTheme';
+import { yongShenConfidenceOf } from '../../utils/baziStrength';
 
 const BAND_STYLES = {
     极弱: 'bg-[#315f7d] text-white',
@@ -128,6 +129,14 @@ export default function BaziStrengthPanel({ strength, surfaceCounts, dayMaster, 
                 <p className="rounded-lg border border-[#b06a1f]/35 bg-[#b06a1f]/[0.07] px-3 py-2 text-xs leading-5 text-[#7f4b12]" data-testid="bazi-strength-special">
                     格局一节{special.name}：若成格，{special.godsText}，与上面按扶抑取的喜忌不同，以人工确认为准。
                 </p>
+            )}
+            {!special?.godsText && yongShenConfidenceOf(strength) && (
+                <p
+                    className={yongShenConfidenceOf(strength).level === 'low'
+                        ? 'rounded-lg bg-[#b06a1f]/[0.08] px-3 py-2 text-xs leading-5 text-[#7f4b12]'
+                        : 'text-xs leading-5 text-[#6b6156]'}
+                    data-testid="bazi-usegod-confidence"
+                >{yongShenConfidenceOf(strength).text}</p>
             )}
             <p className="rounded-lg bg-[#e9dfcd]/55 px-3 py-2 text-[11px] leading-5 text-[#6f665d] sm:text-xs">
                 以上为程序估算的参考：五行力量按天干每字 1 分（日干不计）、藏干本气 1 / 中气 0.5 / 余气 0.3、月令加倍计；旺衰按得令、得地、得势三项打分（月令是财、官杀的减分，根被紧贴的一支冲克的打折，四支会成帮身的三合、三会局的另加），权重按《滴天髓阐微》任铁樵命造校准；先按扶抑取定用神（有力的排前，中和按略偏的一边取），再论喜忌：用神与生用神者为喜，克用神者、用神所克者为忌；调候附在后面。从格、化格、专旺等特殊格局需要人工判断。

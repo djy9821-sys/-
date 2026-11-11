@@ -1953,7 +1953,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
 
                 try {
                     await navigator.clipboard.writeText(prompt);
-                    alert(`✅ 已生成【${selectedBabyType === 'leader' ? '帝王' : selectedBabyType === 'iq' ? '文昌' : selectedBabyType === 'sport' ? '武曲' : '陶朱'}起居注】指令！\n\n已为您筛选出未来14天内Top3最佳受孕时机。\n请发送给AI获取详细解读。`);
+                    alert(`✅ 已生成【${selectedBabyType === 'leader' ? '帝王' : selectedBabyType === 'iq' ? '文昌' : selectedBabyType === 'sport' ? '武曲' : '陶朱'}起居注】指令！\n\n已按预产期命盘打分，选出未来 14 天里的前三个受孕时机（预产期只是约数，命盘仅供参考）。\n请发送给AI获取详细解读。`);
                     setShowPartnerModal(false);
                 } catch (err) {
                     // 算了几秒才复制，iPhone 等浏览器已不认那次点击，自动复制会被拒；指令留在弹窗里，再点一次「复制指令」或长按选取。
@@ -3243,7 +3243,7 @@ function ProfessionalChartInner({ horoscope, basicInfo, onSave, onOpenArchive, o
                         </div>
                         <div className="overflow-y-auto p-4 space-y-4">
                             <div className="text-sm text-gray-500 bg-purple-50 p-2 rounded">
-                                为了更精准地进行优生备孕择吉，请提供另一半的生辰信息，系统将结合双人命盘进行推算。
+                                程序挑受孕日只看预产期命盘；另一半的生辰会和你的命盘一起写进指令，供 AI 参看双方命盘。
                             </div>
 
                             <div className="space-y-1">

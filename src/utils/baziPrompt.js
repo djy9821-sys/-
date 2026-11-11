@@ -10,7 +10,7 @@ import { analyzeLiuqin, liuqinOfYun } from './baziLiuqin.js';
 import { findRelations } from './baziRelations.js';
 import { getShensha, SHENSHA_SOURCES } from './baziShensha.js';
 import { cite } from '../data/classics.js';
-import { analyzeStrength, favorBasisOf } from './baziStrength.js';
+import { analyzeStrength, favorBasisOf, favorConfidenceOf, yongShenConfidenceOf } from './baziStrength.js';
 import { describeDaYunFavor, describeYearMarks, describeYearSummary, getDaYunMarks, getLiuNianMarks, juOfZhi } from './baziYearMarks.js';
 import { describeQuYun, quYunQuoteText } from './baziQuYun.js';
 import { PROMPT_CLASSICS_LIMIT, classicsPromptLines } from './classicsPrompt.js';
@@ -58,7 +58,7 @@ const shenshaSourceLines = (chart) => {
       return `- ${name}：${cite(source.classic, source.section)}。${source.rule}${source.variant ? `（${source.variant}）` : ''}`;
     });
   if (!lines.length) return ['- 本命四柱未见本程序收录的神煞。'];
-  return [...lines, `神煞口诀主要取自${cite('sanming')}，禄取${cite('yuanhai')}，红鸾天喜取${cite('xieji')}；请以这些古籍的本义解释，吉凶仍以五行喜忌为主。`];
+  return [...lines, `神煞查法多据${cite('sanming')}（卷篇见各条），红鸾天喜据${cite('xieji')}，请以这些古籍的本义解释；标「通行查法」的几种古籍未见专篇，只按通行排盘列出，不要说成古籍原文。吉凶仍以五行喜忌为主。`];
 };
 
 const birthLines = (chart, personName) => {
@@ -141,6 +141,7 @@ const daYunLines = (chart, selectedDaYun, favorBasis = null, quYun = null) => {
     `- ${yun.forward ? '顺排' : '逆排'}，出生后 ${yun.startYear} 年 ${yun.startMonth} 个月 ${yun.startDay} 天起运，交运日 ${yun.startSolar.split(' ')[0]}`,
   ];
   if (favorBasis) lines.push(`- 各步喜忌按${favorBasis.source === 'special' ? `${favorBasis.specialName.replace(/^疑似/, '')}论` : '「旺衰参考」一节的扶抑喜忌'}；大运以地支为重，运干喜而运支忌又克运干的（截脚）整步运按忌，运干喜而生运支之忌的（喜泄于忌）也按忌，运干喜而克住运支之忌的（喜盖忌）按喜（《滴天髓·岁运》任注）`);
+  if (favorBasis) lines.push(`- ${favorConfidenceOf(favorBasis).text}`);
   if (quYun) lines.push(`- 格局取运（${quYunQuoteText(quYun)}）：另按原书各格取运篇给每步运干、运支的十神标喜忌，与扶抑喜忌并列，说法不同时请一并权衡`);
   // 只列到百岁左右，足够分析使用。运支与原局凑齐三会方、三合局的注明（程序的大运喜忌按局的五行论）。
   const natalZhis = chart.pillars.map((pillar) => pillar.zhi).filter(Boolean);
@@ -187,6 +188,8 @@ const strengthLines = (chart, strength, special = null) => {
   if (strength.unfavorable.length) lines.push(`- 忌神参考：${elementList(strength.unfavorable)}`);
   if (strength.hint) lines.push(`- 提示：${strength.hint}`);
   lines.push(`- 以上为程序估算：旺衰按得令、得地、得势三项打分（四支会成帮身的三合、三会局另加，权重按《滴天髓阐微》任铁樵命例校准），先按扶抑取定用神（调候附后），再按用神论喜忌（用神与生用神者为喜，克用神者、用神所克者为忌），${special ? `扶抑的喜忌不计特殊格局，本盘${special.name}，按此格论的喜忌见下一节` : '未考虑从格、化格、专旺等特殊格局'}；若你的判断不同，请说明理由并以你的分析为准。`);
+  const useGodNote = special?.favorable?.length ? null : yongShenConfidenceOf(strength);
+  if (useGodNote) lines.push(`- ${useGodNote.text}`);
   return lines;
 };
 

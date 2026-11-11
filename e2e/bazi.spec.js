@@ -20,6 +20,8 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   // 火（食伤）与金（官杀）地支气数相当，庚辛并透的金为病，取印化杀。
   await expect(result.getByTestId('bazi-strength-score')).toContainText('0.5 分');
   await expect(result.getByTestId('bazi-strength-basis')).toContainText('身弱官杀重，取印化杀生身');
+  // 喜用旁注明把握：旺衰分明、按扶抑取用的，与原书一致约七成半。
+  await expect(result.getByTestId('bazi-usegod-confidence')).toContainText('喜用之首与原书一致约七成半、取反不到一成');
   // 格局与择日两节都在。
   await expect(result.getByRole('heading', { name: /格局与命局组合/ })).toBeVisible();
   await expect(result.getByRole('heading', { name: /择日参考/ })).toBeVisible();
@@ -27,6 +29,8 @@ test('带生辰参数的链接打开即出盘', async ({ page }) => {
   const quYun = result.getByTestId('bazi-dayun-quyun');
   await expect(quYun).toContainText('按格局取运');
   await expect(quYun).toContainText('论正官取运');
+  // 喜忌旁注明把握：此造按扶抑取喜忌，写约七成相合、近三成相反。
+  await expect(result.getByTestId('bazi-favor-confidence')).toContainText('约七成相合、近三成相反');
   // 此运六亲：所选大运对妻、子女、父母、兄弟的引动，四亲各一行。
   const yunLiuqin = result.getByTestId('bazi-dayun-liuqin');
   await expect(yunLiuqin).toContainText('此运六亲');
@@ -82,6 +86,8 @@ test('疑似从格：格局一节给出按此格论的喜忌，旺衰一节提�
   await expect(result.getByTestId('bazi-strength-special')).toContainText('格局一节疑似从儿格：若成格，喜火（财）、木（食伤）；忌金（印）、土（官杀）');
   // 大运流年的喜忌按此格论（拿《滴天髓阐微》命造对照，认出特殊格局的造按此格论才与原书相合）。
   await expect(result.getByTestId('bazi-favor-basis')).toContainText('此盘疑似从儿格，大运流年与择日的喜忌按此格论');
+  // 喜忌旁注明把握：按此格论的命造，与任注命例近九成相合（按扶抑的命造写约七成）。
+  await expect(result.getByTestId('bazi-favor-confidence')).toContainText('近九成相合');
 });
 
 test('手动录入排盘、存档，再从档案打开', async ({ page }) => {

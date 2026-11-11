@@ -54,7 +54,7 @@ import {
 import { findRelations } from '../utils/baziRelations';
 import { getShensha, SHENSHA_ORDER, SHENSHA_SOURCES } from '../utils/baziShensha';
 import { cite } from '../data/classics';
-import { analyzeStrength, favorBasisOf } from '../utils/baziStrength';
+import { analyzeStrength, favorBasisOf, favorConfidenceOf } from '../utils/baziStrength';
 import { judgeBaziPattern } from '../utils/baziPattern';
 import { describeQuYun } from '../utils/baziQuYun';
 import { analyzeLiuqin, liuqinOfYun } from '../utils/baziLiuqin';
@@ -1360,7 +1360,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                                 神煞查法与出处 <span className="text-xs font-normal text-[#81776b]">{natalShenshaNames.length ? `本命见 ${natalShenshaNames.length} 种` : '本命未见'}</span>
                                                             </summary>
                                                             <div className="border-t border-[#cbbfac]/70 px-3 py-3">
-                                                                <p className="text-[11px] leading-5 text-[#81776b]">查法沿用{cite('sanming')}等古籍口诀，与通行排盘一致；有流派差异的在条目里注明。先列本命所见，再列其余。</p>
+                                                                <p className="text-[11px] leading-5 text-[#81776b]">查法多据{cite('sanming')}，卷篇见各条；古籍未见专篇的标「通行查法」，流派差异与底本异文在条目里注明。先列本命所见，再列其余。</p>
                                                                 <dl className="mt-2 grid gap-x-5 gap-y-2.5 sm:grid-cols-2">
                                                                     {[...natalShenshaNames, ...SHENSHA_ORDER.filter((name) => !natalShenshaNames.includes(name))].map((name) => {
                                                                         const source = SHENSHA_SOURCES[name];
@@ -1369,7 +1369,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                                         return (
                                                                             <div key={name} className={present ? '' : 'opacity-70'}>
                                                                                 <dt className="text-xs font-bold text-[#2d6b62]">{name}{present ? <span className="ml-1 rounded border border-[#2d6b62]/40 px-1 text-[10px] font-normal text-[#245a52]">本命</span> : null} <span className="font-normal text-[#81776b]">{cite(source.classic, source.section)}</span></dt>
-                                                                                <dd className="mt-0.5 text-[11px] leading-5 text-[#6f665d]">{source.rule}{source.quote ? <span className="block text-[#514941]">口诀：{source.quote}</span> : null}{source.variant ? <span className="block">{source.variant}</span> : null}</dd>
+                                                                                <dd className="mt-0.5 text-[11px] leading-5 text-[#6f665d]">{source.rule}{source.quote ? <span className="block text-[#514941]">原文：{source.quote}</span> : null}{source.variant ? <span className="block">{source.variant}</span> : null}</dd>
                                                                             </div>
                                                                         );
                                                                     })}
@@ -1467,6 +1467,9 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                     <span className="mx-1 inline-block size-2 rounded-sm bg-[#b9ad98] align-middle" aria-hidden="true" />平；地支与原局凑齐三会方、三合局的，按局的五行论。流年右上角的圆点同理。大运地支逢未作火论（南方燥土），癸丑作水、甲辰作木（任注「癸丑北方湿土，亦作水论」「癸卯甲辰东方木地」），流年不论。运以地支为重：运干是喜、运支是忌又克运干的（截脚，任注「支不载干，则十年皆否」），右上角标<span className="mx-0.5 font-bold text-[#a33b30]">截</span>，整步运按忌论；运干喜而生运支之忌的（喜神泄气、忌神得生，任注「金不通根，木得长生」）标<span className="mx-0.5 font-bold text-[#a33b30]">泄</span>，也按忌论；运干喜而克住运支之忌的（任注「辛卯庚寅盖头，逢金不能生火坏印」）标<span className="mx-0.5 font-bold text-[#2d6b62]">盖</span>，按喜论。
                                                     {favorBasis?.source === 'special' && (
                                                         <span className="block text-[#7f4b12]" data-testid="bazi-favor-basis">此盘{favorBasis.specialName}，大运流年与择日的喜忌按此格论（顺其气势为吉）；若不成格，以「五行与旺衰」一节的扶抑喜忌为准。</span>
+                                                    )}
+                                                    {favorBasis && (
+                                                        <span className="block font-medium text-[#6b6156]" data-testid="bazi-favor-confidence">{favorConfidenceOf(favorBasis).text}</span>
                                                     )}
                                                 </p>
                                                 <div className="hidden border-l border-t border-[#b9ad98] print:grid print:grid-cols-7">
