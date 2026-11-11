@@ -53,7 +53,7 @@
  * 留集岁运一致 57 → 67、相反 30 → 25，留集用神第一位一致 44 → 44（中和改为偏向一边取后，相反 8 → 12）。
  * 全部 510 造：岁运一致 437 → 506、相反 232 → 203；旺衰一致 141 → 139、相反 16 → 14。
  * 其后补「身旺印多，官星透出有力，足以用官」：非留集用神第一位一致 124 → 128，留集 44 → 45，岁运一致、相反的造数不变。
- * 再补「太旺宜泄」「母多灭子，顺母之性」（任注《衰旺》「五行颠倒之真机」）：岁运一致 511 → 527、相反 198 → 190
+ * 再补「太旺宜泄」（《衰旺》原注「旺则宜泄宜伤」）与「母多灭子」（任注《反局》论母慈灭子「纵有财星无气，未可以财星破印也，只得顺母之性，助其子也」）：岁运一致 511 → 527、相反 198 → 190
  * （非留集 365 → 373、134 → 131；留集 146 → 154、64 → 59），用神第一位非留集不变、留集 45 → 46。
  * 再补会局加分、燥土不载金、克泄交加按偏弱取（与格局的「墓库支随旺极之势」同一批）：全部 510 造旺衰一致 139 → 144；
  * 用神第一位一致 175 → 176、相反 31 → 30、不中 20 → 18（留集相反 12 → 11）；岁运一致 553 → 560、相反 206 → 201。
@@ -144,6 +144,66 @@ export const favorBasisOf = (strength, special = null) => {
   if (!special?.favorable?.length) return { ...strength, source: 'fuyi' };
   const asRoles = (items = []) => items.map((item) => ({ element: item.element, role: item.label ?? item.role }));
   return { ...strength, favorable: asRoles(special.favorable), unfavorable: asRoles(special.unfavorable), source: 'special', specialName: special.name, specialKind: special.kind ?? null };
+};
+
+/**
+ * 岁运喜忌的把握（约几成与原书相合）。拿《滴天髓阐微》任铁樵点名吉凶的大运、流年对照（scripts/bazi-cases.mjs 的岁运一栏），
+ * 只算程序判了吉或凶的，判参半、平的不计：
+ * - 认出特殊格局、按此格论的命造：186 步里 174 步与原书相合（九成三）；编号尾数 0、4、7 的留出命造 63 步里 55 步（八成七）。
+ * - 按扶抑取喜忌的命造：611 步里 447 步相合（七成三）、164 步相反；留出命造 179 步里 127 步（七成一）。
+ * 两类相差两成，所以结果页与导出给 AI 的大运一节照实注明，不让两类命造的喜忌看起来一样可信。
+ * 这是与任注一部书对照的数字，不是应验率；数字随命例与算法变动，test/bazi-cases.test.js 卡住这两个「约几成」。
+ */
+export const YUN_CONFIDENCE = Object.freeze({ special: 0.9, fuyi: 0.7 });
+
+/**
+ * @param {object|null} favorBasis favorBasisOf 的结果
+ * @returns {{ level: 'high'|'normal', rate: number, text: string }|null}
+ */
+export const favorConfidenceOf = (favorBasis) => {
+  if (!favorBasis) return null;
+  if (favorBasis.source === 'special') {
+    return {
+      level: 'high',
+      rate: YUN_CONFIDENCE.special,
+      text: '把握：程序认出特殊格局（从、化、专旺之类）并按此格论的命造，凡判了喜或忌的大运、流年，对照《滴天髓阐微》任铁樵点名吉凶的岁运，近九成相合。',
+    };
+  }
+  return {
+    level: 'normal',
+    rate: YUN_CONFIDENCE.fuyi,
+    text: '把握：此盘按扶抑取喜忌。这一类命造，凡程序判了喜或忌的大运、流年，对照《滴天髓阐微》任铁樵点名吉凶的岁运，约七成相合、近三成相反，请留有余地；判参半、平的不在此数。',
+  };
+};
+
+/**
+ * 喜用之首的把握：对照《滴天髓阐微》《子平真诠》写明用神的 316 造（scripts/bazi-cases.mjs 的喜用一栏），按扶抑取用的：
+ * - 程序判中和的 51 造，喜用之首与原书用神一致 32 造（六成三）、取反 8 造（一成六）；留出的 17 造只一致 7 造、取反 5 造。
+ *   中和的命造偏向哪一边取用最易两可，所以单独说。
+ * - 其余（偏强、偏弱、极强、极弱）241 造一致 184 造（七成六）、取反 16 造（不到一成）。
+ * 认出特殊格局的命造另按此格论，旺衰一节已提示见格局，这里不给。数字由 test/bazi-cases.test.js 卡住。
+ */
+export const YONG_SHEN_CONFIDENCE = Object.freeze({
+  balanced: Object.freeze({ same: 0.6, reversed: 0.15 }),
+  other: Object.freeze({ same: 0.75, reversed: 0.07 }),
+});
+
+/**
+ * @param {object|null} strength analyzeStrength 的结果
+ * @returns {{ level: 'low'|'normal', text: string }|null} 没有列出喜用时为 null
+ */
+export const yongShenConfidenceOf = (strength) => {
+  if (!strength?.favorable?.length) return null;
+  if (strength.band === '中和') {
+    return {
+      level: 'low',
+      text: '把握：中和的命造偏向哪一边取用，最容易两可。对照《滴天髓阐微》《子平真诠》写明用神的命造，程序判中和的，喜用之首与原书一致约六成、取反约一成半，请两边参看。',
+    };
+  }
+  return {
+    level: 'normal',
+    text: '把握：对照《滴天髓阐微》《子平真诠》写明用神的命造，旺衰分明、按扶抑取用的，喜用之首与原书一致约七成半、取反不到一成。',
+  };
 };
 
 /** 某个五行对日主是喜用（good）、忌神（bad）还是平（neutral）。 */
@@ -382,8 +442,8 @@ const supportAndRestrain = ({ band, total, scores, dayWuxing, usable, touCounts 
       basis = '身旺印多，官星透出有力，足以用官，财、食伤次之';
     }
   } else if (total >= STRENGTH_BOUNDS.tooStrong && usable.has(output)) {
-    // 太旺（3.3 分以上、未到旺极）：官杀逆其旺势反激，宜食伤泄秀（任注「木太旺者而似金，喜火之炼也」
-    // 「水太旺者而似土，喜木之制也」；戊辰 乙丑 戊戌 辛酉「重重厚土……伤官又旺，其势足以敌官星之寡。
+    // 太旺（3.3 分以上、未到旺极）：官杀逆其旺势反激，宜食伤泄秀（任注《衰旺》「木太旺者，似金也，以丁火为用」
+    // （甲辰 丁卯 甲子 戊辰）、「水太旺者，似土也，喜其寅木吐秀」（壬寅 辛亥 壬子 辛丑）；戊辰 乙丑 戊戌 辛酉「重重厚土……伤官又旺，其势足以敌官星之寡。
     // 故初交丙寅丁卯，官星得地，刑耗多端」）。
     favorable = [output, wealth, officer];
     basis = '身旺太过，官杀逆其旺势，取食伤泄秀，财次之';
