@@ -54,7 +54,7 @@ import {
 import { findRelations } from '../utils/baziRelations';
 import { getShensha, SHENSHA_ORDER, SHENSHA_SOURCES } from '../utils/baziShensha';
 import { cite } from '../data/classics';
-import { analyzeStrength, favorBasisOf } from '../utils/baziStrength';
+import { analyzeStrength, favorBasisOf, favorConfidenceOf } from '../utils/baziStrength';
 import { judgeBaziPattern } from '../utils/baziPattern';
 import { describeQuYun } from '../utils/baziQuYun';
 import { analyzeLiuqin, liuqinOfYun } from '../utils/baziLiuqin';
@@ -1467,6 +1467,9 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                     <span className="mx-1 inline-block size-2 rounded-sm bg-[#b9ad98] align-middle" aria-hidden="true" />平；地支与原局凑齐三会方、三合局的，按局的五行论。流年右上角的圆点同理。大运地支逢未作火论（南方燥土），癸丑作水、甲辰作木（任注「癸丑北方湿土，亦作水论」「癸卯甲辰东方木地」），流年不论。运以地支为重：运干是喜、运支是忌又克运干的（截脚，任注「支不载干，则十年皆否」），右上角标<span className="mx-0.5 font-bold text-[#a33b30]">截</span>，整步运按忌论；运干喜而生运支之忌的（喜神泄气、忌神得生，任注「金不通根，木得长生」）标<span className="mx-0.5 font-bold text-[#a33b30]">泄</span>，也按忌论；运干喜而克住运支之忌的（任注「辛卯庚寅盖头，逢金不能生火坏印」）标<span className="mx-0.5 font-bold text-[#2d6b62]">盖</span>，按喜论。
                                                     {favorBasis?.source === 'special' && (
                                                         <span className="block text-[#7f4b12]" data-testid="bazi-favor-basis">此盘{favorBasis.specialName}，大运流年与择日的喜忌按此格论（顺其气势为吉）；若不成格，以「五行与旺衰」一节的扶抑喜忌为准。</span>
+                                                    )}
+                                                    {favorBasis && (
+                                                        <span className="block font-medium text-[#6b6156]" data-testid="bazi-favor-confidence">{favorConfidenceOf(favorBasis).text}</span>
                                                     )}
                                                 </p>
                                                 <div className="hidden border-l border-t border-[#b9ad98] print:grid print:grid-cols-7">
