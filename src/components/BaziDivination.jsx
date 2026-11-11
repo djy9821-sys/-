@@ -1360,7 +1360,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                                 神煞查法与出处 <span className="text-xs font-normal text-[#81776b]">{natalShenshaNames.length ? `本命见 ${natalShenshaNames.length} 种` : '本命未见'}</span>
                                                             </summary>
                                                             <div className="border-t border-[#cbbfac]/70 px-3 py-3">
-                                                                <p className="text-[11px] leading-5 text-[#81776b]">查法沿用{cite('sanming')}等古籍口诀，与通行排盘一致；有流派差异的在条目里注明。先列本命所见，再列其余。</p>
+                                                                <p className="text-[11px] leading-5 text-[#81776b]">查法多据{cite('sanming')}，卷篇见各条；古籍未见专篇的标「通行查法」，流派差异与底本异文在条目里注明。先列本命所见，再列其余。</p>
                                                                 <dl className="mt-2 grid gap-x-5 gap-y-2.5 sm:grid-cols-2">
                                                                     {[...natalShenshaNames, ...SHENSHA_ORDER.filter((name) => !natalShenshaNames.includes(name))].map((name) => {
                                                                         const source = SHENSHA_SOURCES[name];
@@ -1369,7 +1369,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                                         return (
                                                                             <div key={name} className={present ? '' : 'opacity-70'}>
                                                                                 <dt className="text-xs font-bold text-[#2d6b62]">{name}{present ? <span className="ml-1 rounded border border-[#2d6b62]/40 px-1 text-[10px] font-normal text-[#245a52]">本命</span> : null} <span className="font-normal text-[#81776b]">{cite(source.classic, source.section)}</span></dt>
-                                                                                <dd className="mt-0.5 text-[11px] leading-5 text-[#6f665d]">{source.rule}{source.quote ? <span className="block text-[#514941]">口诀：{source.quote}</span> : null}{source.variant ? <span className="block">{source.variant}</span> : null}</dd>
+                                                                                <dd className="mt-0.5 text-[11px] leading-5 text-[#6f665d]">{source.rule}{source.quote ? <span className="block text-[#514941]">原文：{source.quote}</span> : null}{source.variant ? <span className="block">{source.variant}</span> : null}</dd>
                                                                             </div>
                                                                         );
                                                                     })}
