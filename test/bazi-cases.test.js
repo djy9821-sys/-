@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { chengBaiCheck, evaluateBaziCase, findSolarDateByPillars, liuqinScopeOf, liuqinVerdictOf, samePatternFamily, sameRegularPattern, useGodElement, xiangShenCheck, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
+import { chengBaiCheck, evaluateBaziCase, findSolarDateByPillars, isUseGodHoldout, liuqinScopeOf, liuqinVerdictOf, samePatternFamily, sameRegularPattern, useGodElement, xiangShenCheck, yunVerdictOf } from '../scripts/lib/baziCases.mjs';
 import { loadDataFiles } from '../scripts/lib/dataFiles.mjs';
+import { YONG_SHEN_CONFIDENCE, YUN_CONFIDENCE } from '../src/utils/baziStrength.js';
 
 test('八字命例：按四柱找日子（时柱可缺），找不到或干支不合法时为 null', () => {
   // 乾隆：辛卯 丁酉 庚午 丙子，康熙五十年八月十三日子时
@@ -233,11 +234,14 @@ const caseEntries = loadDataFiles().cases
   .flatMap(({ doc }) => doc.entries ?? [])
   .filter((entry) => entry?.expected && Array.isArray(entry.pillars) && !/自检/.test(entry.notes ?? ''));
 const strengthCaseCount = caseEntries.filter((entry) => entry.expected.strength).length;
+// 594 造逐造排盘要一分钟上下，两个测试共用一份结果。
+let evaluatedCache = null;
+const evaluatedCases = () => (evaluatedCache ??= caseEntries.map(evaluateBaziCase));
 
 test('古籍命例校准：旺衰与书上大体一致、极少相反；喜用之首与书上用神一致的四成以上；书上点名的特殊格局认出六成以上',
   { skip: strengthCaseCount < 40 ? `写了旺衰的命例只有 ${strengthCaseCount} 条，等《滴天髓阐微》命例并入后再跑` : false },
   () => {
-    const results = caseEntries.map(evaluateBaziCase);
+    const results = evaluatedCases();
     assert.deepEqual(results.filter((result) => result.error).map(({ id }) => id), []);
     const tally = (key) => results.reduce((acc, { checks }) => {
       if (checks?.[key]) acc[checks[key]] = (acc[checks[key]] ?? 0) + 1;
@@ -258,4 +262,83 @@ test('古籍命例校准：旺衰与书上大体一致、极少相反；喜用�
     const liuqinYun = results.flatMap(({ checks }) => checks?.liuqinYun ?? []).reduce((acc, check) => ({ ...acc, [check]: (acc[check] ?? 0) + 1 }), {});
     assert.ok((liuqinYun.same ?? 0) / total(liuqinYun) >= 0.55, `运中六亲 ${JSON.stringify(liuqinYun)}`);
     assert.ok((liuqinYun.reversed ?? 0) / total(liuqinYun) <= 0.25, `运中六亲 ${JSON.stringify(liuqinYun)}`);
+  });
+
+// 防回退线：上面那组下限是命例刚并入时定的，离现状已经很远（喜用下限四成、实际七成四；岁运没有下限），
+// 改坏了也不报警。这里按现状另设一组，各比现状低两三个点（2026-11：旺衰同 76.2% 反 7.4%，喜用同 73.7% 反 7.9%，
+// 喜用留集同 71.6% 反 11.4%，岁运同 63.5% 反 18.0%，岁运留集同 62.0% 反 20.4%，成败同 78.7%，原局六亲同 65.8% 反 22.4%，
+// 运中六亲同 68.1% 反 17.4%，书上点名的特殊格局认出 84.9%）。
+// 只算已经校准过的两部书（《滴天髓阐微》《子平真诠》）的命例：新录的书先看 node scripts/bazi-cases.mjs 的数字，不设线，
+// 免得一并进来就把比例拉低。算法改进、数字涨了，就把线跟着往上提；跌破时先看是哪些造、为什么，再决定改算法还是改线。
+const RATCHET_SOURCES = new Set(['ditian', 'ziping']);
+test('古籍命例防回退：旺衰、喜用、岁运、成败、六亲的一致率不低于现状两三个点，固定留集另设线',
+  { skip: strengthCaseCount < 40 ? `写了旺衰的命例只有 ${strengthCaseCount} 条` : false },
+  () => {
+    const pairs = evaluatedCases().map((result, index) => ({ result, entry: caseEntries[index] }))
+      .filter(({ entry }) => RATCHET_SOURCES.has(entry.source?.classic));
+    const checksOf = (key, pick = () => true) => pairs.filter(({ entry }) => pick(entry))
+      .flatMap(({ result }) => [].concat(result.checks?.[key] ?? []))
+      .reduce((acc, check) => ({ ...acc, [check]: (acc[check] ?? 0) + 1 }), {});
+    const total = (counts) => Object.values(counts).reduce((sum, value) => sum + value, 0);
+    const hold = (label, counts, sameMin, reversedMax) => {
+      const summary = `${label} ${JSON.stringify(counts)}`;
+      assert.ok(total(counts) > 0, `${label}没有可比的命例`);
+      assert.ok((counts.same ?? 0) / total(counts) >= sameMin, `${summary}：一致率低于 ${sameMin}`);
+      assert.ok((counts.reversed ?? 0) / total(counts) <= reversedMax, `${summary}：相反率高于 ${reversedMax}`);
+    };
+    hold('旺衰', checksOf('strength'), 0.74, 0.09);
+    hold('喜用', checksOf('useGod'), 0.71, 0.10);
+    hold('喜用（固定留集）', checksOf('useGod', isUseGodHoldout), 0.68, 0.14);
+    hold('岁运', checksOf('yun'), 0.62, 0.195);
+    hold('岁运（固定留集）', checksOf('yun', isUseGodHoldout), 0.59, 0.23);
+    hold('成败', checksOf('chengBai'), 0.74, 0.05);
+    hold('原局六亲', checksOf('liuqin'), 0.63, 0.24);
+    hold('运中六亲', checksOf('liuqinYun'), 0.66, 0.19);
+    const pattern = checksOf('pattern');
+    const named = (pattern.same ?? 0) + (pattern.miss ?? 0);
+    assert.ok(named > 0 && (pattern.same ?? 0) / named >= 0.82, `格局 ${JSON.stringify(pattern)}：书上点名的特殊格局认出不到八成二`);
+  });
+
+// 结果页与导出给 AI 的大运一节注明「把握」：按此格论的命造近九成、按扶抑的约七成与原书相合（baziStrength.js 的 YUN_CONFIDENCE）。
+// 这里拿命例把这两个说法卡住：只算程序判了吉或凶的岁运（判平的不计），实际相合的比例与所说的「几成」相差不得超过半成。
+// 2026-11：按此格论 186 步相合 174（93.5%），按扶抑 611 步相合 447（73.2%）。数字变了、跌出范围时，改那两句话，不要改这里的容差。
+test('岁运把握的说法与命例相符：按此格论近九成、按扶抑约七成',
+  { skip: strengthCaseCount < 40 ? `写了旺衰的命例只有 ${strengthCaseCount} 条` : false },
+  () => {
+    const decided = { special: { same: 0, reversed: 0 }, fuyi: { same: 0, reversed: 0 } };
+    evaluatedCases().forEach((result, index) => {
+      if (!RATCHET_SOURCES.has(caseEntries[index].source?.classic)) return;
+      const source = result.program?.useGodSource;
+      [].concat(result.checks?.yun ?? []).forEach((check) => { if (decided[source] && check !== 'near') decided[source][check] += 1; });
+    });
+    for (const [source, counts] of Object.entries(decided)) {
+      const total = counts.same + counts.reversed;
+      assert.ok(total >= 100, `${source} 判了吉凶的岁运只有 ${total} 步，不足以说几成`);
+      const rate = counts.same / total;
+      assert.ok(Math.abs(rate - YUN_CONFIDENCE[source]) <= 0.05, `${source}：${total} 步相合 ${counts.same}（${(rate * 100).toFixed(1)}%），与所说的 ${YUN_CONFIDENCE[source] * 10} 成不符`);
+    }
+    assert.ok(decided.special.same / (decided.special.same + decided.special.reversed) - decided.fuyi.same / (decided.fuyi.same + decided.fuyi.reversed) >= 0.1, '两类命造的把握已相差不到一成，分开说的理由不成立');
+  });
+
+// 旺衰一节的「把握」：按扶抑取用的命造，喜用之首与原书用神一致的比例——程序判中和的约六成（取反约一成半），其余约七成半（取反不到一成）。
+// 2026-11：中和 51 造一致 32、取反 8；其余 241 造一致 184、取反 16。
+test('喜用把握的说法与命例相符：中和约六成一致、一成半取反，其余约七成半、取反不到一成',
+  { skip: strengthCaseCount < 40 ? `写了旺衰的命例只有 ${strengthCaseCount} 条` : false },
+  () => {
+    const tally = { balanced: { same: 0, reversed: 0, total: 0 }, other: { same: 0, reversed: 0, total: 0 } };
+    evaluatedCases().forEach((result, index) => {
+      const check = result.checks?.useGod;
+      if (!check || result.program?.useGodSource !== 'fuyi' || !RATCHET_SOURCES.has(caseEntries[index].source?.classic)) return;
+      const bucket = tally[result.program.band === '中和' ? 'balanced' : 'other'];
+      bucket.total += 1;
+      if (check === 'same' || check === 'reversed') bucket[check] += 1;
+    });
+    for (const [key, counts] of Object.entries(tally)) {
+      assert.ok(counts.total >= 40, `${key} 只有 ${counts.total} 造，不足以说几成`);
+      const summary = `${key}：${counts.total} 造一致 ${counts.same}、取反 ${counts.reversed}`;
+      assert.ok(Math.abs(counts.same / counts.total - YONG_SHEN_CONFIDENCE[key].same) <= 0.05, `${summary}，与所说的一致率 ${YONG_SHEN_CONFIDENCE[key].same} 不符`);
+      assert.ok(Math.abs(counts.reversed / counts.total - YONG_SHEN_CONFIDENCE[key].reversed) <= 0.05, `${summary}，与所说的取反率 ${YONG_SHEN_CONFIDENCE[key].reversed} 不符`);
+    }
+    assert.ok(tally.other.reversed / tally.other.total < 0.1, '「取反不到一成」已不成立');
+    assert.ok(tally.other.same / tally.other.total - tally.balanced.same / tally.balanced.total >= 0.08, '中和与其余命造的把握已相差无几，单独提醒的理由不成立');
   });

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildBaziChart } from '../src/utils/baziChart.js';
-import { STRENGTH_BOUNDS, STRENGTH_SCORE, analyzeStrength, elementToneOf, favorBasisOf } from '../src/utils/baziStrength.js';
+import { STRENGTH_BOUNDS, STRENGTH_SCORE, YUN_CONFIDENCE, analyzeStrength, elementToneOf, favorBasisOf, favorConfidenceOf, yongShenConfidenceOf } from '../src/utils/baziStrength.js';
 import { judgeBaziPattern } from '../src/utils/baziPattern.js';
 import { findSolarDateByPillars } from '../scripts/lib/baziCases.mjs';
 
@@ -392,4 +392,34 @@ test('运限喜忌的依据：认出疑似从、化、专旺的按此格论（�
   assert.equal(plain.source, 'fuyi');
   assert.deepEqual(plain.favorable, strength.favorable);
   assert.equal(favorBasisOf(null, special), null);
+});
+
+test('岁运喜忌的把握：按此格论的命造注明近九成，按扶抑的注明约七成、近三成相反', () => {
+  const chart = chartOf(1975, 2, 26, 6);
+  const strength = analyzeStrength(chart);
+  const special = judgeBaziPattern(chart, strength).special;
+  const high = favorConfidenceOf(favorBasisOf(strength, special));
+  assert.equal(high.level, 'high');
+  assert.equal(high.rate, YUN_CONFIDENCE.special);
+  assert.match(high.text, /^把握：.*按此格论.*近九成相合/);
+  const normal = favorConfidenceOf(favorBasisOf(strength, null));
+  assert.equal(normal.level, 'normal');
+  assert.equal(normal.rate, YUN_CONFIDENCE.fuyi);
+  assert.match(normal.text, /^把握：此盘按扶抑取喜忌.*约七成相合、近三成相反/);
+  // 两句都写明是与哪部书对照，不说成应验率
+  for (const item of [high, normal]) assert.match(item.text, /对照《滴天髓阐微》任铁樵点名吉凶的岁运/);
+  assert.equal(favorConfidenceOf(null), null);
+});
+
+test('喜用之首的把握：中和的命造单独提醒（约六成一致、一成半取反），其余约七成半', () => {
+  assert.equal(yongShenConfidenceOf(null), null);
+  assert.equal(yongShenConfidenceOf({ band: '中和', favorable: [] }), null, '没列喜用就不说把握');
+  const low = yongShenConfidenceOf({ band: '中和', favorable: [{ element: '水' }] });
+  assert.equal(low.level, 'low');
+  assert.match(low.text, /^把握：中和的命造.*一致约六成、取反约一成半/);
+  for (const band of ['偏弱', '偏强', '极弱', '极强']) {
+    const normal = yongShenConfidenceOf({ band, favorable: [{ element: '水' }] });
+    assert.equal(normal.level, 'normal');
+    assert.match(normal.text, /一致约七成半、取反不到一成/);
+  }
 });
