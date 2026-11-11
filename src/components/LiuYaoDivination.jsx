@@ -11,8 +11,8 @@ import ManualCast from './liuyao/ManualCast';
 import { useCurrentPlace } from './common/useCurrentPlace';
 import { buildLiuYaoReading, describeCastTime } from '../utils/liuyao';
 import { castByNumbers, castByTime } from '../utils/liuyaoCast';
-import { LIUYAO_TOPICS } from '../utils/liuyaoJudge';
-import { liuYaoRecordToInput } from '../utils/liuyaoRecord';
+import { LIUYAO_SUBJECTS, LIUYAO_TOPICS, liuyaoNeedsGender as needsGender, topicSubjectDefault } from '../utils/liuyaoJudge';
+import { LIUYAO_ILLNESS_LABELS, liuYaoRecordToInput } from '../utils/liuyaoRecord';
 import { toLocalSolarNow } from '../utils/currentPlace';
 import { track } from '../utils/analytics';
 import { INPUT_FIELD_CLASS } from './bazi/baziTheme';
@@ -81,6 +81,10 @@ const parseCastNumber = (text) => {
     return value >= 1 && value <= 9999 ? value : null;
 };
 
+/** 收在「更多类别」里的类别名，用在展开按钮上。 */
+const MORE_TOPIC_LABELS = LIUYAO_TOPICS.filter((option) => !option.common).map((option) => option.label);
+
+
 const chipClass = (active) => `min-h-10 rounded-xl border px-2 text-xs font-bold leading-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8] ${active ? 'border-[#dcb471]/60 bg-[#dcb471]/15 text-[#f0ce91]' : 'border-white/10 bg-black/20 text-[#fbf7ed]/65 hover:border-[#dcb471]/35'}`;
 
 /**
@@ -92,7 +96,11 @@ export default function LiuYaoDivination({ onBack, initialMethod = null, initial
     const [step, setStep] = useState(initialCast ? 'result' : 'ask');
     const [question, setQuestion] = useState(initialCast?.question ?? '');
     const [topic, setTopic] = useState(initialCast?.topic ?? 'general');
+    const [showMoreTopics, setShowMoreTopics] = useState(false);
     const [gender, setGender] = useState(initialCast?.gender ?? '');
+    // 替谁问（空为按类别默认）与问病的病程
+    const [subject, setSubject] = useState(initialCast?.subject ?? '');
+    const [illness, setIllness] = useState(initialCast?.illness ?? '');
     const [method, setMethod] = useState(initialMethod === 'gesture' ? 'gesture' : 'coins');
     const [numbers, setNumbers] = useState({ first: '', second: '' });
     const [formError, setFormError] = useState('');
@@ -112,7 +120,7 @@ export default function LiuYaoDivination({ onBack, initialMethod = null, initial
         if (!cast) return null;
         try {
             return buildLiuYaoReading(cast.values, cast.castDate, {
-                question: cast.question, method: cast.method, topic: cast.topic, gender: cast.gender, castNote: cast.castNote,
+                question: cast.question, method: cast.method, topic: cast.topic, gender: cast.gender, subject: cast.subject, illness: cast.illness, castNote: cast.castNote,
             });
         } catch {
             return null;
@@ -133,7 +141,9 @@ export default function LiuYaoDivination({ onBack, initialMethod = null, initial
             question: question.trim(),
             method,
             topic,
-            gender: topic === 'love' ? gender : '',
+            gender: needsGender(topic, subject) ? gender : '',
+            subject: topicSubjectDefault(topic) !== null ? subject : '',
+            illness: topic === 'health' ? illness : '',
             castNote,
             placeLabel: placeLabelOf(place),
         });
@@ -146,8 +156,8 @@ export default function LiuYaoDivination({ onBack, initialMethod = null, initial
     const handleComplete = (values) => finishCast(values, toLocalSolarNow(new Date(), place));
 
     const handleStart = () => {
-        if (topic === 'love' && !gender) {
-            setFormError('问感情请先选择问卦人是男是女，用神才能取准。');
+        if (needsGender(topic, subject) && !gender) {
+            setFormError(topic === 'love' ? '问感情请先选择问卦人是男是女，用神才能取准。' : '替配偶问请先选择问卦人是男是女（男问妻取妻财，女问夫取官鬼）。');
             return;
         }
         if (method === 'time') {
@@ -179,12 +189,23 @@ export default function LiuYaoDivination({ onBack, initialMethod = null, initial
         setStep('cast');
     };
 
-    // 结果页上换个类别重看：同一卦，只是换用神；存档时按最新的类别记录。
-    const changeTopic = (nextTopic, nextGender) => {
+    // 结果页上换个类别、换替谁问重看：同一卦，只是换用神；存档时按最新的记录。
+    const changeTopic = (nextTopic, nextGender, nextSubject = '', nextIllness = '') => {
+        const keptSubject = topicSubjectDefault(nextTopic) !== null ? nextSubject : '';
         setTopic(nextTopic);
         setGender(nextGender);
-        setCast((current) => (current ? { ...current, topic: nextTopic, gender: nextTopic === 'love' ? nextGender : '' } : current));
+        setSubject(keptSubject);
+        setIllness(nextTopic === 'health' ? nextIllness : '');
+        setCast((current) => (current ? {
+            ...current,
+            topic: nextTopic,
+            gender: needsGender(nextTopic, keptSubject) ? nextGender : '',
+            subject: keptSubject,
+            illness: nextTopic === 'health' ? nextIllness : '',
+        } : current));
     };
+    const subjectDefault = topicSubjectDefault(topic);
+    const activeSubject = subject || subjectDefault;
 
     if (step === 'cast') {
         if (method === 'manual') {
@@ -279,19 +300,43 @@ export default function LiuYaoDivination({ onBack, initialMethod = null, initial
                             <fieldset>
                                 <legend className="text-xs font-bold tracking-widest text-[#dcb471]">问事类别 <span className="font-normal tracking-normal text-[#fbf7ed]/45">决定用神怎么取</span></legend>
                                 <div className="mt-1.5 grid grid-cols-3 gap-1.5 sm:grid-cols-4">
-                                    {LIUYAO_TOPICS.map((option) => (
-                                        <button key={option.value} type="button" aria-pressed={topic === option.value} title={option.hint} onClick={() => { setTopic(option.value); setFormError(''); }} className={chipClass(topic === option.value)}>
+                                    {LIUYAO_TOPICS.filter((option) => option.common || showMoreTopics || option.value === topic).map((option) => (
+                                        <button key={option.value} type="button" aria-pressed={topic === option.value} title={option.hint} onClick={() => { if (option.value !== topic) { setTopic(option.value); setSubject(''); } setFormError(''); }} className={chipClass(topic === option.value)}>
                                             {option.label}
                                         </button>
                                     ))}
                                 </div>
-                                {topic === 'love' && (
+                                <button type="button" aria-expanded={showMoreTopics} onClick={() => setShowMoreTopics((value) => !value)} className="mt-1.5 min-h-8 rounded-lg px-1 text-xs font-bold text-[#dcb471]/80 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8]">
+                                    {showMoreTopics ? '收起更多类别' : `更多类别：${MORE_TOPIC_LABELS.slice(0, 4).join('、')}等 ${MORE_TOPIC_LABELS.length} 类`}
+                                </button>
+                                {subjectDefault !== null && (
+                                    <div className="mt-2" role="group" aria-label="替谁问">
+                                        <p className="text-[11px] text-[#fbf7ed]/60">替谁问 <span className="text-[#fbf7ed]/40">代占以那人的六亲为用神</span></p>
+                                        <div className="mt-1 grid grid-cols-3 gap-1.5">
+                                            {LIUYAO_SUBJECTS.map((option) => (
+                                                <button key={option.value} type="button" aria-pressed={activeSubject === option.value} title={option.hint} onClick={() => { setSubject(option.value); setFormError(''); }} className={chipClass(activeSubject === option.value)}>
+                                                    {option.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {needsGender(topic, subject) && (
                                     <div className="mt-2 flex items-center gap-2 text-xs text-[#fbf7ed]/70" role="group" aria-label="问卦人性别">
                                         <span>问卦人是</span>
                                         {[['male', '男'], ['female', '女']].map(([value, label]) => (
                                             <button key={value} type="button" aria-pressed={gender === value} onClick={() => { setGender(value); setFormError(''); }} className={`${chipClass(gender === value)} min-w-12`}>{label}</button>
                                         ))}
-                                        <span className="text-[#fbf7ed]/45">男测取妻财，女测取官鬼</span>
+                                        <span className="text-[#fbf7ed]/45">{topic === 'love' ? '男测取妻财，女测取官鬼' : '男问妻取妻财，女问夫取官鬼'}</span>
+                                    </div>
+                                )}
+                                {topic === 'health' && (
+                                    <div className="mt-2 flex items-center gap-2 text-xs text-[#fbf7ed]/70" role="group" aria-label="病程">
+                                        <span>病程</span>
+                                        {Object.entries(LIUYAO_ILLNESS_LABELS).map(([value, label]) => (
+                                            <button key={value} type="button" aria-pressed={illness === value} onClick={() => setIllness((current) => (current === value ? '' : value))} className={`${chipClass(illness === value)} min-w-12`}>{label}</button>
+                                        ))}
+                                        <span className="text-[#fbf7ed]/45">新病逢冲即愈，久病逢冲难治</span>
                                     </div>
                                 )}
                                 <p className="mt-1.5 text-[11px] leading-5 text-[#fbf7ed]/45">{LIUYAO_TOPICS.find((option) => option.value === topic)?.hint}</p>

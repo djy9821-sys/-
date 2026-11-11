@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { installErrorReporting, track } from './utils/analytics.js'
+import { isNativeShell } from './utils/nativeShell.js'
 
 // 页面出错时只上报错误类型与一句信息（见 utils/analytics.js），不带任何生辰资料。
 installErrorReporting();
@@ -13,6 +14,8 @@ installErrorReporting();
 const registerServiceWorker = () => {
   if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {
+    // 安卓安装包里网页文件就在手机上，不需要离线缓存（打包时也去掉了 sw.js，见 scripts/android/prepare.py）。
+    if (isNativeShell()) return;
     navigator.serviceWorker.register('/sw.js').catch((error) => {
       console.warn('离线缓存未启用:', error);
     });

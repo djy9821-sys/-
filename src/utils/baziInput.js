@@ -13,6 +13,7 @@ export const baziFormToChartInput = (form) => {
     day: form.day,
     gender: form.gender,
     daySect: form.daySect,
+    yearBoundary: form.yearBoundary === 'chunjie' ? 'chunjie' : 'lichun',
   };
   if (form.timeMode === 'unknown') return { ...base, timeMode: 'unknown' };
   const clock = form.timeMode === 'exact' ? parseClockTime(form.clockTime) : null;

@@ -39,13 +39,135 @@ const overallTone = (gan, zhi) => {
   return 'neutral';
 };
 
-/** 某柱天干、地支对日主的喜忌。 */
-export const describeFavor = (item, strength) => {
-  if (!item?.gan || !strength) return null;
-  const gan = elementToneOf(GAN_WUXING[item.gan], strength);
-  const zhi = elementToneOf(ZHI_WUXING[item.zhi], strength);
-  return { gan, zhi, overall: overallTone(gan, zhi) };
+/** 三会方与三合局：三会的方气专一，先查。 */
+const JU = Object.freeze([
+  { members: ['寅', '卯', '辰'], element: '木', kind: '三会', name: '寅卯辰三会木方' },
+  { members: ['巳', '午', '未'], element: '火', kind: '三会', name: '巳午未三会火方' },
+  { members: ['申', '酉', '戌'], element: '金', kind: '三会', name: '申酉戌三会金方' },
+  { members: ['亥', '子', '丑'], element: '水', kind: '三会', name: '亥子丑三会水方' },
+  { members: ['申', '子', '辰'], element: '水', kind: '三合', name: '申子辰三合水局' },
+  { members: ['亥', '卯', '未'], element: '木', kind: '三合', name: '亥卯未三合木局' },
+  { members: ['寅', '午', '戌'], element: '火', kind: '三合', name: '寅午戌三合火局' },
+  { members: ['巳', '酉', '丑'], element: '金', kind: '三合', name: '巳酉丑三合金局' },
+]);
+
+/**
+ * 运、年的地支与原局地支（流年再加大运地支）凑齐的三会方或三合局。
+ * 《滴天髓·岁运》任注论运多看会局：「乙丑支全金局，火土两泄」「壬戌支类西方，木火并伤」「至亥运会木生杀而亡」——
+ * 运支补齐了局，就按局的五行论喜忌，不再按本支。只算三字凑齐的，半合不算。
+ * @param {string} zhi 运或年的地支
+ * @param {string[]} zhis 原局地支（流年再加大运地支）
+ * @returns {{ element: string, kind: '三会'|'三合', name: string, members: string[], others: string[] }|null}
+ */
+export const juOfZhi = (zhi, zhis = []) => {
+  if (!zhi) return null;
+  const found = JU.find((ju) => ju.members.includes(zhi) && ju.members.every((member) => member === zhi || zhis.includes(member)));
+  return found ? { ...found, others: found.members.filter((member) => member !== zhi) } : null;
 };
+
+const CONTROLS = { 木: '土', 火: '金', 土: '水', 金: '木', 水: '火' };
+const GENERATES = { 木: '火', 火: '土', 土: '金', 金: '水', 水: '木' };
+
+/**
+ * 四库作大运地支，任注多按其所在之方论：未为南方燥土，作火论（「己未南方燥土，伤官助劫」「壬午癸未，南方火地」
+ * 「辛未运转南方，丙火得地，生根」「戊午己未，燥土不能生金泄火」）；丑、辰是湿土，只在运干与方同气时随方论——
+ * 「癸丑北方湿土，亦作水论」「癸卯甲辰东方木地」。戌燥土夺水（「戌运燥土冲动壬水之根」）、丑辰湿土生金晦火
+ * （「湿土生金晦火」）仍按土论。拿《滴天髓阐微》命造的岁运对照：大运同 563 → 573、反 187 → 180。只论大运，流年不论。
+ * @returns {{ element: string, note: string }|null}
+ */
+export const fangOfYunZhi = (gan, zhi) => {
+  if (zhi === '未') return { element: '火', note: '南方燥土，作火论' };
+  if (zhi === '丑' && gan === '癸') return { element: '水', note: '北方湿土，亦作水论' };
+  if (zhi === '辰' && gan === '甲') return { element: '木', note: '东方木地，作木论' };
+  return null;
+};
+
+/**
+ * 大运干支一喜一忌时的四种情形（《滴天髓·岁运》任注）：运「以地支为重，要天干不背」。
+ * - 截脚：天干是喜，地支是忌而克天干（喜木运遇甲申、乙酉），「支不载干，则十年皆否」，整步运按忌论。
+ * - 忌盖喜：地支是喜，天干是忌而克地支（喜木运遇庚寅、辛卯），「虽有十分之吉，亦减其半」，仍是喜忌参半。
+ * - 喜盖忌：天干是喜而克地支之忌（用金运遇庚寅、辛卯），忌神被压住，整步运按喜论——任注「辛卯庚寅盖头，逢金不能生火坏印，
+ *   名利两全」（辛卯 丙申 癸卯 壬戌，以申金为用、丙火为病）；任注命造里这种运三分之二书吉。
+ * - 喜泄于忌：天干是喜而生地支之忌（喜水运遇壬寅、癸卯），喜神泄气、忌神得生，整步运按忌论——任注「初运癸卯壬寅，离间喜神，
+ *   功名蹭蹬，困苦刑伤」（丁酉 甲辰 戊戌 戊午，用酉金，水生木离间土金）、「辛亥运金不通根，木得长生，忽患风疾而卒」
+ *   （壬辰 甲辰 庚午 丙戌，用土，木为病）；任注命造里这种运没有一步书吉。
+ * 其余一喜一忌的组合（支生干、干生支而干忌支喜……）任注吉凶各半，仍作参半。地支与原局会局的，按局的五行看生克。
+ */
+const coverOf = (gan, zhi) => {
+  if (gan.tone === 'good' && zhi.tone === 'bad' && CONTROLS[zhi.element] === gan.element) {
+    return { kind: '截脚', text: `截脚：地支${zhi.element}克天干${gan.element}，任注「支不载干，则十年皆否」，整步运按忌论` };
+  }
+  if (gan.tone === 'good' && zhi.tone === 'bad' && CONTROLS[gan.element] === zhi.element) {
+    return { kind: '喜盖忌', text: `盖头：天干${gan.element}喜而克住地支之${zhi.element}忌，任注「辛卯庚寅盖头，逢金不能生火坏印」，整步运按喜论` };
+  }
+  if (gan.tone === 'good' && zhi.tone === 'bad' && GENERATES[gan.element] === zhi.element) {
+    return { kind: '喜泄于忌', text: `天干${gan.element}喜而生地支之${zhi.element}忌，喜神泄气、忌神得生，任注「金不通根，木得长生」，整步运按忌论` };
+  }
+  if (gan.tone === 'bad' && zhi.tone === 'good' && CONTROLS[gan.element] === zhi.element) {
+    return { kind: '盖头', text: `盖头：天干${gan.element}克地支${zhi.element}，任注「虽有十分之吉，亦减其半」` };
+  }
+  return null;
+};
+
+/** 天干五合：相合的一干与所化之神。 */
+const GAN_HE = Object.freeze({ 甲: '己', 己: '甲', 乙: '庚', 庚: '乙', 丙: '辛', 辛: '丙', 丁: '壬', 壬: '丁', 戊: '癸', 癸: '戊' });
+const GAN_HE_HUA = Object.freeze({ 甲: '土', 己: '土', 乙: '金', 庚: '金', 丙: '水', 辛: '水', 丁: '木', 壬: '木', 戊: '火', 癸: '火' });
+const PILLAR_GAN_LABEL = { year: '年干', month: '月干', time: '时干' };
+
+/**
+ * 贪合助忌：大运天干是喜，却与原局天干（日干除外）相合，合的那一干是忌、所化之神也是忌——喜神贪合，反去助忌，运干不作喜论
+ * （任注「乙运合庚助虐，罢职回家」「乙丑合庚，晦火生金，落职」「乙运庚合，己丑拱金，虚损之症，不治而亡」）。
+ * 只论大运；合的是喜神、或所化不是忌神的，任注吉凶不一，不动。拿《滴天髓阐微》命造的岁运对照：同 610 → 612、反 191 → 185
+ * （作忌论反判更少，但书吉的也跟着翻掉十几步，所以只作平）。
+ * @param {string} gan 运干
+ * @param {Array<{ key: string, gan: string }>} stems 原局天干（不含日干）
+ * @param {(element: string) => 'good'|'bad'|'neutral'} toneOf 某一行的喜忌
+ * @returns {{ partner: { key: string, gan: string }, hua: string, label: string }|null}
+ */
+export const tanHeOf = (gan, stems, toneOf) => {
+  const hua = GAN_HE_HUA[gan];
+  if (!hua || toneOf(GAN_WUXING[gan]) !== 'good' || toneOf(hua) !== 'bad') return null;
+  const partner = (stems ?? []).find((stem) => stem.key !== 'day' && stem.gan === GAN_HE[gan] && toneOf(GAN_WUXING[stem.gan]) === 'bad');
+  return partner ? { partner, hua, label: `${PILLAR_GAN_LABEL[partner.key] ?? '原局'}${partner.gan}` } : null;
+};
+
+/** 盖头截脚四种情形里整步运的定论：截脚、喜泄于忌按忌，喜盖忌按喜；忌盖喜仍参半（没有定论）。 */
+const COVER_OVERALL = Object.freeze({ 截脚: 'bad', 喜泄于忌: 'bad', 喜盖忌: 'good' });
+
+/**
+ * 某柱天干、地支对日主的喜忌。
+ * @param {object} item 大运或流年（gan、zhi）
+ * @param {object} strength analyzeStrength 的结果
+ * @param {{ zhis?: string[], stems?: Array<{ key: string, gan: string }>, daYun?: boolean }} [options] 与之会局的地支（原局四支，流年再加大运支）；
+ *   地支凑齐会局的按局的五行论。daYun 为真时看盖头、截脚（见 coverOf）：截脚、喜泄于忌的整步运按忌论，喜盖忌的按喜论；
+ *   四库运支按方论的见 fangOfYunZhi；运干与原局天干（stems）贪合助忌的作平，见 tanHeOf。
+ */
+export const describeFavor = (item, strength, { zhis = [], stems = [], daYun = false } = {}) => {
+  if (!item?.gan || !strength) return null;
+  const ganTone = elementToneOf(GAN_WUXING[item.gan], strength);
+  const he = daYun ? tanHeOf(item.gan, stems, (element) => elementToneOf(element, strength).tone) : null;
+  const gan = he ? { ...ganTone, tone: 'neutral', he } : ganTone;
+  const ju = juOfZhi(item.zhi, zhis);
+  const fang = !ju && daYun ? fangOfYunZhi(item.gan, item.zhi) : null;
+  const zhi = ju ? { ...elementToneOf(ju.element, strength), ju }
+    : fang ? { ...elementToneOf(fang.element, strength), fang }
+      : elementToneOf(ZHI_WUXING[item.zhi], strength);
+  const cover = daYun ? coverOf(gan, zhi) : null;
+  return { gan, zhi, cover, overall: COVER_OVERALL[cover?.kind] ?? overallTone(gan, zhi) };
+};
+
+const natalZhisOf = (chart) => (chart?.pillars ?? []).map((pillar) => pillar.zhi).filter(Boolean);
+const natalStemsOf = (chart) => (chart?.pillars ?? []).filter((pillar) => pillar.key !== 'day' && pillar.gan).map((pillar) => ({ key: pillar.key, gan: pillar.gan }));
+
+/** 天干喜忌的说法（后面接「喜」「忌」「平」）：贪合助忌的写明与原局哪一干相合、化成什么。 */
+export const ganFavorText = (gan, favorGan) => (favorGan?.he
+  ? `天干${gan}${favorGan.element}（与${favorGan.he.label}相合化${favorGan.he.hua}，贪合助忌，不作喜论）`
+  : `天干${gan}${favorGan?.element ?? ''}`);
+
+/** 地支喜忌的说法（后面接「喜」「忌」或「为喜用」）：会局的写明会成什么局，按局的五行论。 */
+export const zhiFavorText = (zhi, favorZhi) => (favorZhi?.ju
+  ? `地支${zhi}会成${favorZhi.ju.name}，${favorZhi.element}`
+  : favorZhi?.fang ? `地支${zhi}（${favorZhi.fang.note}）${favorZhi.element}` : `地支${zhi}${favorZhi?.element ?? ''}`);
 
 /**
  * @param {object} liuNian 流年
@@ -68,13 +190,24 @@ export const getLiuNianMarks = (liuNian, { chart, daYun = null, strength = null 
     labels: ordered,
     badge: ordered[0] ?? null,
     badgeTone: ordered[0] ? YEAR_MARK_TONE[ordered[0]] : null,
-    favor: describeFavor(liuNian, strength),
+    favor: describeFavor(liuNian, strength, { zhis: [...natalZhisOf(chart), daYun?.zhi].filter(Boolean) }),
   };
 };
 
-export const getDaYunMarks = (daYun, { strength = null } = {}) => ({ favor: describeFavor(daYun, strength) });
+/** 大运的喜忌（地支与原局会局的按局论）。 */
+export const getDaYunMarks = (daYun, { strength = null, chart = null } = {}) => ({ favor: describeFavor(daYun, strength, { zhis: natalZhisOf(chart), stems: natalStemsOf(chart), daYun: true }) });
 
 const TONE_TEXT = { good: '喜', bad: '忌', neutral: '平' };
+
+/** 大运喜忌一句话：「天干丙火喜（印） · 地支子水忌（官杀）；截脚：……」。 */
+export const describeDaYunFavor = (daYun, favor) => {
+  if (!daYun || !favor) return '';
+  const parts = [
+    `${ganFavorText(daYun.gan, favor.gan)}${TONE_TEXT[favor.gan.tone]}（${favor.gan.role}）`,
+    `${zhiFavorText(daYun.zhi, favor.zhi)}${TONE_TEXT[favor.zhi.tone]}（${favor.zhi.role}）`,
+  ];
+  return `${parts.join(' · ')}${favor.cover ? `；${favor.cover.text}` : ''}`;
+};
 
 /** 一句话说明：「丙午流年：冲太岁 · 天干丙火喜（印）· 地支午火忌（食伤）」 */
 export const describeYearMarks = (liuNian, marks) => {
@@ -82,7 +215,7 @@ export const describeYearMarks = (liuNian, marks) => {
   const parts = [...marks.labels];
   if (marks.favor) {
     parts.push(`天干${liuNian.gan}${marks.favor.gan.element}${TONE_TEXT[marks.favor.gan.tone]}（${marks.favor.gan.role}）`);
-    parts.push(`地支${liuNian.zhi}${marks.favor.zhi.element}${TONE_TEXT[marks.favor.zhi.tone]}（${marks.favor.zhi.role}）`);
+    parts.push(`${zhiFavorText(liuNian.zhi, marks.favor.zhi)}${TONE_TEXT[marks.favor.zhi.tone]}（${marks.favor.zhi.role}）`);
   }
   return parts.join(' · ');
 };
@@ -205,11 +338,12 @@ export const describeYearSummary = (liuNian, { chart = null, daYun = null, stren
   }
 
   if (favor && zhiTone !== 'neutral') {
-    const hiddenMain = liuNian.hiddenShiShens?.[0] ?? '';
+    const hiddenMain = favor.zhi.ju ? '' : liuNian.hiddenShiShens?.[0] ?? '';
     const hidden = hiddenMain ? `，藏干主气${hiddenMain}` : '';
+    const subject = zhiFavorText(liuNian.zhi, favor.zhi);
     sentences.push(zhiTone === 'good'
-      ? `地支${liuNian.zhi}${favor.zhi.element}为喜用（${favor.zhi.role}${hidden}），落到人事与环境上多有助力。`
-      : `地支${liuNian.zhi}${favor.zhi.element}为忌神（${favor.zhi.role}${hidden}），具体推进时牵绊较多，留足余量。`);
+      ? `${subject}为喜用（${favor.zhi.role}${hidden}），落到人事与环境上多有助力。`
+      : `${subject}为忌神（${favor.zhi.role}${hidden}），具体推进时牵绊较多，留足余量。`);
   }
 
   const advices = resolved.labels.map((label) => MARK_ADVICE[label]).filter(Boolean);

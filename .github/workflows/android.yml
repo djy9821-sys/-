@@ -1,0 +1,180 @@
+name: Android APK
+
+# 把网站打包成安卓安装包：Capacitor 外壳 + 装在手机里的网页文件，断网也能排盘。
+# - main 发布到 Release「android」（正式版）；claude/** 分支发布到「android-preview」（预览版）。
+#   下载地址固定：https://github.com/<仓库>/releases/download/<标签>/gushupai.apk
+# - 签名钥匙第一次运行时生成，存在草稿 Release「android-signing-key」里（草稿只有仓库管理者看得到）。
+#   以后都用同一把钥匙签名，手机上才能直接覆盖安装、保留命盘档案。不要删除或发布这个草稿。
+# - Capacitor 只在这里临时安装，不进 package.json；安卓相关的定制见 scripts/android/。
+on:
+  push:
+    branches: [main, 'claude/**']
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.js'
+      - 'scripts/android/**'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# 一次只跑一个，避免两次运行同时生成两把签名钥匙。
+concurrency:
+  group: android-apk
+  cancel-in-progress: false
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      CHANNEL_TAG: ${{ github.ref_name == 'main' && 'android' || 'android-preview' }}
+      KEY_TAG: android-signing-key
+      KEY_ASSET: gushupai-signing.p12
+      KEY_ALIAS: gushupai
+      KEY_PASS: gushupai-android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Version
+        run: |
+          # 预览版的 versionName 以 -preview 结尾，安装包据此去对应的 Release 查新版本（scripts/android/update-check.js）。
+          suffix=""
+          if [ "$CHANNEL_TAG" = android-preview ]; then suffix="-preview"; fi
+          echo "APK_VERSION_CODE=${{ github.run_number }}" >> "$GITHUB_ENV"
+          echo "APK_VERSION_NAME=v$(date -u +%Y.%m.%d)-${GITHUB_SHA::7}$suffix" >> "$GITHUB_ENV"
+
+      - run: npm ci
+
+      - name: Build web
+        env:
+          # vite.config.js 用它拼版本号，页脚显示的版本与安装包一致。
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+        run: npm run build
+
+      - name: Install Capacitor (CI only)
+        run: >-
+          npm install --no-save
+          @capacitor/core@7.6.9 @capacitor/cli@7.6.9 @capacitor/android@7.6.9
+          @capacitor/app@7.1.2 @capacitor/share@7.0.4 @capacitor/filesystem@7.0.1
+
+      - name: Native shell script
+        run: |
+          npx esbuild scripts/android/native-shell.js --bundle --format=iife --minify --target=chrome89 --outfile=dist/native-shell.js
+          python scripts/android/prepare.py web
+
+      - name: Create Android project
+        run: |
+          cp scripts/android/capacitor.config.json capacitor.config.json
+          npx cap add android
+          chmod +x android/gradlew
+
+      - name: Customize Android project
+        run: |
+          pip install --quiet "pillow>=10"
+          python scripts/android/prepare.py android
+
+      - name: Signing key
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/$GITHUB_REPOSITORY"
+          auth=(-H "Authorization: Bearer $GH_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28")
+          release_id=$(curl -fsSL "${auth[@]}" "$api/releases?per_page=100" \
+            | jq -r --arg tag "$KEY_TAG" '[.[] | select(.draft and .tag_name == $tag)][0].id // empty')
+          if [ -n "$release_id" ]; then
+            asset_id=$(curl -fsSL "${auth[@]}" "$api/releases/$release_id/assets" \
+              | jq -r --arg name "$KEY_ASSET" '[.[] | select(.name == $name)][0].id // empty')
+            if [ -z "$asset_id" ]; then
+              echo "::error::草稿 Release $KEY_TAG 里找不到 $KEY_ASSET"
+              exit 1
+            fi
+            curl -fsSL "${auth[@]}" -H "Accept: application/octet-stream" -o signing.p12 "$api/releases/assets/$asset_id"
+            echo "沿用已有的签名钥匙"
+          else
+            keytool -genkeypair -storetype PKCS12 -keystore signing.p12 -alias "$KEY_ALIAS" \
+              -keyalg RSA -keysize 2048 -validity 36500 \
+              -storepass "$KEY_PASS" -keypass "$KEY_PASS" -dname "CN=Gushupai, O=Gushupai, C=CN"
+            body="安卓安装包的签名钥匙，由 GitHub Actions 自动生成、自动使用（见 .github/workflows/android.yml）。草稿只有仓库管理者看得到。请不要删除、也不要发布：删掉后新安装包无法覆盖旧版，手机上要先卸载，命盘档案会丢。"
+            release_id=$(jq -n --arg tag "$KEY_TAG" --arg body "$body" \
+              '{tag_name: $tag, name: "安卓签名钥匙（草稿，勿删、勿发布）", draft: true, body: $body}' \
+              | curl -fsSL "${auth[@]}" -H "Content-Type: application/json" -X POST -d @- "$api/releases" | jq -r .id)
+            curl -fsSL "${auth[@]}" -X POST -H "Content-Type: application/x-pkcs12" --data-binary @signing.p12 \
+              "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$release_id/assets?name=$KEY_ASSET" > /dev/null
+            echo "已生成新的签名钥匙并存入草稿 Release $KEY_TAG"
+          fi
+          keytool -list -v -keystore signing.p12 -storepass "$KEY_PASS" > key-info.txt
+          grep -E "SHA256:" key-info.txt || true
+          rm -f key-info.txt
+
+      - name: Build APK
+        working-directory: android
+        run: ./gradlew --no-daemon assembleRelease
+
+      - name: Sign APK
+        run: |
+          set -euo pipefail
+          build_tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          "$build_tools/zipalign" -p -f 4 android/app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
+          "$build_tools/apksigner" sign --ks signing.p12 --ks-pass env:KEY_PASS --ks-key-alias "$KEY_ALIAS" --key-pass env:KEY_PASS --out gushupai.apk aligned.apk
+          "$build_tools/apksigner" verify --print-certs gushupai.apk > apk-info.txt
+          "$build_tools/aapt2" dump badging gushupai.apk >> apk-info.txt
+          grep -E "^(Signer|package|application-label:|sdkVersion|targetSdkVersion|uses-permission)" apk-info.txt || true
+          rm -f apk-info.txt
+          ls -l gushupai.apk
+          rm -f signing.p12 aligned.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gushupai-apk
+          path: gushupai.apk
+          retention-days: 14
+
+      - name: Publish to release
+        run: |
+          set -euo pipefail
+          if [ "$CHANNEL_TAG" = android ]; then
+            title="古书派安卓版"; channel="正式版"; prerelease=""
+          else
+            title="古书派安卓版（预览）"; channel="预览版：还没上线到网站的最新优化"; prerelease="--prerelease"
+          fi
+          url="https://github.com/$GITHUB_REPOSITORY/releases/download/$CHANNEL_TAG/gushupai.apk"
+          notes=$(printf '%s\n' \
+            "**$channel**" \
+            "" \
+            "- 版本：$APK_VERSION_NAME（versionCode $APK_VERSION_CODE）" \
+            "- 来源：\`$GITHUB_REF_NAME\` @ \`${GITHUB_SHA::7}\`" \
+            "- 下载：$url" \
+            "" \
+            "安装：用手机浏览器打开下载地址，下载完点开 gushupai.apk 安装；第一次会提示「允许此来源安装应用」，选允许。" \
+            "更新：下载新的 gushupai.apk 直接覆盖安装，命盘档案会保留。")
+          if gh release view "$CHANNEL_TAG" > /dev/null 2>&1; then
+            gh release upload "$CHANNEL_TAG" gushupai.apk --clobber
+            gh release edit "$CHANNEL_TAG" --title "$title" --notes "$notes"
+          else
+            gh release create "$CHANNEL_TAG" gushupai.apk --target "$GITHUB_SHA" $prerelease --title "$title" --notes "$notes"
+          fi
+          {
+            echo "### $title"
+            echo
+            echo "下载：$url"
+            echo
+            echo "版本：$APK_VERSION_NAME（versionCode $APK_VERSION_CODE）"
+          } >> "$GITHUB_STEP_SUMMARY"

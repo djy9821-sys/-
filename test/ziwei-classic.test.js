@@ -163,13 +163,15 @@ const classicChart = ({ yearGan, yearZhi, month, day, hour, gender }) => {
   put('天伤', branchOfPalace['仆役']);
   put('天使', branchOfPalace['疾厄']);
 
-  // 长生十二神：水二局长生在申，木三局在亥，金四局在巳，火六局在寅，土五局在申；阳男阴女顺行，阴男阳女逆行。
+  // 阳男阴女顺行、阴男阳女逆行：博士十二神与大限用它。
   const forward = (isYangGan(yearGan) && gender === 'male') || (!isYangGan(yearGan) && gender === 'female');
   const dir = forward ? 1 : -1;
+  // 长生十二神：水二局长生在申，木三局在亥，金四局在巳，火六局在寅，土五局在申；全书「男命顺数、女命逆数」（通行排法按阳男阴女顺、阴男阳女逆）。
+  const changshengDir = gender === 'male' ? 1 : -1;
   const changshengStart = { 水: '申', 木: '亥', 金: '巳', 火: '寅', 土: '申' }[bureauElement];
   const CHANGSHENG = ['长生', '沐浴', '冠带', '临官', '帝旺', '衰', '病', '死', '墓', '绝', '胎', '养'];
   const changsheng = {};
-  CHANGSHENG.forEach((name, i) => { changsheng[at(changshengStart, dir * i)] = name; });
+  CHANGSHENG.forEach((name, i) => { changsheng[at(changshengStart, changshengDir * i)] = name; });
   // 博士十二神：禄存起博士，阳男阴女顺行、阴男阳女逆行。
   const BOSHI = ['博士', '力士', '青龙', '小耗', '将军', '奏书', '飞廉', '喜神', '病符', '大耗', '伏兵', '官府'];
   const boshi = {};
@@ -193,11 +195,11 @@ const classicChart = ({ yearGan, yearZhi, month, day, hour, gender }) => {
   const ages = {};
   for (let i = 0; i < 12; i += 1) ages[at(ageStart, ageDir * i)] = [1 + i, 13 + i, 25 + i];
 
-  // 四化：甲廉破武阳，乙机梁紫阴，丙同机昌廉，丁阴同机巨，戊贪阴弼机，己武贪梁曲，庚阳武阴同，辛巨阳曲昌，壬梁紫左武，癸破巨阴贪。
+  // 四化（全书「安禄权科忌四星变化诀」）：甲廉破武阳，乙机梁紫阴，丙同机昌廉，丁阴同机巨，戊贪阴弼机，己武贪梁曲，庚阳武阴同，辛巨阳曲昌，壬梁紫府武，癸破巨阴贪。
   const MUTAGEN = {
     甲: ['廉贞', '破军', '武曲', '太阳'], 乙: ['天机', '天梁', '紫微', '太阴'], 丙: ['天同', '天机', '文昌', '廉贞'], 丁: ['太阴', '天同', '天机', '巨门'],
     戊: ['贪狼', '太阴', '右弼', '天机'], 己: ['武曲', '贪狼', '天梁', '文曲'], 庚: ['太阳', '武曲', '太阴', '天同'], 辛: ['巨门', '太阳', '文曲', '文昌'],
-    壬: ['天梁', '紫微', '左辅', '武曲'], 癸: ['破军', '巨门', '太阴', '贪狼'],
+    壬: ['天梁', '紫微', '天府', '武曲'], 癸: ['破军', '巨门', '太阴', '贪狼'],
   };
   const mutagen = Object.fromEntries(MUTAGEN[yearGan].map((name, i) => [name, ['禄', '权', '科', '忌'][i]]));
 
@@ -254,12 +256,12 @@ const libraryChart = (horoscope) => {
   };
 };
 
-/** 由公历日期得到排盘用的年干支（立春分界，与排盘库一致）、农历月（闰月十五以后算下月）、农历日。 */
+/** 由公历日期得到排盘用的年干支（立春分界，与排盘库一致）、农历月（闰月一律算下月，全书「凡有闰月具要依此为例」）、农历日。 */
 const classicInput = (solarDate, hour, gender) => {
   const [year, month, day] = solarDate.split('-').map(Number);
   const lunar = Solar.fromYmdHms(year, month, day, Math.max(hour * 2 - 1, 0), 30, 0).getLunar();
   const isLeap = lunar.getMonth() < 0;
-  const lunarMonth = Math.abs(lunar.getMonth()) + (isLeap && lunar.getDay() > 15 ? 1 : 0);
+  const lunarMonth = Math.abs(lunar.getMonth()) + (isLeap ? 1 : 0);
   return {
     yearGan: lunar.getYearGanByLiChun(),
     yearZhi: lunar.getYearZhiByLiChun(),
@@ -337,18 +339,44 @@ test('安星诀逐盘核对：1900–2050 年三百余盘随机生辰，男女�
   }
 });
 
-test('闰月：十五（含）以前按本月安命，十六以后按下月安命', () => {
-  // 2023 年闰二月：闰二月初十 = 2023-03-31，闰二月二十 = 2023-04-10。
+test('闰月：全书「闰月正月生者要在二月内起安身命，凡有闰月具要依此为例」——闰月生人不分十五前后一律按下月安命', () => {
+  // 2023 年闰二月：闰二月初十 = 2023-03-31，闰二月二十 = 2023-04-10；二月廿九 = 2023-03-20。
   const early = verify('2023-03-31', 6, 'male');
   const late = verify('2023-04-10', 6, 'male');
-  assert.equal(early.input.month, 2);
+  const plain = verify('2023-03-20', 6, 'male');
+  assert.equal(early.input.month, 3);
   assert.equal(late.input.month, 3);
-  assert.equal(early.horoscope.earthlyBranchOfSoulPalace, at('寅', 1 - 6));
+  assert.equal(plain.input.month, 2);
+  assert.equal(early.horoscope.earthlyBranchOfSoulPalace, at('寅', 2 - 6));
   assert.equal(late.horoscope.earthlyBranchOfSoulPalace, at('寅', 2 - 6));
+  assert.equal(plain.horoscope.earthlyBranchOfSoulPalace, at('寅', 1 - 6));
+  // 十五以前的闰月生人：公历、农历、四柱仍是录入的日期，另注明按下月安身命。
+  assert.equal(early.horoscope.solarDate, '2023-03-31');
+  assert.match(early.horoscope.lunarDate, /闰二月初十/);
+  assert.match(early.horoscope.leapMonth?.text ?? '', /按下月（二〇二三年三月初十）安身命/);
+  assert.equal(late.horoscope.leapMonth, undefined);
   // 农历录入也走同一条规则。
-  const byLunar = createZiweiHoroscope({ calendarType: 'lunar', birthDate: '2023-02-20', timeIndex: 6, gender: 'male', isLeapMonth: true });
-  assert.equal(byLunar.solarDate, '2023-4-10');
-  assert.equal(byLunar.earthlyBranchOfSoulPalace, late.horoscope.earthlyBranchOfSoulPalace);
+  const byLunar = createZiweiHoroscope({ calendarType: 'lunar', birthDate: '2023-02-10', timeIndex: 6, gender: 'male', isLeapMonth: true });
+  assert.equal(byLunar.solarDate, '2023-3-31');
+  assert.equal(byLunar.earthlyBranchOfSoulPalace, early.horoscope.earthlyBranchOfSoulPalace);
+  assert.equal(byLunar.fiveElementsClass, early.horoscope.fiveElementsClass);
+});
+
+test('壬干四化按全书「壬梁紫府武」：天府化科（今人多用左辅）', () => {
+  const { horoscope } = verify('2022-06-01', 6, 'male');
+  assert.equal(horoscope.chineseDate.slice(0, 2), '壬寅');
+  const mutagen = libraryChart(horoscope).mutagen;
+  assert.deepEqual(mutagen, { 天梁: '禄', 紫微: '权', 天府: '科', 武曲: '忌' });
+});
+
+test('长生十二神按全书「男命顺数、女命逆数」：阴男也顺行、阳女也逆行', () => {
+  // 1985-06-01 乙丑年：阴男顺行，阴女逆行（通行排法阴男逆、阴女顺，正相反）。
+  const yinMale = createZiweiHoroscope({ calendarType: 'solar', birthDate: '1985-06-01', timeIndex: 6, gender: 'male' });
+  const yinFemale = createZiweiHoroscope({ calendarType: 'solar', birthDate: '1985-06-01', timeIndex: 6, gender: 'female' });
+  const stageOf = (horoscope, zhi) => horoscope.palaces.find((palace) => palace.earthlyBranch === zhi).changsheng12;
+  assert.equal(yinMale.fiveElementsClass, '土五局');
+  assert.deepEqual([stageOf(yinMale, '申'), stageOf(yinMale, '酉'), stageOf(yinMale, '未')], ['长生', '沐浴', '养']);
+  assert.deepEqual([stageOf(yinFemale, '申'), stageOf(yinFemale, '未'), stageOf(yinFemale, '酉')], ['长生', '沐浴', '养']);
 });
 
 test('年柱以立春为界：立春后、正月初一前出生，年干支已换，农历月仍是腊月', () => {

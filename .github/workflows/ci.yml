@@ -36,10 +36,18 @@ jobs:
           cache: npm
       - run: npm ci
       # Playwright 只在 CI 里用，不进 package.json / lock（本地安装依赖时不必下载浏览器）。
+      # --with-deps 要走 apt 装系统库和字体。GitHub 托管机连 Ubuntu 软件源时常解析不了或极慢
+      # （actions/runner-images#15142 一类），一卡十分钟，整个 job 失败，测试一条没跑。
+      # 所以限时三分钟，装不上就只下载浏览器：托管镜像自带 Chrome 要用的系统库，够跑无头 Chromium；
+      # 少的只是中文字体，而断言看的是页面里的文字，不看画出来的字形。
       - name: Install Playwright
         run: |
           npm install --no-save @playwright/test@^1.50.0
-          npx playwright install --with-deps chromium
+          if ! timeout 180 npx playwright install --with-deps chromium; then
+            echo "::warning::apt 装系统依赖超时或失败，改为只下载浏览器"
+            sudo pkill -f apt-get || true
+            npx playwright install chromium
+          fi
       - name: Build
         run: npm run build
       - name: End-to-end tests

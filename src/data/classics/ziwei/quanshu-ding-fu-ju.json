@@ -1,0 +1,133 @@
+{
+  "classic": "ziwei",
+  "volume": "卷一",
+  "section": "定富局",
+  "edition": "公版古籍《紫微斗数全书》（明万历潘希尹辑刻本、四库提要存目本，参校维基文库、ctext.org 公版文本）",
+  "contributor": "antigravity",
+  "entries": [
+    {
+      "id": "ziwei.quanshu.dingfuju.001",
+      "title": "定富局·财荫夹印",
+      "original": "财荫夹印：相守命，武梁来夹是也，田宅宫亦然。",
+      "vernacular": "财荫夹印：天相坐守命宫，武曲、天梁来夹，就是此格；在田宅宫也是如此。",
+      "notes": "财荫夹印：天梁化气为荫，武曲或禄存化气为财，夹持天相印星。程序尚未内置此格，按星曜与宫位匹配。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "财荫夹印：天相守命而武曲、天梁来夹。按安星法武曲不与天相相邻，此格不能成立，程序不判"
+        }
+      ],
+      "tags": [
+        "定富局",
+        "天相",
+        "财荫夹印"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingfuju.002",
+      "title": "定富局·日月夹财",
+      "original": "日月夹财：武守命，日月来夹是也，财帛宫亦然。",
+      "vernacular": "日月夹财：武曲坐守命宫，太阳、太阴来夹，就是此格；在财帛宫也是如此。",
+      "notes": "武曲为正财星，左右邻宫见太阳、太阴相夹，主财源丰厚富足。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "日月夹财格"
+        }
+      ],
+      "tags": [
+        "定富局",
+        "武曲",
+        "日月夹财"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingfuju.003",
+      "title": "定富局·财禄夹马",
+      "original": "财禄夹马：马守命，武禄来夹是也，逢生旺尤妙。",
+      "vernacular": "财禄夹马：天马坐守命宫，武曲、禄存来夹，就是此格；遇到生旺更好。",
+      "notes": "天马坐命，左右见武曲与禄存相夹，财禄奔涌，主大富发财。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "财禄夹马格"
+        }
+      ],
+      "tags": [
+        "定富局",
+        "天马",
+        "财禄夹马"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingfuju.004",
+      "title": "定富局·荫印拱身",
+      "original": "荫印拱身：身临田宅，梁相拱冲是也，勿坐空亡。",
+      "vernacular": "荫印拱身：身宫落在田宅宫，天梁、天相来拱冲，就是此格；不可坐在空亡。",
+      "notes": "天梁为荫，天相为印，拱照田宅宫身宫，主祖业丰盈家道兴旺。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "note": "荫印拱身：身临田宅而天梁、天相拱冲。按安星法梁相相邻，不能同在三方四正，程序不判"
+        }
+      ],
+      "tags": [
+        "定富局",
+        "天梁",
+        "天相",
+        "荫印拱身"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingfuju.005",
+      "title": "定富局·日月照璧",
+      "original": "日月照璧：日月临田宅宫是也，喜居墓库。",
+      "vernacular": "日月照璧：太阳、太阴来到田宅宫，就是此格；以处在墓库为好。",
+      "notes": "太阳太阴同守田宅宫（多在丑未宫），犹如日月普照玉璧，主多积产业。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "日月照璧格"
+        }
+      ],
+      "tags": [
+        "定富局",
+        "太阳",
+        "太阴",
+        "田宅",
+        "日月照璧"
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.dingfuju.006",
+      "title": "定富局·金灿光辉",
+      "original": "金灿光辉：太阳单守，命在午宫是也。",
+      "vernacular": "金灿光辉格：太阳星单独坐守，且命宫在午宫即是此格。",
+      "notes": "金灿光辉：太阳居午宫庙旺坐命，光芒万丈，又名日丽中天格，富贵双全。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "pattern": "金灿光辉格"
+        }
+      ],
+      "tags": [
+        "定富局",
+        "太阳",
+        "金灿光辉",
+        "日丽中天"
+      ],
+      "status": "translated"
+    }
+  ]
+}

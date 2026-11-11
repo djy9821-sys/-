@@ -1,5 +1,5 @@
 /**
- * 带生辰参数的八字链接：#/bazi?cal=s&d=1990-1-1&h=6&g=m…
+ * 带生辰参数的八字链接：#/bazi?cal=s&d=1990-1-1&h=6&g=m…（sect=1 晚子换日，yb=c 年柱按正月初一换年）
  * 打开即出盘，方便把命盘发给朋友或师傅，也方便自己换设备。
  * 链接里只有生辰与称呼，不含档案里的分组、备注。
  */
@@ -37,6 +37,7 @@ export const encodeBaziLink = (form, { name = '' } = {}) => {
     params.set('h', String(form.hourIndex ?? 6));
   }
   if (form.daySect === 1) params.set('sect', '1');
+  if (form.yearBoundary === 'chunjie') params.set('yb', 'c');
   const personName = (name || form.personName || '').trim().slice(0, NAME_LIMIT);
   if (personName) params.set('n', personName);
   return params.toString();
@@ -79,6 +80,7 @@ export const decodeBaziLink = (query) => {
     fromLink: true,
     data: {
       daySect: params.get('sect') === '1' ? 1 : 2,
+      yearBoundary: params.get('yb') === 'c' ? 'chunjie' : 'lichun',
       timeMode,
       clockTime: timeMode === 'exact' ? clock : '',
       placeProvince: timeMode === 'exact' ? (params.get('prov') ?? '') : '',
@@ -163,10 +165,11 @@ export const decodeZiweiLink = (query) => {
   const date = DATE_PATTERN.exec(params.get('d') ?? '');
   if (!date) return null;
   const [year, month, day] = date.slice(1).map(Number);
-  if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 30) return null;
+  const calendarType = params.get('cal') === 'l' ? 'lunar' : 'solar';
+  // 公历有 31 日，农历最多 30 日（原来一律按 30 卡，公历 31 日的分享链接打不开）。
+  if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1 || day > (calendarType === 'lunar' ? 30 : 31)) return null;
   const gender = params.get('g') === 'f' ? 'female' : params.get('g') === 'm' ? 'male' : null;
   if (!gender) return null;
-  const calendarType = params.get('cal') === 'l' ? 'lunar' : 'solar';
   const clock = params.get('c');
   const exact = clock && parseClockTime(clock) ? clock : null;
   const hourIndex = exact ? 0 : Number(params.get('h'));

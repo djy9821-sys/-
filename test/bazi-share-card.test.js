@@ -50,7 +50,8 @@ test('分享图数据：四柱、日主旺衰、格局与运限', () => {
   assert.equal(model.pillars[0].ganLabel, '正官');
   assert.deepEqual(model.pillars[1].hidden, ['丙 伤官', '庚 正官', '戊 正财']);
   assert.equal(model.dayMaster, '乙木');
-  assert.match(model.strengthLine, /^极弱（同党 \d+%） · 喜 水木 · 忌 /);
+  // 用神水（印），喜神金生水、木为水所生；火（水所克）、土（克水）为忌。
+  assert.equal(model.strengthLine, '极弱 · 喜 水木金 · 忌 土火');
   assert.match(model.patternLine, /格/);
   assert.match(model.fortuneLine, /大运 乙酉（\d+–\d+ 虚岁） · 2026 丙午流年 伤官/);
   assert.equal(model.birthLines[0], '公历 1990年5月20日 · 午时');

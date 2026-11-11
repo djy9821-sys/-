@@ -1,0 +1,105 @@
+{
+  "classic": "ziwei",
+  "volume": "卷三",
+  "section": "论人命入格",
+  "edition": "据维基文库《紫微斗数全书》卷三（https://zh.wikisource.org/wiki/紫微斗數全書/卷三；固定修订 oldid=2268626），2026年10月31日所见录文；繁体转简体逐字核对，未参用现代注译本。",
+  "contributor": "codex",
+  "entries": [
+    {
+      "id": "ziwei.quanshu.ruge.001",
+      "title": "论人命入格·其一",
+      "original": "如命入格，庙旺聚吉，科权禄守，上上之命。",
+      "vernacular": "命入格，星曜庙旺、吉星聚集，又有科权禄守，是上上之命。",
+      "notes": "入格：符合某种格局；上次：上等中的次一等。",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "note": "入格为泛指，并未点名某一格局。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.ruge.002",
+      "title": "论人命入格·其二",
+      "original": "不入庙加吉化，科权禄，上次之命。",
+      "vernacular": "星曜不入庙，却加吉化、科权禄，是上次之命。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "note": "入格为泛指，并未点名某一格局。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.ruge.003",
+      "title": "论人命入格·其三",
+      "original": "不入庙不加吉，为平常命。",
+      "vernacular": "不入庙，也不加吉星，是平常之命。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "note": "入格为泛指，并未点名某一格局。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.ruge.004",
+      "title": "论人命入格·其四",
+      "original": "入庙不加吉，平等。",
+      "vernacular": "入庙却不加吉星，属于平常等级。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "note": "入格为泛指，并未点名某一格局。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.ruge.005",
+      "title": "论人命入格·其五",
+      "original": "若居陷地又加杀化忌，为下格之命，不以入格而论也。",
+      "vernacular": "若落陷，又加杀、化忌，是下格，不能因入格就另论。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "note": "入格为泛指，并未点名某一格局。"
+        }
+      ],
+      "status": "translated"
+    },
+    {
+      "id": "ziwei.quanshu.ruge.006",
+      "title": "论人命入格·其六",
+      "original": "又入格不化吉而化凶，只以本命吉凶多寡而断之。",
+      "vernacular": "入格却不化吉而化凶，只按本命吉凶的多少判断。",
+      "notes": "",
+      "doubts": [],
+      "applies": [
+        {
+          "module": "ziwei",
+          "palace": "命宫",
+          "note": "入格为泛指，并未点名某一格局。"
+        }
+      ],
+      "status": "translated"
+    }
+  ]
+}
