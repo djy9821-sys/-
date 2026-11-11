@@ -111,6 +111,8 @@ export const relationOf = (subject, other) => {
 const MONTH_TEXT = { same: '月建比扶', generated: '月建生扶', drained: '月建泄气', spent: '月建耗力', controlled: '月建克制' };
 const DAY_TEXT = { same: '日辰比扶', generated: '日辰生扶', drained: '日辰泄气', spent: '日辰耗力', controlled: '日辰克制' };
 const RELATION_SCORE = { same: 2, generated: 2, drained: -1, spent: -1, controlled: -2 };
+// 千金赋其九十五「凡占身命家宅功名茔垄贸易等事，欲其久远者」：元神必须兼看
+const LASTING_TOPICS = new Set(['life', 'home', 'career', 'gravesite', 'ancestral', 'wealth']);
 
 /**
  * 类别 + 性别 + 替谁问 → 用神取哪一类六亲（null 为世爻）。
@@ -357,7 +359,7 @@ const sanHeFramesOf = (lines, time) => SAN_HE.map(({ zhis, element }) => {
 
 /**
  * 动爻（含暗动）作元神、忌神时有力还是无力（《增删卜易·元神忌神衰旺章》）。
- * 无力：化回头克、化绝、化破、化墓、入日墓；休囚而化退、临绝、逢空破、被日月动爻克。
+ * 无力：化回头克、化绝、化破、化墓（有日月帮扶的除外，只待冲开墓库）、入日墓；休囚而化退、临绝、逢空破、被日月动爻克。
  * 有力：旺相、临日月、化回头生、化进神、长生帝旺于日辰。都不沾的为寻常。
  * 动爻不论月破（野鹤《月破章》：动则能于伤爻，出月不破）。忌神被别的动爻所制（求财章「官爻发动亦堪求」、
  * 产妇章「倘若兄动克财，又宜鬼动制服兄爻」），衰者无力，不衰的也降一等。
@@ -371,9 +373,14 @@ const forceOf = (line, time, controllers = [], role = '') => {
   const feeble = strength.level === '休囚';
   const weak = [];
   if (flags.backCtrl) weak.push('化回头克');
+  // 千金赋其五十九「化墓化绝者，动爻旺相，或临日月，或日月帮扶，亦无大害。化墓者，冲开之日月而成」、其九十七「动爻何妨空破」
+  // （野鹤南行三占大有之大壮「巳火之官动而生世，目下虽被衰入墓，明年三月冲开戌墓……旺相而生世矣」）：化墓而有日月帮扶的，不作无力，
+  // 只是要等冲开墓库。化绝不在此列：占开店贸易得坤之剥「子动生财，生之不起」，酉金子孙临申日而化寅绝，仍生不起
+  const propped = line.zhi === time.monthZhi || line.zhi === time.dayZhi || strength.level === '旺相'
+    || ['same', 'generated'].includes(strength.dayRelation) || (!line.marks.includes('月破') && ['same', 'generated'].includes(strength.monthRelation));
   if (flags.jue) weak.push('化绝');
   if (flags.broken && !flags.advance) weak.push('化破');
-  if (flags.tomb) weak.push('化墓');
+  if (flags.tomb && !propped) weak.push('化墓');
   if (dayStage === '墓') weak.push('入日墓');
   if (feeble && flags.retreat) weak.push('衰而化退');
   if (feeble && dayStage === '绝') weak.push('衰而逢绝');
@@ -387,11 +394,13 @@ const forceOf = (line, time, controllers = [], role = '') => {
   if (flags.backGen) strong.push('化回头生');
   if (flags.advance) strong.push('化进神');
   if (dayStage === '长生' || dayStage === '帝旺') strong.push(`${dayStage}于日辰`);
+  // 化墓有救的只记一笔：有力无力照常算，只是要等冲开墓库才见功
+  const waiting = flags.tomb ? [`化墓而有日月帮扶，待${ZHI_CLASH[line.changed.zhi]}冲开墓库`] : [];
   if (role === 'enemy' && controllers.length) {
     const tamed = `被${controllers.map((item) => item.ganZhi).join('、')}所制`;
-    return strong.length ? { force: 'normal', reasons: [...strong, tamed] } : { force: 'weak', reasons: [tamed] };
+    return strong.length ? { force: 'normal', reasons: [...strong, ...waiting, tamed] } : { force: 'weak', reasons: [...waiting, tamed] };
   }
-  return { force: strong.length ? 'strong' : 'normal', reasons: strong };
+  return { force: strong.length ? 'strong' : 'normal', reasons: [...strong, ...waiting] };
 };
 
 /** 动爻被合住：化出之爻与本爻六合（贪合），或动爻逢日辰合——贪合忘生、贪合忘克，待冲开之日。 */
@@ -664,7 +673,7 @@ const injuryOf = (line, clash) => {
 
 /**
  * 各类别在用神旺衰、动变、世应之外的专门断法，返回 { score, points, notices }。
- * 依据《增删卜易》各章原文；失物用通行的《黄金策》「失脱」之法与千金赋「墓多暧昧」（野鹤注：用神动而化墓，「失脱遇之，暗藏不见」）。
+ * 依据《增删卜易》各章原文；失物用通行的《黄金策》「失脱」之法与千金赋「墓多暗昧」（野鹤注：用神动而化墓，「失脱遇之，若藏不见」）。
  */
 /** 鬼神章：鬼属五行各分其神，旺相者为正神，休囚者为枉死之鬼。 */
 const SPIRIT_KINDS = Object.freeze({
@@ -725,7 +734,7 @@ const TOPIC_RULES = Object.freeze({
   //   且卦中无火生助，占身命之最忌也，难许成家」（只有比扶、没有来生的仍作空）。原书断语斩截，倾向至多偏弱。
   // - 「财爻持世而自强自旺，多自成家」：得水泽节「旺财临世，平素手有余钱」，后「富冠一乡」。
   // - 「兄爻持世，永无发福之秋」（得地天泰，世临兄弟辰土休囚化退，「后当夫头」）；世旺的不论（占寿得中孚，世兄弟未土
-  //   「巳日生之，月建扶之……必享长年」）。父母持世「才高利寡」原书自己也不一概论（得归妹「此岂可谓父母持身，辛勤劳碌耶」），不收。
+  //   「巳日生之，月建扶之……必享长年」）。父母持世「才弥高而利弥寡」原书自己也不一概论（得归妹「此岂可谓父母持身，辛勤劳碌耶」），不收。
   life: ({ lines, time, shiLine, proxy }) => {
     if (proxy) return null;
     let score = 0;
@@ -781,9 +790,26 @@ const TOPIC_RULES = Object.freeze({
   // 「子孙持世、子孙发动，不得」「凡得子孙持世，子孙发动，终非庙廊之贵客」——子孙持世，倾向至多偏弱
   // （占终身功名有无得需「子孙持世，休问功名……终身不许成名」；占得差否得夬「子孙持世，此差不得」）。
   // 子孙发动已作忌神克用神算过，这里只论持世；替别人问的不论。
-  career: ({ shiLine, proxy }) => {
-    if (proxy || shiLine.relative !== '子孙') return null;
-    return { score: 0, cap: true, points: ['功名（升选候补章、终身功名有无章）：子孙持世，子孙克官，休问功名'], notices: [] };
+  career: ({ shiLine, proxy, yong, time }) => {
+    if (proxy) return null;
+    if (shiLine.relative === '子孙') return { score: 0, cap: true, points: ['功名（升选候补章、终身功名有无章）：子孙持世，子孙克官，休问功名'], notices: [] };
+    // 终身功名有无章其九「破空临世，终须白屋之人。世静而临旬空月破，官逢月破旬空，皆主不得成名。惟世与官星空破而动者，勿以此断」：
+    // 世爻或官星安静而月破，日辰又不生扶（日辰是它的墓不算生扶：再占府尊复职「世爻破而入墓」），倾向至多偏弱（占援例「不宜世临月破，
+    // 破而被克，有官不能享也」）。另有官星发动而旺、化进、化回头生的，是另起之官（三占府尊复职「持世官星破而入墓，所以知其失之必矣；
+    // 幸五爻官化进神，乃再任之官也」），不在此列。旬空一半不照搬：旬空章「旺不为空」，占升迁等官星旺而旬空的原书仍作吉
+    const brokenStill = (line) => {
+      if (!line || line.hidden || line.isMoving || isDarkMoving(line, time) || !line.marks.includes('月破')) return false;
+      const st = assessStrength(line, time);
+      const dayHelps = (st.dayRelation === 'same' || st.dayRelation === 'generated' || line.zhi === time.dayZhi) && stageAt(line.element, time.dayZhi) !== '墓';
+      return !dayHelps;
+    };
+    const hits = [brokenStill(shiLine) ? '世爻' : '', yong !== shiLine && brokenStill(yong) ? '官星' : ''].filter(Boolean);
+    if (!hits.length) return null;
+    const flags = yong.isMoving ? changeFlagsOf(yong, time) : {};
+    const otherOfficial = yong !== shiLine && !yong.hidden && (yong.isMoving || isDarkMoving(yong, time)) && !brokenStill(yong)
+      && (flags.advance || flags.backGen || yong.zhi === time.monthZhi || yong.zhi === time.dayZhi || assessStrength(yong, time).level === '旺相');
+    if (otherOfficial) return null;
+    return { score: 0, cap: true, points: [`功名（终身功名有无章）：${hits.join('、')}安静而月破，日辰不扶，「破空临世，终须白屋之人」`], notices: [] };
   },
   // 千金赋：占流年，以官为鬼，不宜官鬼持世；泽水困占例：世空而忌神动，出空遭伤。替别人问以那人的用神为主。
   year: ({ lines, shiLine, yong, proxy }) => {
@@ -1255,7 +1281,7 @@ const TOPIC_RULES = Object.freeze({
     }
     return { score, cap, points: notes.length ? [`婚姻（婚姻章）：${notes.join('；')}`] : [], notices: [] };
   },
-  // 失物：以妻财为用神；千金赋「墓多暧昧」，野鹤注用神动而化墓「失脱遇之，暗藏不见」
+  // 失物：以妻财为用神；千金赋「墓多暗昧」，野鹤注用神动而化墓「失脱遇之，若藏不见」
   lost: ({ lines, yong, time }) => {
     let score = 0;
     const notes = [];
@@ -1842,6 +1868,18 @@ export const judgeLiuYao = (reading, options = {}) => {
   }
   total += rootless ? Math.min(dyn.score, 0) : dyn.score;
   dynamics.push(...dyn.texts);
+  // 千金赋其九十五「水木须宜寻根」：身命、家宅、功名、茔垄、贸易这类要长久的事，「用神虽则为重，而元神必须兼看……用神虽旺，
+  // 元神若被伤克者，即如水无源泉，木无根蒂」（占掣签得大畜之中孚「世临寅木官星……独嫌子水月破，动而化绝……世爻寅木无水滋生，乃为凶兆」）。
+  // 只看发动的元神：动而月破、化回头克、化绝、化破或被克制的，用神再旺也是无根
+  if (LASTING_TOPICS.has(meta.value) && !yong.hidden && strength.level === '旺相') {
+    const roots = dyn.movers.filter((item) => item.relation === 'generated' && !item.bound);
+    const hurtOf = (item) => item.line.marks.includes('月破')
+      || (item.power.force === 'weak' && item.power.reasons.some((reason) => /化回头克|化绝|化破|被.+克/.test(reason)));
+    if (roots.length && roots.every(hurtOf)) {
+      total -= 2;
+      dynamics.push(`元神${roots.map((item) => lineLabel(item.line)).join('、')}发动而受伤，用神虽旺而无根，难以长久（《增删卜易·黄金策千金赋》「水木须宜寻根」：「用神虽旺，元神若被伤克者，即如水无源泉，木无根蒂」）`);
+    }
+  }
   // 三合局（六合章）：局生用神、局与用神同气为吉，局克用神为凶；世在局中为美，局生应爻不生世为「出现无情」；
   // 行人、出行用神在局中，被合不回、被合而留；避乱、出行以子孙合局为福神克去身边之鬼
   frames.forEach((frame) => {
