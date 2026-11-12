@@ -38,7 +38,7 @@ export const JIUXING_TEMPLATE = `
     </section>
     <section class="wide" aria-labelledby="jx-h-z-years">
       <h2 id="jx-h-z-years">往后十年，哪条线去、回都通</h2>
-      <p class="hint">去、回两头都吉的年份不多，遇上了值得走一趟。一条线的两头在年盘上都通，这一年才能沿这条线往返；后面是月盘也两头都通的月份（按节气算，大致从当月 5 日前后起）。</p>
+      <p class="hint">一条线就是一趟的去和回：朝一头去，回家自然朝另一头走，两头都吉才算数。这样的年份不多，遇上了值得走一趟。后面是月盘也两头都通的月份（按节气算，大致从当月 5 日前后起）。</p>
       <div class="list" id="jx-z-years"></div>
       <button type="button" class="jump" data-tab="fangwei">看每个月的起止日期，排行程</button>
     </section>
@@ -104,7 +104,8 @@ export const JIUXING_TEMPLATE = `
 <div class="panel" id="jx-p-fangwei" role="tabpanel" aria-labelledby="jx-t-fangwei" hidden>
   <section aria-labelledby="jx-h-years">
     <h2 id="jx-h-years">往后十年，哪条线去、回都通</h2>
-    <p class="hint">书里的查法是先定年、再定月、最后定日。一条线的两头在年盘上都通，这一年才能沿这条线往返；下面列出月盘上两头也都通的月份，点一个月份，就排出那个月哪天去、哪天回。只通一头的方向，回来那一头年盘不过，书里不拿来往返。年盘九年一轮，月盘跟着年盘走，所以这张表每九年原样再来一遍。</p>
+    <p class="hint">一条线就是一趟的去和回：朝一头去，回家自然是朝另一头走，所以两头都要通。一趟只去一头，想要哪一头主的事，就朝哪一头去。</p>
+    <p class="hint">书里的查法是先定年、再定月、最后定日。下面按年列出年盘上两头都通的线，和月盘上两头也都通的月份；点一个月份，就排出那个月哪天去、哪天回。只通一头的方向，书里不拿来往返。这张表每九年原样再来一遍。</p>
     <div class="years" id="jx-years"></div>
   </section>
 

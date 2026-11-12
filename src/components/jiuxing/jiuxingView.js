@@ -363,7 +363,7 @@ export function mountJiuxing(root, options = {}) {
       for (const axis of both) {
         const block = el('div', 'axis');
         const title = el('div', 'axis-title');
-        title.append(el('span', 'pill ok', `${axis.pair.join('—')} 去、回都通`), el('span', 'note-line', axis.pair.map((dir) => `朝${dir}：${DIR[dir].head.replace('·', '、')}`).join('；')));
+        title.append(el('span', 'pill ok', `${axis.pair.join('—')} 去、回都通`), el('span', 'note-line', axis.pair.map((dir) => `朝${dir}去：${DIR[dir].head.replace('·', '、')}`).join('；')));
         block.append(title);
         if (!axis.months.length) block.append(el('p', 'note-line', '年盘两头都通，但这一年没有月盘也两头都通的月份。'));
         else {
@@ -552,9 +552,10 @@ export function mountJiuxing(root, options = {}) {
       const stage = JXP.stageOf(ME.profile, ME.thisYear); const season = Math.floor(stage / 3); const where = JXP.stageShort(stage);
       add(season === 1 || season === 2 ? `你今年在${where}。书里说运势高的时候择方的效果更强，夏、秋适合走远一些。` : season === 3 ? `你今年在${where}。书里说冬天意外多，不宜走太远，近处为主。` : `你今年在${where}。书里说走远路以夏、秋为主，现在先从近处走起。`);
     }
+    add('走一趟得的是什么，书里讲了两层：一是去的那个方向主的事，想求什么就朝哪边去（回程只要求也吉，书里没有说回程另得一份）；二是把平日里不知不觉走的坏方向抵掉。具体应在哪件事上，因人而异。');
     add('去、回两头都要吉，这是书里的铁则：回程要按返回那天、朝反方向另查。办法是先挑月份，去的方向和回的方向在年盘、月盘上都通，这个月里去和回的日子就都好找；跨过交节或立春，要重新查。');
     add('不得已朝不好的方向走了，书里的补救是事后尽早去一趟吉方位，把它抵掉；远行要提前查，不好就把行程往前或往后挪。');
-    add('一个月去一次就够，不必天天看方位。');
+    add('坏方向比好方向多，平日出门免不了走到。书里的建议是大约一个月去一趟吉方位，不必天天看方位。');
     add('先从近处试。要效果明显，得走出平时的生活圈，书里举的尺度是离家一百公里以上；走得越远，作用越强。');
     add('到了要住一晚。实在住不了，在那边小睡一会儿也算。');
     add('尽量往那个方向的正中走，别压着分界线。');
