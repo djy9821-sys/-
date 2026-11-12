@@ -197,3 +197,21 @@ test('一趟行程：去程日配回程日（书里的两趟）', () => {
   }
   assert.deepEqual(year.round, year.trips.filter((trip) => trip.best !== null));
 });
+
+test('往返先挑月份：去、回两个方向年盘月盘都通的月份（书里的例子）', () => {
+  const months = (direction, from, to) => JXP.scanDirection(8, direction, from, to).segments
+    .filter((segment) => segment.yearOk && segment.monthOk && segment.backYearOk && segment.backMonthOk).map((segment) => segment.monthBranch).join('');
+  // 2018 年走东西一线：书里说三月可以，十二月也可以
+  assert.equal(months('西', dn(2018, 2, 10), dn(2019, 1, 31)), '卯未子');
+  // 2019 年走西北—东南一线：书里说三月或五月
+  assert.equal(months('西北', dn(2019, 2, 10), dn(2020, 1, 31)), '卯巳子');
+  // 2019 年东方年盘可去，但对面的西方年盘不通，所以书里往返不走东西一线
+  const east = JXP.scanDirection(8, '东', dn(2019, 3, 10), dn(2019, 3, 20)).segments[0];
+  assert.deepEqual([east.yearOk, east.backYearOk], [true, false]);
+  // 出发那个月回程方向卡在哪一盘；去、回都通的月份里，七晚以内都回得来
+  const trips = JXP.tripsOf(8, '西', dn(2027, 2, 4), dn(2027, 3, 31), 7).trips;
+  assert.equal(trips.find((trip) => JX.ymdOf(trip.go).join('-') === '2027-2-7').blocked, '月盘');
+  const march = trips.filter((trip) => trip.go >= dn(2027, 3, 6));
+  assert.ok(march.length > 5);
+  assert.ok(march.every((trip) => trip.blocked === null && trip.best !== null));
+});
