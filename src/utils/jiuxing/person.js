@@ -157,11 +157,33 @@ const JXP = (() => {
     return out;
   };
 
+  /** 超出住的晚数以后，最近一个能回的日子（最多再往后找到第 horizon 晚）；找不到返回 null。 */
+  const nextReturnAfter = (birthStar, direction, goDn, fromNights, horizon) => {
+    const back = JX.OPPOSITE[direction];
+    for (let n = fromNights; n <= horizon; n++) { const r = JX.judge(goDn + n, back, birthStar, 8); if (!r) return null; if (r.pass) return goDn + n; }
+    return null;
+  };
+  /**
+   * 某个方向在一段日子里的行程：每个能去的日子，配上 maxNights 晚以内能回的日子。
+   * best 是首选的回程日（优先过夜的，最早的那天；只有当天能回时才取当天），没有就是 null，这时 later 给出期限之后最近能回的一天。
+   * round 是去、回都走得通的那些。
+   */
+  const tripsOf = (birthStar, direction, from, to, maxNights) => {
+    const scan = scanDirection(birthStar, direction, from, to);
+    const trips = scan.days.map((day) => {
+      const returns = returnsFor(birthStar, direction, day.dn, maxNights);
+      const overnight = returns.filter((r) => r > day.dn);
+      const best = overnight.length ? overnight[0] : returns.length ? returns[0] : null;
+      return { go: day.dn, boards: day.boards, returns, best, later: best === null ? nextReturnAfter(birthStar, direction, day.dn, maxNights + 1, 60) : null };
+    });
+    return { segments: scan.segments, days: scan.days, trips, round: trips.filter((trip) => trip.best !== null) };
+  };
+
   return {
     XUN, VOID, NAMES, BEAST_ELEMENT, STAR_ELEMENT, SEASONS, ORDINAL, STEMS, RANK, GENERATES,
     loadCurves, loadPrinted, profileOf, printedBeastOf, beastOfIndex, stageOf, stageOfBranch, stageName, stageShort, yearMean, meansOf, tierOf, trendOf, peakStageOf, troughStageOf,
     pillarsOf, ageOn, phaseOf, neighbourYearOf, branchRelation, branchPartners, starRelation, humanHarmonyOf, humanClashOf, starsOfElement, leaderOf, tempoOf, sideOf, compat,
-    guardianOf, guardianOfDirection, DIRECTION_BRANCHES, scanDirection, returnsFor,
+    guardianOf, guardianOfDirection, DIRECTION_BRANCHES, scanDirection, returnsFor, nextReturnAfter, tripsOf,
   };
 })();
 JXP.loadCurves(CURVE_DATA);
