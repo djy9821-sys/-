@@ -187,11 +187,46 @@ const JXP = (() => {
     return { segments: scan.segments, days: scan.days, trips, round: trips.filter((trip) => trip.best !== null) };
   };
 
+  // —— 往后几年：哪条线往返都通 ——
+  const AXES = [['北', '南'], ['东北', '西南'], ['东', '西'], ['东南', '西北']];
+  /** 某个气学年从立春到下一个立春前一天，按交节切成十二个月。超出节气表返回 null。 */
+  const monthsOfYear = (kiYear) => {
+    let dn = JX.dayNumber(kiYear, 2, 1);
+    for (let i = 0; i < 8; i++, dn++) { const info = JX.yearMonthInfo(dn, 8); if (info && info.kiYear === kiYear) break; }
+    const first = JX.yearMonthInfo(dn, 8);
+    if (!first || first.kiYear !== kiYear) return null;
+    const months = [];
+    for (let info = first; info && info.kiYear === kiYear; info = JX.yearMonthInfo(dn, 8)) {
+      if (info.nextTermDay === null) return null;
+      months.push({ branch: info.monthBranch, star: info.monthStar, from: dn, to: info.nextTermDay - 1 });
+      dn = info.nextTermDay;
+    }
+    return months.length === 12 ? months : null;
+  };
+  /**
+   * 某个气学年里四条线的情形（书里“任意の年”的查法）：先看年盘上线的两头通不通，两头都通才能往返；
+   * 再列出月盘上两头也都通的月份，去和回的日子就在这些月份里挑。
+   * status：'both' 两头都通，'one' 只通一头（open 里是能去的那一头），'none' 都不通。
+   */
+  const yearOutlook = (birthStar, kiYear) => {
+    const months = monthsOfYear(kiYear);
+    if (!months) return null;
+    const yearStar = mod(11 - kiYear - 1, 9) + 1;
+    const harmony = JX.harmonyOf(birthStar);
+    const okAt = (center, dir) => harmony.includes(JX.starAt(center, dir)) && !JX.afflictionAt(center, dir);
+    const axes = AXES.map((pair) => {
+      const open = pair.filter((dir) => okAt(yearStar, dir));
+      const status = open.length === 2 ? 'both' : open.length === 1 ? 'one' : 'none';
+      return { pair, open, status, months: status === 'both' ? months.filter((m) => pair.every((dir) => okAt(m.star, dir))) : [] };
+    });
+    return { kiYear, yearStar, from: months[0].from, to: months[11].to, axes };
+  };
+
   return {
     XUN, VOID, NAMES, BEAST_ELEMENT, STAR_ELEMENT, SEASONS, ORDINAL, STEMS, RANK, GENERATES,
     loadCurves, loadPrinted, profileOf, printedBeastOf, beastOfIndex, stageOf, stageOfBranch, stageName, stageShort, yearMean, meansOf, tierOf, trendOf, peakStageOf, troughStageOf,
     pillarsOf, ageOn, phaseOf, neighbourYearOf, branchRelation, branchPartners, starRelation, humanHarmonyOf, humanClashOf, starsOfElement, leaderOf, tempoOf, sideOf, compat,
-    guardianOf, guardianOfDirection, DIRECTION_BRANCHES, scanDirection, returnsFor, nextReturnAfter, tripsOf,
+    guardianOf, guardianOfDirection, DIRECTION_BRANCHES, scanDirection, returnsFor, nextReturnAfter, tripsOf, AXES, monthsOfYear, yearOutlook,
   };
 })();
 JXP.loadCurves(CURVE_DATA);
