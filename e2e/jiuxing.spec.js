@@ -22,8 +22,20 @@ test('九星气学：填生日出神兽与三柱，页签可切换，摘要可�
 
   await page.getByRole('tab', { name: '吉方位' }).click();
   await expect(page.locator('#jx-compass .cz')).toHaveCount(9);
+  // 书里的一趟：2017-11-10 朝西北去，11-12 朝东南回。格子里和列表里都要说清哪天去、哪天回
+  await page.locator('#jx-from').fill('2017-11-08');
+  await page.locator('#jx-span').selectOption('30');
+  const northwest = page.locator('#jx-compass .cz', { hasText: '西北' });
+  await expect(northwest).toContainText('去 11月10日');
+  await expect(northwest).toContainText('回 11月12日');
+  await northwest.click();
+  const firstTrip = page.locator('#jx-dir-detail .trip').first();
+  await expect(firstTrip).toContainText('2017 年 11 月 10 日');
+  await expect(firstTrip).toContainText('11 月 12 日');
+  await expect(firstTrip).toContainText('住 2 晚');
   await page.locator('#jx-day').fill('2017-11-10');
   await expect(page.locator('#jx-dirs .dir-btn.pass')).toHaveText(/西北/);
+  await expect(page.locator('#jx-why')).toContainText('回来要朝东南：11 月 12 日');
 
   await page.getByRole('tab', { name: '相性' }).click();
   await page.locator('#jx-other-birth').fill('1987-06-01');
