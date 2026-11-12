@@ -1,0 +1,22 @@
+[
+  {"date": "1930-01-03", "note": "范围首年，甲辰旬末", "serial": 50, "pillar": "癸丑", "xun": "甲辰旬", "parity": "双", "beast": "青龙", "tableBeast": "青龙", "spring": "辰", "fromYear": 2014, "seasons": "春3夏1夏2夏3秋1秋2秋3冬1冬2冬3春1春2"},
+  {"date": "1942-05-31", "note": "甲申旬首", "serial": 21, "pillar": "甲申", "xun": "甲申旬", "parity": "双", "beast": "朱雀", "tableBeast": "朱雀", "spring": "申", "fromYear": 2014, "seasons": "冬2冬3春1春2春3夏1夏2夏3秋1秋2秋3冬1"},
+  {"date": "1947-03-15", "note": "甲申旬末", "serial": 30, "pillar": "癸巳", "xun": "甲申旬", "parity": "单", "beast": "凤凰", "tableBeast": "凤凰", "spring": "酉", "fromYear": 2014, "seasons": "冬1冬2冬3春1春2春3夏1夏2夏3秋1秋2秋3"},
+  {"date": "1954-08-06", "note": "甲午旬首", "serial": 31, "pillar": "甲午", "xun": "甲午旬", "parity": "双", "beast": "狮子", "tableBeast": "狮子", "spring": "午", "fromYear": 2014, "seasons": "春1春2春3夏1夏2夏3秋1秋2秋3冬1冬2冬3"},
+  {"date": "1959-09-19", "note": "甲辰旬首", "serial": 41, "pillar": "甲辰", "xun": "甲辰旬", "parity": "单", "beast": "苍龙", "tableBeast": "苍龙", "spring": "巳", "fromYear": 2014, "seasons": "春2春3夏1夏2夏3秋1秋2秋3冬1冬2冬3春1"},
+  {"date": "1963-10-07", "note": "甲戌旬末", "serial": 20, "pillar": "癸未", "xun": "甲戌旬", "parity": "单", "beast": "麒麟", "tableBeast": "麒麟", "spring": "亥", "fromYear": 2014, "seasons": "秋2秋3冬1冬2冬3春1春2春3夏1夏2夏3秋1"},
+  {"date": "1971-04-18", "note": "甲子旬末", "serial": 10, "pillar": "癸酉", "xun": "甲子旬", "parity": "单", "beast": "应龙", "tableBeast": "应龙", "spring": "丑", "fromYear": 2014, "seasons": "夏3秋1秋2秋3冬1冬2冬3春1春2春3夏1夏2"},
+  {"date": "1976-12-28", "note": "甲寅旬首", "serial": 51, "pillar": "甲寅", "xun": "甲寅旬", "parity": "双", "beast": "玄武", "tableBeast": "玄武", "spring": "寅", "fromYear": 2014, "seasons": "夏2夏3秋1秋2秋3冬1冬2冬3春1春2春3夏1"},
+  {"date": "1983-02-03", "note": "立春前一天", "serial": 59, "pillar": "壬戌", "xun": "甲寅旬", "parity": "单", "beast": "灵龟", "tableBeast": "灵龟", "spring": "卯", "fromYear": 2014, "seasons": "夏1夏2夏3秋1秋2秋3冬1冬2冬3春1春2春3"},
+  {"date": "1983-02-04", "note": "立春当天，公历年奇偶沿用1983", "serial": 60, "pillar": "癸亥", "xun": "甲寅旬", "parity": "单", "beast": "灵龟", "tableBeast": "灵龟", "spring": "卯", "fromYear": 2014, "seasons": "夏1夏2夏3秋1秋2秋3冬1冬2冬3春1春2春3"},
+  {"date": "1983-02-05", "note": "立春后一天，六十循环归一", "serial": 1, "pillar": "甲子", "xun": "甲子旬", "parity": "单", "beast": "应龙", "tableBeast": "应龙", "spring": "丑", "fromYear": 2014, "seasons": "夏3秋1秋2秋3冬1冬2冬3春1春2春3夏1夏2"},
+  {"date": "1983-02-07", "note": "原书人物Y", "serial": 3, "pillar": "丙寅", "xun": "甲子旬", "parity": "单", "beast": "应龙", "tableBeast": "应龙", "spring": "丑", "fromYear": 2014, "seasons": "夏3秋1秋2秋3冬1冬2冬3春1春2春3夏1夏2"},
+  {"date": "1996-06-06", "note": "两法跨旬反例", "serial": 11, "pillar": "甲戌", "xun": "甲戌旬", "parity": "双", "beast": "白虎", "tableBeast": "黄龙", "spring": "戌", "fromYear": 2014, "seasons": "秋3冬1冬2冬3春1春2春3夏1夏2夏3秋1秋2"},
+  {"date": "2000-01-07", "note": "独立六十日锚点", "serial": 1, "pillar": "甲子", "xun": "甲子旬", "parity": "双", "beast": "黄龙", "tableBeast": "黄龙", "spring": "子", "fromYear": 2014, "seasons": "秋1秋2秋3冬1冬2冬3春1春2春3夏1夏2夏3"},
+  {"date": "2001-07-20", "note": "奇数年甲申旬首", "serial": 21, "pillar": "甲申", "xun": "甲申旬", "parity": "单", "beast": "凤凰", "tableBeast": "凤凰", "spring": "酉", "fromYear": 2014, "seasons": "冬1冬2冬3春1春2春3夏1夏2夏3秋1秋2秋3"},
+  {"date": "2016-08-09", "note": "两法差十位", "serial": 60, "pillar": "癸亥", "xun": "甲寅旬", "parity": "双", "beast": "玄武", "tableBeast": "青龙", "spring": "寅", "fromYear": 2014, "seasons": "夏2夏3秋1秋2秋3冬1冬2冬3春1春2春3夏1"},
+  {"date": "2016-12-08", "note": "两法跨序号六十反例", "serial": 1, "pillar": "甲子", "xun": "甲子旬", "parity": "双", "beast": "黄龙", "tableBeast": "白虎", "spring": "子", "fromYear": 2014, "seasons": "秋1秋2秋3冬1冬2冬3春1春2春3夏1夏2夏3"},
+  {"date": "2018-02-01", "note": "原表印60，与日柱偏移0等价", "serial": 1, "pillar": "甲子", "xun": "甲子旬", "parity": "双", "beast": "黄龙", "tableBeast": "黄龙", "spring": "子", "fromYear": 2014, "seasons": "秋1秋2秋3冬1冬2冬3春1春2春3夏1夏2夏3"},
+  {"date": "2024-02-29", "note": "公历闰日", "serial": 60, "pillar": "癸亥", "xun": "甲寅旬", "parity": "双", "beast": "玄武", "tableBeast": "玄武", "spring": "寅", "fromYear": 2014, "seasons": "夏2夏3秋1秋2秋3冬1冬2冬3春1春2春3夏1"},
+  {"date": "2025-10-01", "note": "范围末年，两法跨旬反例", "serial": 40, "pillar": "癸卯", "xun": "甲午旬", "parity": "单", "beast": "天马", "tableBeast": "苍龙", "spring": "未", "fromYear": 2014, "seasons": "冬3春1春2春3夏1夏2夏3秋1秋2秋3冬1冬2"}
+]
