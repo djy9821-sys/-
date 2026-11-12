@@ -15,6 +15,8 @@ test('九星气学：填生日出神兽与三柱，页签可切换，摘要可�
   await expect(page.locator('#jx-pillars')).toContainText('八白土星');
   await expect(page.locator('#jx-pillars')).toContainText('九紫火星');
   await expect(page.locator('#jx-z-guard')).toContainText('阿弥陀如来');
+  // 往后十年哪条线去、回都通：总览里一年一行
+  await expect(page.locator('#jx-z-years .out-row')).toHaveCount(10);
 
   await page.getByRole('tab', { name: '运势' }).click();
   await expect(page.locator('#jx-shape')).toContainText('应龙这一类的线');
@@ -22,6 +24,14 @@ test('九星气学：填生日出神兽与三柱，页签可切换，摘要可�
 
   await page.getByRole('tab', { name: '吉方位' }).click();
   await expect(page.locator('#jx-compass .cz')).toHaveCount(9);
+  // 十年表：点一个去、回都通的月份，下面的八方就换到那个月，排得出一趟
+  await expect(page.locator('#jx-years .year-row')).toHaveCount(10);
+  await expect(page.locator('#jx-years .pill.ok').first()).toContainText('去、回都通');
+  const monthChip = page.locator('#jx-years .chip.month:not(.past)').last();
+  const [, startMonth, startDay] = (await monthChip.innerText()).match(/(\d+)月(\d+)日/);
+  await monthChip.click();
+  await expect(page.locator('#jx-from')).toHaveValue(new RegExp(`-${startMonth.padStart(2, '0')}-${startDay.padStart(2, '0')}$`));
+  await expect(page.locator('#jx-dir-detail .trip').first()).toBeVisible();
   // 书里的一趟：2017-11-10 朝西北去，11-12 朝东南回。格子里和列表里都要说清哪天去、哪天回
   await page.locator('#jx-from').fill('2017-11-08');
   await page.locator('#jx-span').selectOption('30');
@@ -49,7 +59,9 @@ test('九星气学：填生日出神兽与三柱，页签可切换，摘要可�
 
   await page.getByRole('tab', { name: '总览' }).click();
   await page.getByRole('button', { name: '复制文字摘要' }).click();
-  expect(await lastCopiedText(page)).toContain('神兽：应龙');
+  const copied = await lastCopiedText(page);
+  expect(copied).toContain('神兽：应龙');
+  expect(copied).toContain('往后几年去、回都通的线');
 
   // 生日不写进本机
   expect(await page.evaluate(() => Object.keys(window.localStorage).filter((key) => /^jx9-(name|birth|gender|other-)/.test(key)))).toEqual([]);
