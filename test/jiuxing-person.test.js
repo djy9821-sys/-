@@ -175,3 +175,25 @@ test('回程另判：2017-11-10 朝西北去，11-12 能朝东南回；2018-03-0
   assert.ok(!back.includes('2018-3-7'));
   assert.ok(back.includes('2018-3-10'));
 });
+
+test('一趟行程：去程日配回程日（书里的两趟）', () => {
+  const md = (day) => (day === null ? null : JX.ymdOf(day).slice(1).join('/'));
+  // 2017-11-10 朝西北去：7 晚内能朝东南回的是 12、14、16、17 日，首选最早的 12 日（书里正是 10 日去、12 日回）
+  const a = JXP.tripsOf(8, '西北', dn(2017, 11, 8), dn(2017, 11, 12), 7);
+  assert.deepEqual(a.trips.map((trip) => [md(trip.go), trip.returns.map(md), md(trip.best), md(trip.later)]), [['11/10', ['11/12', '11/14', '11/16', '11/17'], '11/12', null]]);
+  assert.equal(a.round.length, 1);
+  // 只许住 1 晚时回不来：不算一趟，另给出期限之后最近能回的一天
+  const b = JXP.tripsOf(8, '西北', dn(2017, 11, 8), dn(2017, 11, 12), 1);
+  assert.deepEqual([b.round.length, md(b.trips[0].best), md(b.trips[0].later)], [0, null, '11/12']);
+  assert.equal(md(JXP.nextReturnAfter(8, '西北', dn(2017, 11, 10), 2, 60)), '11/12');
+  // 2018-03-06 朝西去：当天也能朝东回，但首选过夜的，最早是 10 日（书里正是 6 日去、10 日回）
+  const c = JXP.tripsOf(8, '西', dn(2018, 3, 6), dn(2018, 3, 6), 5);
+  assert.deepEqual([c.trips[0].returns.map(md), md(c.trips[0].best)], [['3/6', '3/10', '3/11'], '3/10']);
+  // 每一趟的回程日都确实朝反方向走得通，且不早于去程日
+  const year = JXP.tripsOf(3, '东', dn(2026, 11, 12), dn(2026, 11, 12) + 364, 7);
+  for (const trip of year.trips) for (const day of trip.returns) {
+    assert.ok(day >= trip.go && day - trip.go <= 7);
+    assert.equal(JX.judge(day, '西', 3, 8).pass, true);
+  }
+  assert.deepEqual(year.round, year.trips.filter((trip) => trip.best !== null));
+});
