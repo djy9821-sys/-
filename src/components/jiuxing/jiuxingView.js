@@ -122,15 +122,20 @@ export function mountJiuxing(root, options = {}) {
     lines.push(`今年 ${ME.thisYear}（${ganzhi(ME.thisYear)}年）：${JXP.stageName(stage)}，位置${JXP.tierOf(p.xun, stage)}、${JXP.trendOf(p.xun, stage)}。${ADVICE[stage]}`);
     lines.push(outlookText());
     const near = nearestDirections();
-    lines.push(near.length ? `最近能走的方向：${near.map((n) => `${n.dir}（${DIR[n.dir].head.replace('·', '、')}）${shortDate(n.first)}`).join('；')}。` : '从今天起 90 天内，八方都没有三盘全过的日子。');
+    lines.push(near.length ? `最近的行程：${near.map((n) => `${n.dir}（${DIR[n.dir].head.replace('·', '、')}）${n.trip ? `${shortDate(n.trip.go)}去、${n.trip.best === n.trip.go ? '当天' : shortDate(n.trip.best)}回` : `${shortDate(n.first)}能去，回程待定`}`).join('；')}。` : '从今天起 90 天内，八方都没有三盘全过的日子。');
     lines.push(`合得来：地支与${partners.good.join('、')}三合，与${partners.bad}相冲；九星合${starList(JXP.humanHarmonyOf(used.star))}。`);
     lines.push(`守护本尊：${JXP.guardianOf(ME.pillars.year.branch)}（${ME.pillars.year.branch}年生）。`);
     lines.push('按九星气学《スゴ運。》一书的方法推算，只作参考。');
     return lines.join('\n');
   };
+  const maxNightsOf = () => Number($('nights').value) || 7;
+  /** 从今天起 90 天内各方的情形：有去有回的排前面（按出发日），只能去的排后面。 */
   const nearestDirections = () => {
-    const from = ME.today; const to = Math.min(from + 89, JX.lastDay(8));
-    return JX.DIRECTIONS.map((dir) => { const scan = JXP.scanDirection(ME.birthStar, dir, from, to); return scan.days.length ? { dir, first: scan.days[0].dn, count: scan.days.length } : null; }).filter(Boolean).sort((a, b) => a.first - b.first);
+    const from = ME.today; const to = Math.min(from + 89, JX.lastDay(8)); const maxNights = maxNightsOf();
+    return JX.DIRECTIONS.map((dir) => {
+      const info = JXP.tripsOf(ME.birthStar, dir, from, to, maxNights);
+      return info.days.length ? { dir, first: info.days[0].dn, count: info.days.length, trip: info.round[0] ?? null } : null;
+    }).filter(Boolean).sort((a, b) => (a.trip ? 0 : 1) - (b.trip ? 0 : 1) || (a.trip ? a.trip.go : a.first) - (b.trip ? b.trip.go : b.first));
   };
   const renderZonglan = () => {
     for (const id of ['z-now', 'z-outlook', 'z-dir', 'z-match', 'z-guard']) $(id).textContent = '';
@@ -141,8 +146,12 @@ export function mountJiuxing(root, options = {}) {
     const near = nearestDirections();
     if (!near.length) $('z-dir').append(el('p', 'empty', '这 90 天里八方都没有三盘全过的日子。到“吉方位”里把天数放长再看。'));
     for (const n of near.slice(0, 4)) {
-      const btn = el('button', 'next-dir'); btn.type = 'button';
-      btn.append(el('span', 'd', n.dir), el('span', 'w', `${label(n.first, JX.ymdOf(n.first)[0] !== JX.ymdOf(ME.today)[0])} ${weekday(n.first)}`), el('span', 'm', `${DIR[n.dir].themes} · 90 天内共 ${n.count} 天`));
+      const btn = el('button', 'next-dir' + (n.trip ? '' : ' half')); btn.type = 'button';
+      const otherYear = (dn) => JX.ymdOf(dn)[0] !== JX.ymdOf(ME.today)[0];
+      const when = n.trip
+        ? `${label(n.trip.go, otherYear(n.trip.go))} ${weekday(n.trip.go)}去，${n.trip.best === n.trip.go ? '当天回' : `${label(n.trip.best, otherYear(n.trip.best))} ${weekday(n.trip.best)}回 · 住 ${n.trip.best - n.trip.go} 晚`}`
+        : `${label(n.first, otherYear(n.first))} ${weekday(n.first)}能去，${maxNightsOf()} 晚内回不来`;
+      btn.append(el('span', 'd', n.dir), el('span', 'w', when), el('span', 'm', `${DIR[n.dir].themes} · 90 天内 ${n.count} 天能去`));
       btn.addEventListener('click', () => { setDirection(n.dir); go('fangwei'); });
       $('z-dir').append(btn);
     }
@@ -318,17 +327,25 @@ export function mountJiuxing(root, options = {}) {
     const box = $('compass'); box.textContent = ''; $('compass-note').textContent = ''; scans = null;
     const range = rangeOf();
     if (!ME || !range) { box.append(el('p', 'empty', '先填生日和起始日期。')); return; }
-    scans = Object.fromEntries(JX.DIRECTIONS.map((dir) => [dir, JXP.scanDirection(ME.birthStar, dir, range[0], range[1])]));
+    const maxNights = maxNightsOf(); const md = (dn) => `${JX.ymdOf(dn)[1]}月${JX.ymdOf(dn)[2]}日`;
+    scans = Object.fromEntries(JX.DIRECTIONS.map((dir) => [dir, JXP.tripsOf(ME.birthStar, dir, range[0], range[1], maxNights)]));
     for (const dir of ORDER) {
       if (!dir) { const mid = el('div', 'cz mid'); mid.append(el('span', 'head', '本命星'), el('span', 'name', SHORT[ME.birthStar]), el('span', 'head', '调和 ' + starList(JX.harmonyOf(ME.birthStar)))); box.append(mid); continue; }
-      const scan = scans[dir]; const n = scan.days.length;
-      const btn = el('button', 'cz' + (n ? ' pass' : '')); btn.type = 'button'; btn.setAttribute('aria-pressed', String(dir === state.direction));
-      btn.append(el('span', 'name', dir), el('span', 'head', DIR[dir].head), el('span', 'count', n ? `${n} 天` : '没有'), el('span', 'next', n ? `最近 ${JX.ymdOf(scan.days[0].dn)[1]}月${JX.ymdOf(scan.days[0].dn)[2]}日` : whyNone(scan)));
+      const scan = scans[dir]; const n = scan.days.length; const first = scan.round[0];
+      const btn = el('button', 'cz' + (first ? ' pass' : n ? ' half' : '')); btn.type = 'button'; btn.setAttribute('aria-pressed', String(dir === state.direction));
+      btn.append(el('span', 'name', dir), el('span', 'head', DIR[dir].head), el('span', 'count', n ? `${n} 天能去` : '没有'));
+      if (first) {
+        // 最近一趟：哪天去、哪天回
+        const goLine = el('span', 'next', '去 '); goLine.append(el('b', '', md(first.go)));
+        const backLine = el('span', 'next', '回 '); backLine.append(el('b', '', first.best === first.go ? '当天' : md(first.best)));
+        btn.append(goLine, backLine);
+      } else btn.append(el('span', 'next', n ? `${maxNights} 晚内回不来` : whyNone(scan)));
       btn.addEventListener('click', () => setDirection(dir));
       box.append(btn);
     }
-    const open = JX.DIRECTIONS.filter((dir) => scans[dir].days.length).length;
-    $('compass-note').textContent = open ? `这段时间里，八方有 ${open} 方能走。点一格，下面列出是哪几天。` : '这段时间里八方都没有三盘全过的日子，把查的天数放长再看。';
+    const open = JX.DIRECTIONS.filter((dir) => scans[dir].days.length).length; const round = JX.DIRECTIONS.filter((dir) => scans[dir].round.length).length;
+    $('compass-note').textContent = !open ? '这段时间里八方都没有三盘全过的日子，把查的天数放长再看。'
+      : `这段时间里，八方有 ${open} 方能去${round === open ? `，${maxNights} 晚内都回得来` : `，其中 ${round} 方 ${maxNights} 晚内回得来`}。格子里是最近的一趟；点一格，下面列出每一趟哪天去、哪天回。`;
   };
 
   const renderDirection = () => {
@@ -337,7 +354,7 @@ export function mountJiuxing(root, options = {}) {
     title.append(el('span', 'dir-big', dir), DIR[dir].themes);
     meaning.append(`这一方${DIR[dir].air}。按八尊的传统配法，守这一方的是`, el('b', '', JXP.guardianOfDirection(dir)), `，也就是${JXP.DIRECTION_BRANCHES[dir].split('').join('、')}年生人的本尊。`);
     if (!ME || !scans) return;
-    const scan = scans[dir]; const back = JX.OPPOSITE[dir]; const maxNights = Number($('nights').value);
+    const scan = scans[dir]; const back = JX.OPPOSITE[dir]; const maxNights = maxNightsOf();
     const seg = el('div', 'seg');
     const firstYear = JX.ymdOf(scan.segments[0].from)[0];
     // 年盘不过的那一年不必逐月列，并成一条
@@ -350,19 +367,40 @@ export function mountJiuxing(root, options = {}) {
     box.append(seg);
     if (!scan.days.length) { box.append(el('p', 'empty', `这段时间里，${dir}方没有三盘都过的日子。把查的天数放长，或者换一个方向。`)); }
     else {
-      box.append(el('p', 'hint', `共 ${scan.days.length} 天。每行第二排是回程：返回那天要朝${back}另判，列出 ${maxNights} 晚以内能回的日子。点日期看那天的三张盘。`));
-      const list = el('div', 'list');
-      for (const day of state.showAll ? scan.days : scan.days.slice(0, LIMIT)) {
-        const row = el('div', 'day-row');
-        const date = el('button', 'date', `${label(day.dn, true)} ${weekday(day.dn)}`); date.type = 'button';
-        date.addEventListener('click', () => { $('day').value = iso(day.dn); renderDay(); $('h-day').scrollIntoView({ behavior: smooth(), block: 'start' }); });
-        const returns = JXP.returnsFor(ME.birthStar, dir, day.dn, maxNights);
-        const ret = el('span', 'ret' + (returns.length ? '' : ' none'), returns.length ? `回程 ${returns.map((r) => `${shortDate(r)}（${r === day.dn ? '当天' : r - day.dn + ' 晚'}）`).join('、')}` : `回程：${maxNights} 晚内没有能朝${back}回的日子`);
-        row.append(date, el('span', 'meta', `${dir}方临 年${SHORT[day.boards[0].star]} · 月${SHORT[day.boards[1].star]} · 日${SHORT[day.boards[2].star]}`), ret);
-        list.append(row);
+      const otherYear = (dn) => JX.ymdOf(dn)[0] !== firstYear;
+      const stay = (trip, day) => (day === trip.go ? '当天' : `${day - trip.go} 晚`);
+      const tripRow = (trip) => {
+        const row = el('div', 'trip');
+        const goLeg = el('div', 'leg');
+        const date = el('button', 'date', `${label(trip.go, true)} ${weekday(trip.go)}`); date.type = 'button';
+        date.addEventListener('click', () => { $('day').value = iso(trip.go); renderDay(); $('h-day').scrollIntoView({ behavior: smooth(), block: 'start' }); });
+        goLeg.append(el('span', 'leg-tag is-go', '去'), date, el('span', 'meta', `朝${dir}，临 年${SHORT[trip.boards[0].star]} · 月${SHORT[trip.boards[1].star]} · 日${SHORT[trip.boards[2].star]}`));
+        const backLeg = el('div', 'leg');
+        if (trip.best !== null) {
+          backLeg.append(el('span', 'leg-tag is-back', '回'), el('b', '', `${label(trip.best, otherYear(trip.best))} ${weekday(trip.best)}`), el('span', 'meta', trip.best === trip.go ? '当天回；书里说至少在那边小睡一会儿' : `住 ${trip.best - trip.go} 晚`));
+          const others = trip.returns.filter((day) => day !== trip.best);
+          if (others.length) backLeg.append(el('span', 'meta', `也可以 ${others.map((day) => `${shortDate(day)}（${stay(trip, day)}）`).join('、')}回`));
+        } else {
+          backLeg.append(el('span', 'leg-tag is-none', '回'), el('span', 'meta', trip.later !== null ? `${maxNights} 晚内没有能朝${back}回的日子；最近是 ${label(trip.later, otherYear(trip.later))} ${weekday(trip.later)}，要住 ${trip.later - trip.go} 晚` : `往后 60 天都没有能朝${back}回的日子`));
+        }
+        row.append(goLeg, backLeg);
+        return row;
+      };
+      const round = scan.round; const oneWay = scan.trips.filter((trip) => trip.best === null);
+      box.append(el('p', 'hint', `去程看出发那天朝${dir}；回程另看返回那天朝${back}。两头都过三盘才算一趟。点去程的日期看那天的三张盘。`));
+      if (round.length) {
+        box.append(el('h3', '', `去、回都走得通的行程：${round.length} 个出发日`));
+        const list = el('div', 'list');
+        for (const trip of state.showAll ? round : round.slice(0, LIMIT)) list.append(tripRow(trip));
+        box.append(list);
+        if (!state.showAll && round.length > LIMIT) { const more = el('button', 'more', `再看其余 ${round.length - LIMIT} 个出发日`); more.type = 'button'; more.addEventListener('click', () => { state.showAll = true; renderDirection(); }); box.append(more); }
+      } else box.append(el('p', 'empty', `这段时间有 ${scan.days.length} 天能朝${dir}去，但 ${maxNights} 晚内都没有能朝${back}回的日子。把“最多住几晚”放长，或者看下面每个日子最近能回的一天。`));
+      if (oneWay.length) {
+        const fold = el('details', 'oneway'); fold.open = !round.length;
+        const title = el('summary', '', `能去、但 ${maxNights} 晚内回不来的日子`); title.append(el('span', '', `${oneWay.length} 天`)); fold.append(title);
+        const list = el('div', 'list'); for (const trip of oneWay.slice(0, LIMIT)) list.append(tripRow(trip)); fold.append(list);
+        box.append(fold);
       }
-      box.append(list);
-      if (!state.showAll && scan.days.length > LIMIT) { const more = el('button', 'more', `再看其余 ${scan.days.length - LIMIT} 天`); more.type = 'button'; more.addEventListener('click', () => { state.showAll = true; renderDirection(); }); box.append(more); }
     }
     // 从家出发，这个方向上有哪些地方
     const home = homePoint();
@@ -415,6 +453,16 @@ export function mountJiuxing(root, options = {}) {
       const li = el('li');
       li.append(el('b', '', `${b.layer}盘`), `${SHORT[b.center]}入中，${state.direction}方临${SHORT[b.star]}`);
       li.append(el('span', 'pill ' + (b.pass ? 'ok' : 'bad'), b.affliction ? b.affliction : b.harmonious ? '调和' : '不是调和星'));
+      why.append(li);
+    }
+    if (chosen.pass) {
+      const back = JX.OPPOSITE[state.direction]; const maxNights = maxNightsOf();
+      const returns = JXP.returnsFor(ME.birthStar, state.direction, dn, maxNights);
+      const later = returns.length ? null : JXP.nextReturnAfter(ME.birthStar, state.direction, dn, maxNights + 1, 60);
+      const li = el('li');
+      li.append(el('b', '', '回程'), returns.length
+        ? `这天朝${state.direction}去，回来要朝${back}：${returns.map((day) => `${shortDate(day)} ${weekday(day)}（${day === dn ? '当天' : day - dn + ' 晚'}）`).join('、')}能回。`
+        : later !== null ? `这天朝${state.direction}去，${maxNights} 晚内没有能朝${back}回的日子；最近是 ${shortDate(later)} ${weekday(later)}，要住 ${later - dn} 晚。` : `这天朝${state.direction}去，往后 60 天都没有能朝${back}回的日子。`);
       why.append(li);
     }
   };
@@ -629,7 +677,7 @@ export function mountJiuxing(root, options = {}) {
   $('home').addEventListener('change', () => { store.set('home', $('home').value); homePoint(); if (state.tab === 'fangwei') { renderDirection(); renderBearing(); } else dirty.add('fangwei'); });
   for (const id of ['home-lat', 'home-lon']) $(id).addEventListener('input', () => { if (state.tab === 'fangwei') { renderDirection(); renderBearing(); } else dirty.add('fangwei'); });
   for (const id of ['from', 'span']) $(id).addEventListener('input', () => { state.showAll = false; renderCompass(); renderDirection(); });
-  $('nights').addEventListener('change', renderDirection);
+  $('nights').addEventListener('change', () => { state.showAll = false; dirty.add('zonglan'); renderCompass(); renderDirection(); renderDay(); });
   $('day').addEventListener('input', renderDay);
   $('day-today').addEventListener('click', () => { $('day').value = iso(todayDn()); renderDay(); });
   $('dest').addEventListener('change', () => { store.set('dest', $('dest').value); renderBearing(); });

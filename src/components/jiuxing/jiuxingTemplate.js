@@ -37,10 +37,10 @@ export const JIUXING_TEMPLATE = `
       <button type="button" class="jump" data-tab="yunshi">看一生的起伏线</button>
     </section>
     <section aria-labelledby="jx-h-z-dir">
-      <h2 id="jx-h-z-dir">最近能走的方向</h2>
-      <p class="hint">从今天起 90 天内，各方最近一个三盘都过的日子。</p>
+      <h2 id="jx-h-z-dir">最近的行程</h2>
+      <p class="hint">从今天起 90 天内，各方最近一趟去、回都走得通的行程。</p>
       <div id="jx-z-dir"></div>
-      <button type="button" class="jump" data-tab="fangwei">看全部日子和回程</button>
+      <button type="button" class="jump" data-tab="fangwei">看全部行程，改住几晚</button>
     </section>
     <section aria-labelledby="jx-h-z-match">
       <h2 id="jx-h-z-match">和谁合得来</h2>
@@ -97,13 +97,14 @@ export const JIUXING_TEMPLATE = `
 <!-- 吉方位 -->
 <div class="panel" id="jx-p-fangwei" role="tabpanel" aria-labelledby="jx-t-fangwei" hidden>
   <section aria-labelledby="jx-h-compass">
-    <h2 id="jx-h-compass">八方，接下来哪边走得通</h2>
+    <h2 id="jx-h-compass">八方，哪天去、哪天回</h2>
     <div class="row">
       <label for="jx-from">从哪天起<input type="date" id="jx-from"></label>
       <label for="jx-span">往后查<select id="jx-span"><option value="30">30 天</option><option value="60">60 天</option><option value="90" selected>90 天</option><option value="180">180 天</option><option value="365">一年</option></select></label>
-      <label for="jx-nights">回程最多隔几晚<select id="jx-nights"><option>1</option><option>2</option><option selected>3</option><option>5</option><option>7</option></select></label>
+      <label for="jx-nights">最多住几晚<select id="jx-nights"><option>1</option><option>2</option><option>3</option><option>5</option><option selected>7</option><option>14</option><option>30</option></select></label>
     </div>
-    <div class="compass" id="jx-compass" role="group" aria-label="八个方向，点一个看日子"></div>
+    <div class="compass" id="jx-compass" role="group" aria-label="八个方向，点一个看哪天去、哪天回"></div>
+    <div class="legend"><span><i class="l-ok"></i>去、回都走得通</span><span><i class="l-half"></i>能去，但这几晚内回不来</span></div>
     <p class="hint" id="jx-compass-note"></p>
   </section>
 
