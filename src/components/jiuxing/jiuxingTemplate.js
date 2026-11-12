@@ -104,7 +104,7 @@ export const JIUXING_TEMPLATE = `
       <label for="jx-nights">最多住几晚<select id="jx-nights"><option>1</option><option>2</option><option>3</option><option>5</option><option selected>7</option><option>14</option><option>30</option></select></label>
     </div>
     <div class="compass" id="jx-compass" role="group" aria-label="八个方向，点一个看哪天去、哪天回"></div>
-    <div class="legend"><span><i class="l-ok"></i>去、回都走得通</span><span><i class="l-half"></i>能去，但这几晚内回不来</span></div>
+    <div class="legend"><span><i class="l-ok"></i>去、回都走得通</span><span><i class="l-half"></i>能去，但回程不吉，书里不拿来往返</span></div>
     <p class="hint" id="jx-compass-note"></p>
   </section>
 
@@ -223,7 +223,7 @@ export const JIUXING_TEMPLATE = `
         <li>调和星是与本命星五行相生或相同的星，不算本命星自己，也不算五黄。</li>
         <li>某个方向在年、月、日三张盘上都临调和星，而且都不犯凶方，这一天这个方向才算走得通。</li>
         <li>凶方有三种：五黄所在的一方是五黄杀，它对面是暗剑杀；九紫临北、一白临南是水火杀。</li>
-        <li>回程不跟着去程算，要按返回那天、朝反方向另查一遍。</li>
+        <li>回程不跟着去程算，要按返回那天、朝反方向另查一遍。书里把“去、回两头年月日都吉”当作吉方位旅行的铁则，所以排行程时先挑去、回两个方向年盘月盘都通的月份。</li>
         <li>本命星看出生那年的年星，立春前出生的算上一年。</li>
       </ul>
     </details>

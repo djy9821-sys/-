@@ -122,7 +122,7 @@ export function mountJiuxing(root, options = {}) {
     lines.push(`今年 ${ME.thisYear}（${ganzhi(ME.thisYear)}年）：${JXP.stageName(stage)}，位置${JXP.tierOf(p.xun, stage)}、${JXP.trendOf(p.xun, stage)}。${ADVICE[stage]}`);
     lines.push(outlookText());
     const near = nearestDirections();
-    lines.push(near.length ? `最近的行程：${near.map((n) => `${n.dir}（${DIR[n.dir].head.replace('·', '、')}）${n.trip ? `${shortDate(n.trip.go)}去、${n.trip.best === n.trip.go ? '当天' : shortDate(n.trip.best)}回` : `${shortDate(n.first)}能去，回程待定`}`).join('；')}。` : '从今天起 90 天内，八方都没有三盘全过的日子。');
+    lines.push(near.length ? `最近的行程：${near.map((n) => `${n.dir}（${DIR[n.dir].head.replace('·', '、')}）${n.trip ? `${shortDate(n.trip.go)}去、${n.trip.best === n.trip.go ? '当天' : shortDate(n.trip.best)}回` : `${shortDate(n.first)}能去，但回程不吉`}`).join('；')}。` : '从今天起 90 天内，八方都没有三盘全过的日子。');
     lines.push(`合得来：地支与${partners.good.join('、')}三合，与${partners.bad}相冲；九星合${starList(JXP.humanHarmonyOf(used.star))}。`);
     lines.push(`守护本尊：${JXP.guardianOf(ME.pillars.year.branch)}（${ME.pillars.year.branch}年生）。`);
     lines.push('按九星气学《スゴ運。》一书的方法推算，只作参考。');
@@ -150,7 +150,7 @@ export function mountJiuxing(root, options = {}) {
       const otherYear = (dn) => JX.ymdOf(dn)[0] !== JX.ymdOf(ME.today)[0];
       const when = n.trip
         ? `${label(n.trip.go, otherYear(n.trip.go))} ${weekday(n.trip.go)}去，${n.trip.best === n.trip.go ? '当天回' : `${label(n.trip.best, otherYear(n.trip.best))} ${weekday(n.trip.best)}回 · 住 ${n.trip.best - n.trip.go} 晚`}`
-        : `${label(n.first, otherYear(n.first))} ${weekday(n.first)}能去，${maxNightsOf()} 晚内回不来`;
+        : `${label(n.first, otherYear(n.first))} ${weekday(n.first)}能去，但回程不吉`;
       btn.append(el('span', 'd', n.dir), el('span', 'w', when), el('span', 'm', `${DIR[n.dir].themes} · 90 天内 ${n.count} 天能去`));
       btn.addEventListener('click', () => { setDirection(n.dir); go('fangwei'); });
       $('z-dir').append(btn);
@@ -339,7 +339,7 @@ export function mountJiuxing(root, options = {}) {
         const goLine = el('span', 'next', '去 '); goLine.append(el('b', '', md(first.go)));
         const backLine = el('span', 'next', '回 '); backLine.append(el('b', '', first.best === first.go ? '当天' : md(first.best)));
         btn.append(goLine, backLine);
-      } else btn.append(el('span', 'next', n ? `${maxNights} 晚内回不来` : whyNone(scan)));
+      } else btn.append(el('span', 'next', !n ? whyNone(scan) : scan.trips.every((trip) => trip.blocked) ? '回程方向不通' : `${maxNights} 晚内回不来`));
       btn.addEventListener('click', () => setDirection(dir));
       box.append(btn);
     }
@@ -362,7 +362,8 @@ export function mountJiuxing(root, options = {}) {
     for (const s of scan.segments) { const last = groups[groups.length - 1]; if (last && !s.yearOk && !last.yearOk && last.kiYear === s.kiYear) last.to = s.to; else groups.push({ ...s }); }
     for (const g of groups) {
       const since = `${label(g.from, JX.ymdOf(g.from)[0] !== firstYear)}起`;
-      seg.append(el('span', 'pill ' + (g.yearOk && g.monthOk ? 'ok' : 'bad'), g.yearOk ? `${since} ${g.monthBranch}月：${g.monthOk ? '年、月盘都过' : '月盘不过'}` : `${since} ${ganzhi(g.kiYear)}年：年盘不过`));
+      const outOk = g.yearOk && g.monthOk; const backOk = g.backYearOk && g.backMonthOk;
+      seg.append(el('span', 'pill ' + (outOk && backOk ? 'ok' : outOk ? 'warn' : 'bad'), !g.yearOk ? `${since} ${ganzhi(g.kiYear)}年：年盘不过` : !g.monthOk ? `${since} ${g.monthBranch}月：月盘不过` : backOk ? `${since} ${g.monthBranch}月：去、回都通` : `${since} ${g.monthBranch}月：只通去程`));
     }
     box.append(seg);
     if (!scan.days.length) { box.append(el('p', 'empty', `这段时间里，${dir}方没有三盘都过的日子。把查的天数放长，或者换一个方向。`)); }
@@ -381,23 +382,26 @@ export function mountJiuxing(root, options = {}) {
           const others = trip.returns.filter((day) => day !== trip.best);
           if (others.length) backLeg.append(el('span', 'meta', `也可以 ${others.map((day) => `${shortDate(day)}（${stay(trip, day)}）`).join('、')}回`));
         } else {
-          backLeg.append(el('span', 'leg-tag is-none', '回'), el('span', 'meta', trip.later !== null ? `${maxNights} 晚内没有能朝${back}回的日子；最近是 ${label(trip.later, otherYear(trip.later))} ${weekday(trip.later)}，要住 ${trip.later - trip.go} 晚` : `往后 60 天都没有能朝${back}回的日子`));
+          const wait = trip.later !== null ? `最早要到 ${label(trip.later, otherYear(trip.later))} ${weekday(trip.later)}才能回，得住 ${trip.later - trip.go} 晚` : `往后 60 天都没有能朝${back}回的日子`;
+          backLeg.append(el('span', 'leg-tag is-none', '回'), el('span', 'meta', trip.blocked ? `这个月朝${back}的${trip.blocked}不过，回程不吉。书里不取这样的日子往返；${wait}。` : `${maxNights} 晚内没有能朝${back}回的日子；${wait}。`));
         }
         row.append(goLeg, backLeg);
         return row;
       };
       const round = scan.round; const oneWay = scan.trips.filter((trip) => trip.best === null);
-      box.append(el('p', 'hint', `去程看出发那天朝${dir}；回程另看返回那天朝${back}。两头都过三盘才算一趟。点去程的日期看那天的三张盘。`));
+      box.append(el('p', 'hint', `书里的规矩是去、回两头都要吉：去程看出发那天朝${dir}，回程另看返回那天朝${back}。所以先挑上面标着“去、回都通”的月份，那样的月份里隔两三天就有能回的日子；标着“只通去程”的月份，朝${back}的年盘或月盘不过，书里不拿来往返。点去程的日期看那天的三张盘。`));
       if (round.length) {
         box.append(el('h3', '', `去、回都走得通的行程：${round.length} 个出发日`));
         const list = el('div', 'list');
         for (const trip of state.showAll ? round : round.slice(0, LIMIT)) list.append(tripRow(trip));
         box.append(list);
         if (!state.showAll && round.length > LIMIT) { const more = el('button', 'more', `再看其余 ${round.length - LIMIT} 个出发日`); more.type = 'button'; more.addEventListener('click', () => { state.showAll = true; renderDirection(); }); box.append(more); }
-      } else box.append(el('p', 'empty', `这段时间有 ${scan.days.length} 天能朝${dir}去，但 ${maxNights} 晚内都没有能朝${back}回的日子。把“最多住几晚”放长，或者看下面每个日子最近能回的一天。`));
+      } else box.append(el('p', 'empty', oneWay.every((trip) => trip.blocked)
+        ? `这段时间有 ${scan.days.length} 天能朝${dir}去，但回程要朝${back}，而${back}方这段时间的年盘或月盘不过。书里的规矩是去、回两头都要吉，这样的月份不拿来往返：换一个方向，或者把查的天数放长，找“去、回都通”的月份。`
+        : `这段时间有 ${scan.days.length} 天能朝${dir}去，但 ${maxNights} 晚内都没有能朝${back}回的日子。把“最多住几晚”放长，或者看下面每个日子最早能回的一天。`));
       if (oneWay.length) {
         const fold = el('details', 'oneway'); fold.open = !round.length;
-        const title = el('summary', '', `能去、但 ${maxNights} 晚内回不来的日子`); title.append(el('span', '', `${oneWay.length} 天`)); fold.append(title);
+        const title = el('summary', '', oneWay.every((trip) => trip.blocked) ? '只通去程的日子（书里不拿来往返）' : `能去、但 ${maxNights} 晚内回不来的日子`); title.append(el('span', '', `${oneWay.length} 天`)); fold.append(title);
         const list = el('div', 'list'); for (const trip of oneWay.slice(0, LIMIT)) list.append(tripRow(trip)); fold.append(list);
         box.append(fold);
       }
@@ -487,6 +491,8 @@ export function mountJiuxing(root, options = {}) {
       const stage = JXP.stageOf(ME.profile, ME.thisYear); const season = Math.floor(stage / 3); const where = JXP.stageShort(stage);
       add(season === 1 || season === 2 ? `你今年在${where}。书里说运势高的时候择方的效果更强，夏、秋适合走远一些。` : season === 3 ? `你今年在${where}。书里说冬天意外多，不宜走太远，近处为主。` : `你今年在${where}。书里说走远路以夏、秋为主，现在先从近处走起。`);
     }
+    add('去、回两头都要吉，这是书里的铁则：回程要按返回那天、朝反方向另查。办法是先挑月份，去的方向和回的方向在年盘、月盘上都通，这个月里去和回的日子就都好找；跨过交节或立春，要重新查。');
+    add('不得已朝不好的方向走了，书里的补救是事后尽早去一趟吉方位，把它抵掉；远行要提前查，不好就把行程往前或往后挪。');
     add('一个月去一次就够，不必天天看方位。');
     add('先从近处试。要效果明显，得走出平时的生活圈，书里举的尺度是离家一百公里以上；走得越远，作用越强。');
     add('到了要住一晚。实在住不了，在那边小睡一会儿也算。');
