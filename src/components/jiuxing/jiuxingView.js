@@ -135,8 +135,11 @@ export function mountJiuxing(root, options = {}) {
   /** 今年起十个气学年的情形（年盘九年一轮，十年正好看全）。 */
   const outlooks = () => { const out = []; for (let k = 0; k < 10; k++) { const o = JXP.yearOutlook(ME.birthStar, ME.thisYear + k); if (o) out.push(o); } return out; };
   /** 一年里去、回都通的线，各自还没过完的月份。 */
-  const openAxes = (o) => o.axes.filter((axis) => axis.status === 'both').map((axis) => ({ pair: axis.pair, months: axis.months.filter((m) => m.to >= ME.today) })).filter((axis) => axis.months.length);
-  const axisText = (axis) => `${axis.pair.join('—')}（${axis.months.map((m) => JX.ymdOf(m.from)[1]).join('、')} 月）`;
+  const openAxes = (o) => o.axes.filter((axis) => axis.status === 'both').map((axis) => ({ pair: axis.pair, kiYear: o.kiYear, months: axis.months.filter((m) => m.to >= ME.today) })).filter((axis) => axis.months.length);
+  /** 丑月（有时连子月）落在公历的下一年，标出“次年”，免得看成当年一月。 */
+  const nextYearMark = (m, kiYear) => (JX.ymdOf(m.from)[0] > kiYear ? '次年 ' : '');
+  const monthsText = (axis) => `${axis.months.map((m) => `${nextYearMark(m, axis.kiYear)}${JX.ymdOf(m.from)[1]}`).join('、')} 月`;
+  const axisText = (axis) => `${axis.pair.join('—')}（${monthsText(axis)}）`;
   /** 从今天起 90 天内各方的情形：有去有回的排前面（按出发日），只能去的排后面。 */
   const nearestDirections = () => {
     const from = ME.today; const to = Math.min(from + 89, JX.lastDay(8)); const maxNights = maxNightsOf();
@@ -154,7 +157,7 @@ export function mountJiuxing(root, options = {}) {
     for (const o of outlooks()) {
       const open = openAxes(o); const row = el('div', 'out-row' + (o.kiYear === ME.thisYear ? ' cur' : ''));
       row.append(el('span', 'yr', `${o.kiYear} ${ganzhi(o.kiYear)}`));
-      if (open.length) { const hit = el('span', 'hit'); open.forEach((axis, i) => hit.append(i ? '；' : '', el('b', '', axis.pair.join('—')), `（${axis.months.map((m) => JX.ymdOf(m.from)[1]).join('、')} 月）`)); row.append(hit); }
+      if (open.length) { const hit = el('span', 'hit'); open.forEach((axis, i) => hit.append(i ? '；' : '', el('b', '', axis.pair.join('—')), `（${monthsText(axis)}）`)); row.append(hit); }
       else row.append(el('span', 'miss', o.kiYear === ME.thisYear ? '今年剩下的月份里没有' : '没有去、回都通的线'));
       $('z-years').append(row);
     }
@@ -367,7 +370,7 @@ export function mountJiuxing(root, options = {}) {
           const chips = el('div', 'chips');
           for (const m of axis.months) {
             const past = m.to < ME.today; const now = m.from <= ME.today && ME.today <= m.to;
-            const chip = el('button', 'chip month' + (past ? ' past' : ''), `${m.branch}月 ${md(m.from)}–${md(m.to)}${now ? ' · 本月' : past ? ' · 已过' : ''}`);
+            const chip = el('button', 'chip month' + (past ? ' past' : ''), `${m.branch}月 ${nextYearMark(m, o.kiYear)}${md(m.from)}–${md(m.to)}${now ? ' · 本月' : past ? ' · 已过' : ''}`);
             chip.type = 'button'; chip.disabled = past;
             chip.addEventListener('click', () => openMonth(m, axis.pair));
             chips.append(chip);
