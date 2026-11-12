@@ -215,3 +215,65 @@ test('往返先挑月份：去、回两个方向年盘月盘都通的月份（�
   assert.ok(march.length > 5);
   assert.ok(march.every((trip) => trip.blocked === null && trip.best !== null));
 });
+
+test('一个气学年的十二个节月：立春起、交节当天换月、首尾相接', () => {
+  const md = (day) => JX.ymdOf(day).slice(1).join('/');
+  const months = JXP.monthsOfYear(2027);
+  assert.equal(months.map((month) => month.branch).join(''), '寅卯辰巳午未申酉戌亥子丑');
+  assert.deepEqual(JX.ymdOf(months[0].from), [2027, 2, 4]);
+  assert.deepEqual(JX.ymdOf(months[11].to), [2028, 2, 3]);
+  months.slice(1).forEach((month, i) => assert.equal(month.from, months[i].to + 1));
+  assert.deepEqual(months.filter((month) => '卯未子'.includes(month.branch)).map((month) => `${md(month.from)}–${md(month.to)}`), ['3/6–4/4', '7/7–8/7', '12/7–1/5']);
+  // 每个月的月星就是那个月里任何一天的月星
+  for (const month of months) for (const day of [month.from, month.to]) assert.equal(JX.starsOfDay(day, 8).monthStar, month.star);
+  // 节气表之外算不了
+  assert.equal(JXP.monthsOfYear(1899), null);
+  assert.equal(JXP.monthsOfYear(2061), null);
+  assert.equal(JXP.yearOutlook(8, 2061), null);
+});
+
+test('往后哪一年、哪条线往返都通：书里 Y（本命八白）的三年', () => {
+  const open = (year) => JXP.yearOutlook(8, year).axes.filter((axis) => axis.status === 'both').map((axis) => `${axis.pair.join('—')}:${axis.months.map((month) => month.branch).join('')}`);
+  // 2017 年走西北—东南一线（书里十一月那一趟在亥月）；2018 年东西一线，三月、十二月；2019 年西北—东南一线，三月、五月
+  assert.deepEqual(open(2017), ['东南—西北:寅酉亥']);
+  assert.deepEqual(open(2018), ['东—西:卯未子']);
+  assert.deepEqual(open(2019), ['东南—西北:卯巳子']);
+  // 2019 年东方年盘可去、对面的西方不通：只通一头，不列月份
+  const eastWest = JXP.yearOutlook(8, 2019).axes.find((axis) => axis.pair[0] === '东');
+  assert.deepEqual([eastWest.status, eastWest.open, eastWest.months], ['one', ['东'], []]);
+  // 年星与起止：2018 年九紫入中，从立春 2 月 4 日到次年 2 月 3 日
+  const y2018 = JXP.yearOutlook(8, 2018);
+  assert.deepEqual([y2018.yearStar, JX.ymdOf(y2018.from), JX.ymdOf(y2018.to)], [9, [2018, 2, 4], [2019, 2, 3]]);
+});
+
+test('年表与逐日判断一致：年盘、月盘上线的两头通不通，同 judge 给出的一样', () => {
+  for (let star = 1; star <= 9; star++) for (const year of [2026, 2027, 2031, 2040]) {
+    const outlook = JXP.yearOutlook(star, year);
+    const clear = (day, direction, layer) => { const board = JX.judge(day, direction, star, 8).boards.find((item) => item.layer === layer); return board.harmonious && !board.affliction; };
+    for (const month of JXP.monthsOfYear(year)) for (const day of [month.from, month.to]) for (const axis of outlook.axes) {
+      const where = `本命${star} ${JX.ymdOf(day).join('-')} ${axis.pair.join('—')}`;
+      assert.deepEqual(axis.pair.filter((direction) => clear(day, direction, '年')), axis.open, where);
+      assert.equal(axis.status, ['none', 'one', 'both'][axis.open.length], where);
+      const listed = axis.months.some((item) => item.from === month.from);
+      assert.equal(listed, axis.open.length === 2 && axis.pair.every((direction) => clear(day, direction, '月')), where);
+    }
+  }
+});
+
+test('年表九年一轮：月盘跟着年盘走，九年后原样再来；两头都通的年份里总有月份可挑', () => {
+  const shape = (outlook) => outlook.axes.map((axis) => `${axis.status}${axis.open.join('')}${axis.months.map((month) => month.branch).join('')}`).join('|');
+  for (let star = 1; star <= 9; star++) {
+    let both = 0;
+    for (let year = 2026; year <= 2034; year++) {
+      const outlook = JXP.yearOutlook(star, year);
+      assert.equal(shape(outlook), shape(JXP.yearOutlook(star, year + 9)), `本命${star} ${year}`);
+      for (const axis of outlook.axes) if (axis.status === 'both') { both++; assert.ok(axis.months.length > 0, `本命${star} ${year}`); }
+    }
+    // 难得：九年三十六条“年×线”里，两头都通的只有三到九条
+    assert.ok(both >= 3 && both <= 9, `本命${star}：${both}`);
+  }
+  // 去、回都通的月份里，七晚以内确实排得出一趟
+  for (const axis of JXP.yearOutlook(8, 2027).axes) for (const month of axis.months) for (const direction of axis.pair) {
+    assert.ok(JXP.tripsOf(8, direction, month.from, month.to, 7).round.length > 0, `${month.branch}月 ${direction}`);
+  }
+});
