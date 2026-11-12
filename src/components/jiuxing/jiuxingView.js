@@ -40,6 +40,7 @@ export function mountJiuxing(root, options = {}) {
   const iso = (dn) => { const [y, m, d] = JX.ymdOf(dn); return `${y}-${pad(m)}-${pad(d)}`; };
   const label = (dn, withYear) => { const [y, m, d] = JX.ymdOf(dn); return `${withYear ? y + ' 年 ' : ''}${m} 月 ${d} 日`; };
   const shortDate = (dn) => { const [, m, d] = JX.ymdOf(dn); return `${m} 月 ${d} 日`; };
+  const md = (dn) => { const [, m, d] = JX.ymdOf(dn); return `${m}月${d}日`; };
   const weekday = (dn) => '周' + WEEK[new Date(dn * 86400000).getUTCDay()];
   const todayDn = () => { const t = new Date(Date.now() + 8 * 3600000); return JX.dayNumber(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate()); };
   const ganzhi = (year) => STEMS[mod(year - 4, 10)] + BR[mod(year - 4, 12)];
@@ -123,12 +124,19 @@ export function mountJiuxing(root, options = {}) {
     lines.push(outlookText());
     const near = nearestDirections();
     lines.push(near.length ? `最近的行程：${near.map((n) => `${n.dir}（${DIR[n.dir].head.replace('·', '、')}）${n.trip ? `${shortDate(n.trip.go)}去、${n.trip.best === n.trip.go ? '当天' : shortDate(n.trip.best)}回` : `${shortDate(n.first)}能去，但回程不吉`}`).join('；')}。` : '从今天起 90 天内，八方都没有三盘全过的日子。');
+    const years = outlooks().map((o) => ({ o, open: openAxes(o) })).filter((x) => x.open.length).slice(0, 4);
+    if (years.length) lines.push(`往后几年去、回都通的线：${years.map((x) => `${x.o.kiYear} 年${x.open.map(axisText).join('、')}`).join('；')}。`);
     lines.push(`合得来：地支与${partners.good.join('、')}三合，与${partners.bad}相冲；九星合${starList(JXP.humanHarmonyOf(used.star))}。`);
     lines.push(`守护本尊：${JXP.guardianOf(ME.pillars.year.branch)}（${ME.pillars.year.branch}年生）。`);
     lines.push('按九星气学《スゴ運。》一书的方法推算，只作参考。');
     return lines.join('\n');
   };
   const maxNightsOf = () => Number($('nights').value) || 7;
+  /** 今年起十个气学年的情形（年盘九年一轮，十年正好看全）。 */
+  const outlooks = () => { const out = []; for (let k = 0; k < 10; k++) { const o = JXP.yearOutlook(ME.birthStar, ME.thisYear + k); if (o) out.push(o); } return out; };
+  /** 一年里去、回都通的线，各自还没过完的月份。 */
+  const openAxes = (o) => o.axes.filter((axis) => axis.status === 'both').map((axis) => ({ pair: axis.pair, months: axis.months.filter((m) => m.to >= ME.today) })).filter((axis) => axis.months.length);
+  const axisText = (axis) => `${axis.pair.join('—')}（${axis.months.map((m) => JX.ymdOf(m.from)[1]).join('、')} 月）`;
   /** 从今天起 90 天内各方的情形：有去有回的排前面（按出发日），只能去的排后面。 */
   const nearestDirections = () => {
     const from = ME.today; const to = Math.min(from + 89, JX.lastDay(8)); const maxNights = maxNightsOf();
@@ -138,11 +146,18 @@ export function mountJiuxing(root, options = {}) {
     }).filter(Boolean).sort((a, b) => (a.trip ? 0 : 1) - (b.trip ? 0 : 1) || (a.trip ? a.trip.go : a.first) - (b.trip ? b.trip.go : b.first));
   };
   const renderZonglan = () => {
-    for (const id of ['z-now', 'z-outlook', 'z-dir', 'z-match', 'z-guard']) $(id).textContent = '';
+    for (const id of ['z-now', 'z-outlook', 'z-years', 'z-dir', 'z-match', 'z-guard']) $(id).textContent = '';
     $('copy-text').hidden = true; $('copy-state').textContent = '';
     if (!ME) return;
     $('z-now').append(nowBlock());
     $('z-outlook').textContent = outlookText();
+    for (const o of outlooks()) {
+      const open = openAxes(o); const row = el('div', 'out-row' + (o.kiYear === ME.thisYear ? ' cur' : ''));
+      row.append(el('span', 'yr', `${o.kiYear} ${ganzhi(o.kiYear)}`));
+      if (open.length) { const hit = el('span', 'hit'); open.forEach((axis, i) => hit.append(i ? '；' : '', el('b', '', axis.pair.join('—')), `（${axis.months.map((m) => JX.ymdOf(m.from)[1]).join('、')} 月）`)); row.append(hit); }
+      else row.append(el('span', 'miss', o.kiYear === ME.thisYear ? '今年剩下的月份里没有' : '没有去、回都通的线'));
+      $('z-years').append(row);
+    }
     const near = nearestDirections();
     if (!near.length) $('z-dir').append(el('p', 'empty', '这 90 天里八方都没有三盘全过的日子。到“吉方位”里把天数放长再看。'));
     for (const n of near.slice(0, 4)) {
@@ -323,11 +338,54 @@ export function mountJiuxing(root, options = {}) {
     return $('dest-lat').value !== '' && $('dest-lon').value !== '' && Math.abs(lat) <= 85 && Math.abs(lon) <= 180 ? [lat, lon] : null;
   };
 
+  const SPANS = [30, 60, 90, 180, 365];
+  /** 点一个月份：把下面的“八方”换成这个月，落在这条线上。 */
+  const openMonth = (month, pair) => {
+    const start = Math.max(month.from, ME.today);
+    $('from').value = iso(start);
+    $('span').value = String(SPANS.find((n) => start + n - 1 >= month.to) ?? 365);
+    if (!pair.includes(state.direction)) state.direction = pair[0];
+    state.autoDirection = false; state.showAll = false;
+    renderCompass(); renderDirection(); renderDay();
+    $('h-compass').scrollIntoView({ behavior: smooth(), block: 'start' });
+  };
+  const renderYears = () => {
+    const box = $('years'); box.textContent = '';
+    if (!ME) return;
+    for (const o of outlooks()) {
+      const row = el('div', 'year-row' + (o.kiYear === ME.thisYear ? ' cur' : ''));
+      const head = el('div', 'year-head'); head.append(el('b', '', `${o.kiYear} ${ganzhi(o.kiYear)}年`), el('span', '', `${SHORT[o.yearStar]}入中${o.kiYear === ME.thisYear ? ' · 今年' : ''}`));
+      const body = el('div', 'year-body');
+      const both = o.axes.filter((axis) => axis.status === 'both'); const one = o.axes.filter((axis) => axis.status === 'one');
+      for (const axis of both) {
+        const block = el('div', 'axis');
+        const title = el('div', 'axis-title');
+        title.append(el('span', 'pill ok', `${axis.pair.join('—')} 去、回都通`), el('span', 'note-line', axis.pair.map((dir) => `朝${dir}：${DIR[dir].head.replace('·', '、')}`).join('；')));
+        block.append(title);
+        if (!axis.months.length) block.append(el('p', 'note-line', '年盘两头都通，但这一年没有月盘也两头都通的月份。'));
+        else {
+          const chips = el('div', 'chips');
+          for (const m of axis.months) {
+            const past = m.to < ME.today; const now = m.from <= ME.today && ME.today <= m.to;
+            const chip = el('button', 'chip month' + (past ? ' past' : ''), `${m.branch}月 ${md(m.from)}–${md(m.to)}${now ? ' · 本月' : past ? ' · 已过' : ''}`);
+            chip.type = 'button'; chip.disabled = past;
+            chip.addEventListener('click', () => openMonth(m, axis.pair));
+            chips.append(chip);
+          }
+          block.append(chips);
+        }
+        body.append(block);
+      }
+      if (!both.length) body.append(el('p', 'note-line', '这一年没有去、回都通的线。'));
+      if (one.length) body.append(el('p', 'note-line', `只通去程、不拿来往返：${one.map((axis) => axis.open[0]).join('、')}。`));
+      row.append(head, body); box.append(row);
+    }
+  };
   const renderCompass = () => {
     const box = $('compass'); box.textContent = ''; $('compass-note').textContent = ''; scans = null;
     const range = rangeOf();
     if (!ME || !range) { box.append(el('p', 'empty', '先填生日和起始日期。')); return; }
-    const maxNights = maxNightsOf(); const md = (dn) => `${JX.ymdOf(dn)[1]}月${JX.ymdOf(dn)[2]}日`;
+    const maxNights = maxNightsOf();
     scans = Object.fromEntries(JX.DIRECTIONS.map((dir) => [dir, JXP.tripsOf(ME.birthStar, dir, range[0], range[1], maxNights)]));
     for (const dir of ORDER) {
       if (!dir) { const mid = el('div', 'cz mid'); mid.append(el('span', 'head', '本命星'), el('span', 'name', SHORT[ME.birthStar]), el('span', 'head', '调和 ' + starList(JX.harmonyOf(ME.birthStar)))); box.append(mid); continue; }
@@ -501,7 +559,7 @@ export function mountJiuxing(root, options = {}) {
     add('求财取西，是因为这一派以西主钱财。这里查的只是按这套条件哪天、哪边走得通，查不出开奖号码，也不会改变中奖的概率。');
   };
 
-  const renderFangwei = () => { renderCompass(); renderDirection(); renderDay(); renderBearing(); renderRules(); };
+  const renderFangwei = () => { renderYears(); renderCompass(); renderDirection(); renderDay(); renderBearing(); renderRules(); };
   const setDirection = (dir) => {
     state.direction = dir; state.autoDirection = false; state.showAll = false; store.set('dir', dir);
     if (state.tab !== 'fangwei') { dirty.add('fangwei'); return; }

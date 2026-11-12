@@ -36,6 +36,12 @@ export const JIUXING_TEMPLATE = `
       <p id="jx-z-outlook"></p>
       <button type="button" class="jump" data-tab="yunshi">看一生的起伏线</button>
     </section>
+    <section class="wide" aria-labelledby="jx-h-z-years">
+      <h2 id="jx-h-z-years">往后十年，哪条线去、回都通</h2>
+      <p class="hint">去、回两头都吉的年份不多，遇上了值得走一趟。一条线的两头在年盘上都通，这一年才能沿这条线往返；后面是月盘也两头都通的月份（按节气算，大致从当月 5 日前后起）。</p>
+      <div class="list" id="jx-z-years"></div>
+      <button type="button" class="jump" data-tab="fangwei">看每个月的起止日期，排行程</button>
+    </section>
     <section aria-labelledby="jx-h-z-dir">
       <h2 id="jx-h-z-dir">最近的行程</h2>
       <p class="hint">从今天起 90 天内，各方最近一趟去、回都走得通的行程。</p>
@@ -96,6 +102,12 @@ export const JIUXING_TEMPLATE = `
 
 <!-- 吉方位 -->
 <div class="panel" id="jx-p-fangwei" role="tabpanel" aria-labelledby="jx-t-fangwei" hidden>
+  <section aria-labelledby="jx-h-years">
+    <h2 id="jx-h-years">往后十年，哪条线去、回都通</h2>
+    <p class="hint">书里的查法是先定年、再定月、最后定日。一条线的两头在年盘上都通，这一年才能沿这条线往返；下面列出月盘上两头也都通的月份，点一个月份，就排出那个月哪天去、哪天回。只通一头的方向，回来那一头年盘不过，书里不拿来往返。年盘九年一轮，月盘跟着年盘走，所以这张表每九年原样再来一遍。</p>
+    <div class="years" id="jx-years"></div>
+  </section>
+
   <section aria-labelledby="jx-h-compass">
     <h2 id="jx-h-compass">八方，哪天去、哪天回</h2>
     <div class="row">
@@ -224,6 +236,7 @@ export const JIUXING_TEMPLATE = `
         <li>某个方向在年、月、日三张盘上都临调和星，而且都不犯凶方，这一天这个方向才算走得通。</li>
         <li>凶方有三种：五黄所在的一方是五黄杀，它对面是暗剑杀；九紫临北、一白临南是水火杀。</li>
         <li>回程不跟着去程算，要按返回那天、朝反方向另查一遍。书里把“去、回两头年月日都吉”当作吉方位旅行的铁则，所以排行程时先挑去、回两个方向年盘月盘都通的月份。</li>
+        <li>往后十年的那张表，是书里“先定年、再定月、最后定日”的查法：年盘上一条线的两头都通，才算这一年能往返；再列出月盘上两头也都通的月份。年盘九年一轮，所以十年看得全。</li>
         <li>本命星看出生那年的年星，立春前出生的算上一年。</li>
       </ul>
     </details>

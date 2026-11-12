@@ -168,6 +168,24 @@
 .jx .leg b { font-weight: 600; white-space: nowrap; }
 .jx .leg .meta { color: var(--muted); font-size: 13px; }
 .jx .oneway summary span { color: var(--muted); font-weight: 400; margin-left: 8px; }
+.jx .years { display: flex; flex-direction: column; }
+.jx .year-row { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); gap: 6px 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+.jx .year-row:first-child { border-top: 0; padding-top: 0; }
+.jx .year-head { display: flex; flex-direction: column; }
+.jx .year-head b { font-family: var(--display); font-size: 17px; font-weight: 700; }
+.jx .year-head span { font-size: 12px; color: var(--muted); }
+.jx .year-row.cur .year-head b { color: var(--accent); }
+.jx .year-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.jx .axis { display: flex; flex-direction: column; gap: 6px; }
+.jx .axis-title { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.jx .note-line { color: var(--muted); font-size: 13px; }
+.jx .chip.month { color: var(--ink); background: var(--ok-weak); border-color: var(--ok); }
+.jx .chip.month.past { background: var(--bg); border-color: var(--line); color: var(--muted); text-decoration: line-through; cursor: default; }
+.jx .out-row { display: grid; grid-template-columns: 7em minmax(0, 1fr); gap: 2px 12px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.jx .out-row .yr { font-weight: 600; }
+.jx .out-row .hit b { font-weight: 600; color: var(--ok); }
+.jx .out-row .miss { color: var(--muted); font-size: 13px; }
+.jx .out-row.cur .yr { color: var(--accent); }
 .jx .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .jx .chip { font-size: 13px; padding: 2px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .jx .chip.near { color: var(--muted); }
@@ -233,6 +251,7 @@
   .jx .board-title { flex-direction: column; gap: 0; }
   .jx .cz { padding: 6px 8px; } .jx .cz .name { font-size: 18px; }
   .jx .phase { grid-template-columns: minmax(0, 1fr); }
+  .jx .year-row { grid-template-columns: minmax(0, 1fr); }
   .jx .pillar { grid-template-columns: minmax(0, 1fr); } .jx .pillar .b { font-size: 22px; }
   .jx .tabs { gap: 5px; } .jx .tabs [role="tab"] { padding: 6px 9px; font-size: 15px; }
 }
