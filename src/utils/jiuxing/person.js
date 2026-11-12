@@ -133,10 +133,15 @@ const JXP = (() => {
   const guardianOfDirection = (direction) => guardianOf(DIRECTION_BRANCHES[direction][0]);
 
   // —— 某个方向哪些天走得通 ——
-  /** from…to 之间按交节切成几段，每段给出年盘、月盘过不过；年、月都过的段里再逐日看日盘。 */
+  /**
+   * from…to 之间按交节切成几段，每段给出年盘、月盘过不过；年、月都过的段里再逐日看日盘。
+   * backYearOk、backMonthOk 是回程方向（正对面）在这一段的年盘、月盘：书里的办法是先挑去、回两头年月都通的月份，往返才好排。
+   */
   const scanDirection = (birthStar, direction, from, to) => {
     const harmony = JX.harmonyOf(birthStar);
-    const okOn = (center) => harmony.includes(JX.starAt(center, direction)) && !JX.afflictionAt(center, direction);
+    const okAt = (center, dir) => harmony.includes(JX.starAt(center, dir)) && !JX.afflictionAt(center, dir);
+    const okOn = (center) => okAt(center, direction);
+    const back = JX.OPPOSITE[direction];
     const segments = []; const days = [];
     let dn = from;
     while (dn <= to) {
@@ -144,7 +149,7 @@ const JXP = (() => {
       if (!s) break;
       const end = Math.min((s.nextTermDay ?? to + 1) - 1, to);
       const yearOk = okOn(s.yearStar); const monthOk = okOn(s.monthStar);
-      segments.push({ from: dn, to: end, monthBranch: s.monthBranch, kiYear: s.kiYear, yearOk, monthOk });
+      segments.push({ from: dn, to: end, monthBranch: s.monthBranch, kiYear: s.kiYear, yearOk, monthOk, backYearOk: okAt(s.yearStar, back), backMonthOk: okAt(s.monthStar, back) });
       if (yearOk && monthOk) for (let day = dn; day <= end; day++) { const r = JX.judge(day, direction, birthStar, 8); if (r.pass) days.push({ dn: day, boards: r.boards }); }
       dn = end + 1;
     }
@@ -167,6 +172,7 @@ const JXP = (() => {
    * 某个方向在一段日子里的行程：每个能去的日子，配上 maxNights 晚以内能回的日子。
    * best 是首选的回程日（优先过夜的，最早的那天；只有当天能回时才取当天），没有就是 null，这时 later 给出期限之后最近能回的一天。
    * round 是去、回都走得通的那些。
+   * blocked 说明出发那个月回程方向卡在哪一盘（'年盘'、'月盘'），不卡就是 null：卡住的月份，书里不拿来往返。
    */
   const tripsOf = (birthStar, direction, from, to, maxNights) => {
     const scan = scanDirection(birthStar, direction, from, to);
@@ -174,7 +180,9 @@ const JXP = (() => {
       const returns = returnsFor(birthStar, direction, day.dn, maxNights);
       const overnight = returns.filter((r) => r > day.dn);
       const best = overnight.length ? overnight[0] : returns.length ? returns[0] : null;
-      return { go: day.dn, boards: day.boards, returns, best, later: best === null ? nextReturnAfter(birthStar, direction, day.dn, maxNights + 1, 60) : null };
+      const segment = scan.segments.find((seg) => seg.from <= day.dn && day.dn <= seg.to);
+      const blocked = !segment.backYearOk ? '年盘' : !segment.backMonthOk ? '月盘' : null;
+      return { go: day.dn, boards: day.boards, returns, best, blocked, later: best === null ? nextReturnAfter(birthStar, direction, day.dn, maxNights + 1, 60) : null };
     });
     return { segments: scan.segments, days: scan.days, trips, round: trips.filter((trip) => trip.best !== null) };
   };
