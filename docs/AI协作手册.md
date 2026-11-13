@@ -32,7 +32,7 @@ src/
   components/          页面与组件（主线；支线只在任务卡点名时改）
   utils/               三大模块的排盘与断法引擎 ——【禁区】
   data/
-    classics.js        古籍登记表（书名、作者、模块）
+    classics.js        古籍登记表（书名、作者、模块、给读者看的底本说明）
     classics/          古籍库：原文 + 白话 + 适用条件（JSON，支线主战场）
     glossary/          术语词典（JSON，支线）
     cases/             经典命例（JSON，支线）
