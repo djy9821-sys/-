@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { classicsCatalogPlugin } from './scripts/lib/classicsCatalog.mjs'
 
 // 版本号：构建日期 + Vercel 提供的提交号，显示在首页页脚与「关于」页。
 const commit = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7)
@@ -51,6 +52,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
     selfHostMediaPipeHands(),
+    // 藏经阁的书架目录（virtual:classics-catalog / virtual:classics-total）：构建时按古籍文件现算。
+    classicsCatalogPlugin({ dir: fileURLToPath(new URL('./src/data/classics/', import.meta.url)) }),
   ],
   define: {
     'import.meta.env.VITE_APP_BUILD': JSON.stringify(appBuild),
