@@ -12,6 +12,7 @@ import { YAO_CI } from '../yaoci.js';
 import { SHENSHA_ORDER } from '../../utils/baziShensha.js';
 import { BAZI_PATTERN_VOCAB, ZIWEI_PATTERN_VOCAB } from './patternNames.js';
 import { LIUYAO_TOPIC_VOCAB } from './topicNames.js';
+import { chaptersOf, sectionOfEntry } from './sections.js';
 
 export const ENTRY_STATUS = Object.freeze(['draft', 'translated', 'reviewed']);
 export const MODULES = Object.freeze(['bazi', 'ziwei', 'liuyao']);
@@ -137,19 +138,8 @@ export const vernacularRatio = (entry) => {
 /** 程序认得的名字（格局、神煞）：写错了条件永远匹配不上，报错时说清楚。 */
 const NAME_KEYS = Object.freeze({ pattern: '格局名', shensha: '神煞名', topic: '问事类别' });
 
-/** 一个文件录了几篇时，section 用「、」把各篇名列出来；返回篇名数组。 */
-export const chaptersOf = (doc) => String(doc?.section ?? '').split('、').map((name) => name.trim()).filter(Boolean);
-
-/**
- * 一条属于哪一篇：条目自带 section 优先；一文件多篇时按 title 的「篇名·其N」前缀归篇；单篇文件就是文件的 section。
- * 多篇文件里既没写 section、title 前缀也对不上任何一篇时返回 null。
- */
-export const sectionOfEntry = (entry, doc, chapters = chaptersOf(doc)) => {
-  if (isNonEmptyString(entry?.section)) return entry.section.trim();
-  if (chapters.length <= 1) return isNonEmptyString(doc?.section) ? doc.section : null;
-  const head = String(entry?.title ?? '').split('·')[0].trim();
-  return chapters.includes(head) ? head : null;
-};
+// 一个文件录了哪几篇（chaptersOf）、一条属于哪一篇（sectionOfEntry）：定义在 ./sections.js，这里照旧导出。
+export { chaptersOf, sectionOfEntry };
 
 const MODULE_LABELS = Object.freeze({ bazi: '八字', ziwei: '紫微', liuyao: '六爻' });
 

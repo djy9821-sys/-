@@ -15,6 +15,11 @@ src/data/classics/
 
 提交前运行 `node scripts/validate-data.mjs`，CI 上也会跑同样的检查（`test/data-files.test.js`）。
 
+**这些文件也摆在藏经阁里**（`#/cangjing`，见 `docs/藏经阁.md`）：读者按「书 → 篇 → 条」翻看原文和白话。书架和目录在构建时按这些文件现算，录入后不用另外生成什么。两件事请留意：
+
+- 篇目的先后：文件名按拼音排不是书里的次第。新录一个文件时，在 PR 说明里写清它在原书里排在哪一篇之后，由主线排进 `shelf.js` 的 `DOC_ORDER`（没排的先放在这本书的最后）。
+- 同一本书换了底本或加了新的文字来源，在 PR 说明里提一句，主线会改登记表里给读者看的底本说明（`src/data/classics.js` 的 `edition`）。
+
 ## 文件结构
 
 ```json
