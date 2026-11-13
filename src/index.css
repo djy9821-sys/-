@@ -322,8 +322,12 @@ a:focus-visible {
 .tool-card { display: flex; min-height: 182px; padding: 24px; align-items: flex-start; justify-content: space-between; gap: 18px; border: 1px solid rgba(229, 199, 131, 0.14); border-radius: 20px 20px 20px 6px; background: linear-gradient(145deg, rgba(20, 42, 35, 0.82), rgba(7, 17, 14, 0.9)); color: var(--paper-50); text-align: left; transition: border-color 180ms ease, transform 180ms ease; }
 .tool-card:hover { transform: translateY(-2px); border-color: rgba(123, 210, 192, 0.34); }
 .tool-card--cinnabar:hover { border-color: rgba(216, 90, 69, 0.45); }
-/* 第三张工具卡单独占一整行，矮一些。 */
+/* 单独占一整行的工具卡，矮一些。 */
 .tool-card--wide { grid-column: 1 / -1; min-height: 148px; }
+/* 藏经阁的入口：靛蓝书衣，右上一方朱印。 */
+.tool-card--library { border-color: rgba(229, 199, 131, 0.22); background: linear-gradient(145deg, rgba(34, 62, 80, 0.86), rgba(12, 24, 32, 0.92)); }
+.tool-card--library:hover { border-color: rgba(229, 199, 131, 0.5); }
+.tool-card--library .tool-symbol { border-color: rgba(255, 220, 200, 0.22); border-radius: 8px 8px 8px 3px; color: #fff3e6; background: linear-gradient(150deg, #d85a45, #b5382c 62%); transform: rotate(-4deg); }
 .tool-card-copy { min-width: 0; }
 .tool-card-eyebrow, .tool-card-title, .tool-card-description { display: block; }
 .tool-card-eyebrow { margin: 0 0 9px; color: var(--gold-300); font-size: 10px; font-weight: 800; letter-spacing: 0.18em; }

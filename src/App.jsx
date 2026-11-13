@@ -9,6 +9,7 @@ import { buildZiweiShareUrl, decodeBaziLink, decodeZiweiLink, hashQueryOf } from
 import { track } from './utils/analytics';
 import { useCurrentPlace } from './components/common/useCurrentPlace';
 import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from './utils/birthPlaces';
+import { CLASSICS_TOTAL_LINE } from './data/classicsTotal';
 
 // Lazy load the heavy components
 // 六爻起卦（含摇铜钱与手势两种起卦动画，动画再按需加载）。
@@ -21,6 +22,8 @@ const ProfessionalChart = lazy(() => import("./components/ProfessionalChart"));
 const HomeBaziToday = lazy(() => import("./components/bazi/HomeBaziToday"));
 const AboutView = lazy(() => import("./components/AboutView"));
 const JiuxingQixue = lazy(() => import("./components/jiuxing/JiuxingQixue"));
+// 藏经阁：书架和目录先出来，古籍全文翻开哪一类才下载哪一类。
+const CangjingGe = lazy(() => import("./components/cangjing/CangjingGe"));
 
 const APP_VERSION = import.meta.env.VITE_APP_BUILD || 'dev';
 
@@ -80,7 +83,7 @@ const ziweiExactKeyOf = ({ calendarType, birthDate, isLeapMonth, clockTime, plac
 // 地址栏 #/bazi 等与页面同步：手机返回键回到上一页，链接也能直接打开对应功能。
 const VIEW_ROUTES = Object.freeze({
   input: 'ziwei', chart: 'ziwei/chart', liuyao: 'liuyao', archive: 'archive', bazi: 'bazi',
-  about: 'about', jiuxing: 'jiuxing',
+  about: 'about', jiuxing: 'jiuxing', cangjing: 'cangjing',
   // 课程视频（VideoLessons）仍在筹备，暂不开放地址。
 });
 const ROUTE_VIEWS = Object.freeze(Object.fromEntries(Object.entries(VIEW_ROUTES).map(([view, route]) => [route, view])));
@@ -95,6 +98,7 @@ const VIEW_TITLES = Object.freeze({
   archive: '命盘档案 · 古书派',
   about: '关于与隐私 · 古书派',
   jiuxing: '九星气学 · 古书派',
+  cangjing: '藏经阁 · 古书派',
 });
 // #/bazi?cal=s&d=… 这类带参数的地址：路由只看问号前面的部分。
 const routeFromHash = (hash = '') => hash.replace(/^#\/?/, '').split('?')[0].replace(/\/$/, '');
@@ -106,6 +110,8 @@ const viewFromHash = (hash = '') => {
   const route = routeFromHash(hash);
   return ROUTE_VIEWS[route] ?? LEGACY_ROUTES[route]?.view ?? 'home';
 };
+// 藏经阁带着目的地的地址（#/cangjing?b=书&c=第几篇，或 ?e=条目）：问号后面的部分原样交给藏经阁，它自己翻过去。
+const cangjingQueryFromHash = (hash = '') => (viewFromHash(hash) === 'cangjing' ? hashQueryOf(hash) : '');
 const liuyaoMethodFromHash = (hash = '') => LEGACY_ROUTES[routeFromHash(hash)]?.method ?? null;
 const hashForView = (view) => (VIEW_ROUTES[view] ? `#/${VIEW_ROUTES[view]}` : '');
 // 没有命盘数据时，紫微命盘页退回到输入页。
@@ -319,7 +325,7 @@ const getBirthDayCount = (lib, calendarType, year, month, isLeapMonth = false) =
 };
 
 export default function App() {
-  const [view, setView] = useState(initialViewFromLocation); // 'home', 'input', 'chart', 'liuyao', 'archive', 'videos', 'bazi', 'about', 'jiuxing'
+  const [view, setView] = useState(initialViewFromLocation); // 'home', 'input', 'chart', 'liuyao', 'archive', 'videos', 'bazi', 'about', 'jiuxing', 'cangjing'
   // 从档案打开的八字命例；从首页或底部导航进入八字时为空。
   const [baziRecord, setBaziRecord] = useState(() => baziRecordFromHash(globalThis.location?.hash));
   // 带参数的紫微链接：先记下来，等组件挂好后再加载排盘库出盘（见下方 effect）。
@@ -327,6 +333,8 @@ export default function App() {
   // 从档案打开的六爻卦例，以及旧地址 #/money、#/bagua 预选的起卦方式。
   const [liuyaoRecord, setLiuyaoRecord] = useState(null);
   const [liuyaoMethod, setLiuyaoMethod] = useState(() => liuyaoMethodFromHash(globalThis.location?.hash));
+  // 进藏经阁时要翻到的地方（e=条目 id，或 b=书&c=第几篇）；空着就是书架。藏经阁只在打开的那一刻读它。
+  const [cangjingQuery, setCangjingQuery] = useState(() => cangjingQueryFromHash(globalThis.location?.hash));
   const [showWelcomeCover, setShowWelcomeCover] = useState(() => {
     // 直接打开某个功能的链接（如 #/bazi）时不显示封面。
     if (initialViewFromLocation() !== 'home') return false;
@@ -541,6 +549,8 @@ export default function App() {
     const firstSync = !routeSyncedRef.current;
     routeSyncedRef.current = true;
     if (currentHash === target) return;
+    // 藏经阁自己管问号后面的部分（翻到哪本书、哪一篇）：地址已经在藏经阁里就不动它。
+    if (view === 'cangjing' && viewFromHash(currentHash) === 'cangjing') return;
     const url = `${window.location.pathname}${window.location.search}${target}`;
     // 打开的链接无效（如没有命盘数据的 #/ziwei/chart）时直接改写地址，不新增历史。
     if (firstSync) {
@@ -565,6 +575,7 @@ export default function App() {
       if (legacyMethod) setLiuyaoMethod(legacyMethod);
       if (linkedBazi) setBaziRecord(linkedBazi);
       if (linkedZiwei) pendingZiweiLinkRef.current = linkedZiwei;
+      if (next === 'cangjing') setCangjingQuery(cangjingQueryFromHash(window.location.hash));
       setView(next === 'chart' && !horoscope ? 'input' : next);
     };
     window.addEventListener('popstate', handlePopState);
@@ -1165,7 +1176,14 @@ export default function App() {
     setIsMoreOpen(false);
     setBaziRecord(null);
     setLiuyaoRecord(null);
+    setCangjingQuery('');
     setView(nextView);
+  };
+
+  // 从首页进藏经阁：先到书架。
+  const openCangjing = () => {
+    setCangjingQuery('');
+    setView('cangjing');
   };
 
   const openLiuYao = () => {
@@ -1181,11 +1199,12 @@ export default function App() {
       // still lets the user continue normally for this visit.
     }
     setShowWelcomeCover(false);
+    setCangjingQuery('');
     setView(nextView);
   };
 
   const showsMobileNav = !showWelcomeCover && ['home', 'input', 'archive'].includes(view);
-  const usesOwnHeader = ['liuyao', 'bazi', 'archive', 'videos', 'chart', 'about', 'jiuxing'].includes(view);
+  const usesOwnHeader = ['liuyao', 'bazi', 'archive', 'videos', 'chart', 'about', 'jiuxing', 'cangjing'].includes(view);
 
   return (
     <div className={`app-shell ${showsMobileNav ? 'app-shell--mobile-nav' : ''} ${view === 'chart' ? 'app-shell--chart' : ''}`}>
@@ -1494,6 +1513,27 @@ export default function App() {
                   <span className="tool-card-action">进入九星气学 <span aria-hidden="true">→</span></span>
                 </span>
                 <span className="tool-symbol" aria-hidden="true">星</span>
+              </button>
+            </section>
+
+            <div className="section-heading">
+              <h3>藏经阁</h3>
+              <p>批命引的每一句，都能翻到出处</p>
+            </div>
+
+            <section className="secondary-tools" aria-label="藏经阁">
+              <button
+                type="button"
+                onClick={openCangjing}
+                className="tool-card tool-card--wide tool-card--library"
+              >
+                <span className="tool-card-copy">
+                  <span className="tool-card-eyebrow">{CLASSICS_TOTAL_LINE}</span>
+                  <span className="tool-card-title">翻开原典</span>
+                  <span className="tool-card-description">《滴天髓》《穷通宝鉴》《子平真诠》《紫微斗数全书》《增删卜易》等古籍的原文，配我们逐句译的白话。可以竖排读、搜字句、钤印收藏。</span>
+                  <span className="tool-card-action">进藏经阁 <span aria-hidden="true">→</span></span>
+                </span>
+                <span className="tool-symbol" aria-hidden="true">藏</span>
               </button>
             </section>
 
@@ -1877,6 +1917,12 @@ export default function App() {
               <JiuxingQixue onBack={() => setView('home')} />
             </Suspense>
           </ErrorBoundary>
+        ) : view === 'cangjing' ? (
+          <ErrorBoundary>
+            <Suspense fallback={null}>
+              <CangjingGe initialQuery={cangjingQuery} onBack={() => setView('home')} />
+            </Suspense>
+          </ErrorBoundary>
         ) : view === 'about' ? (
           <ErrorBoundary>
             <Suspense fallback={null}>
@@ -1971,7 +2017,7 @@ export default function App() {
         <button
           ref={moreOpenerRef}
           type="button"
-          className={isMoreOpen || ['liuyao', 'videos', 'jiuxing'].includes(view) ? 'mobile-nav-item mobile-nav-item--active' : 'mobile-nav-item'}
+          className={isMoreOpen || ['liuyao', 'videos', 'jiuxing', 'cangjing'].includes(view) ? 'mobile-nav-item mobile-nav-item--active' : 'mobile-nav-item'}
           aria-haspopup="dialog"
           aria-expanded={isMoreOpen}
           onClick={() => setIsMoreOpen((isOpen) => !isOpen)}
@@ -2012,6 +2058,11 @@ export default function App() {
               <button type="button" className="mobile-more-card" onClick={() => navigateFromMobile('jiuxing')}>
                 <span className="mobile-more-seal mobile-more-seal--jade" aria-hidden="true">星</span>
                 <span><b>九星气学</b><small>十二神兽、十二年运势、吉方位</small></span>
+                <i aria-hidden="true">›</i>
+              </button>
+              <button type="button" className="mobile-more-card" onClick={() => navigateFromMobile('cangjing')}>
+                <span className="mobile-more-seal" aria-hidden="true">藏</span>
+                <span><b>藏经阁</b><small>古籍原文与白话逐句对照</small></span>
                 <i aria-hidden="true">›</i>
               </button>
               <button
