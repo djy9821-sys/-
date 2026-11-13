@@ -20,6 +20,7 @@ const BaziDivination = lazy(() => import("./components/BaziDivination"));
 const ProfessionalChart = lazy(() => import("./components/ProfessionalChart"));
 const HomeBaziToday = lazy(() => import("./components/bazi/HomeBaziToday"));
 const AboutView = lazy(() => import("./components/AboutView"));
+const JiuxingQixue = lazy(() => import("./components/jiuxing/JiuxingQixue"));
 
 const APP_VERSION = import.meta.env.VITE_APP_BUILD || 'dev';
 
@@ -79,7 +80,7 @@ const ziweiExactKeyOf = ({ calendarType, birthDate, isLeapMonth, clockTime, plac
 // 地址栏 #/bazi 等与页面同步：手机返回键回到上一页，链接也能直接打开对应功能。
 const VIEW_ROUTES = Object.freeze({
   input: 'ziwei', chart: 'ziwei/chart', liuyao: 'liuyao', archive: 'archive', bazi: 'bazi',
-  about: 'about',
+  about: 'about', jiuxing: 'jiuxing',
   // 课程视频（VideoLessons）仍在筹备，暂不开放地址。
 });
 const ROUTE_VIEWS = Object.freeze(Object.fromEntries(Object.entries(VIEW_ROUTES).map(([view, route]) => [route, view])));
@@ -93,6 +94,7 @@ const VIEW_TITLES = Object.freeze({
   liuyao: '六爻起卦 · 古书派',
   archive: '命盘档案 · 古书派',
   about: '关于与隐私 · 古书派',
+  jiuxing: '九星气学 · 古书派',
 });
 // #/bazi?cal=s&d=… 这类带参数的地址：路由只看问号前面的部分。
 const routeFromHash = (hash = '') => hash.replace(/^#\/?/, '').split('?')[0].replace(/\/$/, '');
@@ -317,7 +319,7 @@ const getBirthDayCount = (lib, calendarType, year, month, isLeapMonth = false) =
 };
 
 export default function App() {
-  const [view, setView] = useState(initialViewFromLocation); // 'home', 'input', 'chart', 'liuyao', 'archive', 'videos', 'bazi', 'about'
+  const [view, setView] = useState(initialViewFromLocation); // 'home', 'input', 'chart', 'liuyao', 'archive', 'videos', 'bazi', 'about', 'jiuxing'
   // 从档案打开的八字命例；从首页或底部导航进入八字时为空。
   const [baziRecord, setBaziRecord] = useState(() => baziRecordFromHash(globalThis.location?.hash));
   // 带参数的紫微链接：先记下来，等组件挂好后再加载排盘库出盘（见下方 effect）。
@@ -1183,7 +1185,7 @@ export default function App() {
   };
 
   const showsMobileNav = !showWelcomeCover && ['home', 'input', 'archive'].includes(view);
-  const usesOwnHeader = ['liuyao', 'bazi', 'archive', 'videos', 'chart', 'about'].includes(view);
+  const usesOwnHeader = ['liuyao', 'bazi', 'archive', 'videos', 'chart', 'about', 'jiuxing'].includes(view);
 
   return (
     <div className={`app-shell ${showsMobileNav ? 'app-shell--mobile-nav' : ''} ${view === 'chart' ? 'app-shell--chart' : ''}`}>
@@ -1478,6 +1480,20 @@ export default function App() {
                   <span className="tool-card-action">立即起卦 <span aria-hidden="true">→</span></span>
                 </span>
                 <span className="tool-symbol" aria-hidden="true">卦</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setView('jiuxing')}
+                className="tool-card tool-card--wide"
+              >
+                <span className="tool-card-copy">
+                  <span className="tool-card-eyebrow">十二神兽 · 吉方位</span>
+                  <span className="tool-card-title">九星气学</span>
+                  <span className="tool-card-description">填生日，看你属十二神兽里的哪一类、今年走到春夏秋冬的哪一年，哪天往哪个方向走得通，和谁合得来。</span>
+                  <span className="tool-card-action">进入九星气学 <span aria-hidden="true">→</span></span>
+                </span>
+                <span className="tool-symbol" aria-hidden="true">星</span>
               </button>
             </section>
 
@@ -1855,6 +1871,12 @@ export default function App() {
               onBack={() => { setBaziRecord(null); setView('home'); }}
             />
           </Suspense>
+        ) : view === 'jiuxing' ? (
+          <ErrorBoundary>
+            <Suspense fallback={null}>
+              <JiuxingQixue onBack={() => setView('home')} />
+            </Suspense>
+          </ErrorBoundary>
         ) : view === 'about' ? (
           <ErrorBoundary>
             <Suspense fallback={null}>
@@ -1949,7 +1971,7 @@ export default function App() {
         <button
           ref={moreOpenerRef}
           type="button"
-          className={isMoreOpen || ['liuyao', 'videos'].includes(view) ? 'mobile-nav-item mobile-nav-item--active' : 'mobile-nav-item'}
+          className={isMoreOpen || ['liuyao', 'videos', 'jiuxing'].includes(view) ? 'mobile-nav-item mobile-nav-item--active' : 'mobile-nav-item'}
           aria-haspopup="dialog"
           aria-expanded={isMoreOpen}
           onClick={() => setIsMoreOpen((isOpen) => !isOpen)}
@@ -1985,6 +2007,11 @@ export default function App() {
               <button type="button" className="mobile-more-card" onClick={() => navigateFromMobile('liuyao')}>
                 <span className="mobile-more-seal" aria-hidden="true">卦</span>
                 <span><b>六爻起卦</b><small>摇铜钱或手势起卦，自动装卦</small></span>
+                <i aria-hidden="true">›</i>
+              </button>
+              <button type="button" className="mobile-more-card" onClick={() => navigateFromMobile('jiuxing')}>
+                <span className="mobile-more-seal mobile-more-seal--jade" aria-hidden="true">星</span>
+                <span><b>九星气学</b><small>十二神兽、十二年运势、吉方位</small></span>
                 <i aria-hidden="true">›</i>
               </button>
               <button

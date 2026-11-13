@@ -1,0 +1,258 @@
+/* 九星气学页面的样式。所有规则都挂在 .jx 下，不影响别的页面。颜色跟古书派的深色底、金色点缀走。 */
+.jx {
+  --bg: #050a09; --surface: #0b1713; --ink: #fbf7ed; --muted: #a7aea6; --line: rgba(229, 199, 131, 0.18);
+  --accent: #e5c783; --accent-weak: rgba(229, 199, 131, 0.12);
+  --spring: #6fcf93; --spring-weak: #16301f; --summer: #f0946c; --summer-weak: #3a2018;
+  --autumn: #e2bd5c; --autumn-weak: #352c12; --winter: #9db7d1; --winter-weak: #1b2733;
+  --ok: #7bd2c0; --ok-weak: rgba(85, 187, 168, 0.16); --bad: #f1a292; --bad-weak: rgba(169, 47, 38, 0.24); --warn: #e2b862; --warn-weak: #382e14;
+  --display: "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif;
+  --body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --data: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+.jx, .jx *, .jx *::before, .jx *::after { box-sizing: border-box; }
+.jx { position: relative; display: flex; flex-direction: column; gap: 20px; min-width: 0; color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.6; }
+.jx section { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.jx h2 { font-family: var(--display); font-size: 19px; font-weight: 700; margin: 0; letter-spacing: 0.04em; scroll-margin-top: 72px; text-wrap: balance; }
+.jx h3 { font-size: 15px; font-weight: 600; margin: 0; }
+.jx p { margin: 0; }
+.jx .hint { color: var(--muted); font-size: 13px; }
+.jx .row { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: end; }
+.jx label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); min-width: 0; }
+.jx input, .jx select, .jx button { font: inherit; color: var(--ink); }
+.jx input[type="date"], .jx input[type="number"], .jx input[type="text"], .jx select { background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 7px 9px; min-height: 38px; max-width: 100%; }
+.jx input[type="number"] { width: 7.5em; }
+.jx input[type="text"] { width: 9em; }
+.jx button { cursor: pointer; }
+.jx a { color: var(--accent); }
+.jx :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.jx .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.jx .tag { display: inline-block; font-size: 12px; padding: 1px 7px; border-radius: 3px; background: var(--warn-weak); color: var(--warn); align-self: center; }
+.jx .pill { font-size: 12px; padding: 1px 8px; border-radius: 999px; white-space: nowrap; background: var(--surface); border: 1px solid var(--line); color: var(--ink); }
+.jx .pill.ok { background: var(--ok-weak); color: var(--ok); border-color: transparent; }
+.jx .pill.bad { background: var(--bad-weak); color: var(--bad); border-color: transparent; }
+.jx .pill.warn { background: var(--warn-weak); color: var(--warn); border-color: transparent; }
+.jx .note { font-size: 13px; padding: 8px 12px; border-radius: 4px; background: var(--warn-weak); color: var(--ink); }
+.jx .empty { padding: 12px; background: var(--bg); border-radius: 4px; color: var(--muted); }
+.jx .more { align-self: flex-start; background: none; border: 1px solid var(--line); border-radius: 4px; padding: 6px 12px; }
+.jx .go { align-self: flex-start; background: var(--accent); color: var(--surface); border: 0; border-radius: 4px; padding: 8px 14px; min-height: 38px; }
+.jx .list { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.jx .flat { display: contents; }
+.jx .plain { margin: 0; list-style: disc; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; max-width: 42em; }
+
+/* 名帖 */
+.jx .who { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 20px; align-items: center; }
+.jx .beast { font-family: var(--display); font-size: 56px; font-weight: 700; line-height: 1.1; color: var(--accent); letter-spacing: 0.06em; grid-row: span 2; }
+.jx .who .basis b { font-weight: 600; }
+.jx .who .gloss { color: var(--muted); font-size: 13px; }
+.jx .pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.jx .pillar { border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 10px; align-items: center; background: var(--bg); min-width: 0; }
+.jx .pillar .k { font-size: 12px; color: var(--muted); grid-column: 1 / -1; }
+.jx .pillar .b { font-family: var(--display); font-size: 26px; font-weight: 700; line-height: 1.2; }
+.jx .pillar .s { font-size: 13px; overflow-wrap: anywhere; }
+.jx .pillar.cur { border-color: var(--accent); background: var(--accent-weak); }
+.jx .pillar.cur .b { color: var(--accent); }
+
+/* 页签 */
+.jx .tabs { position: sticky; top: var(--jx-sticky-top, env(safe-area-inset-top, 0px)); z-index: 5; display: flex; gap: 6px; overflow-x: auto; background: var(--bg); padding-block: 8px; margin-block: -8px; scrollbar-width: none; }
+.jx .tabs::-webkit-scrollbar { display: none; }
+.jx .tabs [role="tab"] { flex: none; font-family: var(--display); font-size: 16px; font-weight: 700; letter-spacing: 0.06em; text-decoration: none; color: var(--muted); padding: 6px 14px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+.jx .tabs [role="tab"][aria-selected="true"] { color: var(--surface); background: var(--accent); border-color: var(--accent); }
+.jx .panel { display: flex; flex-direction: column; gap: 20px; scroll-margin-top: 64px; }
+
+/* 四季 */
+.jx .now { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; padding: 12px 14px; border-radius: 4px; }
+.jx .now .stage { font-family: var(--display); font-size: 24px; font-weight: 700; }
+.jx .now p { flex-basis: 100%; }
+.jx .s0 { background: var(--spring-weak); } .jx .s0 .stage, .jx .c0 { color: var(--spring); }
+.jx .s1 { background: var(--summer-weak); } .jx .s1 .stage, .jx .c1 { color: var(--summer); }
+.jx .s2 { background: var(--autumn-weak); } .jx .s2 .stage, .jx .c2 { color: var(--autumn); }
+.jx .s3 { background: var(--winter-weak); } .jx .s3 .stage, .jx .c3 { color: var(--winter); }
+
+/* 总览 */
+.jx .sum-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.jx .sum-grid section { gap: 10px; }
+.jx .sum-grid .wide { grid-column: 1 / -1; }
+.jx .jump { font-size: 13px; align-self: flex-start; background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.jx .next-dir { display: grid; grid-template-columns: 3.4em minmax(0, 1fr); gap: 0 12px; align-items: baseline; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 8px 0; width: 100%; }
+.jx .next-dir:last-child { border-bottom: 0; }
+.jx .next-dir .d { font-family: var(--display); font-size: 19px; font-weight: 700; color: var(--ok); }
+.jx .next-dir.half .d { color: var(--warn); }
+.jx .next-dir .w { font-variant-numeric: tabular-nums; }
+.jx .next-dir .m { grid-column: 2; color: var(--muted); font-size: 13px; }
+.jx .kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; }
+.jx .kv dt { color: var(--muted); font-size: 13px; }
+.jx .kv dd { margin: 0; }
+.jx .big { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; }
+.jx textarea { font: inherit; font-size: 13px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 8px; width: 100%; box-sizing: border-box; min-height: 9em; }
+
+/* 一生的线 */
+.jx .scroller { overflow-x: auto; }
+.jx svg { display: block; }
+.jx svg text { font-family: var(--body); fill: var(--muted); font-size: 11px; }
+.jx svg .curve { fill: none; stroke: var(--ink); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.jx svg .guide { stroke: var(--muted); stroke-opacity: 0.35; stroke-width: 1; stroke-dasharray: 2 4; }
+.jx svg .sep { stroke: var(--muted); stroke-opacity: 0.3; stroke-width: 1; }
+.jx svg .dot { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+.jx svg .dot.now { fill: var(--accent); stroke: var(--accent); }
+.jx svg .mark { font-size: 11px; font-weight: 700; fill: var(--ink); }
+.jx svg .nowline { stroke: var(--accent); stroke-width: 2; }
+.jx svg .nowtext { fill: var(--accent); font-weight: 700; font-size: 12px; }
+.jx svg .pickcol { fill: var(--accent); fill-opacity: 0.12; }
+.jx svg .hit { fill: transparent; cursor: pointer; }
+.jx svg .lab-stage { font-family: var(--display); font-size: 13px; font-weight: 700; }
+.jx svg .lab-year { font-size: 11px; fill: var(--ink); font-variant-numeric: tabular-nums; }
+.jx svg .lab-gz, .jx svg .lab-age { font-size: 11px; font-variant-numeric: tabular-nums; }
+.jx svg .axis { font-size: 12px; font-weight: 600; }
+.jx .b0 { fill: var(--spring-weak); } .jx .b1 { fill: var(--summer-weak); } .jx .b2 { fill: var(--autumn-weak); } .jx .b3 { fill: var(--winter-weak); }
+.jx .a0 { fill: var(--spring); fill-opacity: 0.28; } .jx .a1 { fill: var(--summer); fill-opacity: 0.28; } .jx .a2 { fill: var(--autumn); fill-opacity: 0.28; } .jx .a3 { fill: var(--winter); fill-opacity: 0.28; }
+.jx .t0 { fill: var(--spring) !important; } .jx .t1 { fill: var(--summer) !important; } .jx .t2 { fill: var(--autumn) !important; } .jx .t3 { fill: var(--winter) !important; }
+.jx .shape { font-size: 14px; max-width: 40em; }
+.jx .overview { border: 1px solid var(--line); border-radius: 4px; overflow: hidden; cursor: pointer; background: var(--bg); }
+.jx .overview svg { width: 100%; height: 46px; }
+.jx .overview .win { fill: none; stroke: var(--accent); stroke-width: 3; vector-effect: non-scaling-stroke; }
+.jx .overview .ov-line { fill: none; stroke: var(--ink); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.jx .overview .ov-now { stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.jx .ages { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: -8px; }
+.jx .chart { display: flex; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); overflow: hidden; }
+.jx .chart .yaxis { flex: none; border-right: 1px solid var(--line); background: var(--surface); }
+.jx .chart .scroller { flex: 1 1 auto; min-width: 0; }
+.jx .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--muted); }
+.jx .legend i { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin-right: 5px; border-radius: 2px; }
+.jx .legend .l0 { background: var(--spring); } .jx .legend .l1 { background: var(--summer); } .jx .legend .l2 { background: var(--autumn); } .jx .legend .l3 { background: var(--winter); }
+.jx .legend .l-half { background: var(--warn-weak); border: 1px solid var(--line); }
+.jx .legend .l-ok { background: var(--ok-weak); border: 1px solid var(--line); } .jx .legend .l-aff { background: repeating-linear-gradient(135deg, var(--bad-weak) 0 3px, var(--surface) 3px 6px); border: 1px solid var(--line); } .jx .legend .l-plain { background: var(--surface); border: 1px solid var(--line); }
+.jx .picked { font-size: 14px; }
+.jx .rounds { display: flex; flex-direction: column; }
+.jx .rounds summary span { color: var(--muted); font-weight: 400; margin-left: 8px; font-variant-numeric: tabular-nums; }
+.jx .rounds .list { margin-top: 8px; }
+.jx .flag { font-size: 11px; padding: 0 6px; border-radius: 999px; border: 1px solid var(--line); margin-left: 6px; color: var(--ink); white-space: nowrap; }
+.jx .yr-row { display: grid; grid-template-columns: 6.4em 3.6em 3.2em minmax(0, 1fr); gap: 4px 12px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.jx .yr-row .yr { font-weight: 600; }
+.jx .yr-row .age, .jx .yr-row .lv { color: var(--muted); font-size: 13px; }
+.jx .yr-row .st { font-weight: 600; }
+.jx .yr-row.cur { background: var(--accent-weak); margin-inline: -8px; padding-inline: 8px; border-radius: 3px; }
+.jx details { border-top: 1px solid var(--line); padding-top: 12px; }
+.jx details:first-of-type { border-top: 0; padding-top: 0; }
+.jx summary { cursor: pointer; font-weight: 600; }
+.jx details ul { margin: 8px 0 0; list-style: disc; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; max-width: 42em; }
+.jx table { border-collapse: collapse; font-size: 14px; }
+.jx th, .jx td { border: 1px solid var(--line); padding: 5px 10px; text-align: left; }
+.jx th { color: var(--muted); font-weight: 600; }
+.jx .tablewrap { overflow-x: auto; margin-top: 8px; }
+
+/* 八方 */
+.jx .compass { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.jx .cz { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; text-align: left; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; min-width: 0; min-height: 96px; }
+.jx .cz .name { font-family: var(--display); font-size: 20px; font-weight: 700; line-height: 1.3; }
+.jx .cz .head { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.jx .cz .count { font-size: 14px; font-weight: 600; margin-top: auto; }
+.jx .cz .next { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.jx .cz.pass { background: var(--ok-weak); border-color: var(--ok); }
+.jx .cz.pass .count { color: var(--ok); }
+.jx .cz.half { background: var(--warn-weak); border-color: var(--warn); }
+.jx .cz.half .count { color: var(--warn); }
+.jx .cz .next b { color: var(--ink); font-weight: 600; }
+.jx .cz[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent); }
+.jx .cz.mid { background: var(--accent-weak); border-color: var(--accent-weak); align-items: center; justify-content: center; text-align: center; }
+.jx .cz.mid .name { color: var(--accent); }
+.jx .dir-big { font-size: 30px; color: var(--accent); margin-right: 10px; }
+.jx .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.jx .trip { display: flex; flex-direction: column; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.jx .leg { display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; font-variant-numeric: tabular-nums; }
+.jx .leg-tag { flex: none; width: 1.9em; text-align: center; font-size: 12px; font-weight: 700; border-radius: 3px; padding: 1px 0; }
+.jx .leg-tag.is-go { background: var(--ok-weak); color: var(--ok); }
+.jx .leg-tag.is-back { background: var(--accent-weak); color: var(--accent); }
+.jx .leg-tag.is-none { background: var(--warn-weak); color: var(--warn); }
+.jx .leg .date { font-weight: 600; background: none; border: 0; padding: 0; text-align: left; white-space: nowrap; text-decoration: underline dotted var(--muted); text-underline-offset: 3px; }
+.jx .leg b { font-weight: 600; white-space: nowrap; }
+.jx .leg .meta { color: var(--muted); font-size: 13px; }
+.jx .oneway summary span { color: var(--muted); font-weight: 400; margin-left: 8px; }
+.jx .years { display: flex; flex-direction: column; }
+.jx .year-row { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); gap: 6px 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+.jx .year-row:first-child { border-top: 0; padding-top: 0; }
+.jx .year-head { display: flex; flex-direction: column; }
+.jx .year-head b { font-family: var(--display); font-size: 17px; font-weight: 700; }
+.jx .year-head span { font-size: 12px; color: var(--muted); }
+.jx .year-row.cur .year-head b { color: var(--accent); }
+.jx .year-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.jx .axis { display: flex; flex-direction: column; gap: 6px; }
+.jx .axis-title { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.jx .note-line { color: var(--muted); font-size: 13px; }
+.jx .chip.month { color: var(--ink); background: var(--ok-weak); border-color: var(--ok); }
+.jx .chip.month.past { background: var(--bg); border-color: var(--line); color: var(--muted); text-decoration: line-through; cursor: default; }
+.jx .out-row { display: grid; grid-template-columns: 7em minmax(0, 1fr); gap: 2px 12px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.jx .out-row .yr { font-weight: 600; }
+.jx .out-row .hit b { font-weight: 600; color: var(--ok); }
+.jx .out-row .miss { color: var(--muted); font-size: 13px; }
+.jx .out-row.cur .yr { color: var(--accent); }
+.jx .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.jx .chip { font-size: 13px; padding: 2px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.jx .chip.near { color: var(--muted); }
+.jx .dayline { font-family: var(--data); font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted); }
+.jx .dayline b { color: var(--ink); font-weight: 600; }
+.jx .boards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.jx .board { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.jx .board-title { font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
+.jx .board-title b { color: var(--ink); font-weight: 600; }
+.jx .grid9 { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); border: 1px solid var(--ink); background: var(--ink); gap: 1px; aspect-ratio: 1; max-width: 100%; }
+.jx .cell { background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; position: relative; min-width: 0; min-height: 0; overflow: hidden; padding: 2px; }
+.jx .cell .dir { font-size: 11px; color: var(--muted); line-height: 1.1; }
+.jx .cell .num { font-family: var(--display); font-size: clamp(17px, 4.6vw, 26px); font-weight: 700; line-height: 1.1; }
+.jx .cell .aff-mark { font-size: 10px; line-height: 1.1; }
+.jx .cell.ok { background: var(--ok-weak); }
+.jx .cell.ok .num { color: var(--ok); }
+.jx .cell.aff { background: repeating-linear-gradient(135deg, var(--bad-weak) 0 5px, var(--surface) 5px 10px); }
+.jx .cell.aff .num, .jx .cell.aff .aff-mark { color: var(--bad); }
+.jx .cell.dull .num { color: var(--muted); }
+.jx .cell.center { background: var(--accent-weak); }
+.jx .cell.center .num { color: var(--accent); }
+.jx .cell.sel { box-shadow: inset 0 0 0 3px var(--accent); }
+.jx .dirs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.jx .dir-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; min-width: 0; }
+.jx .dir-btn .name { font-family: var(--display); font-size: 17px; font-weight: 700; }
+.jx .dir-btn .state { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.jx .dir-btn.pass { background: var(--ok-weak); border-color: var(--ok); }
+.jx .dir-btn.pass .state { color: var(--ok); font-weight: 600; }
+.jx .dir-btn[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent); }
+.jx .why { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.jx .why li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.jx .result { font-size: 15px; }
+.jx .result b { font-family: var(--display); font-size: 18px; color: var(--accent); }
+
+/* 相性、本命 */
+.jx .vs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.jx .side { border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; background: var(--bg); min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.jx .side .t { font-size: 12px; color: var(--muted); }
+.jx .side .n { font-family: var(--display); font-size: 20px; font-weight: 700; }
+.jx .side .u { font-size: 13px; overflow-wrap: anywhere; }
+.jx .verdict { font-size: 16px; font-weight: 600; }
+.jx .rule { border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 6px; max-width: 44em; }
+.jx .rule h3 { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.jx .rule .weight { font-size: 12px; color: var(--muted); font-weight: 400; }
+.jx .phase { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 4px 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+.jx .phase:first-child { border-top: 0; padding-top: 0; }
+.jx .phase .when { color: var(--muted); font-size: 13px; }
+.jx .phase .when b { display: block; color: var(--ink); font-size: 15px; }
+.jx .phase .gz { font-family: var(--display); font-size: 20px; font-weight: 700; }
+.jx .phase.cur .gz { color: var(--accent); }
+.jx .phase .trait { font-size: 14px; }
+.jx .phase .trait span { color: var(--muted); }
+
+@media (max-width: 640px) {
+  .jx .sum-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 520px) {
+  .jx section { padding: 14px; } .jx h1 { font-size: 28px; } .jx .beast { font-size: 44px; }
+  .jx .yr-row { grid-template-columns: 6.4em 3.4em minmax(0, 1fr); } .jx .yr-row .lv { grid-column: 1 / -1; }
+  .jx .dirs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .jx .boards { gap: 8px; }
+  .jx .cell .dir { font-size: 10px; } .jx .cell .num { font-size: 17px; } .jx .cell .aff-mark { display: none; }
+  .jx .board-title { flex-direction: column; gap: 0; }
+  .jx .cz { padding: 6px 8px; } .jx .cz .name { font-size: 18px; }
+  .jx .phase { grid-template-columns: minmax(0, 1fr); }
+  .jx .year-row { grid-template-columns: minmax(0, 1fr); }
+  .jx .pillar { grid-template-columns: minmax(0, 1fr); } .jx .pillar .b { font-size: 22px; }
+  .jx .tabs { gap: 5px; } .jx .tabs [role="tab"] { padding: 6px 9px; font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) { .jx * { scroll-behavior: auto !important; } }
