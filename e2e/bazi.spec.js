@@ -9,6 +9,30 @@ test.beforeEach(async ({ page }) => {
   await captureClipboard(page);
 });
 
+test('古籍条目能在藏经阁里翻到：盖一层翻阅，返回键合上，命盘还在原处', async ({ page }) => {
+  await page.goto(LINK);
+  const result = page.getByRole('region', { name: '八字排盘结果' });
+  const card = result.getByTestId('bazi-classics').getByTestId('bazi-classic-entry').first();
+  const title = (await card.locator('h4').innerText()).trim();
+  await card.getByTestId('classic-open-cangjing').click();
+  // 藏经阁展开到这一条所在的那一篇，这一条亮一下
+  const reader = page.getByTestId('cangjing-reader');
+  await expect(reader).toBeVisible();
+  await expect(reader.locator('.cjg-tiao.is-flash h4')).toHaveText(title);
+  await expect(page).toHaveURL(/#\/bazi$/);
+  // 手机返回键：只合上这一层
+  await page.goBack();
+  await expect(reader).toBeHidden();
+  await expect(result).toBeVisible();
+  await expect(page).toHaveURL(/#\/bazi$/);
+  // 再打开，点「合上」也回到命盘
+  await card.getByTestId('classic-open-cangjing').click();
+  await expect(reader).toBeVisible();
+  await reader.getByRole('button', { name: /合上藏经阁/ }).click();
+  await expect(reader).toBeHidden();
+  await expect(card).toBeVisible();
+});
+
 test('带生辰参数的链接打开即出盘', async ({ page }) => {
   await page.goto(LINK);
   const result = page.getByRole('region', { name: '八字排盘结果' });

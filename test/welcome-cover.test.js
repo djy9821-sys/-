@@ -7,21 +7,23 @@ const readProjectFile = (relativePath) => readFile(
   'utf8',
 );
 
-test('启动封面只展示已实现的五个真实入口', async () => {
+test('启动封面只留两扇门：问命进首页，藏经阁读原典', async () => {
   const source = await readProjectFile('src/components/WelcomeCover.jsx');
 
   for (const [title, action] of [
-    ['今日', 'home'],
-    ['紫微', 'input'],
-    ['八字', 'bazi'],
-    ['六爻', 'liuyao'],
-    ['档案', 'archive'],
+    ['问命', 'home'],
+    ['藏经阁', 'cangjing'],
   ]) {
     assert.match(source, new RegExp(`title: '${title}'[\\s\\S]*?action: '${action}'`));
   }
+  assert.equal(source.match(/action: '/g).length, 2, '封面上只有两个入口');
 
   assert.doesNotMatch(source, /奇门|梅花|马前课/);
   assert.doesNotMatch(source, /https?:\/\//);
+  // 藏经阁那扇门去的页面在 App 里接上了
+  const app = await readProjectFile('src/App.jsx');
+  assert.match(app, /cangjing: 'cangjing'/);
+  assert.match(app, /view === 'cangjing' \?/);
 });
 
 test('封面仅首次展示，退出后保留原有首页状态机', async () => {
@@ -46,4 +48,8 @@ test('封面视觉完全本地化并适配手机安全区', async () => {
   assert.match(styles, /@media \(max-width: 350px\)/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.doesNotMatch(styles, /url\(\s*['"]?https?:\/\//);
+  // 标题用的字体是随网站一起发的子集，许可文件也在
+  assert.match(styles, /url\("\.\.\/assets\/fonts\/gsp-kai-display\.woff2"\)/);
+  await readProjectFile('public/licenses/LXGW-WenKai-OFL.txt');
+  await readProjectFile('public/licenses/WebGL-Fluid-Simulation-MIT.txt');
 });

@@ -4,7 +4,7 @@
  *
  * 各模块只负责算 ctx（baziContextOf / ziweiContextOf / liuyaoContextOf），界面在这里统一。
  */
-import React, { useMemo, useState } from 'react';
+import React, { Suspense, lazy, useMemo, useState } from 'react';
 import { BookOpen } from 'lucide-react';
 import { CONDITION_LABELS, STATUS_LABELS, matchEntries } from '../../data/classics/index.js';
 import { useClassicsLibrary } from './useClassicsLibrary.js';
@@ -28,6 +28,44 @@ const STATUS_TITLE = {
 };
 
 const PAGE = 8;
+
+// 藏经阁的翻阅层：点了「在藏经阁里翻到这一条」才下载。先自己下载一遍，成了再交给 lazy 去画，
+// 这样没下载成（多半是断网）只在这一条下面提示一句，不会把整页命盘换成报错页。
+const loadCangjingReader = () => import('../cangjing/CangjingReader.jsx');
+const CangjingReader = lazy(loadCangjingReader);
+
+/** 条目下面的「在藏经阁里翻到这一条」：在当前页面上盖一层藏经阁，展开到这一条所在的那一篇；合上就回到原处。 */
+const OpenInCangjing = ({ entryId }) => {
+    // idle 没打开｜loading 正在下载｜open 开着｜failed 没下载成
+    const [status, setStatus] = useState('idle');
+    const open = () => {
+        // 下载的那一会儿不把按钮设成 disabled：那样焦点会丢，合上以后回不到这个按钮上。
+        if (status === 'loading' || status === 'open') return;
+        setStatus('loading');
+        loadCangjingReader().then(() => setStatus('open'), () => setStatus('failed'));
+    };
+    return (
+        <>
+            <p className="mt-2.5 flex flex-wrap items-center justify-end gap-x-2 gap-y-1">
+                {status === 'failed' && <span className="text-[11px] text-[#96372e]" role="status">藏经阁没打开，检查网络后再点一次。</span>}
+                <button
+                    type="button"
+                    onClick={open}
+                    aria-busy={status === 'loading'}
+                    className={`inline-flex min-h-8 items-center gap-1 rounded-full border border-[#a33b30]/35 px-3 text-xs font-bold text-[#96372e] transition hover:bg-[#a33b30]/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6b62] ${status === 'loading' ? 'opacity-60' : ''}`}
+                    data-testid="classic-open-cangjing"
+                >
+                    {status === 'loading' ? '正在取书…' : '在藏经阁里翻到这一条'} <span aria-hidden="true">›</span>
+                </button>
+            </p>
+            {status === 'open' && (
+                <Suspense fallback={null}>
+                    <CangjingReader entryId={entryId} onClose={() => setStatus('idle')} />
+                </Suspense>
+            )}
+        </>
+    );
+};
 
 /** 原文按 \n 分段显示。 */
 const Paragraphs = ({ text, className }) => (
@@ -81,6 +119,7 @@ export const ClassicsEntryCard = ({ hit, mode, testId = 'classic-entry' }) => {
                     <span className="font-bold">存疑：</span>{entry.readerDoubts.join('；')}。
                 </p>
             )}
+            <OpenInCangjing entryId={entry.id} />
         </article>
     );
 };

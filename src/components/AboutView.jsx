@@ -32,7 +32,7 @@ export default function AboutView({ onBack, version }) {
                 <Section title="你的资料存在哪里">
                     <p>姓名、生辰、出生地和命盘档案只保存在当前浏览器里，不会上传到我们的服务器。换手机或清除浏览器数据前，请在「命盘档案」里导出备份。</p>
                     <p>「导出给 AI」只是把整理好的文字复制到剪贴板，由你自己决定是否粘贴给 ChatGPT、Claude 等第三方 AI；粘贴之后的资料按对方的隐私政策处理。</p>
-                    <p>六爻「手势起卦」的摄像头画面只在你的设备上实时识别手势，不会录制或上传；不开启摄像头也能点按钮完成起卦。「所在地」设置只保存在本机，用来按真太阳时判断此刻的时辰。</p>
+                    <p>六爻「手势起卦」的摄像头画面只在你的设备上实时识别手势，不会录制或上传；不开启摄像头也能点按钮完成起卦。「所在地」设置只保存在本机，用来按真太阳时判断此刻的时辰。藏经阁里钤印收藏的条目也只记在本机。</p>
                     <p>网站使用 Google Analytics 统计访问量、各功能的使用次数（如排了一次盘、存了一次档）以及页面出错的类型，用于改进产品；这些统计不包含姓名、生辰、卦问或档案内容。</p>
                 </Section>
 
@@ -42,6 +42,13 @@ export default function AboutView({ onBack, version }) {
 
                 <Section title="开源与反馈">
                     <p>古书派是开源项目，排盘基于 lunar-javascript 与 iztro 等开源库。发现排盘差异或有功能建议，欢迎反馈。</p>
+                    <p>
+                        封面标题与藏经阁原文用的字体是霞鹜文楷的子集（
+                        <a href="/licenses/LXGW-WenKai-OFL.txt" target="_blank" rel="noopener noreferrer" className="underline decoration-[#dcb471]/40 underline-offset-2 hover:text-[#f0ce91]">SIL OFL 1.1</a>
+                        ）；封面的水墨效果改写自 WebGL-Fluid-Simulation（
+                        <a href="/licenses/WebGL-Fluid-Simulation-MIT.txt" target="_blank" rel="noopener noreferrer" className="underline decoration-[#dcb471]/40 underline-offset-2 hover:text-[#f0ce91]">MIT</a>
+                        ）。藏经阁里的古籍都是公版，白话是我们自己逐句译的。
+                    </p>
                 </Section>
             </div>
 

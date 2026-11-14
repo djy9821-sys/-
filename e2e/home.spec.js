@@ -5,7 +5,10 @@ test('首次访问显示封面，进入后首页可通往三个工具', async ({
   await captureClipboard(page);
   await page.goto('/');
   await expect(page).toHaveTitle(/古书派/);
-  await page.getByRole('button', { name: '入门问道' }).click();
+  // 封面只有两扇门：问命（进首页）与藏经阁。
+  const cover = page.locator('.welcome-cover');
+  await expect(cover.getByRole('button')).toHaveCount(2);
+  await cover.getByRole('button', { name: /^问命/ }).click();
   await expect(page.getByRole('button', { name: '进入紫微斗数专业排盘' })).toBeVisible();
 
   await page.getByRole('button', { name: /八字排盘/ }).first().click();
@@ -14,7 +17,7 @@ test('首次访问显示封面，进入后首页可通往三个工具', async ({
 
   // 再次访问不再出现封面。
   await page.goto('/');
-  await expect(page.getByRole('button', { name: '入门问道' })).toBeHidden();
+  await expect(page.locator('.welcome-cover')).toBeHidden();
   await expect(page.getByRole('button', { name: '进入紫微斗数专业排盘' })).toBeVisible();
 });
 
@@ -26,7 +29,7 @@ test('浅链接直达各功能且不显示封面', async ({ page }) => {
     ['#/about', /关于|隐私/],
   ]) {
     await page.goto(`/${hash}`);
-    await expect(page.getByRole('button', { name: '入门问道' })).toBeHidden();
+    await expect(page.locator('.welcome-cover')).toBeHidden();
     await expect(typeof pattern === 'string' ? page.getByRole('region', { name: pattern }) : page.getByRole('heading', { name: pattern }).first()).toBeVisible();
   }
 });

@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 import { CLASSICS } from '../../src/data/classics.js';
 import { validateCasesDoc, validateClassicsDoc, validateGlossaryDoc } from '../../src/data/classics/schema.js';
+import { walkJson } from './walkJson.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const DATA_DIRS = Object.freeze({
@@ -15,22 +16,6 @@ export const DATA_DIRS = Object.freeze({
   glossary: path.join(ROOT, 'src', 'data', 'glossary'),
   cases: path.join(ROOT, 'src', 'data', 'cases'),
 });
-
-const walkJson = (dir) => {
-  if (!fs.existsSync(dir)) return [];
-  const out = [];
-  const visit = (current) => {
-    fs.readdirSync(current, { withFileTypes: true })
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .forEach((item) => {
-        const full = path.join(current, item.name);
-        if (item.isDirectory()) visit(full);
-        else if (item.isFile() && item.name.endsWith('.json')) out.push(full);
-      });
-  };
-  visit(dir);
-  return out;
-};
 
 /** 读出三类数据文件；JSON 解析失败的文件记在 parseErrors 里，不中断。 */
 export const loadDataFiles = () => {
