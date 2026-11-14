@@ -11,7 +11,7 @@ export const CLASSICS = Object.freeze({
   yuanhai: Object.freeze({ key: 'yuanhai', title: '渊海子平', author: '宋·徐大升（徐子平法）', module: 'bazi', note: '子平法最早的系统著作，禄、刃、贵人等口诀多出于此。', edition: '公版通行本，据维基文库录文，繁体转简体后逐字校对。' }),
   ditian: Object.freeze({ key: 'ditian', title: '滴天髓', author: '旧题宋·京图撰，明·刘伯温注，清·任铁樵阐微', module: 'bazi', note: '论干支性情、旺衰、格局高低的纲领性经典。', edition: '通神论以维基文库《滴天髓阐微》录文为底本逐段比对；六亲论与任铁樵的阐微，据民国三十六年（1947）大东书局《滴天髓阐微》扫描本逐字核对。' }),
   ziping: Object.freeze({ key: 'ziping', title: '子平真诠', author: '清·沈孝瞻', module: 'bazi', note: '以月令取格、论用神成败的代表作。', edition: '据中国国家图书馆藏、上海世界图书馆发行《秘本子平真诠》影印本逐页核录；只录沈孝瞻正文，徐乐吾的评注不录。' }),
-  qiongtong: Object.freeze({ key: 'qiongtong', title: '穷通宝鉴', author: '旧题明·余春台辑（原名《栏江网》），民国徐乐吾评注', module: 'bazi', note: '按日干与月令取调候用神的专书，十干十二月的调候用神表出于此。', edition: '据维基文库本《穷通宝鉴》录文，不改字、不补句；底本里电脑显示不了的字标作「□」。' }),
+  qiongtong: Object.freeze({ key: 'qiongtong', title: '穷通宝鉴', author: '清·余春台辑（原名《栏江网》，约明末，佚名），民国徐乐吾评注', module: 'bazi', note: '按日干与月令取调候用神的专书，十干十二月的调候用神表出于此。', edition: '据维基文库本《穷通宝鉴》录文，不改字、不补句；底本里电脑显示不了的字标作「□」。' }),
   xieji: Object.freeze({ key: 'xieji', title: '协纪辨方书', author: '清·允禄等奉敕纂', module: 'bazi', note: '官修择日、神煞总汇，红鸾、天喜、黄黑道等年月神煞的权威出处。' }),
   ziwei: Object.freeze({ key: 'ziwei', title: '紫微斗数全书', author: '旧题宋·陈希夷撰，明·罗洪先辑', module: 'ziwei', note: '紫微斗数安星、诸格、星曜庙旺的源头。', edition: '明万历刻本系统的通行本，以维基文库录文为底本，繁体转简体后逐字核对，部分篇目参校其他公版电子文本。' }),
   jingfang: Object.freeze({ key: 'jingfang', title: '京氏易传', author: '汉·京房', module: 'liuyao', note: '八宫卦序、纳甲、世应、六亲的源头。' }),
