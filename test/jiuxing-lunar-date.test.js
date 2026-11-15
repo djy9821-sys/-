@@ -58,6 +58,34 @@ test('公历换农历，和农历换公历来回一致', () => {
   assert.ok(count > 5800);
 });
 
+test('两套算法说法不一的十处，照香港天文台的对照表', () => {
+  // 拿 Node 自带的农历（ICU，另一套独立的算法）逐日对过：1900-02-05 到 2060-12-31 共 58,770 天，
+  // 有 387 天两边不一样，连成十段，都是朔的时刻贴着午夜、或闰月落在哪个月上的分歧。
+  // 这十段逐一查了香港天文台《公历与农历日期对照表》（各年的 T<年份>e.txt），都和这里一致。
+  const firstDays = [
+    ['1917-03-23', { year: 1917, month: -2, day: 1 }], // 闰二月
+    ['1922-06-25', { year: 1922, month: -5, day: 1 }], // 闰五月
+    ['1954-02-03', { year: 1954, month: 1, day: 1 }],
+    ['1955-02-22', { year: 1955, month: 2, day: 1 }],
+    ['1987-07-26', { year: 1987, month: -6, day: 1 }], // 闰六月
+    ['1999-01-17', { year: 1998, month: 12, day: 1 }],
+    ['2012-08-17', { year: 2012, month: 7, day: 1 }],
+    ['2018-11-08', { year: 2018, month: 10, day: 1 }],
+    ['2027-02-06', { year: 2027, month: 1, day: 1 }],
+    ['2030-02-03', { year: 2030, month: 1, day: 1 }],
+  ];
+  for (const [iso, lunar] of firstDays) {
+    assert.deepEqual(solarToLunar(iso), lunar, iso);
+    assert.equal(lunarToSolar(lunar.year, lunar.month, lunar.day), iso, iso);
+  }
+  // 同几张表里顺带看到的：1955 年闰三月初一是 4 月 22 日，2012 年闰四月初一是 5 月 21 日；
+  // 2018 年 11 月 7 日还是九月三十，2030 年 2 月 2 日还是腊月三十。
+  assert.deepEqual(solarToLunar('1955-04-22'), { year: 1955, month: -3, day: 1 });
+  assert.deepEqual(solarToLunar('2012-05-21'), { year: 2012, month: -4, day: 1 });
+  assert.deepEqual(solarToLunar('2018-11-07'), { year: 2018, month: 9, day: 30 });
+  assert.deepEqual(solarToLunar('2030-02-02'), { year: 2029, month: 12, day: 30 });
+});
+
 test('叫法：正月、闰四月、十一月；初一、初十、十五、二十、廿三、三十', () => {
   assert.deepEqual([1, -4, 11, 12].map(lunarMonthName), ['正月', '闰四月', '十一月', '十二月']);
   assert.deepEqual([1, 9, 10, 11, 15, 19, 20, 21, 23, 29, 30].map(lunarDayName), ['初一', '初九', '初十', '十一', '十五', '十九', '二十', '廿一', '廿三', '廿九', '三十']);
