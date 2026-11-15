@@ -4,6 +4,7 @@ import WelcomeCover from "./components/WelcomeCover";
 import { AlertCircle, ArrowLeft, CheckCircle2, Save } from "lucide-react";
 import { archiveManager } from './utils/archiveManager';
 import { readLastBaziRecord, recordToBaziForm } from './utils/baziRecord';
+import { AUTO_GROUP, autoArchiveChart, isAutoRecord, saveChartToArchive } from './utils/autoArchive';
 import { placeDisplayName, toLocalSolarNow } from './utils/currentPlace';
 import { buildZiweiShareUrl, decodeBaziLink, decodeZiweiLink, hashQueryOf } from './utils/baziLink';
 import { track } from './utils/analytics';
@@ -733,6 +734,36 @@ export default function App() {
     }
   };
 
+  // 紫微档案记录：手动保存和起盘时的自动记录用同一套字段。
+  const buildZiweiRecord = (chart, { group, note, timeHour = birthTime }) => ({
+    name: name || '未命名',
+    gender, // 'male' | 'female'
+    type: 'ziwei',
+    calendarType,
+    birthDate: birthday,
+    // Keep the legacy field so existing archive-list displays and exports
+    // remain compatible. Loading now uses birthDate + calendarType first.
+    solarDate: chart?.solarDate || (calendarType === 'solar' ? birthday : ''),
+    timeHour,
+    isLeapMonth: effectiveIsLeapMonth,
+    group,
+    note,
+    // 精确时间设置一并保存：八字「从档案带入」也能直接用，下次打开按真太阳时重新换算。
+    data: {
+      lateZi: ziweiLateZi,
+      ...(ziweiExact ? {
+        timeMode: 'exact',
+        clockTime: ziweiClock,
+        placeProvince: ziweiPlace.province,
+        placeCity: ziweiPlace.city,
+        longitude: ziweiPlace.longitude === '' ? null : Number(ziweiPlace.longitude),
+        timezone: Number(ziweiPlace.timezone ?? 8),
+        applyTrueSolar: ziweiPlace.longitude !== '',
+        applyDst: ziweiExact.applyDst,
+      } : {}),
+    },
+  });
+
   const handleStartScan = async () => {
     if (!birthday) {
       alert('请输入生日');
@@ -763,6 +794,8 @@ export default function App() {
       if (ziweiExact) setBirthTime(ziweiExact.hourIndex);
       setHoroscope(newHoroscope);
       setView('chart');
+      // 排过的盘自动在档案里记一条（「自动记录」一组），再排别人也不会找不到这张。
+      autoArchiveChart(archiveManager, buildZiweiRecord(newHoroscope, { group: AUTO_GROUP, note: '', timeHour: ziweiExact ? ziweiExact.hourIndex : birthTime }));
       track('ziwei_chart', { time_mode: ziweiExact ? 'exact' : 'shichen', calendar: calendarType });
     } catch (error) {
       console.error("Error generating horoscope:", error);
@@ -928,48 +961,26 @@ export default function App() {
   const handleSaveToArchive = () => {
     if (!horoscope) return;
 
-    const newRecord = {
-      name: name || '未命名',
-      gender, // 'male' | 'female'
-      type: 'ziwei',
-      calendarType,
-      birthDate: birthday,
-      // Keep the legacy field so existing archive-list displays and exports
-      // remain compatible. Loading now uses birthDate + calendarType first.
-      solarDate: horoscope?.solarDate || (calendarType === 'solar' ? birthday : ''),
-      timeHour: birthTime,
-      isLeapMonth: effectiveIsLeapMonth,
-      group: saveGroup,
-      note: saveNote,
-      // 精确时间设置一并保存：八字「从档案带入」也能直接用，下次打开按真太阳时重新换算。
-      data: {
-        lateZi: ziweiLateZi,
-        ...(ziweiExact ? {
-          timeMode: 'exact',
-          clockTime: ziweiClock,
-          placeProvince: ziweiPlace.province,
-          placeCity: ziweiPlace.city,
-          longitude: ziweiPlace.longitude === '' ? null : Number(ziweiPlace.longitude),
-          timezone: Number(ziweiPlace.timezone ?? 8),
-          applyTrueSolar: ziweiPlace.longitude !== '',
-          applyDst: ziweiExact.applyDst,
-        } : {}),
-      },
-    };
-
-    const savedRecord = archiveManager.addRecord(newRecord);
+    // 这张盘已经在档案里（起盘时自动记下的，或以前存过）：改原来那条的分组和备注，不重复存一份。
+    const { saved: savedRecord, existing, wasAuto } = saveChartToArchive(archiveManager, buildZiweiRecord(horoscope, { group: saveGroup, note: saveNote }));
     if (!savedRecord) {
       setArchiveNotice({ type: 'error', message: '保存失败，请检查浏览器存储空间后重试' });
       return;
     }
     setIsSaveModalOpen(false);
     setSaveNote(''); // Reset
-    setArchiveNotice({ type: 'success', message: `已保存「${savedRecord.name}」的紫微命盘` });
-    track('archive_save', { record_type: 'ziwei', time_mode: ziweiExact ? 'exact' : 'shichen' });
+    setArchiveNotice({
+      type: 'success',
+      message: existing && !wasAuto
+        ? `档案里已经有「${savedRecord.name}」的这张命盘，已更新分组和备注`
+        : `已保存「${savedRecord.name}」的紫微命盘`,
+    });
+    track('archive_save', { record_type: 'ziwei', time_mode: ziweiExact ? 'exact' : 'shichen', updated: Boolean(existing && !wasAuto) });
   };
 
+  // 首页的每日简报只用自己存进分组的紫微档案：起盘时自动记下的多半是替别人排的，不上首页。
   const ziweiRecords = React.useMemo(
-    () => archiveRecords.filter((record) => record.type === 'ziwei'),
+    () => archiveRecords.filter((record) => record.type === 'ziwei' && !isAutoRecord(record)),
     [archiveRecords],
   );
 
@@ -989,12 +1000,14 @@ export default function App() {
   // 首页八字：档案里的八字命盘（自己排在最前），只存了紫微命盘的人也按同一份生辰算八字今日，
   // 再加上八字页上次排的盘（与档案重复时不再列出）。
   const homeBaziCandidates = React.useMemo(() => {
-    const baziArchived = archiveRecords
+    // 自动记录不上首页（上次排的那张除外，下面单列）：名单里只放自己存进分组的。
+    const filed = archiveRecords.filter((record) => !isAutoRecord(record));
+    const baziArchived = filed
       .filter((record) => record.type === 'bazi' && recordToBaziForm(record))
       .sort((a, b) => Number(b.group === 'self') - Number(a.group === 'self'))
       .map((record) => ({ key: record.id, record, label: record.name || '未命名' }));
     const seen = new Set(baziArchived.map(({ record }) => `${(record.name ?? '').trim()}|${baziSignature(record)}`));
-    const ziweiArchived = archiveRecords
+    const ziweiArchived = filed
       .filter((record) => record.type === 'ziwei' && recordToBaziForm(record))
       .filter((record) => !seen.has(`${(record.name ?? '').trim()}|${baziSignature(record)}`))
       .sort((a, b) => Number(b.group === 'self') - Number(a.group === 'self'))
@@ -1603,7 +1616,7 @@ export default function App() {
                       className="field-control"
                       aria-describedby="ziwei-archive-hint"
                     >
-                      <option value="">选择已保存的命主…</option>
+                      <option value="">选择排过或存过的人…</option>
                       {ziweiArchiveCandidates.map(({ record, form }) => (
                         <option key={record.id} value={record.id}>
                           {record.name || '未命名'} · {record.type === 'bazi' ? '八字' : '紫微'} · {form.calendarType === 'lunar' ? '农历' : '公历'}{form.year}-{Math.abs(form.month)}-{form.day}
@@ -1841,7 +1854,7 @@ export default function App() {
                 <button type="submit" className="submit-button" disabled={!ziweiExactReady} aria-disabled={!ziweiExactReady}>生成紫微命盘</button>
                 <p className="privacy-note">
                   <span aria-hidden="true">◇</span>
-                  生辰资料仅用于本次排盘；只有主动保存档案后，才会存入当前设备的浏览器。
+                  生辰资料只在这台设备上计算，不上传。排过的盘会自动记在本机的「命盘档案」里，可以在档案页删除或关掉自动记录。
                 </p>
               </form>
             </section>
@@ -1899,6 +1912,7 @@ export default function App() {
               key={baziRecord?.id ?? 'new'}
               initialRecord={baziRecord}
               onBack={() => { setBaziRecord(null); setView('home'); }}
+              onOpenArchive={() => { setBaziRecord(null); setView('archive'); }}
             />
           </Suspense>
         ) : view === 'jiuxing' ? (
