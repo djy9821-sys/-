@@ -9,6 +9,7 @@ import {
     Download,
     Folder,
     Heart,
+    History,
     Search,
     Trash2,
     Upload,
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 import { archiveManager } from '../utils/archiveManager';
 import { parseClockTime, recordToBaziForm } from '../utils/baziRecord';
+import { AUTO_GROUP, AUTO_GROUP_LABEL, AUTO_RECORD_LIMIT, clearAutoRecords, isAutoArchiveEnabled, isAutoRecord, setAutoArchiveEnabled } from '../utils/autoArchive';
 import { describeLiuYaoRecord, isLiuYaoRecord } from '../utils/liuyaoRecord';
 import { track } from '../utils/analytics';
 import { isNativeShell } from '../utils/nativeShell';
@@ -35,11 +37,13 @@ const GROUP_META = {
     customer: { label: '客户', icon: Briefcase },
     other: { label: '其他', icon: Folder },
     ungrouped: { label: '未分组', icon: Folder },
+    // 起盘时自动记下的：还没归到上面哪一组。
+    [AUTO_GROUP]: { label: AUTO_GROUP_LABEL, icon: History },
 };
 
 const GROUP_ORDER = [
     'self', 'father', 'mother', 'son', 'daughter', 'girlfriend', 'boyfriend',
-    'family', 'friend', 'customer', 'other', 'ungrouped',
+    'family', 'friend', 'customer', 'other', 'ungrouped', AUTO_GROUP,
 ];
 
 const TIME_LABELS = {
@@ -142,7 +146,16 @@ const getRecordSummaryParts = (record) => {
         const summary = describeLiuYaoRecord(record);
         return [getRecordType(record), summary.topicText, summary.hexagramText, summary.castText, summary.dayText, summary.methodText].filter(Boolean);
     }
-    return [getRecordType(record), getGenderLabel(record), `${getCalendarLabel(record)} ${getRecordDate(record)}`, getRecordTime(record)];
+    return [getRecordType(record), getGenderLabel(record), `${getCalendarLabel(record)} ${getRecordDate(record)}`, getRecordTime(record), getAutoRecordedAt(record)].filter(Boolean);
+};
+
+// 自动记录：标出是哪天记下的，方便按「昨天排的那个人」来找。
+const getAutoRecordedAt = (record) => {
+    if (!isAutoRecord(record)) return '';
+    const at = new Date(Number(record.updatedAt ?? record.createdAt));
+    if (Number.isNaN(at.getTime())) return '';
+    const pad = (value) => String(value).padStart(2, '0');
+    return `${at.getMonth() + 1}月${at.getDate()}日 ${pad(at.getHours())}:${pad(at.getMinutes())} 记`;
 };
 
 const getRecordTime = (record) => {
@@ -162,6 +175,9 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [pendingDeleteId, setPendingDeleteId] = useState(null);
     const [notice, setNotice] = useState(null);
+    // 起盘后自动记到档案的开关，和「清空自动记录」的二次确认。
+    const [autoEnabled, setAutoEnabled] = useState(() => isAutoArchiveEnabled());
+    const [confirmingClearAuto, setConfirmingClearAuto] = useState(false);
 
     useEffect(() => {
         const refreshRecords = () => setRecords(archiveManager.getRecords());
@@ -191,6 +207,15 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
             })),
         ];
     }, [groupCounts, records.length]);
+
+    // 标题下面那一行：归好组的有几组，起盘时自动记下、还没归组的有几条。
+    const autoCount = groupCounts[AUTO_GROUP] ?? 0;
+    const filedGroupCount = Object.keys(groupCounts).length - (autoCount > 0 ? 1 : 0);
+    const summaryLine = records.length === 0
+        ? (autoEnabled ? '排过的八字、紫微命盘会自动记在这里' : '排盘后点「存入档案」，命盘会留在这里')
+        : filedGroupCount > 0
+            ? `已整理为 ${filedGroupCount} 个分组${autoCount > 0 ? `，另有 ${autoCount} 条自动记录` : ''}`
+            : `${autoCount} 条都是起盘时自动记下的，还没有归到分组`;
 
     const resolvedActiveGroup = activeGroup === 'all' || groupCounts[activeGroup]
         ? activeGroup
@@ -245,6 +270,34 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
         setPendingDeleteId(null);
         setNotice({ type: 'success', message: `“${record.name || '未命名'}”已从档案中删除。` });
         track('archive_delete', { record_type: record.type ?? 'unknown' });
+    };
+
+    const toggleAutoArchive = (enabled) => {
+        if (!setAutoArchiveEnabled(enabled)) {
+            setNotice({ type: 'error', message: '设置没有保存下来，请检查浏览器存储后重试。' });
+            return;
+        }
+        setAutoEnabled(enabled);
+        setNotice({
+            type: 'info',
+            message: enabled
+                ? '已打开：以后每次起盘都会在「自动记录」里记一条。'
+                : '已关闭：以后起盘不再自动记录，要留的命盘请点「存入档案」。已经记下的不会删除。',
+        });
+        track('archive_auto_toggle', { enabled });
+    };
+
+    const confirmClearAuto = () => {
+        const removed = clearAutoRecords(archiveManager);
+        setConfirmingClearAuto(false);
+        if (!removed) {
+            setNotice({ type: 'error', message: '清空失败，请检查浏览器存储空间后重试。' });
+            return;
+        }
+        setRecords(archiveManager.getRecords());
+        setPendingDeleteId(null);
+        setNotice({ type: 'success', message: `已清空 ${removed.length} 条自动记录；归到分组里的命盘没有动。` });
+        track('archive_auto_clear', { count: removed.length });
     };
 
     const handleBackup = () => {
@@ -347,9 +400,7 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
                                 <h2 id="archive-summary-title" className="mt-1 font-serif text-2xl font-bold text-[#2e2924]">
                                     共 {records.length} 条命盘
                                 </h2>
-                                <p className="mt-1 text-xs leading-5 text-[#786e63]">
-                                    {Object.keys(groupCounts).length > 0 ? `已整理为 ${Object.keys(groupCounts).length} 个分组` : '保存命盘后，会自动汇集在这里'}
-                                </p>
+                                <p className="mt-1 text-xs leading-5 text-[#786e63]">{summaryLine}</p>
                             </div>
                             <div className="grid grid-cols-2 gap-2 sm:flex">
                                 <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#82745f] bg-[#fffaf0]/70 px-3 text-sm font-bold text-[#5c544a] transition-colors hover:bg-[#fffaf0] focus-within:ring-2 focus-within:ring-[#2d6b62]">
@@ -372,6 +423,14 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
                         <p className="border-b border-[#cabda8]/70 px-4 py-2 text-[10px] leading-5 text-[#81776b] sm:px-6">
                             JSON 备份包含姓名与出生资料，文件未加密，请保存到可信设备。
                         </p>
+
+                        <label className="flex min-h-11 cursor-pointer items-start gap-2.5 border-b border-[#cabda8]/70 px-4 py-2.5 sm:px-6">
+                            <input type="checkbox" checked={autoEnabled} onChange={(event) => toggleAutoArchive(event.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[#2d6b62]" />
+                            <span className="text-xs leading-5 text-[#5c544a]">
+                                <strong className="font-bold text-[#3b342e]">起盘后自动记到档案</strong>
+                                <span className="block text-[11px] text-[#81776b]">排过的八字、紫微命盘自动记在「{AUTO_GROUP_LABEL}」里，只存在这台设备上，最多留 {AUTO_RECORD_LIMIT} 条。别人共用这台设备时可以关掉。</span>
+                            </span>
+                        </label>
 
                         {notice && (
                             <div
@@ -445,11 +504,11 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
                                 <Archive className="size-7" aria-hidden="true" />
                             </span>
                             <h2 className="mt-4 font-serif text-xl font-bold">
-                                {records.length === 0 ? '还没有保存命盘' : '没有找到符合条件的档案'}
+                                {records.length === 0 ? '档案里还没有命盘' : '没有找到符合条件的档案'}
                             </h2>
                             <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#756d63]">
                                 {records.length === 0
-                                    ? '完成紫微排盘后点击保存，命主资料会保留在本机档案库中。'
+                                    ? (autoEnabled ? '排一次八字或紫微，命盘就会自动记在这里，只存在这台设备上。' : '自动记录已关闭。排盘后点「存入档案」，命盘才会留在这里。')
                                     : '可以更换分组或搜索词，再查看其他档案。'}
                             </p>
                             <button type="button" onClick={records.length === 0 ? onBack : clearFilters} className="mt-4 min-h-11 rounded-xl bg-[#2d6b62] px-4 text-sm font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#70b2a8]">
@@ -470,6 +529,22 @@ export default function ArchiveView({ onBack, onLoadRecord }) {
                                             </h2>
                                             <span className="text-xs tabular-nums text-stone-500">{group.records.length} 条</span>
                                         </div>
+                                        {group.id === AUTO_GROUP && (
+                                            <div className="mb-2.5 rounded-xl border border-[#d8cbae]/15 bg-white/[0.03] px-3 py-2.5 text-[11px] leading-5 text-stone-400">
+                                                <p>起盘时自动记下的，新的在前，最多留 {AUTO_RECORD_LIMIT} 条，满了先删最旧的。要长期留着的，打开命盘点「存入档案」归到分组。</p>
+                                                {confirmingClearAuto ? (
+                                                    <div className="mt-2 flex flex-wrap items-center gap-2" role="group" aria-label="确认清空自动记录">
+                                                        <span className="text-[#e0aaa3]">确定清空这 {group.records.length} 条吗？清空后无法恢复。</span>
+                                                        <button type="button" onClick={() => setConfirmingClearAuto(false)} className="min-h-11 rounded-lg border border-[#d8cbae]/25 px-3 text-xs font-bold text-stone-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#61a69c]">取消</button>
+                                                        <button type="button" onClick={confirmClearAuto} className="min-h-11 rounded-lg bg-[#96372e] px-3 text-xs font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d1847b]">确认清空</button>
+                                                    </div>
+                                                ) : (
+                                                    <button type="button" onClick={() => setConfirmingClearAuto(true)} className="mt-1 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-xs font-bold text-[#d5b876] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#61a69c]">
+                                                        <Trash2 className="size-3.5" aria-hidden="true" />清空自动记录
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
 
                                         <div className="space-y-2.5">
                                             {group.records.map((record) => {

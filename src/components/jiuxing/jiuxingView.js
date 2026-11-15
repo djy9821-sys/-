@@ -47,6 +47,87 @@ export function mountJiuxing(root, options = {}) {
   const smooth = () => (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
   const starList = (stars) => stars.map((s) => SHORT[s]).join('、');
 
+  // —— 生日按农历填 ——
+  // 九星的年、月、日三星按公历的节气排，农历生日先换成公历再算。页面本身不带农历库：
+  // 外面把一组换算工具传进来（options.lunar）才显示「公历 / 农历」的切换，没传就只有公历。
+  const lunarApi = options.lunar || null;
+  const ZODIAC = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
+  const BIRTH_MIN = '1900-02-05'; const BIRTH_MAX = '2060-12-31';
+  const LUNAR_START = { year: 1990, month: 1, day: 1 }; // 农历下拉框没有日子可摆时的起点
+  const calKey = (id) => (id === 'birth' ? 'cal' : 'cal-other'); // 记住上次用哪种历法填；不是个人资料
+  const calMode = {}; // 'birth' / 'other-birth' → 'solar' | 'lunar'
+  const fillSelect = (select, items, value) => {
+    select.textContent = '';
+    for (const [text, v] of items) select.append(option(text, String(v)));
+    if (items.some(([, v]) => String(v) === String(value))) select.value = String(value);
+  };
+  /** 把农历的三个下拉框摆到指定的那一天；这一年没有的闰月退到同名的平月，小月没有三十就退到廿九。 */
+  const showLunar = (id, lunar) => {
+    const months = lunarApi.monthsOf(lunar.year);
+    const month = months.find((m) => m.value === lunar.month) || months.find((m) => m.value === Math.abs(lunar.month)) || months[0];
+    if (!month) return null;
+    const day = Math.min(Math.max(1, lunar.day), month.days);
+    $(id + '-ly').value = String(lunar.year);
+    fillSelect($(id + '-lm'), months.map((m) => [m.name, m.value]), month.value);
+    fillSelect($(id + '-ld'), Array.from({ length: month.days }, (_, i) => [lunarApi.dayName(i + 1), i + 1]), day);
+    return { year: lunar.year, month: month.value, day };
+  };
+  const pickedLunar = (id) => ({ year: Number($(id + '-ly').value), month: Number($(id + '-lm').value), day: Number($(id + '-ld').value) });
+  /** 公历那一格里的日子换成农历；空着、填坏了、或不在能算的范围里，返回 null。 */
+  const lunarOfBirth = (id) => { const value = $(id).value; return parseYmd(value) && value >= BIRTH_MIN && value <= BIRTH_MAX ? lunarApi.fromSolar(value) : null; };
+  /** 把农历下拉框选的那一天写进公历那一格；换出来不在能算的范围里就清空。 */
+  const adoptLunar = (id) => {
+    const shown = showLunar(id, pickedLunar(id)); // 换了年或月，闰月和大小月跟着变
+    const solar = shown ? lunarApi.toSolar(shown.year, shown.month, shown.day) : null;
+    $(id).value = solar && solar >= BIRTH_MIN && solar <= BIRTH_MAX ? solar : '';
+  };
+  /** 立春和春节不在同一天：生在两者之间的人，九星算的年和农历的年差一年，说明一句；不差就返回空串。 */
+  const yearNote = (ymd, lunar) => {
+    const pillars = JXP.pillarsOf(...ymd);
+    if (!pillars || pillars.kiYear === lunar.year) return '';
+    const lunarYear = `${ganzhi(lunar.year)}年（${ZODIAC[mod(lunar.year - 4, 12)]}年）`;
+    return pillars.kiYear > lunar.year
+      ? `这一天立春已到，九星按${pillars.year.branch}年算；农历还没过年，仍是${lunarYear}。`
+      : `这一天立春未到，九星按${pillars.year.branch}年算；农历已经过了年，是${lunarYear}。`;
+  };
+  /** 生日下面那一行：填公历时写出农历是哪天，填农历时写出按公历哪天算；九星的年和农历的年差一年时另起一行说明。 */
+  const syncBirth = (id) => {
+    if (!lunarApi) return;
+    const echo = $(id + '-echo'); const lunar = lunarOfBirth(id); const ymd = parseYmd($(id).value);
+    const note = $(id + '-year-note'); note.textContent = lunar ? yearNote(ymd, lunar) : ''; note.hidden = !note.textContent;
+    const lunarMode = calMode[id] === 'lunar';
+    if (lunarMode && lunar) showLunar(id, lunar);
+    const who = id === 'birth' ? '' : '对方';
+    if (lunarMode) echo.textContent = lunar ? `${who}农历 ${lunarApi.text(lunar)}，按公历 ${ymd[0]} 年 ${ymd[1]} 月 ${ymd[2]} 日算。` : '这一天换成公历，不在 1900 年 2 月 5 日到 2060 年之间，请重选。';
+    else echo.textContent = lunar ? `${who}农历是 ${lunarApi.text(lunar)}。` : '';
+    echo.hidden = !echo.textContent;
+  };
+  /** 切换按哪种历法填。返回 true 表示公历那一格被改过了（见下），调用的人要接着重算。 */
+  const setCalMode = (id, mode, remember) => {
+    calMode[id] = mode; const lunarMode = mode === 'lunar';
+    $(id).hidden = lunarMode; $(id + '-lunar').hidden = !lunarMode;
+    $(id + '-cap').textContent = `${id === 'birth' ? '出生日期' : '对方的出生日期'}（${lunarMode ? '农历' : '公历'}）`;
+    $(id + '-cal').querySelectorAll('button').forEach((btn) => btn.setAttribute('aria-pressed', String(btn.dataset.cal === mode)));
+    if (remember) store.set(calKey(id), mode);
+    // 下拉框不能空着：公历那一格没有能用的日子时，摆在一个起点上，就按下拉框上写的这一天算，等人来改。
+    const moved = lunarMode && !lunarOfBirth(id);
+    if (moved) { showLunar(id, LUNAR_START); adoptLunar(id); }
+    syncBirth(id);
+    return moved;
+  };
+  /** 接上「公历 / 农历」的切换和农历的三个下拉框。onChange 是生日变了以后要做的事（和直接改公历那一格一样）。 */
+  const bindBirth = (id, onChange) => {
+    if (!lunarApi) return;
+    $(id + '-cal').hidden = false;
+    fillSelect($(id + '-ly'), Array.from({ length: 161 }, (_, i) => 1900 + i).map((y) => [`${y} ${ganzhi(y)}（${ZODIAC[mod(y - 4, 12)]}）`, y]), LUNAR_START.year);
+    $(id + '-cal').addEventListener('click', (event) => {
+      const btn = event.target.closest('[data-cal]');
+      if (btn && btn.dataset.cal !== calMode[id] && setCalMode(id, btn.dataset.cal, true)) onChange();
+    });
+    for (const part of ['-ly', '-lm', '-ld']) $(id + part).addEventListener('change', () => { adoptLunar(id); onChange(); });
+    setCalMode(id, store.get(calKey(id)) === 'lunar' ? 'lunar' : 'solar', false);
+  };
+
   const state = { tab: 'zonglan', sample: !store.get('birth'), otherSample: !store.get('other-birth'), direction: store.get('dir') || '西', autoDirection: !store.get('dir'), picked: null, showAll: false };
   let ME = null; // 当前这个人：生日算出来的一切
   let scans = null; // 八方的扫描结果，随生日、起始日、天数变
@@ -66,7 +147,7 @@ export function mountJiuxing(root, options = {}) {
     const who = $('who'); const pillars = $('pillars'); const note = $('printed-note');
     who.textContent = ''; pillars.textContent = ''; note.hidden = true;
     $('sample').hidden = !state.sample;
-    if (!ME) { who.append(el('p', 'hint', '请填 1900 年 2 月 5 日到 2060 年之间的公历生日。')); return; }
+    if (!ME) { who.append(el('p', 'hint', lunarApi ? '请填 1900 年 2 月 5 日到 2060 年之间的生日，公历、农历都可以。' : '请填 1900 年 2 月 5 日到 2060 年之间的公历生日。')); return; }
     const p = ME.profile;
     who.append(el('div', 'beast', p.name));
     const basis = el('div', 'basis');
@@ -117,7 +198,8 @@ export function mountJiuxing(root, options = {}) {
   const summaryText = () => {
     const p = ME.profile; const stage = JXP.stageOf(p, ME.thisYear); const used = ME.used; const partners = JXP.branchPartners(used.branch);
     const lines = [];
-    lines.push(`${ME.name ? ME.name + '：' : ''}${ME.ymd[0]} 年 ${ME.ymd[1]} 月 ${ME.ymd[2]} 日生`);
+    const lunarBirth = lunarApi ? lunarApi.fromSolar(`${ME.ymd[0]}-${pad(ME.ymd[1])}-${pad(ME.ymd[2])}`) : null;
+    lines.push(`${ME.name ? ME.name + '：' : ''}${ME.ymd[0]} 年 ${ME.ymd[1]} 月 ${ME.ymd[2]} 日生${lunarBirth ? `（农历 ${lunarApi.text(lunarBirth)}）` : ''}`);
     lines.push(`神兽：${p.name}（日柱${p.pillar}，${JXP.XUN[p.xun]}旬，${p.yin ? '阴' : '阳'}年生，属${p.element}）`);
     lines.push(`三柱：年 ${ME.pillars.year.branch}·${JX.STAR_NAMES[ME.pillars.year.star]}，月 ${ME.pillars.month.branch}·${JX.STAR_NAMES[ME.pillars.month.star]}，日 ${ME.pillars.day.branch}·${JX.STAR_NAMES[ME.pillars.day.star]}`);
     lines.push(`今年 ${ME.thisYear}（${ganzhi(ME.thisYear)}年）：${JXP.stageName(stage)}，位置${JXP.tierOf(p.xun, stage)}、${JXP.trendOf(p.xun, stage)}。${ADVICE[stage]}`);
@@ -585,7 +667,7 @@ export function mountJiuxing(root, options = {}) {
     $('x-base-note').textContent = `看的是你的${PHASE_WORD[ME.phase.key]}（${phaseWhy(ME)}）：${used.branch}、${JX.STAR_NAMES[used.star]}。${ME.phase.unsure ? '18 到 24 岁要分男女：女看年柱，男看月柱；没填性别，先按年柱。' : ''}地支按年看时以立春为界，和春节换的生肖偶尔差一年。同看年支的两个人，差 4 岁、8 岁多半三合，差 6 岁多半相冲。`;
 
     const other = readOther();
-    if (!other) { pairBox.append(el('p', 'empty', '填对方的公历生日（1900 年 2 月 5 日到 2060 年之间）。')); return; }
+    if (!other) { pairBox.append(el('p', 'empty', lunarApi ? '填对方的生日（1900 年 2 月 5 日到 2060 年之间），公历、农历都可以。' : '填对方的公历生日（1900 年 2 月 5 日到 2060 年之间）。')); return; }
     const r = JXP.compat({ ymd: ME.ymd, gender: ME.gender }, { ymd: other.ymd, gender: other.gender }, ME.today);
     const meName = ME.name || '你'; const otherName = other.name || '对方';
     const vs = el('div', 'vs');
@@ -731,16 +813,19 @@ export function mountJiuxing(root, options = {}) {
     $('name').value = profile.name; $('birth').value = profile.birth; $('gender').value = profile.gender || '';
     state.sample = false; state.picked = null; state.showAll = false;
     store.set('name', profile.name); store.set('birth', profile.birth); store.set('gender', profile.gender || '');
+    syncBirth('birth');
     refresh();
   });
   bindProfiles('other-profile', (profile) => {
     $('other-name').value = profile.name; $('other-birth').value = profile.birth; $('other-gender').value = profile.gender || '';
     state.otherSample = false;
     store.set('other-name', profile.name); store.set('other-birth', profile.birth); store.set('other-gender', profile.gender || '');
+    syncBirth('other-birth');
     renderXiangxing();
   });
   $('name').addEventListener('input', () => { store.set('name', $('name').value.trim()); refresh(); });
-  $('birth').addEventListener('input', () => { $('profile').value = ''; if (parseYmd($('birth').value)) { state.sample = false; state.picked = null; state.showAll = false; store.set('birth', $('birth').value); } refresh(); });
+  const onBirthChange = () => { $('profile').value = ''; if (parseYmd($('birth').value)) { state.sample = false; state.picked = null; state.showAll = false; store.set('birth', $('birth').value); } syncBirth('birth'); refresh(); };
+  $('birth').addEventListener('input', onBirthChange);
   $('gender').addEventListener('change', () => { store.set('gender', $('gender').value); refresh(); });
   $('home').addEventListener('change', () => { store.set('home', $('home').value); homePoint(); if (state.tab === 'fangwei') { renderDirection(); renderBearing(); } else dirty.add('fangwei'); });
   for (const id of ['home-lat', 'home-lon']) $(id).addEventListener('input', () => { if (state.tab === 'fangwei') { renderDirection(); renderBearing(); } else dirty.add('fangwei'); });
@@ -752,7 +837,10 @@ export function mountJiuxing(root, options = {}) {
   for (const id of ['dest-lat', 'dest-lon']) $(id).addEventListener('input', renderBearing);
   $('bearing-use').addEventListener('click', () => { if (measured) { setDirection(measured); $('dir-title').scrollIntoView({ behavior: smooth(), block: 'start' }); } });
   $('other-name').addEventListener('input', () => { store.set('other-name', $('other-name').value.trim()); renderXiangxing(); });
-  $('other-birth').addEventListener('input', () => { $('other-profile').value = ''; if (parseYmd($('other-birth').value)) { state.otherSample = false; store.set('other-birth', $('other-birth').value); } renderXiangxing(); });
+  const onOtherBirthChange = () => { $('other-profile').value = ''; if (parseYmd($('other-birth').value)) { state.otherSample = false; store.set('other-birth', $('other-birth').value); } syncBirth('other-birth'); renderXiangxing(); };
+  $('other-birth').addEventListener('input', onOtherBirthChange);
+  bindBirth('birth', onBirthChange); bindBirth('other-birth', onOtherBirthChange);
+  $('lunar-hint').hidden = !lunarApi;
   $('other-gender').addEventListener('change', () => { store.set('other-gender', $('other-gender').value); renderXiangxing(); });
   $('copy').addEventListener('click', () => {
     if (!ME) return;

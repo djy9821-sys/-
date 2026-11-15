@@ -135,3 +135,34 @@ test('精确到分钟的紫微链接按真太阳时换算时辰', async ({ page 
   await expect(summary).toContainText('1988');
   await expect(summary.locator('p', { hasText: '真太阳时' })).not.toContainText('未');
 });
+
+test('精确到分钟：出生地的三个框各占一行，海外排在最前，没选国家或省份时城市框写明先选哪个', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto('/#/ziwei');
+  const form = page.locator('form.birth-form');
+  await expect(form).toBeVisible();
+  await form.getByRole('button', { name: '精确到分钟' }).click();
+
+  const place = form.getByRole('group', { name: '出生地' });
+  const province = place.getByLabel('出生省份');
+  const city = place.getByLabel('出生城市');
+  const timezone = place.getByLabel('出生地时区');
+  await expect(province.locator('optgroup[label="海外"] option')).toHaveText(['马来西亚', '印度尼西亚', '海外（亚洲）']);
+  await expect(city).toBeDisabled();
+  await expect(city.locator('option').first()).toHaveText('先选国家／省份');
+
+  await province.selectOption('印度尼西亚');
+  await expect(city).toBeEnabled();
+  await city.selectOption('雅加达');
+  await expect(timezone).toHaveValue('7');
+  await expect(form.getByLabel('出生地经度')).toHaveValue('106.85');
+
+  // 三个框上下排、一样宽，都不超出出生地这一组。
+  const boxes = [await province.boundingBox(), await city.boundingBox(), await timezone.boundingBox()];
+  expect(boxes[1].y).toBeGreaterThanOrEqual(boxes[0].y + boxes[0].height);
+  expect(boxes[2].y).toBeGreaterThanOrEqual(boxes[1].y + boxes[1].height);
+  expect(Math.abs(boxes[1].width - boxes[0].width)).toBeLessThan(1);
+  expect(Math.abs(boxes[2].width - boxes[0].width)).toBeLessThan(1);
+  const groupBox = await place.boundingBox();
+  for (const box of boxes) expect(box.x + box.width).toBeLessThanOrEqual(groupBox.x + groupBox.width + 0.5);
+});

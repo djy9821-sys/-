@@ -44,6 +44,8 @@ export const SHENSHA_TONE_CLASS = {
 // 输入页沿用卷首页的墨绿、金、朱砂配色。
 export const INPUT_LABEL_CLASS = 'flex items-center gap-1 text-xs font-bold tracking-widest text-[#dcb471]';
 export const INPUT_FIELD_CLASS = 'min-h-11 appearance-none rounded-xl border border-[#dcb471]/20 bg-[#04191a] px-3 text-[#fbf7ed] outline-none transition-colors focus:border-[#dcb471]/60 focus-visible:ring-2 focus-visible:ring-[#55bba8]/50';
+// 下拉框：INPUT_FIELD_CLASS 去掉了系统外观，这里补上右侧的小箭头（样式见 index.css 的 select.gsp-select），不然会被当成文本框。
+export const SELECT_FIELD_CLASS = `${INPUT_FIELD_CLASS} gsp-select cursor-pointer`;
 export const INPUT_HINT_CLASS = 'text-[11px] leading-5 text-[#fbf7ed]/55';
 export const SEGMENT_CLASS = 'flex rounded-xl border border-[#dcb471]/20 bg-[#04191a] p-1';
 export const segmentButtonClass = (active) => `min-h-11 flex-1 rounded-lg px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8] ${active ? 'border border-[#dcb471]/50 bg-[#dcb471]/15 text-[#f0ce91]' : 'text-[#fbf7ed]/55 hover:text-[#fbf7ed]/80'}`;

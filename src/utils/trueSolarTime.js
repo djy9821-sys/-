@@ -131,3 +131,52 @@ export const getShichenBoundary = (corrected, clock, totalMinutes) => {
     totalMinutes,
   };
 };
+
+const ZONE_FORMATTERS = new Map();
+
+const zoneFormatter = (zone) => {
+  if (!ZONE_FORMATTERS.has(zone)) {
+    ZONE_FORMATTERS.set(zone, new Intl.DateTimeFormat('en-US', {
+      timeZone: zone,
+      hourCycle: 'h23',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }));
+  }
+  return ZONE_FORMATTERS.get(zone);
+};
+
+/** 某个绝对时刻在指定时区的墙上时间，写成「当作 UTC 的毫秒数」，便于与时刻相减得到偏移。 */
+const zoneWallTimestamp = (zone, utcMs) => {
+  const parts = {};
+  zoneFormatter(zone).formatToParts(new Date(utcMs)).forEach((part) => { parts[part.type] = part.value; });
+  return Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), Number(parts.hour), Number(parts.minute), Number(parts.second));
+};
+
+/**
+ * 出生地在出生那一刻实际用的时区（相对 UTC 的小时数，可带小数），取自运行环境自带的 IANA 时区库。
+ *
+ * 不少地方改过时区：马来西亚半岛与新加坡 1982 年以前用 UTC+7:30，爪哇 1964 年以前用 UTC+7:30，
+ * 西加里曼丹 1964–1987 年用 UTC+8。按现在的时区去换算这些年份的出生时间，真太阳时会差半小时。
+ * 返回的偏移已经包含当地当时的夏令时，用它的时候不要再另减夏令时。
+ *
+ * @param {string} zone IANA 时区名，如 'Asia/Kuala_Lumpur'
+ * @param {{year:number, month:number, day:number, hour?:number, minute?:number}} clock 出生地钟表时间（公历）
+ * @returns {number|null} 时区名无效或运行环境不支持时返回 null
+ */
+export const getZoneOffsetHours = (zone, clock) => {
+  if (!zone || !clock || !Number.isInteger(clock.year) || !Number.isInteger(clock.month) || !Number.isInteger(clock.day)) return null;
+  try {
+    const wall = Date.UTC(clock.year, clock.month - 1, clock.day, clock.hour ?? 12, clock.minute ?? 0);
+    // 先把墙上时间当成 UTC 试一次，再用得到的偏移回头校一次：两次不同，说明出生时刻离时区变更不远。
+    const guess = zoneWallTimestamp(zone, wall) - wall;
+    const offset = zoneWallTimestamp(zone, wall - guess) - (wall - guess);
+    return Math.round(offset / 1000) / 3600;
+  } catch {
+    return null;
+  }
+};

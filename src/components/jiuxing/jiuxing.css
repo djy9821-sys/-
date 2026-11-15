@@ -27,6 +27,16 @@
 .jx a { color: var(--accent); }
 .jx :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .jx .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.jx [hidden] { display: none !important; }
+/* 生日：公历直接填，农历选年、月、日 */
+.jx .birth { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.jx .birth-top { display: flex; align-items: center; gap: 10px; min-height: 22px; }
+.jx .cal { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.jx .cal button { min-width: 44px; min-height: 30px; padding: 2px 10px; border: 0; background: none; color: var(--muted); font-size: 13px; }
+.jx .cal button[aria-pressed="true"] { background: var(--accent); color: var(--surface); font-weight: 600; }
+.jx .lunar { display: flex; flex-wrap: wrap; gap: 6px; }
+/* 换算出来的那一行：宽屏排在这一排的最后，单占一行；手机上紧跟在生日下面（见下面的窄屏规则） */
+.jx .row > .echo { flex-basis: 100%; margin-top: -6px; }
 .jx .tag { display: inline-block; font-size: 12px; padding: 1px 7px; border-radius: 3px; background: var(--warn-weak); color: var(--warn); align-self: center; }
 .jx .pill { font-size: 12px; padding: 1px 8px; border-radius: 999px; white-space: nowrap; background: var(--surface); border: 1px solid var(--line); color: var(--ink); }
 .jx .pill.ok { background: var(--ok-weak); color: var(--ok); border-color: transparent; }
@@ -254,5 +264,12 @@
   .jx .year-row { grid-template-columns: minmax(0, 1fr); }
   .jx .pillar { grid-template-columns: minmax(0, 1fr); } .jx .pillar .b { font-size: 22px; }
   .jx .tabs { gap: 5px; } .jx .tabs [role="tab"] { padding: 6px 9px; font-size: 15px; }
+  /* 手机上农历的三个框排两行：年一行（带干支和生肖，字多），月、日并排一行，不靠碰运气换行 */
+  .jx .birth { width: 100%; }
+  .jx .lunar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .jx .lunar select { width: 100%; }
+  .jx .lunar select:first-child { grid-column: 1 / -1; }
+  .jx .row > .birth ~ * { order: 2; }
+  .jx .row > .birth ~ .echo { order: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .jx * { scroll-behavior: auto !important; } }

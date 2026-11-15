@@ -6,6 +6,7 @@ import React, { useEffect, useRef } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { archiveManager } from '../../utils/archiveManager';
 import { profilesFromArchive } from '../../utils/jiuxing/archiveProfiles.js';
+import { JIUXING_LUNAR } from '../../utils/jiuxing/lunarDate.js';
 import { mountJiuxing } from './jiuxingView.js';
 import './jiuxing.css';
 
@@ -14,7 +15,8 @@ export default function JiuxingQixue({ onBack }) {
 
     useEffect(() => {
         // 姓名和生日不写进本机（生辰只有主动存档才保存）；已经存进档案的人可以直接选。
-        const view = mountJiuxing(rootRef.current, { remember: false, profiles: profilesFromArchive(archiveManager.getRecords()) });
+        // 生日可以按农历填：换算工具从这里传进去（视图代码本身不带农历库）。
+        const view = mountJiuxing(rootRef.current, { remember: false, profiles: profilesFromArchive(archiveManager.getRecords()), lunar: JIUXING_LUNAR });
         return () => view.destroy();
     }, []);
 

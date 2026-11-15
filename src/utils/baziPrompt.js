@@ -75,6 +75,9 @@ const birthLines = (chart, personName) => {
     } else {
       lines.push(`- 未提供出生地经度，按钟表时间排盘，属${input.hourOption.name}`);
     }
+    if (timeInfo.jieAdjustment) {
+      lines.push(`- 交节：出生在交节前后。交节是同一个瞬间，年柱、月柱按出生的绝对时刻（北京时间 ${timeInfo.instantDate} ${timeInfo.instantTime}）与节气比，取${chart.pillars[0].ganZhi}年${chart.pillars[1].ganZhi}月；只看当地真太阳时会排成${timeInfo.jieAdjustment.year}年${timeInfo.jieAdjustment.month}月`);
+    }
   } else {
     lines.push(`- 出生：${input.calendarType === 'lunar' ? '农历' : '公历'}输入，公历 ${solarInfo.ymd}，${input.hourOption.name}（${input.hourOption.range}，未校正真太阳时）`);
   }

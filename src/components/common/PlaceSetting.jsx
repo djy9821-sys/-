@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { LocateFixed, MapPin } from 'lucide-react';
 import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from '../../utils/birthPlaces';
+import PlaceProvinceOptions from './PlaceProvinceOptions';
 import { clearCurrentPlace, describeCurrentPlace, locateCurrentPlace, placeDisplayName, saveCurrentPlace } from '../../utils/currentPlace';
 import { track } from '../../utils/analytics';
 import { useCurrentPlace } from './useCurrentPlace';
@@ -167,16 +168,16 @@ export default function PlaceSetting({ tone = 'paper', now = new Date(), classNa
                         </p>
                     )}
                     <label className="block">
-                        <span className={`block text-[11px] ${styles.text}`}>省份 / 地区</span>
+                        <span className={`block text-[11px] ${styles.text}`}>国家／省份</span>
                         <select value={province} onChange={(event) => changeProvince(event.target.value)} className={`mt-1 min-h-10 w-full rounded-lg border px-2 text-sm focus-visible:outline-none focus-visible:ring-2 ${styles.field}`}>
-                            <option value="">选择省份</option>
-                            {BIRTH_PROVINCES.map((item) => <option key={item.province} value={item.province}>{item.province}</option>)}
+                            <option value="">选择国家／省份</option>
+                            <PlaceProvinceOptions />
                         </select>
                     </label>
                     <label className="block">
                         <span className={`block text-[11px] ${styles.text}`}>城市</span>
                         <select value={city} onChange={(event) => changeCity(event.target.value)} disabled={!cities.length} className={`mt-1 min-h-10 w-full rounded-lg border px-2 text-sm focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50 ${styles.field}`}>
-                            <option value="">选择城市</option>
+                            <option value="">{province ? '选择城市' : '先选国家／省份'}</option>
                             {cities.map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}
                         </select>
                     </label>

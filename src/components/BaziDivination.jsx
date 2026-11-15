@@ -24,6 +24,7 @@ import {
     INPUT_HINT_CLASS,
     INPUT_LABEL_CLASS,
     SEGMENT_CLASS,
+    SELECT_FIELD_CLASS,
     segmentButtonClass,
     wuxingText,
 } from './bazi/baziTheme';
@@ -37,11 +38,13 @@ import {
     getYearBoundaryInfo,
 } from '../utils/baziChart';
 import { archiveManager } from '../utils/archiveManager';
-import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from '../utils/birthPlaces';
-import { ARCHIVE_GROUP_OPTIONS, buildBaziRecord, clearLastBaziRecord, findSameBaziRecord, parseClockTime, readLastBaziRecord, recordToBaziForm, saveLastBaziRecord } from '../utils/baziRecord';
+import { BIRTH_PROVINCES, findBirthPlace, formatUtcOffset, historicalTimezoneOf, isBeforeZoneRecord, NON_MAINLAND_PROVINCES, TIMEZONE_OPTIONS } from '../utils/birthPlaces';
+import { ARCHIVE_GROUP_OPTIONS, baziFormSignature, buildBaziRecord, clearLastBaziRecord, parseClockTime, readLastBaziRecord, recordToBaziForm, saveLastBaziRecord } from '../utils/baziRecord';
+import { autoArchiveChart, removeAutoRecordOf, saveChartToArchive, seedAutoArchiveOnce } from '../utils/autoArchive';
 import { isChinaDst } from '../utils/trueSolarTime';
 import { CURRENT_PLACE_EVENT, readCurrentPlace, toLocalSolarNow } from '../utils/currentPlace';
 import { track } from '../utils/analytics';
+import PlaceProvinceOptions from './common/PlaceProvinceOptions';
 import PlaceSetting from './common/PlaceSetting';
 import {
     buildLiuRi,
@@ -143,8 +146,6 @@ const deeperDepth = (current, next) => (DEPTH_RANK[next] > DEPTH_RANK[current] ?
 
 const FLOW_KEYS = ['liu-shi', 'liu-ri', 'liu-yue', 'liu-nian', 'da-yun'];
 
-const NON_MAINLAND_PROVINCES = new Set(['香港', '澳门', '台湾', '海外（亚洲）']);
-
 const formatStartSolar = (value) => value?.split(' ')[0]?.replaceAll('-', '.') ?? '—';
 
 // 日历、时辰上的小圆点只看地支（及整柱伏吟、反吟）与本命四柱的关系；
@@ -160,6 +161,9 @@ const describeSavedForm = (form) => {
     const date = `${form.calendarType === 'lunar' ? '农历' : ''}${form.year}年${form.month < 0 ? '闰' : ''}${Math.abs(form.month)}月${form.day}日`;
     return `${form.personName?.trim() || '未命名'} · ${date} ${hour}`;
 };
+
+// 卷首页「更早排过的」最多列几条，其余的到档案页找。
+const EARLIER_CHARTS_SHOWN = 5;
 
 // 「此刻」按所在地真太阳时：没有设置所在地时就是设备时间。
 const nowAtPlace = () => toLocalSolarNow(new Date(), readCurrentPlace());
@@ -178,7 +182,7 @@ const strongestNatalMark = (natalItems, key, label, item) => {
     return { tone: relations[0].tone, title: relations[0].title, tones: [...new Set(relations.map(({ tone }) => tone))] };
 };
 
-export default function BaziDivination({ onBack, initialRecord = null }) {
+export default function BaziDivination({ onBack, onOpenArchive, initialRecord = null }) {
     // 从档案打开时直接进入结果页。
     const [initialForm] = useState(() => recordToBaziForm(initialRecord));
     const [lastForm, setLastForm] = useState(() => (initialRecord ? null : readLastChartForm()));
@@ -192,8 +196,9 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     });
     const initialStepRef = useRef(step);
     const stepIndexRef = useRef(0);
-    // 清除「上次的命盘」后先留一份，卷首页可以撤销，避免误触就丢。
+    // 清除「上次的命盘」后先留一份，卷首页可以撤销，避免误触就丢。档案里那条自动记录一并删掉、一并恢复。
     const [forgottenRecord, setForgottenRecord] = useState(null);
+    const [forgottenAutoRecord, setForgottenAutoRecord] = useState(null);
     const [calendarType, setCalendarType] = useState(prefill?.calendarType ?? 'solar');
     const [birthYear, setBirthYear] = useState(prefill?.year ?? 1990);
     const [birthMonth, setBirthMonth] = useState(prefill?.month ?? 1);
@@ -209,6 +214,9 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const [placeCity, setPlaceCity] = useState(prefill?.placeCity ?? '');
     const [longitude, setLongitude] = useState(prefill?.longitude ?? '');
     const [timezone, setTimezone] = useState(prefill?.timezone ?? 8);
+    // 时区跟着城市走：选了带时区资料的城市，就按出生那一刻当地实际用的时区换算（如吉隆坡 1975 年是 UTC+7:30）。
+    // 带回已有的表单、或用户自己改过时区之后，以选定的为准。
+    const [timezoneAuto, setTimezoneAuto] = useState(!prefill);
     const [applyTrueSolar, setApplyTrueSolar] = useState(prefill?.applyTrueSolar ?? true);
     // null 表示按出生日期自动判断是否处于夏令时。
     const [dstChoice, setDstChoice] = useState(prefill?.timeMode === 'exact' ? prefill.applyDst : null);
@@ -263,7 +271,20 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const placeCities = BIRTH_PROVINCES.find((item) => item.province === placeProvince)?.cities ?? [];
     const longitudeValue = longitude.trim() === '' ? null : Number(longitude);
     const longitudeInvalid = longitudeValue !== null && (!Number.isFinite(longitudeValue) || longitudeValue < -180 || longitudeValue > 180);
-    const cityLongitude = findBirthPlace(placeProvince, placeCity)?.longitude ?? null;
+    const birthPlace = findBirthPlace(placeProvince, placeCity);
+    const cityLongitude = birthPlace?.longitude ?? null;
+    // 出生地的钟表时刻（公历）：查历史时区用。
+    const clockMoment = useMemo(() => {
+        if (!exactMode || !clock) return null;
+        const date = getClockSolarDate(calendarType, birthYear, activeMonth, activeDay);
+        return date ? { ...date, hour: clock.hour, minute: clock.minute } : null;
+    }, [exactMode, clock, calendarType, birthYear, activeMonth, activeDay]);
+    const historicalTimezone = useMemo(() => historicalTimezoneOf(birthPlace, clockMoment), [birthPlace, clockMoment]);
+    const zoneRecordMissing = isBeforeZoneRecord(birthPlace, clockMoment);
+    const effectiveTimezone = timezoneAuto && historicalTimezone !== null ? historicalTimezone : timezone;
+    const timezoneOptions = TIMEZONE_OPTIONS.some((option) => option.value === effectiveTimezone)
+        ? TIMEZONE_OPTIONS
+        : [...TIMEZONE_OPTIONS, { value: effectiveTimezone, label: formatUtcOffset(effectiveTimezone) }].sort((a, b) => a.value - b.value);
     const placeName = placeCity
         ? (cityLongitude !== null && longitudeValue !== null && Math.abs(cityLongitude - longitudeValue) < 0.005 ? placeCity : `${placeCity}附近`)
         : (longitudeValue !== null ? '自定义经度' : '');
@@ -283,7 +304,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                 clockHour: clock ? clock.hour : null,
                 clockMinute: clock ? clock.minute : null,
                 longitude: longitudeInvalid ? null : longitudeValue,
-                timezone,
+                timezone: effectiveTimezone,
                 placeName,
                 applyTrueSolar,
                 applyDst: Boolean(dstChoice),
@@ -291,14 +312,14 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
             : unknownMode
                 ? { timeMode: 'unknown' }
                 : { hourIndex: birthHour }),
-    }), [calendarType, birthYear, activeMonth, activeDay, gender, daySect, yearBoundary, exactMode, unknownMode, clock, longitudeInvalid, longitudeValue, timezone, placeName, applyTrueSolar, dstChoice, birthHour]);
+    }), [calendarType, birthYear, activeMonth, activeDay, gender, daySect, yearBoundary, exactMode, unknownMode, clock, longitudeInvalid, longitudeValue, effectiveTimezone, placeName, applyTrueSolar, dstChoice, birthHour]);
 
     // 只对按北京时间记录的大陆出生时间自动判断 1986–1991 年夏令时。
     const dstSuggested = useMemo(() => {
-        if (!exactMode || !clock || timezone !== 8 || NON_MAINLAND_PROVINCES.has(placeProvince)) return false;
+        if (!exactMode || !clock || effectiveTimezone !== 8 || NON_MAINLAND_PROVINCES.has(placeProvince)) return false;
         const date = getClockSolarDate(calendarType, birthYear, activeMonth, activeDay);
         return date ? isChinaDst({ ...date, hour: clock.hour, minute: clock.minute }) : false;
-    }, [exactMode, clock, timezone, placeProvince, calendarType, birthYear, activeMonth, activeDay]);
+    }, [exactMode, clock, effectiveTimezone, placeProvince, calendarType, birthYear, activeMonth, activeDay]);
     const applyDst = dstChoice ?? dstSuggested;
     const resolvedChartInput = useMemo(
         () => (exactMode ? { ...chartInput, applyDst } : chartInput),
@@ -324,6 +345,11 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         () => archiveRecords.map((record) => ({ record, form: recordToBaziForm(record) })).filter(({ form }) => form),
         [archiveRecords],
     );
+    // 卷首页「更早排过的」：档案里的八字命盘，新的在前；「上次的命盘」另有一格，这里不重复列。
+    const earlierCharts = useMemo(() => {
+        const lastSignature = baziFormSignature(lastForm);
+        return baziArchiveCandidates.filter(({ record, form }) => record.type === 'bazi' && baziFormSignature(form) !== lastSignature);
+    }, [baziArchiveCandidates, lastForm]);
 
     // 起运之前的“小运”当作第 0 步，与大运共用同一套选择逻辑。
     const xiaoYunDaYun = useMemo(() => {
@@ -614,6 +640,8 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     useEffect(() => {
         const refreshArchive = () => setArchiveRecords(archiveManager.getRecords());
         window.addEventListener('archive-updated', refreshArchive);
+        // 升级后第一次打开：把当时那张「上次的命盘」补记进档案，免得排下一个人时把它盖掉（只做一次）。
+        seedAutoArchiveOnce(archiveManager, readLastBaziRecord());
         return () => window.removeEventListener('archive-updated', refreshArchive);
     }, []);
 
@@ -624,6 +652,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         setPlaceCity(onlyCity?.name ?? '');
         setLongitude(onlyCity ? onlyCity.longitude.toFixed(2) : '');
         setTimezone(cities[0]?.timezone ?? 8);
+        setTimezoneAuto(true);
     };
 
     const changePlaceCity = (city) => {
@@ -632,6 +661,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         if (place) {
             setLongitude(place.longitude.toFixed(2));
             setTimezone(place.timezone);
+            setTimezoneAuto(true);
         }
     };
 
@@ -651,6 +681,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         setPlaceCity(form.placeCity);
         setLongitude(form.longitude);
         setTimezone(form.timezone);
+        setTimezoneAuto(false);
         setApplyTrueSolar(form.applyTrueSolar);
         setDstChoice(form.timeMode === 'exact' ? form.applyDst : null);
     };
@@ -677,21 +708,26 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         placeProvince,
         placeCity,
         longitude,
-        timezone,
+        timezone: effectiveTimezone,
         applyTrueSolar,
         applyDst,
     });
 
     const rememberLastChart = (chart) => {
-        if (!chart) return;
+        if (!chart) return null;
         const record = buildBaziRecord(collectForm(), chart, { group: 'self' });
         saveLastBaziRecord(record);
         setLastForm(recordToBaziForm(record));
         setForgottenRecord(null);
+        setForgottenAutoRecord(null);
+        return record;
     };
 
     const forgetLastChart = () => {
-        setForgottenRecord(readLastBaziRecord());
+        const record = readLastBaziRecord();
+        setForgottenRecord(record);
+        // 档案里自动记下的那条也删掉；已经归到分组里的是自己存的，不动。
+        setForgottenAutoRecord(record ? removeAutoRecordOf(archiveManager, record) : null);
         clearLastBaziRecord();
         setLastForm(null);
     };
@@ -699,8 +735,10 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const undoForgetLastChart = () => {
         if (!forgottenRecord) return;
         saveLastBaziRecord(forgottenRecord);
+        if (forgottenAutoRecord) archiveManager.restoreRecords([forgottenAutoRecord]);
         setLastForm(recordToBaziForm(forgottenRecord));
         setForgottenRecord(null);
+        setForgottenAutoRecord(null);
     };
 
     // 前进到下一步：新增一条历史，返回键能回到上一步。
@@ -731,11 +769,8 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const handleSaveToArchive = () => {
         if (!baziResult) return;
         const record = buildBaziRecord(collectForm(), baziResult, { group: saveGroup, note: saveNote });
-        // 同名、同一张盘已经在档案里（比如从档案打开后再点保存）：更新原来那条，不再重复存一份。
-        const existing = findSameBaziRecord(archiveManager.getRecords(), record);
-        const saved = existing
-            ? archiveManager.updateRecord(existing.id, { group: record.group, note: record.note || existing.note, solarDate: record.solarDate, data: record.data })
-            : archiveManager.addRecord(record);
+        // 这张盘已经在档案里（起盘时自动记下的，或从档案打开后再点保存）：改原来那条的分组和备注，不再重复存一份。
+        const { saved, existing, wasAuto } = saveChartToArchive(archiveManager, record);
         if (!saved) {
             setSaveNotice({ type: 'error', message: '保存失败，请检查浏览器存储空间后重试。' });
             return;
@@ -744,11 +779,11 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         setSaveNote('');
         setSaveNotice({
             type: 'success',
-            message: existing
+            message: existing && !wasAuto
                 ? `档案里已经有「${saved.name}」的这张命盘，已更新分组和备注，没有重复保存。`
                 : `已保存「${saved.name}」的八字命盘，可在档案或排盘页「从档案带入」中找到。`,
         });
-        track('archive_save', { record_type: 'bazi', time_mode: timeMode, updated: Boolean(existing) });
+        track('archive_save', { record_type: 'bazi', time_mode: timeMode, updated: Boolean(existing && !wasAuto) });
     };
 
     // 带生辰参数的链接：发给别人打开即出盘；没有分享面板的设备直接复制。
@@ -834,18 +869,27 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         setResultMode('basic');
     };
 
-    const openLastChart = () => {
-        if (!lastForm) return;
-        applyFormValues(lastForm);
+    const openSavedForm = (form) => {
+        if (!form) return;
+        applyFormValues(form);
         resetResultView();
         pushStep('result');
     };
 
+    const openLastChart = () => openSavedForm(lastForm);
+
     const handleCalculate = () => {
         if (!canCalculate) return;
         if (calculateTimerRef.current) window.clearTimeout(calculateTimerRef.current);
-        rememberLastChart(computedChart);
+        const record = rememberLastChart(computedChart);
         resetResultView();
+        // 排过的盘自动在档案里记一条，再排别人也不会把这张盖掉。
+        const autoSaved = record ? autoArchiveChart(archiveManager, record) : null;
+        if (autoSaved?.action === 'added' || autoSaved?.action === 'renamed') {
+            setSaveNotice({ type: 'success', message: '这张盘已自动记在档案的「自动记录」里，只存在这台设备上。要归到分组或加备注，点「存入档案」。' });
+        } else if (autoSaved?.action === 'failed') {
+            setSaveNotice({ type: 'error', message: '这张盘没能自动记进档案：浏览器的存储满了或不可用。命盘照常能看，要留着请先到档案页清掉些旧记录。' });
+        }
         track('bazi_chart', { time_mode: timeMode, calendar: calendarType, true_solar: Boolean(exactMode && applyTrueSolar && longitudeValue !== null) });
         setLoading(true);
         calculateTimerRef.current = window.setTimeout(() => {
@@ -976,6 +1020,9 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                 onStart={() => pushStep('input')}
                 lastChart={lastForm ? { label: describeSavedForm(lastForm), onOpen: openLastChart, onForget: forgetLastChart } : null}
                 forgotten={!lastForm && forgottenRecord ? { label: describeSavedForm(recordToBaziForm(forgottenRecord)), onUndo: undoForgetLastChart } : null}
+                earlier={earlierCharts.slice(0, EARLIER_CHARTS_SHOWN).map(({ record, form }) => ({ key: record.id, label: describeSavedForm(form), onOpen: () => openSavedForm(form) }))}
+                earlierTotal={earlierCharts.length}
+                onOpenArchive={onOpenArchive}
             />
         );
     }
@@ -1013,8 +1060,8 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                             {baziArchiveCandidates.length > 0 && (
                                 <div className="space-y-2">
                                     <label htmlFor="bazi-archive" className={INPUT_LABEL_CLASS}><FolderOpen className="size-3.5" aria-hidden="true" /> 从档案带入</label>
-                                    <select id="bazi-archive" value="" onChange={(event) => applyArchiveRecord(event.target.value)} className={`${INPUT_FIELD_CLASS} w-full cursor-pointer`}>
-                                        <option value="">选择已保存的命例…</option>
+                                    <select id="bazi-archive" value="" onChange={(event) => applyArchiveRecord(event.target.value)} className={`${SELECT_FIELD_CLASS} w-full`}>
+                                        <option value="">选择排过或存过的人…</option>
                                         {baziArchiveCandidates.map(({ record, form }) => (
                                             <option key={record.id} value={record.id}>
                                                 {record.name || '未命名'} · {record.type === 'bazi' ? '八字' : '紫微'} · {form.calendarType === 'lunar' ? '农历' : '公历'}{form.year}-{Math.abs(form.month)}-{form.day}
@@ -1037,13 +1084,13 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                     ))}
                                 </div>
                                 <div className="grid grid-cols-3 gap-2">
-                                    <select aria-label="出生年份" value={birthYear} onChange={(event) => changeBirthYear(Number(event.target.value))} className={`${INPUT_FIELD_CLASS} cursor-pointer text-center`}>
+                                    <select aria-label="出生年份" value={birthYear} onChange={(event) => changeBirthYear(Number(event.target.value))} className={`${SELECT_FIELD_CLASS} gsp-select--tight pl-1 text-center`}>
                                         {years.map((year) => <option key={year} value={year}>{year}年</option>)}
                                     </select>
-                                    <select aria-label="出生月份" value={activeMonth} onChange={(event) => changeBirthMonth(Number(event.target.value))} className={`${INPUT_FIELD_CLASS} cursor-pointer text-center`}>
+                                    <select aria-label="出生月份" value={activeMonth} onChange={(event) => changeBirthMonth(Number(event.target.value))} className={`${SELECT_FIELD_CLASS} gsp-select--tight pl-1 text-center`}>
                                         {monthOptions.map((month) => <option key={month.value} value={month.value}>{month.label}</option>)}
                                     </select>
-                                    <select aria-label="出生日期" value={activeDay} onChange={(event) => setBirthDay(Number(event.target.value))} className={`${INPUT_FIELD_CLASS} cursor-pointer text-center`}>
+                                    <select aria-label="出生日期" value={activeDay} onChange={(event) => setBirthDay(Number(event.target.value))} className={`${SELECT_FIELD_CLASS} gsp-select--tight pl-1 text-center`}>
                                         {days.map((day) => <option key={day} value={day}>{day}日</option>)}
                                     </select>
                                 </div>
@@ -1070,29 +1117,48 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
 
                                         <div className="space-y-2 rounded-xl border border-[#dcb471]/12 bg-black/20 p-3">
                                             <span className="flex items-center gap-1 text-xs font-bold text-[#dcb471]"><MapPin className="size-3.5" aria-hidden="true" /> 出生地（用于真太阳时）</span>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <select aria-label="出生省份" value={placeProvince} onChange={(event) => changePlaceProvince(event.target.value)} className={`${INPUT_FIELD_CLASS} cursor-pointer`}>
-                                                    <option value="">选择省份</option>
-                                                    {BIRTH_PROVINCES.map((item) => <option key={item.province} value={item.province}>{item.province}</option>)}
+                                            {/* 两个框上下排：并排时窄屏放不下「印度尼西亚」这样的名字，字会被箭头盖住。 */}
+                                            <div className="grid grid-cols-1 gap-2">
+                                                <select aria-label="出生省份" value={placeProvince} onChange={(event) => changePlaceProvince(event.target.value)} className={SELECT_FIELD_CLASS}>
+                                                    <option value="">选择国家／省份</option>
+                                                    <PlaceProvinceOptions />
                                                 </select>
-                                                <select aria-label="出生城市" value={placeCity} onChange={(event) => changePlaceCity(event.target.value)} disabled={!placeProvince} className={`${INPUT_FIELD_CLASS} cursor-pointer disabled:cursor-not-allowed disabled:opacity-50`}>
-                                                    <option value="">选择城市</option>
+                                                <select aria-label="出生城市" value={placeCity} onChange={(event) => changePlaceCity(event.target.value)} disabled={!placeProvince} className={`${SELECT_FIELD_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}>
+                                                    <option value="">{placeProvince ? '选择城市' : '先选国家／省份'}</option>
                                                     {placeCities.map((city) => <option key={city.name} value={city.name}>{city.name}</option>)}
                                                 </select>
                                             </div>
-                                            <div className="grid grid-cols-2 items-end gap-2">
+                                            <p className={INPUT_HINT_CLASS}>先选国家或省份，再选城市。列表里没有的地方，选最近的城市，或者直接填经度。</p>
+                                            {/* 手机上经度、时区各占一行：并排时「UTC+8 北京时间」放不下，时区框会伸到面板外面。 */}
+                                            <div className="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
                                                 <label className="block min-w-0">
                                                     <span className="block text-[11px] text-[#fbf7ed]/60">经度（°E，县区可微调）</span>
                                                     <input type="text" inputMode="decimal" aria-label="出生地经度" value={longitude} onChange={(event) => setLongitude(event.target.value)} placeholder="例如 115.65" aria-invalid={longitudeInvalid} className={`${INPUT_FIELD_CLASS} mt-1 w-full tabular-nums placeholder:text-[#fbf7ed]/30 ${longitudeInvalid ? 'border-[#d85a45]' : ''}`} />
                                                 </label>
-                                                <label className="block">
+                                                <label className="block min-w-0">
                                                     <span className="block text-[11px] text-[#fbf7ed]/60">时区</span>
-                                                    <select aria-label="出生地时区" value={timezone} onChange={(event) => setTimezone(Number(event.target.value))} className={`${INPUT_FIELD_CLASS} mt-1 cursor-pointer`}>
-                                                        {TIMEZONE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                                                    <select aria-label="出生地时区" value={effectiveTimezone} onChange={(event) => { setTimezone(Number(event.target.value)); setTimezoneAuto(false); }} className={`${SELECT_FIELD_CLASS} mt-1 w-full`}>
+                                                        {timezoneOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                                                     </select>
                                                 </label>
                                             </div>
                                             {longitudeInvalid && <p className="text-[11px] text-[#ff9c8a]" role="alert">经度请填 -180 到 180 之间的数字，例如 115.65。</p>}
+                                            {historicalTimezone !== null && birthPlace && historicalTimezone !== birthPlace.timezone && (
+                                                <p className="text-[11px] leading-5 text-[#7bd2c0]" role="status" data-testid="bazi-historical-timezone">
+                                                    {placeCity}在 {clockMoment.year} 年用 {formatUtcOffset(historicalTimezone)}，现在是 {formatUtcOffset(birthPlace.timezone)}。
+                                                    {effectiveTimezone === historicalTimezone ? '已按当年的时区换算。' : (
+                                                        <>
+                                                            {`现在选的是 ${formatUtcOffset(effectiveTimezone)}。`}
+                                                            <button type="button" onClick={() => setTimezoneAuto(true)} className="ml-1 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8]">改用当年的时区</button>
+                                                        </>
+                                                    )}
+                                                </p>
+                                            )}
+                                            {zoneRecordMissing && (
+                                                <p className="text-[11px] leading-5 text-[#f0ce91]" role="status">
+                                                    {placeCity} {clockMoment.year} 年用的时区没有可靠资料，这里先按现在的 {formatUtcOffset(effectiveTimezone)} 算。当地改过时区，请核对后在「时区」里改。
+                                                </p>
+                                            )}
                                             <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-[#fbf7ed]/85">
                                                 <input type="checkbox" checked={applyTrueSolar && longitudeValue !== null} disabled={longitudeValue === null} onChange={(event) => setApplyTrueSolar(event.target.checked)} className="size-4 accent-[#55bba8]" />
                                                 按真太阳时排盘
@@ -1117,16 +1183,22 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                     {timeInfo.dstApplied ? ' · 夏令时 −60 分' : ''}
                                                     {timeInfo.correctedDate !== timeInfo.clockDate ? ` · 日期调整为 ${timeInfo.correctedDate}` : ''}
                                                 </p>
+                                                {timeInfo.jieAdjustment && (
+                                                    <p className="text-[11px] leading-5 text-[#f0ce91]" role="status" data-testid="bazi-jie-adjustment">
+                                                        出生在交节前后。交节是同一个瞬间，按出生的绝对时刻（北京时间 {timeInfo.instantDate} {timeInfo.instantTime}）比：
+                                                        年柱 {computedChart.pillars[0].ganZhi}、月柱 {computedChart.pillars[1].ganZhi}。只看当地真太阳时会排成 {timeInfo.jieAdjustment.year} 年 {timeInfo.jieAdjustment.month} 月。
+                                                    </p>
+                                                )}
                                                 {timeInfo.boundary && <BoundaryNotice boundary={timeInfo.boundary} tone="dark" />}
                                             </div>
                                         )}
                                     </div>
                                 ) : (
                                     <>
-                                        <select id="bazi-hour" aria-label="出生时辰" value={birthHour} onChange={(event) => setBirthHour(Number(event.target.value))} className={`${INPUT_FIELD_CLASS} w-full cursor-pointer`}>
+                                        <select id="bazi-hour" aria-label="出生时辰" value={birthHour} onChange={(event) => setBirthHour(Number(event.target.value))} className={`${SELECT_FIELD_CLASS} w-full`}>
                                             {BAZI_HOUR_OPTIONS.map((option) => <option key={option.index} value={option.index}>{option.name}（{option.range}）</option>)}
                                         </select>
-                                        <p className={INPUT_HINT_CLASS}>只按时辰排盘时不做真太阳时校正。出生在时辰交界附近（如 6:40–7:20）时，建议改用精确时间。</p>
+                                        <p className={INPUT_HINT_CLASS}>只按时辰排盘时不做真太阳时校正，所以不用填出生地。出生在时辰交界附近（如 6:40–7:20）时，建议改选「精确到分钟」，那里可以选出生地。</p>
                                     </>
                                 )}
                             </div>

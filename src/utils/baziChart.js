@@ -236,11 +236,45 @@ export const describeGanZhi = (ganZhi, dayGan) => {
   };
 };
 
-/** 按正月初一换年时的年柱：干支另取，其余字段与 getPillar 同一口径（十神、藏干、十二长生、旬空、纳音）。 */
-const buildYearPillarFromGanZhi = (ganZhi, dayGan, definition) => {
+/**
+ * 干支另取的一柱：其余字段与 getPillar 同一口径（十神、藏干、十二长生、旬空、纳音）。
+ * 两处用到：按正月初一换年时的年柱；交节按出生的绝对时刻比、与当地真太阳时排出的年柱月柱不同时。
+ */
+const buildPillarFromGanZhi = (ganZhi, dayGan, definition) => {
   const described = describeGanZhi(ganZhi, dayGan);
   const { diShiBasis: _basis, ...rest } = described;
   return { key: definition.key, name: definition.name, ...rest, wuxing: { gan: rest.ganWuxing, zhi: rest.zhiWuxing } };
+};
+
+const JIA_ZI_SIZE = 60;
+
+/**
+ * 小运干支：从时柱起，阳男阴女顺数、阴男阳女逆数，一年一位（与 lunar-javascript 的 XiaoYun 同一算法）。
+ * 单独写出来，是因为大运要按出生的绝对时刻排，时柱却要按当地真太阳时取，两者不一定出自同一个时刻。
+ */
+const xiaoYunGanZhiOf = (timeGanZhi, forward, index) => {
+  const base = LunarUtil.getJiaZiIndex(timeGanZhi);
+  if (base < 0) return '';
+  const offset = base + (forward ? 1 : -1) * (index + 1);
+  return LunarUtil.JIA_ZI[((offset % JIA_ZI_SIZE) + JIA_ZI_SIZE) % JIA_ZI_SIZE];
+};
+
+/** 命宫、身宫：由月支、时支和年干推出（与 lunar-javascript 的 EightChar 同一算法），用于年月与时不出自同一时刻的盘。 */
+const gongOf = (monthZhi, timeZhi, yearGanIndexExact) => {
+  const monthIndex = LunarUtil.MONTH_ZHI.indexOf(monthZhi);
+  const ganOf = (offset) => {
+    let ganIndex = (yearGanIndexExact + 1) * 2 + offset;
+    while (ganIndex > 10) ganIndex -= 10;
+    return LunarUtil.GAN[ganIndex];
+  };
+  let mingOffset = monthIndex + LunarUtil.MONTH_ZHI.indexOf(timeZhi);
+  mingOffset = (mingOffset >= 14 ? 26 : 14) - mingOffset;
+  let shenOffset = monthIndex + LunarUtil.ZHI.indexOf(timeZhi);
+  if (shenOffset > 12) shenOffset -= 12;
+  return {
+    mingGong: `${ganOf(mingOffset)}${LunarUtil.MONTH_ZHI[mingOffset]}`,
+    shenGong: `${ganOf(shenOffset)}${LunarUtil.MONTH_ZHI[shenOffset]}`,
+  };
 };
 
 const buildLiuNian = (liuNian, currentBaziYear, dayGan, sourceDaYunIndex, ageOffset = 0) => {
@@ -449,6 +483,19 @@ export const getClockSolarDate = (calendarType, year, month, day) => {
 
 const momentToSolar = (moment) => Solar.fromYmdHms(moment.year, moment.month, moment.day, moment.hour, moment.minute, 0);
 
+/** 把一个公历时刻前后挪若干分钟（可跨日、跨年），秒数不动。 */
+const shiftSolar = (solar, minutes) => {
+  if (!minutes) return solar;
+  const shifted = shiftWallTime({
+    year: solar.getYear(),
+    month: solar.getMonth(),
+    day: solar.getDay(),
+    hour: solar.getHour(),
+    minute: solar.getMinute(),
+  }, minutes);
+  return Solar.fromYmdHms(shifted.year, shifted.month, shifted.day, shifted.hour, shifted.minute, solar.getSecond());
+};
+
 /** 时辰不详时的时柱占位：各字段留空，表格与提示词显示「不详」。 */
 const UNKNOWN_TIME_PILLAR = Object.freeze({
   key: 'time',
@@ -474,6 +521,10 @@ const UNKNOWN_TIME_PILLAR = Object.freeze({
 
 /**
  * 精确时间模式：钟表时间 →（夏令时）→ 真太阳时，并给出时辰交界提示。
+ *
+ * 同时算出出生的绝对时刻（换成北京时间的墙上时间 instant）。交节是天文上的同一个瞬间，
+ * lunar-javascript 的节气时刻用北京时间，所以年柱、月柱、起运要拿 instant 去比；
+ * 日柱、时柱看的是当地的太阳，仍用真太阳时 corrected。两者在北京时间、不开真太阳时的盘上是同一刻。
  */
 const resolveExactMoment = (normalized) => {
   const { exact } = normalized;
@@ -493,6 +544,8 @@ const resolveExactMoment = (normalized) => {
     applyTrueSolar: exact.applyTrueSolar,
     applyDst: exact.applyDst,
   });
+  // 钟表时间 − 夏令时 − 当地时区 + 东八区。时区可以带小数（如 7.5），四舍五入到分钟。
+  const instant = shiftWallTime(clock, Math.round((exact.applyDst ? -60 : 0) + (8 - exact.timezone) * 60));
   const boundary = getShichenBoundary(corrected, clock, corrected.totalMinutes);
   let alternative = null;
   if (boundary.minutesToBoundary <= SHICHEN_BOUNDARY_WARNING_MINUTES) {
@@ -513,6 +566,7 @@ const resolveExactMoment = (normalized) => {
   return {
     clock,
     corrected,
+    instant,
     hourIndex: getHourIndexForTime(corrected.hour),
     timeInfo: {
       mode: 'exact',
@@ -520,6 +574,9 @@ const resolveExactMoment = (normalized) => {
       clockTime: formatClock(clock),
       correctedDate: momentToSolar(corrected).toYmd(),
       correctedTime: formatClock(corrected),
+      // 出生的绝对时刻，写成北京时间：交节（年柱、月柱、起运）按这一刻比。
+      instantDate: momentToSolar(instant).toYmd(),
+      instantTime: formatClock(instant),
       trueSolarApplied: corrected.corrected,
       dstApplied: exact.applyDst,
       dstSuggested: isChinaDst(clock),
@@ -562,12 +619,16 @@ export const buildBaziChart = (input, now = new Date()) => {
 
   let lunar;
   let solar;
+  // 交节用的时刻（出生的绝对时刻，北京时间）。只有精确时间模式、且与真太阳时不是同一刻时才另取。
+  let jieLunar = null;
   let timeInfo = { mode: normalized.timeMode };
   const timeUnknown = normalized.timeMode === 'unknown';
   if (normalized.timeMode === 'exact') {
     const resolved = resolveExactMoment(normalized);
     solar = momentToSolar(resolved.corrected);
     lunar = solar.getLunar();
+    const instantSolar = momentToSolar(resolved.instant);
+    if (instantSolar.toYmdHms() !== solar.toYmdHms()) jieLunar = instantSolar.getLunar();
     normalized.hourIndex = resolved.hourIndex;
     normalized.hourOption = BAZI_HOUR_OPTIONS[resolved.hourIndex];
     normalized.hour = resolved.corrected.hour;
@@ -594,13 +655,25 @@ export const buildBaziChart = (input, now = new Date()) => {
     lunar = solar.getLunar();
   }
 
+  // 日柱、时柱出自 eightChar（当地真太阳时）；年柱、月柱、大运、起运出自 jieEightChar（出生的绝对时刻）。
   const eightChar = lunar.getEightChar();
   eightChar.setSect(normalized.daySect);
+  const jieEightChar = jieLunar ? jieLunar.getEightChar() : eightChar;
+  if (jieLunar) jieEightChar.setSect(normalized.daySect);
+  // 出生在交节前后、两个时刻分在节的两边时，年柱或月柱以绝对时刻为准。
+  const jieDiffers = jieEightChar.getYear() !== eightChar.getYear() || jieEightChar.getMonth() !== eightChar.getMonth();
+  if (normalized.timeMode === 'exact') {
+    timeInfo = {
+      ...timeInfo,
+      // 只按当地真太阳时会排成的年柱、月柱；与按绝对时刻排的没有差别时为 null。
+      jieAdjustment: jieDiffers ? { year: eightChar.getYear(), month: eightChar.getMonth() } : null,
+    };
+  }
   const dayMasterGan = eightChar.getDayGan();
   // 年柱：lunar-javascript 的八字按立春（精确到时刻）换年；选「正月初一」时用农历年干支另排年柱。
   const yearBoundary = {
     mode: normalized.yearBoundary,
-    lichun: eightChar.getYear(),
+    lichun: jieEightChar.getYear(),
     chunjie: lunar.getYearInGanZhi(),
   };
   yearBoundary.differs = yearBoundary.lichun !== yearBoundary.chunjie;
@@ -608,7 +681,9 @@ export const buildBaziChart = (input, now = new Date()) => {
   const rawPillars = PILLAR_DEFINITIONS
     .map((definition) => {
       if (timeUnknown && definition.key === 'time') return UNKNOWN_TIME_PILLAR;
-      if (useChunjieYear && definition.key === 'year') return buildYearPillarFromGanZhi(yearBoundary.chunjie, dayMasterGan, definition);
+      if (useChunjieYear && definition.key === 'year') return buildPillarFromGanZhi(yearBoundary.chunjie, dayMasterGan, definition);
+      if (jieDiffers && definition.key === 'year') return buildPillarFromGanZhi(jieEightChar.getYear(), dayMasterGan, definition);
+      if (jieDiffers && definition.key === 'month') return buildPillarFromGanZhi(jieEightChar.getMonth(), dayMasterGan, definition);
       return getPillar(eightChar, definition);
     });
   const shenshaContext = buildShenshaContext(rawPillars);
@@ -628,9 +703,14 @@ export const buildBaziChart = (input, now = new Date()) => {
   const currentBaziYear = now.getFullYear() - (nowYearGanZhi === midYearGanZhi ? 0 : 1);
   // 虚岁按农历年算：出生即 1 岁，每过一个春节加 1 岁。lunar-javascript 按公历年份算，
   // 元旦到春节之间出生的人（农历还在上一年）会少算一岁，这里把差值补上。
-  const ageOffset = lunar.getSolar().getYear() - lunar.getYear();
-  const yunSource = eightChar.getYun(normalized.gender === 'male' ? 1 : 0, 2);
-  const startSolar = yunSource.getStartSolar();
+  // 大运按绝对时刻排时，库里的岁数从北京时间的出生年起算；跨年的那一个小时里与当地的出生年差一年，这里一并补上。
+  const ageOffset = lunar.getSolar().getYear() - lunar.getYear()
+    + (jieLunar ? jieLunar.getSolar().getYear() - lunar.getSolar().getYear() : 0);
+  const yunSource = jieEightChar.getYun(normalized.gender === 'male' ? 1 : 0, 2);
+  // 交运时刻：库里按北京时间给出，换回出生地的标准时间。
+  const startSolar = jieLunar
+    ? shiftSolar(yunSource.getStartSolar(), Math.round((normalized.exact.timezone - 8) * 60))
+    : yunSource.getStartSolar();
   const daYunSources = yunSource.getDaYun(14);
   const dayun = daYunSources
     .filter((item) => item.getIndex() > 0 && item.getGanZhi())
@@ -640,8 +720,12 @@ export const buildBaziChart = (input, now = new Date()) => {
   // 起运之前的年份行小运：大运列表里的第 0 步没有干支，这里单独整理。
   const childhood = daYunSources.find((item) => item.getIndex() === 0);
   const childhoodXiaoYun = childhood ? childhood.getXiaoYun() : [];
+  // 小运从时柱起数：大运另取时刻排的盘，时柱要用当地真太阳时的那一个，顺逆跟着按绝对时刻排出的年干。
+  const localTimeGanZhi = jieLunar ? lunar.getTimeInGanZhi() : '';
   const xiaoYunYears = (childhood ? childhood.getLiuNian() : []).map((item, index) => {
-    const xiaoYunGanZhi = childhoodXiaoYun[index]?.getGanZhi();
+    const xiaoYunGanZhi = jieLunar && childhoodXiaoYun[index]
+      ? xiaoYunGanZhiOf(localTimeGanZhi, yunSource.isForward(), index)
+      : childhoodXiaoYun[index]?.getGanZhi();
     return {
       ...withShensha(buildLiuNian(item, currentBaziYear, dayMasterGan, 0, ageOffset)),
       xiaoYun: xiaoYunGanZhi ? withShensha({ name: '小运', ...describeGanZhi(xiaoYunGanZhi, dayMasterGan) }) : null,
@@ -658,6 +742,13 @@ export const buildBaziChart = (input, now = new Date()) => {
   const currentLiuNian = [...dayun.flatMap((item) => item.liuNian), ...xiaoYunYears]
     .find((item) => item.isCurrent) ?? null;
 
+  // 命宫、身宫由月支、时支、年干推出。年月与时出自两个时刻、且年柱或月柱不同时，按公式另算。
+  const gong = timeUnknown
+    ? { mingGong: '', shenGong: '' }
+    : jieDiffers
+      ? gongOf(jieEightChar.getMonthZhi(), eightChar.getTimeZhi(), jieLunar.getYearGanIndexExact())
+      : { mingGong: eightChar.getMingGong(), shenGong: eightChar.getShenGong() };
+
   return {
     input: {
       ...normalized,
@@ -669,13 +760,14 @@ export const buildBaziChart = (input, now = new Date()) => {
     pillars,
     shenshaContext,
     extras: {
-      taiYuan: eightChar.getTaiYuan(),
-      taiYuanNaYin: eightChar.getTaiYuanNaYin(),
+      // 胎元由月柱推出，随月柱取按绝对时刻排的那一个。
+      taiYuan: jieEightChar.getTaiYuan(),
+      taiYuanNaYin: jieEightChar.getTaiYuanNaYin(),
       // 命宫、身宫都由月支与时支推出，时辰不详时不排。
-      mingGong: timeUnknown ? '' : eightChar.getMingGong(),
-      mingGongNaYin: timeUnknown ? '' : eightChar.getMingGongNaYin(),
-      shenGong: timeUnknown ? '' : eightChar.getShenGong(),
-      shenGongNaYin: timeUnknown ? '' : eightChar.getShenGongNaYin(),
+      mingGong: gong.mingGong,
+      mingGongNaYin: gong.mingGong ? LunarUtil.NAYIN[gong.mingGong] ?? '' : '',
+      shenGong: gong.shenGong,
+      shenGongNaYin: gong.shenGong ? LunarUtil.NAYIN[gong.shenGong] ?? '' : '',
     },
     timeUnknown,
     dayMaster: {
@@ -701,8 +793,8 @@ export const buildBaziChart = (input, now = new Date()) => {
       yearChinese: lunar.getYearInChinese(),
       monthChinese: lunar.getMonthInChinese(),
       dayChinese: lunar.getDayInChinese(),
-      zodiac: useChunjieYear ? lunar.getYearShengXiao() : lunar.getYearShengXiaoExact(),
-      zodiacExact: lunar.getYearShengXiaoExact(),
+      zodiac: useChunjieYear ? lunar.getYearShengXiao() : (jieLunar ?? lunar).getYearShengXiaoExact(),
+      zodiacExact: (jieLunar ?? lunar).getYearShengXiaoExact(),
     },
     yun: {
       startYear: yunSource.getStartYear(),
