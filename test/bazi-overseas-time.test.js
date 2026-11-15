@@ -22,6 +22,7 @@ import {
   historicalTimezoneOf,
   isBeforeZoneRecord,
   NON_MAINLAND_PROVINCES,
+  OVERSEAS_PROVINCES,
   TIMEZONE_OPTIONS,
 } from '../src/utils/birthPlaces.js';
 
@@ -242,6 +243,12 @@ test('出生地表：马来西亚、印尼的城市带时区资料，现在的�
     assert.equal(historicalTimezoneOf(city, today), city.timezone, `${city.name} 现在的时区`);
   }));
   assert.ok(withZone >= 36);
+});
+
+test('出生地表：海外的几组单列出来，录入页排在最前面', () => {
+  assert.deepEqual([...OVERSEAS_PROVINCES], ['马来西亚', '印度尼西亚', '海外（亚洲）']);
+  const names = new Set(BIRTH_PROVINCES.map((item) => item.province));
+  OVERSEAS_PROVINCES.forEach((name) => assert.ok(names.has(name), `${name} 在出生地表里`));
 });
 
 test('出生地表：按出生日期取当年的时区；资料靠不住的年份不自动换算', () => {
