@@ -1284,6 +1284,21 @@ export default function App() {
         ) : view === 'home' ? (
           // --- HOME PORTAL VIEW ---
           <div className="home-page animate-in fade-in duration-500">
+            {/* 全部工具的入口放在首页最上面：不用往下翻两屏、也不用点「更多」，就能看到九星气学、六爻和藏经阁。 */}
+            <nav className="home-tools" aria-label="全部工具">
+              {[
+                { key: 'ziwei', seal: '紫', name: '紫微斗数', open: () => setView('input') },
+                { key: 'bazi', seal: '八', name: '八字排盘', open: () => { setBaziRecord(null); setView('bazi'); } },
+                { key: 'liuyao', seal: '卦', name: '六爻起卦', open: openLiuYao },
+                { key: 'jiuxing', seal: '星', name: '九星气学', open: () => setView('jiuxing') },
+                { key: 'cangjing', seal: '藏', name: '藏经阁', open: openCangjing },
+              ].map((tool) => (
+                <button key={tool.key} type="button" className="home-tool" onClick={tool.open}>
+                  <span className="home-tool-seal" aria-hidden="true">{tool.seal}</span>
+                  <span className="home-tool-name">{tool.name}</span>
+                </button>
+              ))}
+            </nav>
             <div className={`home-overview ${homeFortune || homeBaziRecord ? 'home-overview--personalized' : 'home-overview--empty'}`}>
               <div className="home-briefs">
               {homeBaziRecord && !homeFortune && (
