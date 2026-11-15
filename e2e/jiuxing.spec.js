@@ -144,6 +144,19 @@ test('九星气学：生日可以按农历填，换成公历再算，和直接�
   await expect(echo).toContainText('不在 1900 年 2 月 5 日到 2060 年之间');
   await expect(page.locator('#jx-who')).toContainText('公历、农历都可以');
 
+  // 公历那一格没有能用的日子时切到农历：下拉框摆在 1990 年正月初一上，页面就按这一天算，两边说的是同一天。
+  await switcher.getByRole('button', { name: '公历' }).click();
+  await expect(page.locator('#jx-birth')).toHaveValue('');
+  await expect(echo).toBeHidden();
+  await page.locator('#jx-birth').fill('1900-01-20'); // 早于能算的范围：不写农历是哪天
+  await expect(echo).toBeHidden();
+  await switcher.getByRole('button', { name: '农历' }).click();
+  await expect(year).toHaveValue('1990');
+  await expect(month).toHaveValue('1');
+  await expect(day).toHaveValue('1');
+  await expect(echo).toHaveText('农历 1990 年正月初一，按公历 1990 年 1 月 27 日算。');
+  await expect(page.locator('#jx-who .beast')).toBeVisible();
+
   // 对方的生日同样可以按农历填。
   await year.selectOption('1982');
   await month.selectOption('12');
@@ -160,4 +173,31 @@ test('九星气学：生日可以按农历填，换成公历再算，和直接�
   expect(await page.evaluate(() => window.localStorage.getItem('jx9-cal'))).toBe('lunar');
   expect(await page.evaluate(() => Object.keys(window.localStorage).filter((key) => /^jx9-(name|birth|gender|other-)/.test(key)))).toEqual([]);
   expect(errors).toEqual([]);
+});
+
+test('九星气学：手机上农历的下拉框不出框，换算出来的那一行紧跟在生日下面', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await skipWelcomeCover(page);
+  await page.goto('/#/jiuxing');
+  const echo = page.locator('#jx-birth-echo');
+  await expect(echo).toHaveText('农历是 1990 年五月廿三。');
+  await page.getByRole('group', { name: '出生日期按公历还是农历填' }).getByRole('button', { name: '农历' }).click();
+  await page.getByLabel('农历出生年', { exact: true }).selectOption('2020');
+  await page.getByLabel('农历出生月', { exact: true }).selectOption({ label: '闰四月' });
+  await expect(echo).toContainText('农历 2020 年闰四月');
+
+  const rect = async (selector) => page.locator(selector).boundingBox();
+  const card = await rect('#jx-birth-box');
+  const [yearBox, monthBox, dayBox] = [await rect('#jx-birth-ly'), await rect('#jx-birth-lm'), await rect('#jx-birth-ld')];
+  // 年单占一行（带干支和生肖，字多），月、日并排在下一行，都在卡片里面。
+  expect(Math.abs(yearBox.width - card.width)).toBeLessThanOrEqual(1);
+  expect(monthBox.y).toBeGreaterThanOrEqual(yearBox.y + yearBox.height);
+  expect(Math.abs(monthBox.y - dayBox.y)).toBeLessThanOrEqual(1);
+  expect(dayBox.x).toBeGreaterThanOrEqual(monthBox.x + monthBox.width);
+  expect(dayBox.x + dayBox.width).toBeLessThanOrEqual(card.x + card.width + 1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  // 换算出来的那一行在生日和性别之间，不隔着别的格子。
+  const [line, gender] = [await rect('#jx-birth-echo'), await rect('#jx-gender')];
+  expect(line.y).toBeGreaterThanOrEqual(card.y + card.height);
+  expect(line.y + line.height).toBeLessThanOrEqual(gender.y);
 });
