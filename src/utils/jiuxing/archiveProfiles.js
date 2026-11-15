@@ -1,6 +1,7 @@
 // 把命盘档案里的人整理成九星气学页面可以直接选的名单：姓名、公历生日、性别。
 // 档案里紫微、八字的记录字段不完全一样：有的直接存了公历（solarDate），有的只存了农历生日，要换算。
 import { Lunar } from 'lunar-javascript';
+import { isAutoRecord, isUnnamedRecord } from '../autoArchive.js';
 
 const pad = (n) => String(n).padStart(2, '0');
 const parseYmd = (text) => {
@@ -37,6 +38,8 @@ export const profilesFromArchive = (records) => {
     const ymd = solarYmdOfRecord(record);
     const name = typeof record?.name === 'string' ? record.name.trim() : '';
     if (!ymd || !name) continue;
+    // 起盘时自动记下、又没写名字的：名单里只会多出一串「未命名」，不列。
+    if (isAutoRecord(record) && isUnnamedRecord(record)) continue;
     const birth = `${ymd[0]}-${pad(ymd[1])}-${pad(ymd[2])}`;
     const key = `${name}|${birth}`;
     if (seen.has(key)) continue;
