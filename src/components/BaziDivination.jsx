@@ -37,7 +37,7 @@ import {
     getYearBoundaryInfo,
 } from '../utils/baziChart';
 import { archiveManager } from '../utils/archiveManager';
-import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from '../utils/birthPlaces';
+import { BIRTH_PROVINCES, findBirthPlace, formatUtcOffset, historicalTimezoneOf, isBeforeZoneRecord, NON_MAINLAND_PROVINCES, TIMEZONE_OPTIONS } from '../utils/birthPlaces';
 import { ARCHIVE_GROUP_OPTIONS, buildBaziRecord, clearLastBaziRecord, findSameBaziRecord, parseClockTime, readLastBaziRecord, recordToBaziForm, saveLastBaziRecord } from '../utils/baziRecord';
 import { isChinaDst } from '../utils/trueSolarTime';
 import { CURRENT_PLACE_EVENT, readCurrentPlace, toLocalSolarNow } from '../utils/currentPlace';
@@ -143,8 +143,6 @@ const deeperDepth = (current, next) => (DEPTH_RANK[next] > DEPTH_RANK[current] ?
 
 const FLOW_KEYS = ['liu-shi', 'liu-ri', 'liu-yue', 'liu-nian', 'da-yun'];
 
-const NON_MAINLAND_PROVINCES = new Set(['香港', '澳门', '台湾', '海外（亚洲）']);
-
 const formatStartSolar = (value) => value?.split(' ')[0]?.replaceAll('-', '.') ?? '—';
 
 // 日历、时辰上的小圆点只看地支（及整柱伏吟、反吟）与本命四柱的关系；
@@ -209,6 +207,9 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const [placeCity, setPlaceCity] = useState(prefill?.placeCity ?? '');
     const [longitude, setLongitude] = useState(prefill?.longitude ?? '');
     const [timezone, setTimezone] = useState(prefill?.timezone ?? 8);
+    // 时区跟着城市走：选了带时区资料的城市，就按出生那一刻当地实际用的时区换算（如吉隆坡 1975 年是 UTC+7:30）。
+    // 带回已有的表单、或用户自己改过时区之后，以选定的为准。
+    const [timezoneAuto, setTimezoneAuto] = useState(!prefill);
     const [applyTrueSolar, setApplyTrueSolar] = useState(prefill?.applyTrueSolar ?? true);
     // null 表示按出生日期自动判断是否处于夏令时。
     const [dstChoice, setDstChoice] = useState(prefill?.timeMode === 'exact' ? prefill.applyDst : null);
@@ -263,7 +264,20 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
     const placeCities = BIRTH_PROVINCES.find((item) => item.province === placeProvince)?.cities ?? [];
     const longitudeValue = longitude.trim() === '' ? null : Number(longitude);
     const longitudeInvalid = longitudeValue !== null && (!Number.isFinite(longitudeValue) || longitudeValue < -180 || longitudeValue > 180);
-    const cityLongitude = findBirthPlace(placeProvince, placeCity)?.longitude ?? null;
+    const birthPlace = findBirthPlace(placeProvince, placeCity);
+    const cityLongitude = birthPlace?.longitude ?? null;
+    // 出生地的钟表时刻（公历）：查历史时区用。
+    const clockMoment = useMemo(() => {
+        if (!exactMode || !clock) return null;
+        const date = getClockSolarDate(calendarType, birthYear, activeMonth, activeDay);
+        return date ? { ...date, hour: clock.hour, minute: clock.minute } : null;
+    }, [exactMode, clock, calendarType, birthYear, activeMonth, activeDay]);
+    const historicalTimezone = useMemo(() => historicalTimezoneOf(birthPlace, clockMoment), [birthPlace, clockMoment]);
+    const zoneRecordMissing = isBeforeZoneRecord(birthPlace, clockMoment);
+    const effectiveTimezone = timezoneAuto && historicalTimezone !== null ? historicalTimezone : timezone;
+    const timezoneOptions = TIMEZONE_OPTIONS.some((option) => option.value === effectiveTimezone)
+        ? TIMEZONE_OPTIONS
+        : [...TIMEZONE_OPTIONS, { value: effectiveTimezone, label: formatUtcOffset(effectiveTimezone) }].sort((a, b) => a.value - b.value);
     const placeName = placeCity
         ? (cityLongitude !== null && longitudeValue !== null && Math.abs(cityLongitude - longitudeValue) < 0.005 ? placeCity : `${placeCity}附近`)
         : (longitudeValue !== null ? '自定义经度' : '');
@@ -283,7 +297,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                 clockHour: clock ? clock.hour : null,
                 clockMinute: clock ? clock.minute : null,
                 longitude: longitudeInvalid ? null : longitudeValue,
-                timezone,
+                timezone: effectiveTimezone,
                 placeName,
                 applyTrueSolar,
                 applyDst: Boolean(dstChoice),
@@ -291,14 +305,14 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
             : unknownMode
                 ? { timeMode: 'unknown' }
                 : { hourIndex: birthHour }),
-    }), [calendarType, birthYear, activeMonth, activeDay, gender, daySect, yearBoundary, exactMode, unknownMode, clock, longitudeInvalid, longitudeValue, timezone, placeName, applyTrueSolar, dstChoice, birthHour]);
+    }), [calendarType, birthYear, activeMonth, activeDay, gender, daySect, yearBoundary, exactMode, unknownMode, clock, longitudeInvalid, longitudeValue, effectiveTimezone, placeName, applyTrueSolar, dstChoice, birthHour]);
 
     // 只对按北京时间记录的大陆出生时间自动判断 1986–1991 年夏令时。
     const dstSuggested = useMemo(() => {
-        if (!exactMode || !clock || timezone !== 8 || NON_MAINLAND_PROVINCES.has(placeProvince)) return false;
+        if (!exactMode || !clock || effectiveTimezone !== 8 || NON_MAINLAND_PROVINCES.has(placeProvince)) return false;
         const date = getClockSolarDate(calendarType, birthYear, activeMonth, activeDay);
         return date ? isChinaDst({ ...date, hour: clock.hour, minute: clock.minute }) : false;
-    }, [exactMode, clock, timezone, placeProvince, calendarType, birthYear, activeMonth, activeDay]);
+    }, [exactMode, clock, effectiveTimezone, placeProvince, calendarType, birthYear, activeMonth, activeDay]);
     const applyDst = dstChoice ?? dstSuggested;
     const resolvedChartInput = useMemo(
         () => (exactMode ? { ...chartInput, applyDst } : chartInput),
@@ -624,6 +638,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         setPlaceCity(onlyCity?.name ?? '');
         setLongitude(onlyCity ? onlyCity.longitude.toFixed(2) : '');
         setTimezone(cities[0]?.timezone ?? 8);
+        setTimezoneAuto(true);
     };
 
     const changePlaceCity = (city) => {
@@ -632,6 +647,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         if (place) {
             setLongitude(place.longitude.toFixed(2));
             setTimezone(place.timezone);
+            setTimezoneAuto(true);
         }
     };
 
@@ -651,6 +667,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         setPlaceCity(form.placeCity);
         setLongitude(form.longitude);
         setTimezone(form.timezone);
+        setTimezoneAuto(false);
         setApplyTrueSolar(form.applyTrueSolar);
         setDstChoice(form.timeMode === 'exact' ? form.applyDst : null);
     };
@@ -677,7 +694,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
         placeProvince,
         placeCity,
         longitude,
-        timezone,
+        timezone: effectiveTimezone,
         applyTrueSolar,
         applyDst,
     });
@@ -1087,12 +1104,28 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                 </label>
                                                 <label className="block">
                                                     <span className="block text-[11px] text-[#fbf7ed]/60">时区</span>
-                                                    <select aria-label="出生地时区" value={timezone} onChange={(event) => setTimezone(Number(event.target.value))} className={`${INPUT_FIELD_CLASS} mt-1 cursor-pointer`}>
-                                                        {TIMEZONE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                                                    <select aria-label="出生地时区" value={effectiveTimezone} onChange={(event) => { setTimezone(Number(event.target.value)); setTimezoneAuto(false); }} className={`${INPUT_FIELD_CLASS} mt-1 cursor-pointer`}>
+                                                        {timezoneOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                                                     </select>
                                                 </label>
                                             </div>
                                             {longitudeInvalid && <p className="text-[11px] text-[#ff9c8a]" role="alert">经度请填 -180 到 180 之间的数字，例如 115.65。</p>}
+                                            {historicalTimezone !== null && birthPlace && historicalTimezone !== birthPlace.timezone && (
+                                                <p className="text-[11px] leading-5 text-[#7bd2c0]" role="status" data-testid="bazi-historical-timezone">
+                                                    {placeCity}在 {clockMoment.year} 年用 {formatUtcOffset(historicalTimezone)}，现在是 {formatUtcOffset(birthPlace.timezone)}。
+                                                    {effectiveTimezone === historicalTimezone ? '已按当年的时区换算。' : (
+                                                        <>
+                                                            {`现在选的是 ${formatUtcOffset(effectiveTimezone)}。`}
+                                                            <button type="button" onClick={() => setTimezoneAuto(true)} className="ml-1 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#55bba8]">改用当年的时区</button>
+                                                        </>
+                                                    )}
+                                                </p>
+                                            )}
+                                            {zoneRecordMissing && (
+                                                <p className="text-[11px] leading-5 text-[#f0ce91]" role="status">
+                                                    {placeCity} {clockMoment.year} 年用的时区没有可靠资料，这里先按现在的 {formatUtcOffset(effectiveTimezone)} 算。当地改过时区，请核对后在「时区」里改。
+                                                </p>
+                                            )}
                                             <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-[#fbf7ed]/85">
                                                 <input type="checkbox" checked={applyTrueSolar && longitudeValue !== null} disabled={longitudeValue === null} onChange={(event) => setApplyTrueSolar(event.target.checked)} className="size-4 accent-[#55bba8]" />
                                                 按真太阳时排盘
@@ -1117,6 +1150,12 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                                     {timeInfo.dstApplied ? ' · 夏令时 −60 分' : ''}
                                                     {timeInfo.correctedDate !== timeInfo.clockDate ? ` · 日期调整为 ${timeInfo.correctedDate}` : ''}
                                                 </p>
+                                                {timeInfo.jieAdjustment && (
+                                                    <p className="text-[11px] leading-5 text-[#f0ce91]" role="status" data-testid="bazi-jie-adjustment">
+                                                        出生在交节前后。交节是同一个瞬间，按出生的绝对时刻（北京时间 {timeInfo.instantDate} {timeInfo.instantTime}）比：
+                                                        年柱 {computedChart.pillars[0].ganZhi}、月柱 {computedChart.pillars[1].ganZhi}。只看当地真太阳时会排成 {timeInfo.jieAdjustment.year} 年 {timeInfo.jieAdjustment.month} 月。
+                                                    </p>
+                                                )}
                                                 {timeInfo.boundary && <BoundaryNotice boundary={timeInfo.boundary} tone="dark" />}
                                             </div>
                                         )}
