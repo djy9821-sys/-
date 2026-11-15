@@ -56,6 +56,9 @@ const RAW_PLACES = [
 /** 不按北京时间记录出生时间的地区：不做大陆 1986–1991 年夏令时的自动判断。 */
 export const NON_MAINLAND_PROVINCES = Object.freeze(new Set(['香港', '澳门', '台湾', '海外（亚洲）', '马来西亚', '印度尼西亚']));
 
+/** 海外的几组：录入页把它们排在省份列表最前面，免得翻到最底下才找到。 */
+export const OVERSEAS_PROVINCES = Object.freeze(['马来西亚', '印度尼西亚', '海外（亚洲）']);
+
 export const BIRTH_PROVINCES = Object.freeze(RAW_PLACES.map(([province, cities]) => Object.freeze({
   province,
   cities: Object.freeze(cities.split(',').map((entry) => {
