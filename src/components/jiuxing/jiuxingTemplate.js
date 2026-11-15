@@ -5,17 +5,29 @@ export const JIUXING_TEMPLATE = `
   <div class="row">
     <label for="jx-profile" id="jx-profile-wrap" hidden>从档案选人<select id="jx-profile"><option value="">不选，自己填</option></select></label>
     <label for="jx-name">姓名<input type="text" id="jx-name" maxlength="20" autocomplete="off" placeholder="可不填"></label>
-    <label for="jx-birth">出生日期（公历）<input type="date" id="jx-birth" min="1900-02-05" max="2060-12-31"></label>
+    <div class="birth" id="jx-birth-box">
+      <div class="birth-top">
+        <label for="jx-birth" id="jx-birth-cap">出生日期（公历）</label>
+        <span class="cal" id="jx-birth-cal" role="group" aria-label="出生日期按公历还是农历填" hidden><button type="button" data-cal="solar" aria-pressed="true">公历</button><button type="button" data-cal="lunar" aria-pressed="false">农历</button></span>
+      </div>
+      <input type="date" id="jx-birth" min="1900-02-05" max="2060-12-31">
+      <span class="lunar" id="jx-birth-lunar" hidden>
+        <select id="jx-birth-ly" aria-label="农历出生年"></select>
+        <select id="jx-birth-lm" aria-label="农历出生月"></select>
+        <select id="jx-birth-ld" aria-label="农历出生日"></select>
+      </span>
+    </div>
     <label for="jx-gender">性别<select id="jx-gender"><option value="">不填</option><option value="女">女</option><option value="男">男</option></select></label>
     <label for="jx-home">常住城市<select id="jx-home"></select></label>
     <label for="jx-home-lat" class="custom-home" hidden>纬度<input type="number" id="jx-home-lat" step="0.0001" min="-85" max="85" placeholder="39.9042"></label>
     <label for="jx-home-lon" class="custom-home" hidden>经度<input type="number" id="jx-home-lon" step="0.0001" min="-180" max="180" placeholder="116.4074"></label>
     <span id="jx-sample" class="tag">示例，请改成你的资料</span>
   </div>
+  <p class="hint echo" id="jx-birth-echo" aria-live="polite" hidden></p>
   <div class="who" id="jx-who"></div>
   <div class="pillars" id="jx-pillars"></div>
   <p class="note" id="jx-printed-note" hidden></p>
-  <p class="hint">姓名只用来称呼，不参与计算；性别只在相性和人生三段里用到；城市用来量方向。</p>
+  <p class="hint">姓名只用来称呼，不参与计算；性别只在相性和人生三段里用到；城市用来量方向。<span id="jx-lunar-hint" hidden>生日填农历也行：九星按公历的节气排，会先换成公历再算。</span></p>
 </section>
 
 <nav class="tabs" role="tablist" aria-label="分页" id="jx-tabs">
@@ -173,10 +185,22 @@ export const JIUXING_TEMPLATE = `
     <div class="row">
       <label for="jx-other-profile" id="jx-other-profile-wrap" hidden>从档案选对方<select id="jx-other-profile"><option value="">不选，自己填</option></select></label>
       <label for="jx-other-name">对方的称呼<input type="text" id="jx-other-name" maxlength="20" autocomplete="off" placeholder="可不填"></label>
-      <label for="jx-other-birth">对方的出生日期（公历）<input type="date" id="jx-other-birth" min="1900-02-05" max="2060-12-31"></label>
+      <div class="birth" id="jx-other-birth-box">
+        <div class="birth-top">
+          <label for="jx-other-birth" id="jx-other-birth-cap">对方的出生日期（公历）</label>
+          <span class="cal" id="jx-other-birth-cal" role="group" aria-label="对方的出生日期按公历还是农历填" hidden><button type="button" data-cal="solar" aria-pressed="true">公历</button><button type="button" data-cal="lunar" aria-pressed="false">农历</button></span>
+        </div>
+        <input type="date" id="jx-other-birth" min="1900-02-05" max="2060-12-31">
+        <span class="lunar" id="jx-other-birth-lunar" hidden>
+          <select id="jx-other-birth-ly" aria-label="对方的农历出生年"></select>
+          <select id="jx-other-birth-lm" aria-label="对方的农历出生月"></select>
+          <select id="jx-other-birth-ld" aria-label="对方的农历出生日"></select>
+        </span>
+      </div>
       <label for="jx-other-gender">对方的性别<select id="jx-other-gender"><option value="">不填</option><option value="女">女</option><option value="男">男</option></select></label>
       <span id="jx-other-sample" class="tag">示例，请改成对方的生日</span>
     </div>
+    <p class="hint echo" id="jx-other-birth-echo" aria-live="polite" hidden></p>
     <div id="jx-x-pair" class="flat"></div>
   </section>
 </div>
