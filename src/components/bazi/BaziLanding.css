@@ -405,7 +405,62 @@
 }
 .bazi-landing__resume-undo:hover { border-color: rgba(85, 187, 168, 0.85); color: #fbf7ed; }
 .bazi-landing__resume button:focus-visible,
+.bazi-landing__earlier button:focus-visible,
 .bazi-landing__action .bazi-landing__start:focus-visible { outline: 2px solid #55bba8; outline-offset: 2px; }
+
+/* 更早排过的命盘：起盘时自动记在档案里，这里列最近几条，默认收着。 */
+.bazi-landing__earlier { margin-bottom: 10px; text-align: left; }
+.bazi-landing__earlier-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid rgba(220, 180, 113, 0.22);
+  border-radius: 14px;
+  color: rgba(251, 247, 237, 0.82);
+  background: rgba(4, 25, 26, 0.6);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+.bazi-landing__earlier-toggle:hover { border-color: rgba(220, 180, 113, 0.45); }
+.bazi-landing__earlier-toggle svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--bazi-gold); transition: transform 160ms ease; }
+.bazi-landing__earlier-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.bazi-landing__earlier-list { margin-top: 6px; padding: 4px 6px 8px; border: 1px solid rgba(220, 180, 113, 0.14); border-radius: 14px; background: rgba(4, 25, 26, 0.45); }
+.bazi-landing__earlier-list ul { margin: 0; padding: 0; list-style: none; }
+.bazi-landing__earlier-list li + li { border-top: 1px solid rgba(220, 180, 113, 0.1); }
+.bazi-landing__earlier-list li button {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  color: #fbf7ed;
+  background: transparent;
+  font-size: 13px;
+  text-align: left;
+}
+.bazi-landing__earlier-list li button span { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bazi-landing__earlier-list li button svg { width: 16px; height: 16px; flex-shrink: 0; color: rgba(85, 187, 168, 0.8); }
+.bazi-landing__earlier-list li button:hover span { color: #f0ce91; }
+.bazi-landing__earlier-all {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 4px;
+  border: 1px solid rgba(85, 187, 168, 0.45);
+  border-radius: 10px;
+  color: #55bba8;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.bazi-landing__earlier-all:hover { border-color: rgba(85, 187, 168, 0.85); color: #fbf7ed; }
+.bazi-landing__earlier-list small { display: block; margin-top: 6px; padding: 0 6px; color: rgba(251, 247, 237, 0.55); font-size: 10px; letter-spacing: 0.04em; }
 .bazi-landing__action p { margin: 8px 0 0; color: rgba(251, 247, 237, 0.58); font-size: 10px; letter-spacing: 0.08em; }
 .bazi-landing__action p span { margin-right: 4px; color: rgba(85, 187, 168, 0.62); font-size: 7px; }
 

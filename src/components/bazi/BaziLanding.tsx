@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { ArrowLeft, ChevronRight, History, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, ChevronDown, ChevronRight, History, X } from 'lucide-react';
 import './BaziLanding.css';
 
 type LastChart = {
@@ -13,11 +13,21 @@ type ForgottenChart = {
   onUndo: () => void;
 };
 
+// 更早排过的命盘：起盘时自动记在档案里的，点一下直接打开。
+type EarlierChart = {
+  key: string;
+  label: string;
+  onOpen: () => void;
+};
+
 type BaziLandingProps = {
   onBack: () => void;
   onStart: () => void;
   lastChart?: LastChart | null;
   forgotten?: ForgottenChart | null;
+  earlier?: EarlierChart[];
+  earlierTotal?: number;
+  onOpenArchive?: () => void;
 };
 
 const PILLARS = [
@@ -36,8 +46,10 @@ const CHAPTERS = [
 
 const JOURNEY = ['录生辰', '排四柱', '明五行', '辨十神', '看运限'] as const;
 
-export default function BaziLanding({ onBack, onStart, lastChart = null, forgotten = null }: BaziLandingProps) {
+export default function BaziLanding({ onBack, onStart, lastChart = null, forgotten = null, earlier = [], earlierTotal = earlier.length, onOpenArchive }: BaziLandingProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
+  // 「更早排过的」默认收着，不把「录入生辰」挤到屏幕外面去。
+  const [earlierOpen, setEarlierOpen] = useState(false);
 
   useEffect(() => {
     titleRef.current?.focus({ preventScroll: true });
@@ -144,6 +156,40 @@ export default function BaziLanding({ onBack, onStart, lastChart = null, forgott
                 <small>{forgotten.label}</small>
               </span>
               <button type="button" className="bazi-landing__resume-undo" onClick={forgotten.onUndo}>撤销</button>
+            </div>
+          )}
+          {earlier.length > 0 && (
+            <div className="bazi-landing__earlier">
+              <button
+                type="button"
+                className="bazi-landing__earlier-toggle"
+                aria-expanded={earlierOpen}
+                aria-controls="bazi-earlier-list"
+                onClick={() => setEarlierOpen((open) => !open)}
+              >
+                <span>更早排过的 · {earlierTotal} 条</span>
+                <ChevronDown aria-hidden="true" />
+              </button>
+              {earlierOpen && (
+                <div id="bazi-earlier-list" className="bazi-landing__earlier-list">
+                  <ul>
+                    {earlier.map((chart) => (
+                      <li key={chart.key}>
+                        <button type="button" onClick={chart.onOpen}>
+                          <span>{chart.label}</span>
+                          <ChevronRight aria-hidden="true" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  {onOpenArchive && (
+                    <button type="button" className="bazi-landing__earlier-all" onClick={onOpenArchive}>
+                      {earlierTotal > earlier.length ? `还有 ${earlierTotal - earlier.length} 条，到档案里找` : '到档案里查看、整理'}
+                    </button>
+                  )}
+                  <small>起盘时自动记下，只存在这台设备上。</small>
+                </div>
+              )}
             </div>
           )}
           <button type="button" className="bazi-landing__start" onClick={onStart}>
