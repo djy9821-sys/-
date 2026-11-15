@@ -81,10 +81,20 @@ export function mountJiuxing(root, options = {}) {
     const solar = shown ? lunarApi.toSolar(shown.year, shown.month, shown.day) : null;
     $(id).value = solar && solar >= BIRTH_MIN && solar <= BIRTH_MAX ? solar : '';
   };
-  /** 生日下面那一行：填公历时写出农历是哪天，填农历时写出按公历哪天算。 */
+  /** 立春和春节不在同一天：生在两者之间的人，九星算的年和农历的年差一年，说明一句；不差就返回空串。 */
+  const yearNote = (ymd, lunar) => {
+    const pillars = JXP.pillarsOf(...ymd);
+    if (!pillars || pillars.kiYear === lunar.year) return '';
+    const lunarYear = `${ganzhi(lunar.year)}年（${ZODIAC[mod(lunar.year - 4, 12)]}年）`;
+    return pillars.kiYear > lunar.year
+      ? `这一天立春已到，九星按${pillars.year.branch}年算；农历还没过年，仍是${lunarYear}。`
+      : `这一天立春未到，九星按${pillars.year.branch}年算；农历已经过了年，是${lunarYear}。`;
+  };
+  /** 生日下面那一行：填公历时写出农历是哪天，填农历时写出按公历哪天算；九星的年和农历的年差一年时另起一行说明。 */
   const syncBirth = (id) => {
     if (!lunarApi) return;
     const echo = $(id + '-echo'); const lunar = lunarOfBirth(id); const ymd = parseYmd($(id).value);
+    const note = $(id + '-year-note'); note.textContent = lunar ? yearNote(ymd, lunar) : ''; note.hidden = !note.textContent;
     const lunarMode = calMode[id] === 'lunar';
     if (lunarMode && lunar) showLunar(id, lunar);
     const who = id === 'birth' ? '' : '对方';
