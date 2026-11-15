@@ -43,6 +43,50 @@ test('吉隆坡 1975 年出生：按当年的 UTC+7:30 换算，改了时区还�
   await expect(form.getByLabel('出生地时区')).toHaveValue('8');
 });
 
+test('出生地下拉框：带箭头，海外排在最前，没选国家或省份时城市框写明先选哪个', async ({ page }) => {
+  const form = await openForm(page);
+  const province = form.getByLabel('出生省份');
+  const city = form.getByLabel('出生城市');
+
+  // 第一组是海外，马来西亚、印度尼西亚在最前面；中国各省在后。
+  const groups = await province.locator('optgroup').evaluateAll((nodes) => nodes.map((node) => ({ label: node.label, first: node.querySelector('option')?.value })));
+  expect(groups).toEqual([{ label: '海外', first: '马来西亚' }, { label: '中国', first: '北京' }]);
+  await expect(province.locator('optgroup[label="海外"] option')).toHaveText(['马来西亚', '印度尼西亚', '海外（亚洲）']);
+
+  // 下拉框右侧有箭头，不会被当成文本框。
+  expect(await province.evaluate((node) => getComputedStyle(node).backgroundImage)).toContain('svg');
+
+  // 没选国家或省份：城市不可点，并写明先选国家／省份；选了以后才能选城市。
+  await expect(city).toBeDisabled();
+  await expect(city.locator('option').first()).toHaveText('先选国家／省份');
+  await province.selectOption('印度尼西亚');
+  await expect(city).toBeEnabled();
+  await expect(city.locator('option').first()).toHaveText('选择城市');
+  await city.selectOption('泗水');
+  await expect(form.getByLabel('出生地经度')).not.toHaveValue('');
+});
+
+test('窄屏（320 宽）：出生地两个框上下排，下拉框都不伸出所在的格子，页面不横向滚动', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  const form = await openForm(page);
+  await form.getByLabel('出生省份').selectOption('印度尼西亚');
+  await form.getByLabel('出生城市').selectOption('北干巴鲁');
+
+  // 国家／省份在上，城市在下，左边对齐、各占一整行。
+  const provinceBox = await form.getByLabel('出生省份').boundingBox();
+  const cityBox = await form.getByLabel('出生城市').boundingBox();
+  expect(cityBox.y).toBeGreaterThanOrEqual(provinceBox.y + provinceBox.height);
+  expect(Math.abs(cityBox.x - provinceBox.x)).toBeLessThan(1);
+  expect(Math.abs(cityBox.width - provinceBox.width)).toBeLessThan(1);
+
+  // 时区框以前比所在的格子宽，窄屏上会伸到面板外面：每个下拉框都不许超出父元素。
+  const overflowing = await form.evaluate((node) => [...node.querySelectorAll('select')]
+    .filter((select) => select.getBoundingClientRect().right > select.parentElement.getBoundingClientRect().right + 0.5)
+    .map((select) => select.getAttribute('aria-label') || select.id));
+  expect(overflowing).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
 test('雅加达立春后十八分钟出生：年柱月柱按出生的绝对时刻排，并写明缘由', async ({ page }) => {
   const form = await openForm(page);
   await form.getByLabel('出生年份').selectOption('2024');
