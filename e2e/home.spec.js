@@ -25,7 +25,7 @@ test('浅链接直达各功能且不显示封面', async ({ page }) => {
   await skipWelcomeCover(page);
   for (const [hash, pattern] of [
     ['#/liuyao', '六爻起卦设置'],
-    ['#/archive', /共 \d+ 条命盘|还没有保存命盘/],
+    ['#/archive', /共 \d+ 条命盘|档案里还没有命盘/],
     ['#/about', /关于|隐私/],
   ]) {
     await page.goto(`/${hash}`);
