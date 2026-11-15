@@ -8,6 +8,7 @@ import { placeDisplayName, toLocalSolarNow } from './utils/currentPlace';
 import { buildZiweiShareUrl, decodeBaziLink, decodeZiweiLink, hashQueryOf } from './utils/baziLink';
 import { track } from './utils/analytics';
 import { useCurrentPlace } from './components/common/useCurrentPlace';
+import PlaceProvinceOptions from './components/common/PlaceProvinceOptions';
 import { BIRTH_PROVINCES, findBirthPlace, TIMEZONE_OPTIONS } from './utils/birthPlaces';
 import { CLASSICS_TOTAL_LINE } from './data/classicsTotal';
 
@@ -1728,7 +1729,7 @@ export default function App() {
                           <option key={i} value={i}>{getTimeDescription(i)}</option>
                         ))}
                       </select>
-                      <p id="birth-time-hint" className="field-hint">23:00 后请选择“晚子时”，00:00 后请选择“早子时”。知道几点几分的话，选「精确到分钟」可按真太阳时定时辰。</p>
+                      <p id="birth-time-hint" className="field-hint">23:00 后请选择“晚子时”，00:00 后请选择“早子时”。知道几点几分的话，选「精确到分钟」，可以选出生地、按真太阳时定时辰。</p>
                     </>
                   ) : (
                     <>
@@ -1741,30 +1742,19 @@ export default function App() {
                         className="field-control"
                         required
                       />
-                      <div className="birth-date-grid" role="group" aria-label="出生地">
-                        <label className="birth-date-part">
-                          <span className="sr-only">省份</span>
-                          <select value={ziweiPlace.province} onChange={(event) => changeZiweiProvince(event.target.value)}>
-                            <option value="">选择省份</option>
-                            {BIRTH_PROVINCES.map((item) => <option key={item.province} value={item.province}>{item.province}</option>)}
-                          </select>
-                          <span aria-hidden="true">省</span>
-                        </label>
-                        <label className="birth-date-part">
-                          <span className="sr-only">城市</span>
-                          <select value={ziweiPlace.city} onChange={(event) => changeZiweiCity(event.target.value)} disabled={!ziweiPlace.province}>
-                            <option value="">选择城市</option>
-                            {(BIRTH_PROVINCES.find((item) => item.province === ziweiPlace.province)?.cities ?? []).map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}
-                          </select>
-                          <span aria-hidden="true">市</span>
-                        </label>
-                        <label className="birth-date-part">
-                          <span className="sr-only">时区</span>
-                          <select value={ziweiPlace.timezone} onChange={(event) => setZiweiPlace((place) => ({ ...place, timezone: Number(event.target.value) }))}>
-                            {TIMEZONE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-                          </select>
-                          <span aria-hidden="true">区</span>
-                        </label>
+                      {/* 出生地三个框各占一行：并排时手机上放不下「印度尼西亚」「UTC+8 北京时间」，字会被截掉。 */}
+                      <div className="birth-place-fields" role="group" aria-label="出生地">
+                        <select aria-label="出生省份" value={ziweiPlace.province} onChange={(event) => changeZiweiProvince(event.target.value)} className="field-control">
+                          <option value="">选择国家／省份</option>
+                          <PlaceProvinceOptions />
+                        </select>
+                        <select aria-label="出生城市" value={ziweiPlace.city} onChange={(event) => changeZiweiCity(event.target.value)} disabled={!ziweiPlace.province} className="field-control">
+                          <option value="">{ziweiPlace.province ? '选择城市' : '先选国家／省份'}</option>
+                          {(BIRTH_PROVINCES.find((item) => item.province === ziweiPlace.province)?.cities ?? []).map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}
+                        </select>
+                        <select aria-label="出生地时区" value={ziweiPlace.timezone} onChange={(event) => setZiweiPlace((place) => ({ ...place, timezone: Number(event.target.value) }))} className="field-control">
+                          {TIMEZONE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                        </select>
                       </div>
                       <input
                         type="text"

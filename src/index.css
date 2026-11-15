@@ -372,6 +372,9 @@ a:focus-visible {
 .field-control::placeholder { color: rgba(16, 32, 27, 0.32); }
 .field-control:focus { border-color: rgba(39, 126, 112, 0.7); background: #fffdf7; box-shadow: 0 0 0 4px rgba(85, 187, 168, 0.12); }
 select.field-control { cursor: pointer; }
+select.field-control:disabled { cursor: not-allowed; opacity: 0.55; }
+/* 紫微录入页的出生地：国家／省份、城市、时区各占一行。 */
+.birth-place-fields { display: grid; gap: 8px; }
 .birth-date-grid { display: grid; grid-template-columns: 1.3fr repeat(2, minmax(0, 1fr)); gap: 8px; }
 .birth-date-part { display: flex; min-width: 0; min-height: 50px; align-items: center; border: 1px solid rgba(16, 32, 27, 0.17); border-radius: 12px; color: rgba(16, 32, 27, 0.62); background: rgba(255, 253, 247, 0.72); box-shadow: inset 0 1px rgba(255, 255, 255, 0.7); transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease; }
 .birth-date-part:focus-within { border-color: rgba(39, 126, 112, 0.7); background: #fffdf7; box-shadow: 0 0 0 4px rgba(85, 187, 168, 0.12); }
@@ -2792,4 +2795,20 @@ select.field-control { cursor: pointer; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* 八字录入页的下拉框：输入框样式去掉了系统外观，这里补一个小箭头，免得被当成文本框。 */
+select.gsp-select {
+  padding-right: 1.75rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23dcb471' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 7.5l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  background-size: 0.85rem;
+}
+
+/* 年、月、日三个框并排，窄屏上很挤：箭头靠边、缩小，给「1990年」留出位置。 */
+select.gsp-select.gsp-select--tight {
+  padding-right: 1.2rem;
+  background-position: right 0.3rem center;
+  background-size: 0.7rem;
 }
