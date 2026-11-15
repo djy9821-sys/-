@@ -97,15 +97,14 @@ export const recordToBaziForm = (record) => {
   };
 };
 
-/** 同一张八字盘的标识：出生资料、性别、子时流派、时间与地点设置都相同。 */
-export const baziChartSignature = (record) => {
-  const form = recordToBaziForm(record);
-  if (!form) return '';
-  return [
-    form.calendarType, form.year, form.month, form.day, form.hourIndex, form.gender, form.daySect, form.yearBoundary,
-    form.timeMode, form.clockTime, form.longitude, form.timezone, form.applyTrueSolar, form.applyDst,
-  ].join('|');
-};
+/** 同一张八字盘的标识：出生资料、性别、子时流派、时间与地点设置都相同。传入的是八字表单。 */
+export const baziFormSignature = (form) => (form ? [
+  form.calendarType, form.year, form.month, form.day, form.hourIndex, form.gender, form.daySect, form.yearBoundary,
+  form.timeMode, form.clockTime, form.longitude, form.timezone, form.applyTrueSolar, form.applyDst,
+].join('|') : '');
+
+/** 同上，传入的是档案记录；资料不完整时返回空串。 */
+export const baziChartSignature = (record) => baziFormSignature(recordToBaziForm(record));
 
 /**
  * 档案里已有同名、同一张盘的八字记录时返回它，用来避免重复存档。
