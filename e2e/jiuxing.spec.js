@@ -97,7 +97,9 @@ test('九星气学：生日可以按农历填，换成公历再算，和直接�
 
   // 默认按公历填，下面写出农历是哪天。
   const echo = page.locator('#jx-birth-echo');
+  const yearNote = page.locator('#jx-birth-year-note');
   await expect(echo).toHaveText('农历是 1990 年五月廿三。');
+  await expect(yearNote).toBeHidden();
 
   // 切到农历：公历那一格收起，三个下拉框摆在同一天上。
   const switcher = page.getByRole('group', { name: '出生日期按公历还是农历填' });
@@ -116,6 +118,8 @@ test('九星气学：生日可以按农历填，换成公历再算，和直接�
   await month.selectOption('12');
   await day.selectOption('25');
   await expect(echo).toHaveText('农历 1982 年十二月廿五，按公历 1983 年 2 月 7 日算。');
+  // 这一天立春（2 月 4 日）已过、春节（2 月 13 日）未到：九星的年和农历的年差一年，另起一行说明。
+  await expect(yearNote).toHaveText('这一天立春已到，九星按亥年算；农历还没过年，仍是壬戌年（狗年）。');
   await expect(page.locator('#jx-who .beast')).toHaveText('应龙');
   await expect(page.locator('#jx-pillars')).toContainText('八白土星');
   await expect(page.locator('#jx-pillars')).toContainText('九紫火星');
@@ -126,6 +130,7 @@ test('九星气学：生日可以按农历填，换成公历再算，和直接�
   await month.selectOption({ label: '闰四月' });
   await day.selectOption('1');
   await expect(echo).toContainText('农历 2020 年闰四月初一，按公历 2020 年 5 月 23 日算。');
+  await expect(yearNote).toBeHidden();
   await year.selectOption('2021');
   await expect(month.locator('option')).toHaveCount(12);
   await expect(month).toHaveValue('4');
@@ -142,6 +147,7 @@ test('九星气学：生日可以按农历填，换成公历再算，和直接�
   await month.selectOption('1');
   await day.selectOption('1');
   await expect(echo).toContainText('不在 1900 年 2 月 5 日到 2060 年之间');
+  await expect(yearNote).toBeHidden();
   await expect(page.locator('#jx-who')).toContainText('公历、农历都可以');
 
   // 公历那一格没有能用的日子时切到农历：下拉框摆在 1990 年正月初一上，页面就按这一天算，两边说的是同一天。
@@ -155,7 +161,10 @@ test('九星气学：生日可以按农历填，换成公历再算，和直接�
   await expect(month).toHaveValue('1');
   await expect(day).toHaveValue('1');
   await expect(echo).toHaveText('农历 1990 年正月初一，按公历 1990 年 1 月 27 日算。');
+  // 反过来的情形：春节已过、立春（2 月 4 日）未到。
+  await expect(yearNote).toHaveText('这一天立春未到，九星按巳年算；农历已经过了年，是庚午年（马年）。');
   await expect(page.locator('#jx-who .beast')).toBeVisible();
+  await expect(page.locator('#jx-pillars')).toContainText('巳');
 
   // 对方的生日同样可以按农历填。
   await year.selectOption('1982');
@@ -196,8 +205,15 @@ test('九星气学：手机上农历的下拉框不出框，换算出来的那�
   expect(dayBox.x).toBeGreaterThanOrEqual(monthBox.x + monthBox.width);
   expect(dayBox.x + dayBox.width).toBeLessThanOrEqual(card.x + card.width + 1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  // 换算出来的那一行在生日和性别之间，不隔着别的格子。
-  const [line, gender] = [await rect('#jx-birth-echo'), await rect('#jx-gender')];
-  expect(line.y).toBeGreaterThanOrEqual(card.y + card.height);
-  expect(line.y + line.height).toBeLessThanOrEqual(gender.y);
+  // 换算出来的那一行在生日和性别之间，不隔着别的格子；九星的年和农历的年差一年时，说明紧跟在它下面。
+  await page.getByLabel('农历出生年', { exact: true }).selectOption('1982');
+  await page.getByLabel('农历出生月', { exact: true }).selectOption('12');
+  await page.getByLabel('农历出生日', { exact: true }).selectOption('25');
+  await expect(page.locator('#jx-birth-year-note')).toContainText('立春已到');
+  const box = await rect('#jx-birth-box');
+  const [line, note, gender] = [await rect('#jx-birth-echo'), await rect('#jx-birth-year-note'), await rect('#jx-gender')];
+  expect(line.y).toBeGreaterThanOrEqual(box.y + box.height);
+  expect(note.y).toBeGreaterThanOrEqual(line.y + line.height);
+  expect(note.y + note.height).toBeLessThanOrEqual(gender.y);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
