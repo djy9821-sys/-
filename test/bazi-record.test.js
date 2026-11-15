@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildBaziChart } from '../src/utils/baziChart.js';
-import { baziChartSignature, buildBaziRecord, findSameBaziRecord, parseClockTime, recordToBaziForm } from '../src/utils/baziRecord.js';
+import { baziChartSignature, baziFormSignature, buildBaziRecord, parseClockTime, recordToBaziForm } from '../src/utils/baziRecord.js';
 
 const form = {
   personName: '杨先生',
@@ -57,21 +57,20 @@ test('资料不完整或非命盘记录返回 null', () => {
   assert.deepEqual(parseClockTime('23:05'), { hour: 23, minute: 5 });
 });
 
-test('同名、同一张盘再次存档时能找到原记录，不同名或不同时间不算重复', () => {
+test('同一张盘的标识：分组、备注、名字不算在内，时间或地点设置不同就是另一张盘', () => {
   const chart = buildBaziChart({ ...form, clockHour: 7, clockMinute: 30 });
   const saved = { ...buildBaziRecord(form, chart, { group: 'self' }), id: 'a1', createdAt: 1 };
   const again = buildBaziRecord(form, chart, { group: 'customer', note: '再存一次' });
-
-  assert.equal(findSameBaziRecord([saved], again)?.id, 'a1');
   assert.equal(baziChartSignature(saved), baziChartSignature(again));
+  assert.equal(baziChartSignature(saved), baziFormSignature(recordToBaziForm(saved)));
 
   const otherPerson = buildBaziRecord({ ...form, personName: '李女士' }, chart);
-  assert.equal(findSameBaziRecord([saved], otherPerson), null);
+  assert.equal(baziChartSignature(otherPerson), baziChartSignature(saved));
 
   const otherTime = buildBaziRecord({ ...form, clockTime: '07:10' }, chart);
-  assert.equal(findSameBaziRecord([saved], otherTime), null);
+  assert.notEqual(baziChartSignature(otherTime), baziChartSignature(saved));
 
-  const ziweiRecord = { ...saved, id: 'z1', type: 'ziwei' };
-  assert.equal(findSameBaziRecord([ziweiRecord], again), null);
-  assert.equal(findSameBaziRecord(null, again), null);
+  // 资料不完整的记录、空表单没有标识。
+  assert.equal(baziChartSignature({ type: 'bazi', gender: 'male', birthDate: '' }), '');
+  assert.equal(baziFormSignature(null), '');
 });

@@ -37,3 +37,16 @@ test('名单：同名同生日只留一条，性别换成男女', () => {
   ]);
   assert.deepEqual(profilesFromArchive(undefined), []);
 });
+
+test('名单：起盘时自动记下的人也能选；自动记下又没写名字的不列', () => {
+  const profiles = profilesFromArchive([
+    { id: 'a', name: '丙某', gender: 'female', type: 'bazi', group: 'auto', calendarType: 'solar', birthDate: '1993-12-25' },
+    { id: 'b', name: '未命名', gender: 'male', type: 'bazi', group: 'auto', calendarType: 'solar', birthDate: '1978-2-14' },
+    // 自己归到分组里的，没写名字也照旧列出。
+    { id: 'c', name: '未命名', gender: 'male', type: 'ziwei', group: 'customer', calendarType: 'solar', birthDate: '1969-9-30' },
+  ]);
+  assert.deepEqual(profiles, [
+    { label: '丙某（1993-12-25）', name: '丙某', birth: '1993-12-25', gender: '女' },
+    { label: '未命名（1969-09-30）', name: '未命名', birth: '1969-09-30', gender: '男' },
+  ]);
+});

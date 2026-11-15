@@ -79,3 +79,47 @@ test('合并导入保留本机同ID档案并只添加新档案', () => {
   assert.equal(manager.getRecords().find(({ id }) => id === 'same').name, '本机新版');
   assert.equal(manager.getRecords().find(({ id }) => id === 'new').name, '新增档案');
 });
+
+test('两个标签页共用一份档案：各记各的不会互相盖掉，另一页的改动能通知到这一页', () => {
+  const storage = new MemoryStorage(JSON.stringify([]));
+  const listeners = [];
+  const events = [];
+  const tabOne = new ArchiveManager(storage, {
+    dispatchEvent(event) { events.push(event.type); },
+    addEventListener(type, listener) { if (type === 'storage') listeners.push(listener); },
+  });
+  const tabTwo = new ArchiveManager(storage, { dispatchEvent() {} });
+
+  const first = tabOne.addRecord({ name: '第一页排的', type: 'bazi' });
+  // 第二页内存里还是空的：写之前先按存储对齐，第一页那条还在。
+  tabTwo.addRecord({ name: '第二页排的', type: 'bazi' });
+  assert.deepEqual(JSON.parse(storage.value).map(({ name }) => name), ['第二页排的', '第一页排的']);
+
+  // 浏览器把另一页的改动用 storage 事件通知过来：这一页重读，并让列表刷新。
+  assert.equal(listeners.length, 1);
+  events.length = 0;
+  listeners[0]({ key: STORAGE_KEY });
+  assert.deepEqual(tabOne.getRecords().map(({ name }) => name), ['第二页排的', '第一页排的']);
+  assert.deepEqual(events, ['archive-updated']);
+  // 别的键变了不用管。
+  listeners[0]({ key: 'something-else' });
+  assert.deepEqual(events, ['archive-updated']);
+
+  // 第一页接着改自己那条：第二页记的不受影响。
+  tabOne.updateRecord(first.id, { note: '补了备注' });
+  assert.deepEqual(JSON.parse(storage.value).map(({ name, note }) => [name, note ?? '']), [['第二页排的', ''], ['第一页排的', '补了备注']]);
+
+  // 存储一时读不了：沿用内存里的，不把档案清空。
+  const broken = new ArchiveManager(storage, { dispatchEvent() {} });
+  const originalGetItem = storage.getItem.bind(storage);
+  storage.getItem = () => { throw new Error('denied'); };
+  const originalWarn = console.warn;
+  console.warn = () => {};
+  try {
+    broken.addRecord({ name: '读不了时排的', type: 'bazi' });
+  } finally {
+    console.warn = originalWarn;
+    storage.getItem = originalGetItem;
+  }
+  assert.equal(JSON.parse(storage.value).length, 3);
+});
