@@ -2,7 +2,14 @@
  * 出生地经度表（地级市驻地，精确到约 0.1°，每度相差 4 分钟）。
  * 选好城市后经度会填入可编辑的输入框，县区可自行微调。
  * 海外城市带时区（相对 UTC 的小时数），国内统一按北京时间（东八区）。
+ *
+ * 条目写法：城市:经度@现在的时区@IANA时区名@起始年。后两项只有改过时区的地方才写：
+ * 有了时区名，就能按出生日期取当年实际用的时区（见 historicalTimezoneOf）；
+ * 起始年是这份时区资料对这座城市靠得住的最早年份，早于它的出生日期不自动换算，交给用户自己核对。
+ * IANA 时区库只保证 1970 年以后同一时区内各地一致，更早的记录跟的是代表城市
+ * （雅加达、新加坡、古晋、坤甸、望加锡、查亚普拉），所以别的城市起始年取 1964——印尼那一年并成三个时区。
  */
+import { getZoneOffsetHours } from './trueSolarTime.js';
 
 const RAW_PLACES = [
   ['北京', '北京:116.41'],
@@ -39,18 +46,26 @@ const RAW_PLACES = [
   ['台湾', '台北:121.56,台中:120.68,台南:120.21,高雄:120.31'],
   ['香港', '香港:114.17'],
   ['澳门', '澳门:113.54'],
-  ['海外（亚洲）', '河内:105.85@7,胡志明市:106.70@7,岘港:108.22@7,曼谷:100.50@7,新加坡:103.82@8,吉隆坡:101.69@8,东京:139.69@9,首尔:126.98@9'],
+  ['海外（亚洲）', '河内:105.85@7,胡志明市:106.70@7,岘港:108.22@7,曼谷:100.50@7,新加坡:103.82@8@Asia/Singapore@1946,吉隆坡:101.69@8@Asia/Kuala_Lumpur@1946,东京:139.69@9,首尔:126.98@9'],
+  // 马来西亚半岛 1946–1981 年用 UTC+7:30，1982 年起 UTC+8；沙巴、砂拉越战后一直是 UTC+8。
+  ['马来西亚', '吉隆坡:101.69@8@Asia/Kuala_Lumpur@1946,巴生:101.45@8@Asia/Kuala_Lumpur@1946,芙蓉:101.94@8@Asia/Kuala_Lumpur@1946,马六甲:102.25@8@Asia/Kuala_Lumpur@1946,新山:103.76@8@Asia/Kuala_Lumpur@1946,怡保:101.08@8@Asia/Kuala_Lumpur@1946,槟城:100.33@8@Asia/Kuala_Lumpur@1946,亚罗士打:100.37@8@Asia/Kuala_Lumpur@1946,关丹:103.33@8@Asia/Kuala_Lumpur@1946,哥打巴鲁:102.24@8@Asia/Kuala_Lumpur@1946,古晋:110.34@8@Asia/Kuching@1946,诗巫:111.83@8@Asia/Kuching@1946,美里:113.99@8@Asia/Kuching@1946,亚庇:116.07@8@Asia/Kuching@1946,山打根:118.12@8@Asia/Kuching@1946'],
+  // 印尼 1964 年并成三个时区；此前爪哇、加里曼丹用 UTC+7:30，苏拉威西用 UTC+8，其余各岛另有时区。
+  ['印度尼西亚', '雅加达:106.85@7@Asia/Jakarta@1950,万隆:107.61@7@Asia/Jakarta@1950,三宝垄:110.42@7@Asia/Jakarta@1950,日惹:110.37@7@Asia/Jakarta@1950,梭罗:110.82@7@Asia/Jakarta@1950,泗水:112.75@7@Asia/Jakarta@1950,玛琅:112.63@7@Asia/Jakarta@1950,棉兰:98.67@7@Asia/Jakarta@1964,北干巴鲁:101.45@7@Asia/Jakarta@1964,巨港:104.75@7@Asia/Jakarta@1964,巴淡:104.03@7@Asia/Jakarta@1964,坤甸:109.33@7@Asia/Pontianak@1950,山口洋:108.98@7@Asia/Pontianak@1950,马辰:114.59@8@Asia/Makassar@1964,巴厘巴板:116.83@8@Asia/Makassar@1964,登巴萨:115.22@8@Asia/Makassar@1964,望加锡:119.43@8@Asia/Makassar@1950,万鸦老:124.84@8@Asia/Makassar@1964,查亚普拉:140.72@9@Asia/Jayapura@1964'],
 ];
+
+/** 不按北京时间记录出生时间的地区：不做大陆 1986–1991 年夏令时的自动判断。 */
+export const NON_MAINLAND_PROVINCES = Object.freeze(new Set(['香港', '澳门', '台湾', '海外（亚洲）', '马来西亚', '印度尼西亚']));
 
 export const BIRTH_PROVINCES = Object.freeze(RAW_PLACES.map(([province, cities]) => Object.freeze({
   province,
   cities: Object.freeze(cities.split(',').map((entry) => {
     const [name, rest] = entry.split(':');
-    const [longitude, timezone] = rest.split('@');
+    const [longitude, timezone, zone, since] = rest.split('@');
     return Object.freeze({
       name,
       longitude: Number(longitude),
       timezone: timezone === undefined ? 8 : Number(timezone),
+      ...(zone ? { zone, zoneSince: Number(since) } : {}),
     });
   })),
 })));
@@ -59,7 +74,29 @@ export const findBirthPlace = (province, city) => BIRTH_PROVINCES
   .find((item) => item.province === province)
   ?.cities.find((item) => item.name === city) ?? null;
 
-export const TIMEZONE_OPTIONS = Object.freeze([5, 5.5, 6, 7, 8, 9, 10].map((value) => Object.freeze({
+export const TIMEZONE_OPTIONS = Object.freeze([5, 5.5, 6, 7, 7.5, 8, 9, 10].map((value) => Object.freeze({
   value,
   label: `UTC+${value}${value === 8 ? ' 北京时间' : ''}`,
 })));
+
+/** 时区写成「UTC+7:30」这样的钟点，用在提示语里；历史上的时区不都是整点或半点。 */
+export const formatUtcOffset = (value) => {
+  const totalMinutes = Math.round(Math.abs(value) * 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `UTC${value < 0 ? '−' : '+'}${hours}${minutes ? `:${String(minutes).padStart(2, '0')}` : ''}`;
+};
+
+/**
+ * 城市在出生那一刻实际用的时区（相对 UTC 的小时数）。
+ * 城市没有时区资料、出生日期早于资料靠得住的年份、或运行环境查不到时返回 null，调用方沿用城市现在的时区。
+ * @param {{zone?: string, zoneSince?: number}|null} place findBirthPlace 的结果
+ * @param {{year:number, month:number, day:number, hour?:number, minute?:number}|null} clock 出生地钟表时间（公历）
+ */
+export const historicalTimezoneOf = (place, clock) => {
+  if (!place?.zone || !clock || !Number.isInteger(clock.year) || clock.year < place.zoneSince) return null;
+  return getZoneOffsetHours(place.zone, clock);
+};
+
+/** 出生日期早于城市时区资料靠得住的年份：这时不自动换算，界面上提醒用户自己核对时区。 */
+export const isBeforeZoneRecord = (place, clock) => Boolean(place?.zone && clock && Number.isInteger(clock.year) && clock.year < place.zoneSince);
