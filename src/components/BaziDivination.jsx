@@ -24,6 +24,7 @@ import {
     INPUT_HINT_CLASS,
     INPUT_LABEL_CLASS,
     SEGMENT_CLASS,
+    SELECT_FIELD_CLASS,
     segmentButtonClass,
     wuxingText,
 } from './bazi/baziTheme';
@@ -42,6 +43,7 @@ import { ARCHIVE_GROUP_OPTIONS, buildBaziRecord, clearLastBaziRecord, findSameBa
 import { isChinaDst } from '../utils/trueSolarTime';
 import { CURRENT_PLACE_EVENT, readCurrentPlace, toLocalSolarNow } from '../utils/currentPlace';
 import { track } from '../utils/analytics';
+import PlaceProvinceOptions from './common/PlaceProvinceOptions';
 import PlaceSetting from './common/PlaceSetting';
 import {
     buildLiuRi,
@@ -1030,7 +1032,7 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                             {baziArchiveCandidates.length > 0 && (
                                 <div className="space-y-2">
                                     <label htmlFor="bazi-archive" className={INPUT_LABEL_CLASS}><FolderOpen className="size-3.5" aria-hidden="true" /> 从档案带入</label>
-                                    <select id="bazi-archive" value="" onChange={(event) => applyArchiveRecord(event.target.value)} className={`${INPUT_FIELD_CLASS} w-full cursor-pointer`}>
+                                    <select id="bazi-archive" value="" onChange={(event) => applyArchiveRecord(event.target.value)} className={`${SELECT_FIELD_CLASS} w-full`}>
                                         <option value="">选择已保存的命例…</option>
                                         {baziArchiveCandidates.map(({ record, form }) => (
                                             <option key={record.id} value={record.id}>
@@ -1054,13 +1056,13 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                     ))}
                                 </div>
                                 <div className="grid grid-cols-3 gap-2">
-                                    <select aria-label="出生年份" value={birthYear} onChange={(event) => changeBirthYear(Number(event.target.value))} className={`${INPUT_FIELD_CLASS} cursor-pointer text-center`}>
+                                    <select aria-label="出生年份" value={birthYear} onChange={(event) => changeBirthYear(Number(event.target.value))} className={`${SELECT_FIELD_CLASS} gsp-select--tight pl-1 text-center`}>
                                         {years.map((year) => <option key={year} value={year}>{year}年</option>)}
                                     </select>
-                                    <select aria-label="出生月份" value={activeMonth} onChange={(event) => changeBirthMonth(Number(event.target.value))} className={`${INPUT_FIELD_CLASS} cursor-pointer text-center`}>
+                                    <select aria-label="出生月份" value={activeMonth} onChange={(event) => changeBirthMonth(Number(event.target.value))} className={`${SELECT_FIELD_CLASS} gsp-select--tight pl-1 text-center`}>
                                         {monthOptions.map((month) => <option key={month.value} value={month.value}>{month.label}</option>)}
                                     </select>
-                                    <select aria-label="出生日期" value={activeDay} onChange={(event) => setBirthDay(Number(event.target.value))} className={`${INPUT_FIELD_CLASS} cursor-pointer text-center`}>
+                                    <select aria-label="出生日期" value={activeDay} onChange={(event) => setBirthDay(Number(event.target.value))} className={`${SELECT_FIELD_CLASS} gsp-select--tight pl-1 text-center`}>
                                         {days.map((day) => <option key={day} value={day}>{day}日</option>)}
                                     </select>
                                 </div>
@@ -1087,24 +1089,27 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
 
                                         <div className="space-y-2 rounded-xl border border-[#dcb471]/12 bg-black/20 p-3">
                                             <span className="flex items-center gap-1 text-xs font-bold text-[#dcb471]"><MapPin className="size-3.5" aria-hidden="true" /> 出生地（用于真太阳时）</span>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <select aria-label="出生省份" value={placeProvince} onChange={(event) => changePlaceProvince(event.target.value)} className={`${INPUT_FIELD_CLASS} cursor-pointer`}>
-                                                    <option value="">选择省份</option>
-                                                    {BIRTH_PROVINCES.map((item) => <option key={item.province} value={item.province}>{item.province}</option>)}
+                                            {/* 两个框上下排：并排时窄屏放不下「印度尼西亚」这样的名字，字会被箭头盖住。 */}
+                                            <div className="grid grid-cols-1 gap-2">
+                                                <select aria-label="出生省份" value={placeProvince} onChange={(event) => changePlaceProvince(event.target.value)} className={SELECT_FIELD_CLASS}>
+                                                    <option value="">选择国家／省份</option>
+                                                    <PlaceProvinceOptions />
                                                 </select>
-                                                <select aria-label="出生城市" value={placeCity} onChange={(event) => changePlaceCity(event.target.value)} disabled={!placeProvince} className={`${INPUT_FIELD_CLASS} cursor-pointer disabled:cursor-not-allowed disabled:opacity-50`}>
-                                                    <option value="">选择城市</option>
+                                                <select aria-label="出生城市" value={placeCity} onChange={(event) => changePlaceCity(event.target.value)} disabled={!placeProvince} className={`${SELECT_FIELD_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}>
+                                                    <option value="">{placeProvince ? '选择城市' : '先选国家／省份'}</option>
                                                     {placeCities.map((city) => <option key={city.name} value={city.name}>{city.name}</option>)}
                                                 </select>
                                             </div>
-                                            <div className="grid grid-cols-2 items-end gap-2">
+                                            <p className={INPUT_HINT_CLASS}>先选国家或省份，再选城市。列表里没有的地方，选最近的城市，或者直接填经度。</p>
+                                            {/* 手机上经度、时区各占一行：并排时「UTC+8 北京时间」放不下，时区框会伸到面板外面。 */}
+                                            <div className="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
                                                 <label className="block min-w-0">
                                                     <span className="block text-[11px] text-[#fbf7ed]/60">经度（°E，县区可微调）</span>
                                                     <input type="text" inputMode="decimal" aria-label="出生地经度" value={longitude} onChange={(event) => setLongitude(event.target.value)} placeholder="例如 115.65" aria-invalid={longitudeInvalid} className={`${INPUT_FIELD_CLASS} mt-1 w-full tabular-nums placeholder:text-[#fbf7ed]/30 ${longitudeInvalid ? 'border-[#d85a45]' : ''}`} />
                                                 </label>
-                                                <label className="block">
+                                                <label className="block min-w-0">
                                                     <span className="block text-[11px] text-[#fbf7ed]/60">时区</span>
-                                                    <select aria-label="出生地时区" value={effectiveTimezone} onChange={(event) => { setTimezone(Number(event.target.value)); setTimezoneAuto(false); }} className={`${INPUT_FIELD_CLASS} mt-1 cursor-pointer`}>
+                                                    <select aria-label="出生地时区" value={effectiveTimezone} onChange={(event) => { setTimezone(Number(event.target.value)); setTimezoneAuto(false); }} className={`${SELECT_FIELD_CLASS} mt-1 w-full`}>
                                                         {timezoneOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                                                     </select>
                                                 </label>
@@ -1162,10 +1167,10 @@ export default function BaziDivination({ onBack, initialRecord = null }) {
                                     </div>
                                 ) : (
                                     <>
-                                        <select id="bazi-hour" aria-label="出生时辰" value={birthHour} onChange={(event) => setBirthHour(Number(event.target.value))} className={`${INPUT_FIELD_CLASS} w-full cursor-pointer`}>
+                                        <select id="bazi-hour" aria-label="出生时辰" value={birthHour} onChange={(event) => setBirthHour(Number(event.target.value))} className={`${SELECT_FIELD_CLASS} w-full`}>
                                             {BAZI_HOUR_OPTIONS.map((option) => <option key={option.index} value={option.index}>{option.name}（{option.range}）</option>)}
                                         </select>
-                                        <p className={INPUT_HINT_CLASS}>只按时辰排盘时不做真太阳时校正。出生在时辰交界附近（如 6:40–7:20）时，建议改用精确时间。</p>
+                                        <p className={INPUT_HINT_CLASS}>只按时辰排盘时不做真太阳时校正，所以不用填出生地。出生在时辰交界附近（如 6:40–7:20）时，建议改选「精确到分钟」，那里可以选出生地。</p>
                                     </>
                                 )}
                             </div>
