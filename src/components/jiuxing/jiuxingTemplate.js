@@ -22,8 +22,8 @@ export const JIUXING_TEMPLATE = `
     <label for="jx-home-lat" class="custom-home" hidden>纬度<input type="number" id="jx-home-lat" step="0.0001" min="-85" max="85" placeholder="39.9042"></label>
     <label for="jx-home-lon" class="custom-home" hidden>经度<input type="number" id="jx-home-lon" step="0.0001" min="-180" max="180" placeholder="116.4074"></label>
     <span id="jx-sample" class="tag">示例，请改成你的资料</span>
+    <p class="hint echo" id="jx-birth-echo" aria-live="polite" hidden></p>
   </div>
-  <p class="hint echo" id="jx-birth-echo" aria-live="polite" hidden></p>
   <div class="who" id="jx-who"></div>
   <div class="pillars" id="jx-pillars"></div>
   <p class="note" id="jx-printed-note" hidden></p>
@@ -199,8 +199,8 @@ export const JIUXING_TEMPLATE = `
       </div>
       <label for="jx-other-gender">对方的性别<select id="jx-other-gender"><option value="">不填</option><option value="女">女</option><option value="男">男</option></select></label>
       <span id="jx-other-sample" class="tag">示例，请改成对方的生日</span>
+      <p class="hint echo" id="jx-other-birth-echo" aria-live="polite" hidden></p>
     </div>
-    <p class="hint echo" id="jx-other-birth-echo" aria-live="polite" hidden></p>
     <div id="jx-x-pair" class="flat"></div>
   </section>
 </div>

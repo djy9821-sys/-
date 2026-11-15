@@ -53,6 +53,7 @@ export function mountJiuxing(root, options = {}) {
   const lunarApi = options.lunar || null;
   const ZODIAC = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
   const BIRTH_MIN = '1900-02-05'; const BIRTH_MAX = '2060-12-31';
+  const LUNAR_START = { year: 1990, month: 1, day: 1 }; // 农历下拉框没有日子可摆时的起点
   const calKey = (id) => (id === 'birth' ? 'cal' : 'cal-other'); // 记住上次用哪种历法填；不是个人资料
   const calMode = {}; // 'birth' / 'other-birth' → 'solar' | 'lunar'
   const fillSelect = (select, items, value) => {
@@ -72,10 +73,18 @@ export function mountJiuxing(root, options = {}) {
     return { year: lunar.year, month: month.value, day };
   };
   const pickedLunar = (id) => ({ year: Number($(id + '-ly').value), month: Number($(id + '-lm').value), day: Number($(id + '-ld').value) });
+  /** 公历那一格里的日子换成农历；空着、填坏了、或不在能算的范围里，返回 null。 */
+  const lunarOfBirth = (id) => { const value = $(id).value; return parseYmd(value) && value >= BIRTH_MIN && value <= BIRTH_MAX ? lunarApi.fromSolar(value) : null; };
+  /** 把农历下拉框选的那一天写进公历那一格；换出来不在能算的范围里就清空。 */
+  const adoptLunar = (id) => {
+    const shown = showLunar(id, pickedLunar(id)); // 换了年或月，闰月和大小月跟着变
+    const solar = shown ? lunarApi.toSolar(shown.year, shown.month, shown.day) : null;
+    $(id).value = solar && solar >= BIRTH_MIN && solar <= BIRTH_MAX ? solar : '';
+  };
   /** 生日下面那一行：填公历时写出农历是哪天，填农历时写出按公历哪天算。 */
   const syncBirth = (id) => {
     if (!lunarApi) return;
-    const echo = $(id + '-echo'); const ymd = parseYmd($(id).value); const lunar = ymd ? lunarApi.fromSolar($(id).value) : null;
+    const echo = $(id + '-echo'); const lunar = lunarOfBirth(id); const ymd = parseYmd($(id).value);
     const lunarMode = calMode[id] === 'lunar';
     if (lunarMode && lunar) showLunar(id, lunar);
     const who = id === 'birth' ? '' : '对方';
@@ -83,32 +92,29 @@ export function mountJiuxing(root, options = {}) {
     else echo.textContent = lunar ? `${who}农历是 ${lunarApi.text(lunar)}。` : '';
     echo.hidden = !echo.textContent;
   };
+  /** 切换按哪种历法填。返回 true 表示公历那一格被改过了（见下），调用的人要接着重算。 */
   const setCalMode = (id, mode, remember) => {
     calMode[id] = mode; const lunarMode = mode === 'lunar';
     $(id).hidden = lunarMode; $(id + '-lunar').hidden = !lunarMode;
     $(id + '-cap').textContent = `${id === 'birth' ? '出生日期' : '对方的出生日期'}（${lunarMode ? '农历' : '公历'}）`;
     $(id + '-cal').querySelectorAll('button').forEach((btn) => btn.setAttribute('aria-pressed', String(btn.dataset.cal === mode)));
     if (remember) store.set(calKey(id), mode);
-    // 公历那一格是空的或填坏了：先把下拉框摆在一个起点上，等人来选。
-    if (lunarMode && !lunarApi.fromSolar($(id).value)) showLunar(id, { year: 1990, month: 1, day: 1 });
+    // 下拉框不能空着：公历那一格没有能用的日子时，摆在一个起点上，就按下拉框上写的这一天算，等人来改。
+    const moved = lunarMode && !lunarOfBirth(id);
+    if (moved) { showLunar(id, LUNAR_START); adoptLunar(id); }
     syncBirth(id);
+    return moved;
   };
   /** 接上「公历 / 农历」的切换和农历的三个下拉框。onChange 是生日变了以后要做的事（和直接改公历那一格一样）。 */
   const bindBirth = (id, onChange) => {
     if (!lunarApi) return;
     $(id + '-cal').hidden = false;
-    fillSelect($(id + '-ly'), Array.from({ length: 161 }, (_, i) => 1900 + i).map((y) => [`${y} ${ganzhi(y)}（${ZODIAC[mod(y - 4, 12)]}）`, y]), 1990);
+    fillSelect($(id + '-ly'), Array.from({ length: 161 }, (_, i) => 1900 + i).map((y) => [`${y} ${ganzhi(y)}（${ZODIAC[mod(y - 4, 12)]}）`, y]), LUNAR_START.year);
     $(id + '-cal').addEventListener('click', (event) => {
       const btn = event.target.closest('[data-cal]');
-      if (btn && btn.dataset.cal !== calMode[id]) setCalMode(id, btn.dataset.cal, true);
+      if (btn && btn.dataset.cal !== calMode[id] && setCalMode(id, btn.dataset.cal, true)) onChange();
     });
-    const onLunar = () => {
-      const shown = showLunar(id, pickedLunar(id)); // 换了年或月，闰月和大小月跟着变
-      const solar = shown ? lunarApi.toSolar(shown.year, shown.month, shown.day) : null;
-      $(id).value = solar && solar >= BIRTH_MIN && solar <= BIRTH_MAX ? solar : '';
-      onChange();
-    };
-    for (const part of ['-ly', '-lm', '-ld']) $(id + part).addEventListener('change', onLunar);
+    for (const part of ['-ly', '-lm', '-ld']) $(id + part).addEventListener('change', () => { adoptLunar(id); onChange(); });
     setCalMode(id, store.get(calKey(id)) === 'lunar' ? 'lunar' : 'solar', false);
   };
 

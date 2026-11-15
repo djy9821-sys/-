@@ -35,7 +35,8 @@
 .jx .cal button { min-width: 44px; min-height: 30px; padding: 2px 10px; border: 0; background: none; color: var(--muted); font-size: 13px; }
 .jx .cal button[aria-pressed="true"] { background: var(--accent); color: var(--surface); font-weight: 600; }
 .jx .lunar { display: flex; flex-wrap: wrap; gap: 6px; }
-.jx .echo { margin-top: -6px; }
+/* 换算出来的那一行：宽屏排在这一排的最后，单占一行；手机上紧跟在生日下面（见下面的窄屏规则） */
+.jx .row > .echo { flex-basis: 100%; margin-top: -6px; }
 .jx .tag { display: inline-block; font-size: 12px; padding: 1px 7px; border-radius: 3px; background: var(--warn-weak); color: var(--warn); align-self: center; }
 .jx .pill { font-size: 12px; padding: 1px 8px; border-radius: 999px; white-space: nowrap; background: var(--surface); border: 1px solid var(--line); color: var(--ink); }
 .jx .pill.ok { background: var(--ok-weak); color: var(--ok); border-color: transparent; }
@@ -268,5 +269,7 @@
   .jx .lunar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .jx .lunar select { width: 100%; }
   .jx .lunar select:first-child { grid-column: 1 / -1; }
+  .jx .row > .birth ~ * { order: 2; }
+  .jx .row > .birth ~ .echo { order: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .jx * { scroll-behavior: auto !important; } }
