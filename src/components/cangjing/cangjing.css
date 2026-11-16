@@ -83,10 +83,16 @@
 .cjg-stitch i:nth-child(2) { top: 36%; }
 .cjg-stitch i:nth-child(3) { top: 64%; }
 .cjg-stitch i:nth-child(4) { top: 91%; }
-.cjg-slip { position: absolute; top: 8%; bottom: 14%; left: 11%; display: flex; align-items: flex-start; justify-content: center; width: 31%; min-width: 26px; padding: 8px 0; overflow: hidden; border: 1px solid rgba(28, 38, 34, 0.5); color: var(--cjg-paper-ink); background: linear-gradient(180deg, var(--cjg-paper-hi), var(--cjg-paper)); box-shadow: 0 0 0 2px var(--cjg-paper-hi), 0 0 0 3px rgba(28, 38, 34, 0.35); font-family: var(--cjg-display); font-size: clamp(15px, 4.2vw, 19px); letter-spacing: 0.08em; line-height: 1.12; writing-mode: vertical-rl; }
-.cjg-slip.is-long { font-size: clamp(12.5px, 3.4vw, 15.5px); letter-spacing: 0.02em; }
-.cjg-book:hover .cjg-cover,
+/* 题签上的书名竖着排，但不用 writing-mode：iOS 上（微信、Safari 都是 WebKit）竖排的弹性盒把字往右挪了半个字，
+   右半边被题签切掉。改成一个字宽的横排，一行只放得下一个字，自然一字一行；题签用横排的弹性盒把这一列放在正中。 */
+.cjg-slip { position: absolute; top: 8%; bottom: 14%; left: 11%; display: flex; align-items: center; justify-content: center; width: 31%; min-width: 26px; padding: 8px 0; overflow: hidden; border: 1px solid rgba(28, 38, 34, 0.5); color: var(--cjg-paper-ink); background: linear-gradient(180deg, var(--cjg-paper-hi), var(--cjg-paper)); box-shadow: 0 0 0 2px var(--cjg-paper-hi), 0 0 0 3px rgba(28, 38, 34, 0.35); font-family: var(--cjg-display); font-size: clamp(15px, 4.2vw, 19px); line-height: 1.08; }
+.cjg-slip-text { display: block; width: 1em; text-align: center; word-break: break-all; overflow-wrap: anywhere; }
+.cjg-slip.is-long { font-size: clamp(12.5px, 3.4vw, 15.5px); line-height: 1.02; }
+/* 书侧过来一点：只在有鼠标的设备上随悬停出现（手机上点过、划过的书不会一直歪着）；待入藏的书不能点，不歪。 */
 .cjg-book:focus-visible .cjg-cover { box-shadow: 0 18px 30px rgba(0, 0, 0, 0.55); transform: translateY(-5px) rotateY(-9deg); }
+@media (hover: hover) and (pointer: fine) {
+  .cjg-book:not(.is-waiting):hover .cjg-cover { box-shadow: 0 18px 30px rgba(0, 0, 0, 0.55); transform: translateY(-5px) rotateY(-9deg); }
+}
 .cjg-book-meta { display: grid; gap: 1px; min-width: 0; }
 .cjg-book-meta b { color: var(--cjg-paper-hi); font-family: var(--cjg-display); font-size: 15px; font-weight: 500; }
 .cjg-book-meta span { color: var(--cjg-mist-dim); font-size: 11.5px; line-height: 1.45; }
@@ -113,7 +119,8 @@
 
 /* 一本书：题名与目录 */
 .cjg-book-head { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--cjg-paper-line); }
-.cjg-book-title { max-height: 300px; margin: 0; color: var(--cjg-paper-ink); font-family: var(--cjg-display); font-size: clamp(34px, 9vw, 46px); font-weight: 500; letter-spacing: 0.12em; line-height: 1.15; writing-mode: vertical-rl; }
+/* 书名也是一字一行的横排，理由同题签。 */
+.cjg-book-title { width: 1em; margin: 0; color: var(--cjg-paper-ink); font-family: var(--cjg-display); font-size: clamp(34px, 9vw, 46px); font-weight: 500; line-height: 1.12; text-align: center; word-break: break-all; overflow-wrap: anywhere; }
 .cjg-book-info { display: grid; gap: 8px; min-width: 0; }
 .cjg-book-info p { margin: 0; color: var(--cjg-paper-soft); font-size: 14px; }
 .cjg-book-info .cjg-author { color: var(--cjg-paper-ink); font-family: var(--cjg-kai); font-size: 16px; }
