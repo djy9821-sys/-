@@ -122,7 +122,9 @@ const initialViewFromLocation = () => {
   return view === 'chart' ? 'input' : view;
 };
 
-const WELCOME_COVER_KEY = 'gushupai-welcome-cover-seen-v1';
+// 封面每次打开网站都放一遍。这一次点进去以后，同一个标签页里刷新不再重放：
+// 记在 sessionStorage 里，关掉标签页或重新打开 App 就清了，下次打开照样放。
+const WELCOME_COVER_SESSION_KEY = 'gushupai-welcome-cover-dismissed';
 
 const FORTUNE_KEYWORDS_BY_PALACE = Object.freeze({
   '命宫': ['定心', '取舍', '自省'],
@@ -341,9 +343,9 @@ export default function App() {
     // 直接打开某个功能的链接（如 #/bazi）时不显示封面。
     if (initialViewFromLocation() !== 'home') return false;
     try {
-      return globalThis.localStorage?.getItem(WELCOME_COVER_KEY) !== 'seen';
+      return globalThis.sessionStorage?.getItem(WELCOME_COVER_SESSION_KEY) !== '1';
     } catch {
-      return false;
+      return true;
     }
   });
   const [calendarType, setCalendarType] = useState('solar');
@@ -1207,7 +1209,7 @@ export default function App() {
 
   const leaveWelcomeCover = (nextView = 'home') => {
     try {
-      globalThis.localStorage?.setItem(WELCOME_COVER_KEY, 'seen');
+      globalThis.sessionStorage?.setItem(WELCOME_COVER_SESSION_KEY, '1');
     } catch {
       // Storage can be unavailable in private browsing. The in-memory state
       // still lets the user continue normally for this visit.
