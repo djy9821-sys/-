@@ -26,15 +26,18 @@ test('启动封面只留两扇门：问命进首页，藏经阁读原典', async
   assert.match(app, /view === 'cangjing' \?/);
 });
 
-test('封面仅首次展示，退出后保留原有首页状态机', async () => {
+test('封面每次打开网站都放；这一次点进去后同一标签页刷新不重放；退出后保留原有首页状态机', async () => {
   const source = await readProjectFile('src/App.jsx');
 
-  assert.match(source, /gushupai-welcome-cover-seen-v1/);
+  // 不再按「本机看过」跳过封面：只记这个标签页里点进去过没有（sessionStorage，关掉标签页就清了）。
+  assert.match(source, /const WELCOME_COVER_SESSION_KEY = 'gushupai-welcome-cover-dismissed';/);
+  assert.match(source, /globalThis\.sessionStorage\?\.getItem\(WELCOME_COVER_SESSION_KEY\) !== '1'/);
+  assert.match(source, /globalThis\.sessionStorage\?\.setItem\(WELCOME_COVER_SESSION_KEY, '1'\)/);
+  assert.doesNotMatch(source, /localStorage\?\.(?:get|set)Item\(WELCOME_COVER/);
   // 默认进入首页；带 #/bazi 等地址打开时直接进入对应功能，不显示封面。
   assert.match(source, /const \[view, setView\] = useState\(initialViewFromLocation\)/);
   assert.match(source, /viewFromHash\(globalThis\.location\?\.hash\)/);
   assert.match(source, /if \(initialViewFromLocation\(\) !== 'home'\) return false;/);
-  assert.match(source, /globalThis\.localStorage\?\.getItem\(WELCOME_COVER_KEY\) !== 'seen'/);
   assert.match(source, /<WelcomeCover[\s\S]*?onEnter=\{\(\) => leaveWelcomeCover\('home'\)\}[\s\S]*?onNavigate=\{leaveWelcomeCover\}/);
   assert.match(source, /查看品牌封面/);
 });
