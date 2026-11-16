@@ -142,7 +142,9 @@ export const mountCangjing = (root, options = {}) => {
     if (!waiting) { button.type = 'button'; button.dataset.book = book.key; button.setAttribute('aria-label', `《${classic.title}》，${book.chapters.length} 篇 ${book.entries} 条`); }
     const cover = el('span', 'cjg-cover');
     const stitch = el('span', 'cjg-stitch'); for (let i = 0; i < 4; i++) stitch.append(el('i'));
-    cover.append(el('span', `cjg-slip${classic.title.length >= 6 ? ' is-long' : ''}`, classic.title), stitch);
+    const slip = el('span', `cjg-slip${classic.title.length >= 6 ? ' is-long' : ''}`);
+    slip.append(el('span', 'cjg-slip-text', classic.title));
+    cover.append(slip, stitch);
     const meta = el('span', 'cjg-book-meta');
     meta.append(el('b', '', classic.title), el('span', '', classic.author), el('em', '', waiting ? '待入藏' : `${book.chapters.length} 篇 · ${fmt(book.entries)} 条`));
     button.append(cover, meta);
