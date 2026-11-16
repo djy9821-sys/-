@@ -106,3 +106,58 @@ test('首页有藏经阁的入口，手机「更多」里也有', async ({ page,
   await expect(page).toHaveURL(/#\/cangjing$/);
   await expect(page.locator('[data-panel="shelf"] button.cjg-book').first()).toBeVisible();
 });
+
+test('书架：题签上的书名一字一行、居中、不被切；手机上点过待入藏的书不歪', async ({ page, isMobile }) => {
+  await skipWelcomeCover(page);
+  await page.goto('/#/cangjing');
+  const slips = page.locator('.cjg-slip');
+  await expect(slips.first()).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+
+  // 每张题签：不用竖排的 writing-mode（iOS 上会把字挪出题签），字一行一个，整列在题签正中，四边都在题签里面。
+  const measured = await slips.evaluateAll((nodes) => nodes.map((slip) => {
+    const box = slip.getBoundingClientRect();
+    const text = slip.querySelector('.cjg-slip-text');
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    const rects = [...range.getClientRects()].filter((r) => r.width > 0);
+    const left = Math.min(...rects.map((r) => r.left));
+    const right = Math.max(...rects.map((r) => r.right));
+    return {
+      title: text.textContent,
+      writingMode: getComputedStyle(slip).writingMode,
+      lines: new Set(rects.map((r) => Math.round(r.top))).size,
+      inside: left >= box.left && right <= box.right && Math.min(...rects.map((r) => r.top)) >= box.top && Math.max(...rects.map((r) => r.bottom)) <= box.bottom,
+      offCenter: Math.abs((left + right) / 2 - (box.left + box.right) / 2),
+    };
+  }));
+  expect(measured.length).toBeGreaterThan(5);
+  for (const slip of measured) {
+    expect(slip.writingMode, slip.title).toBe('horizontal-tb');
+    expect(slip.lines, slip.title).toBe([...slip.title].length);
+    expect(slip.inside, slip.title).toBe(true);
+    expect(slip.offCenter, slip.title).toBeLessThanOrEqual(1);
+  }
+
+  // 待入藏的书不能点：划过、点过都不侧过来。有鼠标时，能请出来的书悬停才侧一点。
+  const waiting = page.locator('.cjg-book.is-waiting').first();
+  await waiting.scrollIntoViewIfNeeded();
+  if (isMobile) await waiting.tap(); else await waiting.hover();
+  await expect(waiting.locator('.cjg-cover')).toHaveCSS('transform', 'none');
+  if (!isMobile) {
+    const book = page.locator('button.cjg-book').first();
+    await book.hover();
+    await expect(book.locator('.cjg-cover')).not.toHaveCSS('transform', 'none');
+  }
+
+  // 书页上的大书名同样一字一行。
+  await page.locator('button.cjg-book[data-book="ditian"]').click();
+  const title = page.locator('.cjg-book-title');
+  await expect(title).toHaveText('滴天髓');
+  const titleLines = await title.evaluate((node) => {
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    return { writingMode: getComputedStyle(node).writingMode, lines: new Set([...range.getClientRects()].filter((r) => r.width > 0).map((r) => Math.round(r.top))).size };
+  });
+  expect(titleLines).toEqual({ writingMode: 'horizontal-tb', lines: 3 });
+});
