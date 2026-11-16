@@ -1,16 +1,16 @@
 // e2e 共用小工具：跳过封面、拦截剪贴板与分享面板、读出页面复制的文字。
 import { expect } from '@playwright/test';
 
-export const WELCOME_COVER_KEY = 'gushupai-welcome-cover-seen-v1';
+export const WELCOME_COVER_SESSION_KEY = 'gushupai-welcome-cover-dismissed';
 
-/** 首页封面只在第一次访问显示；大多数测试直接跳过它。 */
+/** 首页封面每次打开网站都会放；大多数测试直接跳过它（当作这个标签页里已经点进去过）。 */
 export const skipWelcomeCover = (page) => page.addInitScript((key) => {
   try {
-    window.localStorage.setItem(key, 'seen');
+    window.sessionStorage.setItem(key, '1');
   } catch {
-    // 无痕模式下忽略
+    // 无痕模式或空白页下忽略
   }
-}, WELCOME_COVER_KEY);
+}, WELCOME_COVER_SESSION_KEY);
 
 /**
  * 把 navigator.clipboard.writeText 换成记录器、去掉 navigator.share，
