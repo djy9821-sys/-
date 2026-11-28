@@ -15,7 +15,7 @@ export const CLASSICS = Object.freeze({
   xieji: Object.freeze({ key: 'xieji', title: '协纪辨方书', author: '清·允禄等奉敕纂', module: 'bazi', note: '清代官修的择日书，汇考建除、黄道黑道和各种年月日时神煞的起例；红鸾、天喜只见于卷三十五附录和卷三十六辨讹。' }),
   ziwei: Object.freeze({ key: 'ziwei', title: '紫微斗数全书', author: '旧题宋·陈希夷撰，明·罗洪先辑', module: 'ziwei', note: '紫微斗数安星、诸格、星曜庙旺的源头。', edition: '明万历刻本系统的通行本，以维基文库录文为底本，繁体转简体后逐字核对，部分篇目参校其他公版电子文本。' }),
   jingfang: Object.freeze({ key: 'jingfang', title: '京氏易传', author: '汉·京房', module: 'liuyao', note: '八宫卦序、纳甲、世应、六亲的源头。' }),
-  bushi: Object.freeze({ key: 'bushi', title: '卜筮正宗', author: '清·王洪绪', module: 'liuyao', note: '六爻装卦与断法的通行教本，八宫卦、伏神表、六神起例皆备。' }),
+  bushi: Object.freeze({ key: 'bushi', title: '卜筮正宗', author: '清·王洪绪', module: 'liuyao', note: '六爻装卦与断法的通行教本，八宫卦、伏神表、六神起例皆备。', edition: '据哈佛燕京图书馆藏乾隆丁未（1787）金阊绿荫堂重镌本逐叶录文，繁体转简体，标点为整理者所加；卦图、卦式照底本用〔〕写明图上的字，看不清和疑误的字照录，写进存疑。' }),
   zengshan: Object.freeze({ key: 'zengshan', title: '增删卜易', author: '清·野鹤老人撰，李文辉增删', module: 'liuyao', note: '以实占验证的六爻断法，用神、旬空、月破、进退神、反吟伏吟等章最常引用。', edition: '据中国国家图书馆藏民国十四年（1925）文明书局《增删卜易》影印本逐页核录，繁体转简体；卦图留在底本，不改写成正文。' }),
   meihua: Object.freeze({ key: 'meihua', title: '梅花易数', author: '旧题宋·邵雍', module: 'liuyao', note: '时间起卦、报数起卦与体用断法的出处。' }),
 });

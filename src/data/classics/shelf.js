@@ -23,6 +23,10 @@ export const DOC_ORDER = Object.freeze([
   'ziping-ganzhi', 'ziping-yongshen', 'ziping-chengbai', 'ziping-xingyun', 'ziping-bage',
   // 《增删卜易》：卷一二总论 → 卷三黄金策 → 各门占法
   'zengshan-zonglun', 'zengshan-huangjin', 'zengshan-zhanfa-1', 'zengshan-zhanfa-2', 'zengshan-zhanfa-3',
+  // 《卜筮正宗》：卷首序 → 卷一启蒙 → 卷二卦爻 → 卷三十八论、辟谬 → 卷四千金赋 → 卷五至十二黄金策 → 卷十三、十四十八问答
+  'bushi-xu', 'bushi-qimeng', 'bushi-guayao', 'bushi-shibalun', 'bushi-pimiu', 'bushi-qianjin',
+  'bushi-huangjin-5', 'bushi-huangjin-6', 'bushi-huangjin-7', 'bushi-huangjin-8', 'bushi-huangjin-9', 'bushi-huangjin-10',
+  'bushi-huangjin-11', 'bushi-huangjin-12', 'bushi-wenda-13', 'bushi-wenda-14',
   // 《紫微斗数全书》卷一开头几篇
   'quanshu-taiwei-fu', 'quanshu-xingxing-fu', 'quanshu-xingyuan-lun', 'quanshu-doushu-zhunsheng',
   'quanshu-doushu-fawei-lun', 'quanshu-chongbu-doushu-goulv', 'quanshu-zengbu-taiwei-fu', 'quanshu-zhuxing-wenda',
