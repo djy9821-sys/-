@@ -27,6 +27,10 @@ export const DOC_ORDER = Object.freeze([
   'bushi-xu', 'bushi-qimeng', 'bushi-guayao', 'bushi-shibalun', 'bushi-pimiu', 'bushi-qianjin',
   'bushi-huangjin-5', 'bushi-huangjin-6', 'bushi-huangjin-7', 'bushi-huangjin-8', 'bushi-huangjin-9', 'bushi-huangjin-10',
   'bushi-huangjin-11', 'bushi-huangjin-12', 'bushi-wenda-13', 'bushi-wenda-14',
+  // 《京氏易传》：卷上乾震坎艮四宫 → 卷中坤巽离兑四宫 → 卷下总论与跋
+  'jingfang-shang', 'jingfang-zhong', 'jingfang-xia',
+  // 《协纪辨方书》选录：卷四建除 → 卷七黄道黑道、天乙贵人 → 卷三十五附录 → 卷三十六辨讹
+  'xieji-4', 'xieji-7', 'xieji-35', 'xieji-36',
   // 《紫微斗数全书》卷一开头几篇
   'quanshu-taiwei-fu', 'quanshu-xingxing-fu', 'quanshu-xingyuan-lun', 'quanshu-doushu-zhunsheng',
   'quanshu-doushu-fawei-lun', 'quanshu-chongbu-doushu-goulv', 'quanshu-zengbu-taiwei-fu', 'quanshu-zhuxing-wenda',
