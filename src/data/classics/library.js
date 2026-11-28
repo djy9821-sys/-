@@ -128,6 +128,22 @@ export const entriesOfClassic = (library, classicKey) => (library?.entries ?? []
 const normalizeValue = (key, value) => (key === 'palace' || key === 'doujun' ? (ZIWEI_PALACE_ALIASES[value] ?? value) : value);
 
 /**
+ * 条件里的庙旺该看哪几颗星：先看 star，再看 stars、allStars（「贪狼入庙遇火铃」写 star 贪狼、stars 火铃，庙旺归贪狼）；
+ * 没点星而写了四化的（「科权陷于凶乡」），看带这几种四化的星；什么都没点的返回 null，庙旺按整宫判。
+ * 空宫借来的对宫星只借名字，不带庙旺（见 ziweiPalaceContextOf），所以借来的星配不上庙旺。
+ */
+const brightnessStarsOf = (cond, ctx) => {
+  for (const key of ['star', 'stars', 'allStars']) {
+    if (cond[key] !== undefined) return toArray(cond[key]).map(String);
+  }
+  const mutagens = [...toArray(cond.mutagen), ...toArray(cond.mutagenAll)].map(String);
+  if (mutagens.length) {
+    return toArray(ctx.starMutagen).map(String).filter((pair) => mutagens.includes(pair.split('|')[1])).map((pair) => pair.split('|')[0]);
+  }
+  return null;
+};
+
+/**
  * 一个条件是否被上下文满足。返回命中的键值对（供界面说明），不满足返回 null。
  * @param {object} cond applies 里的一个条件
  * @param {object} ctx 上下文：{ module, pattern: [...], tenGod: [...], … }（值可以是字符串或数组）
@@ -150,6 +166,17 @@ export const conditionMatches = (cond, ctx) => {
       if (!wanted.every((value) => ctxValues.includes(value))) return null;
       matched.push({ key: ctxKey, value: wanted.join('、') });
       continue;
+    }
+    if (key === 'brightness' && toArray(ctx.starBrightness).length) {
+      // 庙旺跟同一条件点名的星配对：「七杀落陷」要七杀自己落陷，宫里别的星落陷不算；没点星的才看整宫。
+      const named = brightnessStarsOf(cond, ctx);
+      if (named) {
+        const pairs = toArray(ctx.starBrightness);
+        const hit = wanted.find((value) => named.some((name) => pairs.includes(`${name}|${value}`)));
+        if (hit === undefined) return null;
+        matched.push({ key: ctxKey, value: hit });
+        continue;
+      }
     }
     if (key === 'jia') {
       // 上下文的 jia 是左右两邻各取一颗配成的「甲|乙」对（两个次序都有）。
@@ -353,12 +380,13 @@ export const baziLiuqinHits = (library, ctx, liuqin, options = {}) => {
 
 /**
  * 紫微上下文：传入当前关心的星曜与宫位即可（匹配引擎本身不依赖 iztro）。
- * @param {{ stars?: string[], jia?: string[], meet?: string[], meetMutagens?: string[], palace?: string|string[], branches?: string[], brightness?: string[], mutagens?: string[], patterns?: string[], limit?: string, gender?: string, borrowedStars?: string[], empty?: boolean, yearGan?: string|null, yearZhi?: string|null, bureau?: string|null, hourZhi?: string|null, flow?: object|null, doujun?: string|null }} input
+ * @param {{ stars?: string[], jia?: string[], meet?: string[], meetMutagens?: string[], palace?: string|string[], branches?: string[], brightness?: string[], starBrightness?: string[], mutagens?: string[], starMutagens?: string[], patterns?: string[], limit?: string, gender?: string, borrowedStars?: string[], empty?: boolean, yearGan?: string|null, yearZhi?: string|null, bureau?: string|null, hourZhi?: string|null, flow?: object|null, doujun?: string|null }} input
  *   palace 可以给多个（身宫与命宫同宫时给 ['命宫', '身宫']）；meet：三方四正（对宫与两个三合宫）里的星，本宫的星会自动并进去；
  *   borrowedStars：空宫借的对宫主星；empty：宫里没有主星；yearGan / yearZhi：生年干支（《全书》「壬甲生人」「寅午戌生人」的条件用）；
- *   bureau：五行局（「金人遇坎」「土到东南」的条件用）；hourZhi：生时地支（「生在六阳时」的条件用）。
+ *   bureau：五行局（「金人遇坎」「土到东南」的条件用）；hourZhi：生时地支（「生在六阳时」的条件用）；
+ *   starBrightness / starMutagens：每颗星自己的庙旺与四化，写成「星名|庙旺」「星名|化」（ziweiPalaceContextOf 会给；不给时庙旺按整宫判）。
  */
-export const ziweiContextOf = ({ stars = [], jia = [], meet = [], meetMutagens = [], palace = null, branches = [], brightness = [], mutagens = [], patterns = [], limit = null, gender = null, borrowedStars = [], empty = false, yearGan = null, yearZhi = null, bureau = null, hourZhi = null, flow = null, doujun = null } = {}) => {
+export const ziweiContextOf = ({ stars = [], jia = [], meet = [], meetMutagens = [], palace = null, branches = [], brightness = [], starBrightness = [], mutagens = [], starMutagens = [], patterns = [], limit = null, gender = null, borrowedStars = [], empty = false, yearGan = null, yearZhi = null, bureau = null, hourZhi = null, flow = null, doujun = null } = {}) => {
   const flowStars = unique(toArray(flow?.stars));
   const flowMeet = unique(toArray(flow?.meet));
   const flowMutagens = unique(toArray(flow?.mutagens));
@@ -375,8 +403,12 @@ export const ziweiContextOf = ({ stars = [], jia = [], meet = [], meetMutagens =
     palace: unique(toArray(palace).map((name) => ZIWEI_PALACE_ALIASES[name] ?? name)),
     branches: unique(branches),
     brightness: unique(brightness),
+    // 每颗星自己的庙旺（「紫微|旺」）：条件点了星又写庙旺时，庙旺只认点名的那颗星（见 conditionMatches）。
+    starBrightness: unique(starBrightness),
     // 生年四化，运限层再加该层四化落在本宫的（流年化忌之类）。
     mutagen: unique([...mutagens, ...flowMutagens]),
+    // 每颗星带的四化（「七杀|权」；看运限层时再加该层四化到的）：「科权陷于凶乡」这类条件，庙旺看带化科、化权的那颗星。
+    starMutagen: unique([...starMutagens, ...toArray(flow?.starMutagens)]),
     // 本宫连三方四正里的生年四化（「科权拱」「权禄巡逢」），给 meetMutagen / meetMutagenAll 用。
     meetMutagen: unique([...mutagens, ...flowMutagens, ...meetMutagens]),
     pattern: unique(toArray(patterns).flatMap(ziweiPatternNamesOf)),
@@ -414,7 +446,7 @@ export const ziweiFlowStarName = (name) => {
 
 /**
  * 运限层（排盘库 horoscope().decadal / yearly：stars 按宫 index 列流曜，mutagen 列该层禄权科忌四星）飞到某一宫及其三方四正的流曜与四化：
- * { stars：落在这一宫的流曜（对回本命星名），meet：落在三方四正的，mutagens：这一宫本命星被该层四化到的「禄」「权」「科」「忌」 }。
+ * { stars：落在这一宫的流曜（对回本命星名），meet：落在三方四正的，mutagens：这一宫本命星被该层四化到的「禄」「权」「科」「忌」，starMutagens：同上写成「星名|化」 }。
  * @param {{ stars?: object[][], mutagen?: string[] }|null} scope
  * @param {object|null} palace 这一宫（iztro 宫对象，用 index）
  * @param {object[]|null} [surround] 三方四正的宫（ziweiSurroundOf）
@@ -424,11 +456,13 @@ export const ziweiFlowOf = (scope, palace, surround = null) => {
   const rawAt = (index) => (Array.isArray(scope.stars?.[index]) ? scope.stars[index] : []).map((star) => star?.name).filter(Boolean);
   const namesAt = (index) => rawAt(index).map(ziweiFlowStarName).filter(Boolean);
   const natalNames = [...(palace.majorStars ?? []), ...(palace.minorStars ?? [])].map((star) => star?.name).filter(Boolean);
-  const mutagens = (Array.isArray(scope.mutagen) ? scope.mutagen : []).map((star, i) => (natalNames.includes(star) ? ZIWEI_MUTAGENS[i] : null)).filter(Boolean);
+  const flown = (Array.isArray(scope.mutagen) ? scope.mutagen : []).map((star, i) => (natalNames.includes(star) ? [star, ZIWEI_MUTAGENS[i]] : null)).filter(Boolean);
   return {
     stars: unique(namesAt(palace.index)),
     meet: unique((surround ?? []).flatMap((item) => namesAt(item?.index))),
-    mutagens: unique(mutagens),
+    mutagens: unique(flown.map(([, name]) => name)),
+    // 哪颗星被这一层四化到（「七杀|忌」），庙旺跟四化配对时用。
+    starMutagens: unique(flown.map(([star, name]) => `${star}|${name}`)),
     // 排盘库原名（流羊、运昌……），本宫的与三方四正的分开给。
     names: unique(rawAt(palace.index)),
     meetNames: unique((surround ?? []).flatMap((item) => rawAt(item?.index))),
@@ -538,7 +572,9 @@ export const ziweiPalaceContextOf = (palace, { gender = null, limit = '本命', 
     palace: palaceNames.filter(Boolean),
     branches: [palace.earthlyBranch],
     brightness: starList.map((star) => star.brightness).filter(Boolean),
+    starBrightness: starList.filter((star) => star.brightness).map((star) => `${star.name}|${star.brightness}`),
     mutagens: starList.map((star) => mutagenNameOf(star.mutagen)).filter(Boolean),
+    starMutagens: starList.map((star) => [star.name, mutagenNameOf(star.mutagen)]).filter(([, name]) => name).map(([star, name]) => `${star}|${name}`),
     patterns,
     limit,
     gender: gender === 'female' || gender === '女' ? '女' : gender === 'male' || gender === '男' ? '男' : null,
