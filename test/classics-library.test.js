@@ -243,7 +243,7 @@ test('紫微：从排盘结果的一个宫生成上下文（主辅杂曜都算�
   const ctx = ziweiPalaceContextOf(palace, { gender: 'female' });
   assert.deepEqual(ctx, {
     module: 'ziwei', star: ['紫微', '七杀', '文曲', '天巫', '天官'], jia: [], meet: ['紫微', '七杀', '文曲', '天巫', '天官'], palace: ['命宫', '身宫'], branches: ['亥'],
-    brightness: ['旺', '平'], mutagen: ['权', '忌'], meetMutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女', yearGan: null, yearZhi: null, bureau: null, hourZhi: null, doujun: [], borrowedStars: [], empty: [],
+    brightness: ['旺', '平'], starBrightness: ['紫微|旺', '七杀|平'], mutagen: ['权', '忌'], starMutagen: ['七杀|权', '文曲|忌'], meetMutagen: ['权', '忌'], pattern: [], limit: '本命', gender: '女', yearGan: null, yearZhi: null, bureau: null, hourZhi: null, doujun: [], borrowedStars: [], empty: [],
     flowStars: [], flowMutagens: [], flow: [], natalStars: ['紫微', '七杀', '文曲', '天巫', '天官'], natalMeet: ['紫微', '七杀', '文曲', '天巫', '天官'], natalMutagens: ['权', '忌'],
   });
   assert.deepEqual(ziweiPalaceContextOf({ name: '交友', earthlyBranch: '辰', majorStars: [] }, { gender: '男' }).palace, ['仆役']);
@@ -406,7 +406,7 @@ test('运限层的流曜与四化：流羊算擎羊、运昌算文昌，落在�
   scope.stars[3] = [{ name: '流陀' }];
   const palace = palaces[6];
   const flow = ziweiFlowOf(scope, palace, ziweiSurroundOf(palaces, palace));
-  assert.deepEqual(flow, { stars: ['文昌'], meet: ['擎羊', '年解'], mutagens: ['忌'], names: ['流昌'], meetNames: ['流羊', '年解'] });
+  assert.deepEqual(flow, { stars: ['文昌'], meet: ['擎羊', '年解'], mutagens: ['忌'], starMutagens: ['七杀|忌'], names: ['流昌'], meetNames: ['流羊', '年解'] });
   assert.equal(ziweiFlowOf(null, palace), null);
   const ctx = ziweiPalaceContextOf(palace, { limit: '流年', surround: ziweiSurroundOf(palaces, palace), flow });
   assert.deepEqual(ctx.star, ['七杀', '文昌']);
